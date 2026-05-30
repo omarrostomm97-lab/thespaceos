@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { sessionsTable, assetsTable, usersTable } from "@workspace/db";
+import { sessionsTable, assetsTable, usersTable, paymentsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
@@ -189,6 +189,8 @@ router.post("/sessions/:sessionId/resume", requireAuth, requireTenant, async (re
 router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, res) => {
   try {
     const id = parseInt(req.params.sessionId);
+    const { paymentMethod, skipPaymentCheck } = req.body;
+
     const [s] = await db.select().from(sessionsTable)
       .where(and(eq(sessionsTable.id, id), eq(sessionsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -205,15 +207,47 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, 
     }
     const totalMinutes = calcMinutes(s.startedAt, s.pausedAt, new Date(), pausedDuration + extraPause);
     const totalCost = (totalMinutes / 60) * pricePerHour;
+    const roundedCost = Math.round(totalCost * 100) / 100;
+
+    // Payment gating: require verified payment or inline payment method for non-zero cost
+    if (roundedCost > 0 && !skipPaymentCheck) {
+      const existingPayments = await db.select().from(paymentsTable)
+        .where(and(eq(paymentsTable.sessionId, id), eq(paymentsTable.status, "verified")));
+      const verifiedTotal = existingPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
+
+      if (verifiedTotal < roundedCost) {
+        // If payment method is provided inline, auto-create and verify it
+        if (paymentMethod) {
+          await db.insert(paymentsTable).values({
+            tenantId: req.user!.tenantId!,
+            sessionId: id,
+            method: paymentMethod,
+            amount: String(roundedCost - verifiedTotal),
+            status: "verified",
+            verifiedByUserId: req.user!.id,
+            verifiedAt: new Date(),
+          });
+        } else {
+          res.status(402).json({
+            error: "Payment required before ending session",
+            totalCost: roundedCost,
+            verifiedAmount: Math.round(verifiedTotal * 100) / 100,
+            remainingAmount: Math.round((roundedCost - verifiedTotal) * 100) / 100,
+          });
+          return;
+        }
+      }
+    }
+
     const [updated] = await db.update(sessionsTable).set({
       status: "ended",
       endedAt: new Date(),
       totalMinutes: String(Math.round(totalMinutes * 100) / 100),
-      totalCost: String(Math.round(totalCost * 100) / 100),
+      totalCost: String(roundedCost),
     }).where(eq(sessionsTable.id, id)).returning();
     // Free asset
     await db.update(assetsTable).set({ status: "available" }).where(eq(assetsTable.id, s.assetId));
-    await writeAuditLog({ user: req.user, action: "end_session", entityType: "session", entityId: id, newValue: { totalMinutes, totalCost } });
+    await writeAuditLog({ user: req.user, action: "end_session", entityType: "session", entityId: id, newValue: { totalMinutes: Math.round(totalMinutes * 100) / 100, totalCost: roundedCost } });
     res.json(await formatSession(updated));
   } catch {
     res.status(500).json({ error: "Failed to end session" });

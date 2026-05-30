@@ -4,7 +4,13 @@ import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
-const JWT_SECRET = process.env.JWT_SECRET || "gaming-lounge-secret-key-2024";
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET environment variable is required but not set. Server cannot start securely.");
+  }
+  return secret;
+}
 
 export interface AuthUser {
   id: number;
@@ -25,11 +31,11 @@ declare global {
 }
 
 export function signToken(userId: number): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign({ userId }, getJwtSecret(), { expiresIn: "7d" });
 }
 
 export function verifyToken(token: string): { userId: number } {
-  return jwt.verify(token, JWT_SECRET) as { userId: number };
+  return jwt.verify(token, getJwtSecret()) as { userId: number };
 }
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {

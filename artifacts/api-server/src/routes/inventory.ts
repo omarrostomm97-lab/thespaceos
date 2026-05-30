@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { inventoryItemsTable, inventoryMovementsTable, usersTable } from "@workspace/db";
-import { eq, and, lte } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -29,7 +29,7 @@ router.get("/inventory", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/inventory", requireAuth, requireTenant, async (req, res) => {
+router.post("/inventory", requireAuth, requireTenant, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
   try {
     const { name, nameAr, unit, currentStock, minStockLevel } = req.body;
     if (!name || !unit) { res.status(400).json({ error: "name and unit required" }); return; }
@@ -46,13 +46,17 @@ router.post("/inventory", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.patch("/inventory/:itemId", requireAuth, requireTenant, async (req, res) => {
+router.patch("/inventory/:itemId", requireAuth, requireTenant, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
   try {
     const id = parseInt(req.params.itemId);
     const { name, nameAr, unit, currentStock, minStockLevel } = req.body;
-    const updates: Partial<typeof inventoryItemsTable.$inferInsert> = { name, nameAr, unit };
+    const updates: Partial<typeof inventoryItemsTable.$inferInsert> = {};
+    if (name !== undefined) updates.name = name;
+    if (nameAr !== undefined) updates.nameAr = nameAr;
+    if (unit !== undefined) updates.unit = unit;
     if (currentStock !== undefined) updates.currentStock = String(currentStock);
     if (minStockLevel !== undefined) updates.minStockLevel = String(minStockLevel);
+    // Always scope to tenant
     const [item] = await db.update(inventoryItemsTable).set(updates)
       .where(and(eq(inventoryItemsTable.id, id), eq(inventoryItemsTable.tenantId, req.user!.tenantId!)))
       .returning();
@@ -98,27 +102,40 @@ router.post("/inventory/movements", requireAuth, requireTenant, async (req, res)
     if (!inventoryItemId || !type || quantity === undefined) {
       res.status(400).json({ error: "inventoryItemId, type, quantity required" }); return;
     }
-    // Adjustments require manager+
-    if (type === "adjustment" && !["platform_owner", "owner", "manager"].includes(req.user!.role)) {
-      res.status(403).json({ error: "Manager approval required for adjustments" }); return;
+    // Adjustments and purchases require manager+
+    if (["adjustment", "purchase"].includes(type) && !["platform_owner", "owner", "manager"].includes(req.user!.role)) {
+      res.status(403).json({ error: "Manager approval required for adjustments and purchases" }); return;
     }
+    // Verify item belongs to the requesting user's tenant
+    const [existingItem] = await db.select().from(inventoryItemsTable)
+      .where(and(
+        eq(inventoryItemsTable.id, inventoryItemId),
+        eq(inventoryItemsTable.tenantId, req.user!.tenantId!)
+      )).limit(1);
+    if (!existingItem) {
+      res.status(404).json({ error: "Inventory item not found" }); return;
+    }
+
     const [movement] = await db.insert(inventoryMovementsTable).values({
       tenantId: req.user!.tenantId!,
       inventoryItemId, type, quantity: String(quantity), reason,
       createdByUserId: req.user!.id,
       approvedByUserId: ["adjustment", "purchase"].includes(type) ? req.user!.id : null,
     }).returning();
-    // Update stock
-    const [item] = await db.select().from(inventoryItemsTable).where(eq(inventoryItemsTable.id, inventoryItemId)).limit(1);
-    if (item) {
-      const current = parseFloat(item.currentStock as string);
-      const delta = ["waste", "sale"].includes(type) ? -Math.abs(quantity) : Math.abs(quantity);
-      await db.update(inventoryItemsTable).set({ currentStock: String(Math.max(0, current + delta)) })
-        .where(eq(inventoryItemsTable.id, inventoryItemId));
-    }
+
+    // Update stock scoped to tenant (extra safety: we confirmed item belongs to tenant above)
+    const current = parseFloat(existingItem.currentStock as string);
+    const delta = ["waste", "sale"].includes(type) ? -Math.abs(quantity) : Math.abs(quantity);
+    await db.update(inventoryItemsTable)
+      .set({ currentStock: String(Math.max(0, current + delta)) })
+      .where(and(
+        eq(inventoryItemsTable.id, inventoryItemId),
+        eq(inventoryItemsTable.tenantId, req.user!.tenantId!)
+      ));
+
     await writeAuditLog({ user: req.user, action: `inventory_${type}`, entityType: "inventory_movement", entityId: movement.id, newValue: { inventoryItemId, quantity } });
     res.status(201).json({
-      id: movement.id, inventoryItemId: movement.inventoryItemId, itemName: null,
+      id: movement.id, inventoryItemId: movement.inventoryItemId, itemName: existingItem.name,
       type: movement.type, quantity: parseFloat(movement.quantity as string), reason: movement.reason,
       approvedByUserId: movement.approvedByUserId, approvedByUserName: null,
       createdByUserId: movement.createdByUserId, createdAt: movement.createdAt,
@@ -132,9 +149,7 @@ router.get("/inventory/alerts", requireAuth, requireTenant, async (req, res) => 
   try {
     const items = await db.select().from(inventoryItemsTable)
       .where(eq(inventoryItemsTable.tenantId, req.user!.tenantId!));
-    const alerts = items
-      .map(fmtItem)
-      .filter(i => i.isLowStock);
+    const alerts = items.map(fmtItem).filter(i => i.isLowStock);
     res.json(alerts);
   } catch {
     res.status(500).json({ error: "Failed to get alerts" });
