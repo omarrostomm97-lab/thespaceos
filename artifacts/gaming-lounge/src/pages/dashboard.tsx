@@ -1,4 +1,4 @@
-import { useGetDashboardSummary, useListActiveSessions, getGetDashboardSummaryQueryKey } from "@workspace/api-client-react";
+import { useGetDashboardSummary, useListActiveSessions, getGetDashboardSummaryQueryKey, getListActiveSessionsQueryKey } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gamepad2, Users, Receipt, AlertTriangle, Clock, ShoppingCart, Activity, Menu, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,11 +6,11 @@ import { Link } from "wouter";
 
 export default function Dashboard() {
   const { data: summary, isLoading: isLoadingSummary } = useGetDashboardSummary({
-    query: { refetchInterval: 10000 }
+    query: { queryKey: getGetDashboardSummaryQueryKey(), refetchInterval: 10000 }
   });
 
   const { data: activeSessions, isLoading: isLoadingSessions } = useListActiveSessions({
-    query: { refetchInterval: 10000 }
+    query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 10000 }
   });
 
   if (isLoadingSummary || isLoadingSessions) {

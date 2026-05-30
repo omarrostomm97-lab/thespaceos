@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { UserPlus, UserX, Shield, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/use-auth";
+import type { UserInputRole } from "@workspace/api-client-react";
 
 const ROLES: Record<string, { label: string; color: string }> = {
   platform_owner: { label: "مدير النظام", color: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
@@ -33,7 +34,7 @@ export default function AdminUsers() {
       return;
     }
     try {
-      await createUser.mutateAsync({ data: form });
+      await createUser.mutateAsync({ data: { ...form, role: form.role as UserInputRole } });
       toast.success("تم إنشاء المستخدم بنجاح");
       setForm({ name: "", nameAr: "", email: "", password: "", role: "cashier" });
       setShowForm(false);

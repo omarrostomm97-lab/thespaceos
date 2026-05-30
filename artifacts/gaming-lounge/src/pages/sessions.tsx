@@ -9,7 +9,7 @@ import { Link } from "wouter";
 export default function Sessions() {
   const queryClient = useQueryClient();
   const { data: sessions, isLoading } = useListActiveSessions({
-    query: { refetchInterval: 8000 }
+    query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 8000 }
   });
 
   const pauseSession = usePauseSession();

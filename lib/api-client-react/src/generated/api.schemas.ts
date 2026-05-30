@@ -505,6 +505,7 @@ export interface OrderInput {
   assetId?: number;
   items: OrderItemInput[];
   customerName?: string;
+  paymentMethod?: PaymentInputMethod;
 }
 
 export type OrderStatusUpdateStatus = typeof OrderStatusUpdateStatus[keyof typeof OrderStatusUpdateStatus];

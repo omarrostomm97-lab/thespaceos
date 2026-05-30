@@ -69,6 +69,22 @@ router.get("/orders", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
+// GET /orders/kds — tenant-scoped KDS feed: pending + preparing + ready orders
+router.get("/orders/kds", requireAuth, requireTenant, async (req, res) => {
+  try {
+    const orders = await db.select().from(ordersTable)
+      .where(and(
+        eq(ordersTable.tenantId, req.user!.tenantId!),
+        inArray(ordersTable.status, ["pending", "preparing", "ready"])
+      ))
+      .orderBy(ordersTable.createdAt);
+    const formatted = await Promise.all(orders.map(o => buildOrderResponse(o)));
+    res.json(formatted);
+  } catch {
+    res.status(500).json({ error: "Failed to list KDS orders" });
+  }
+});
+
 router.get("/orders/:orderId", requireAuth, requireTenant, async (req, res) => {
   try {
     const id = parseInt(req.params.orderId as string);

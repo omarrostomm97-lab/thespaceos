@@ -60,6 +60,7 @@ export default function QrMenu() {
     if (cart.length === 0) return;
     try {
       await placeOrder.mutateAsync({
+        token: token || "",
         data: {
           customerName: customerName || undefined,
           items: cart.map(i => ({ productId: i.product.id, quantity: i.quantity }))

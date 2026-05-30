@@ -35,7 +35,7 @@ export default function Shifts() {
   const handleClose = async () => {
     if (!actualCash) return;
     try {
-      await closeShift.mutateAsync({ data: { actualCash: parseFloat(actualCash) } });
+      await closeShift.mutateAsync({ shiftId: currentShift!.id, data: { actualCash: parseFloat(actualCash) } });
       toast.success("تم إغلاق الوردية بنجاح");
       setActualCash("");
       queryClient.invalidateQueries({ queryKey: getGetCurrentShiftQueryKey() });
@@ -177,7 +177,7 @@ export default function Shifts() {
                           (shift.difference || 0) > 0 ? 'text-emerald-500' : 
                           'text-muted-foreground'
                         }`}>
-                          {shift.difference !== null ? shift.difference.toFixed(2) : "-"}
+                          {shift.difference != null ? shift.difference.toFixed(2) : "-"}
                         </span>
                       </td>
                     </tr>

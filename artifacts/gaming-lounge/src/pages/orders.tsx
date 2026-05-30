@@ -10,8 +10,8 @@ import { format } from "date-fns";
 
 export default function Orders() {
   const queryClient = useQueryClient();
-  const { data: orders, isLoading } = useListOrders({
-    query: { refetchInterval: 10000 }
+  const { data: orders, isLoading } = useListOrders(undefined, {
+    query: { queryKey: getListOrdersQueryKey(), refetchInterval: 10000 }
   });
   
   const updateStatus = useUpdateOrderStatus();

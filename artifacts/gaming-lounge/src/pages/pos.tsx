@@ -24,8 +24,8 @@ export default function Pos() {
   const [cart, setCart] = useState<CartItem[]>([]);
 
   const { data: categories, isLoading: isLoadingCats } = useListProductCategories();
-  const { data: products, isLoading: isLoadingProds } = useListProducts({
-    query: { enabled: true }
+  const { data: products, isLoading: isLoadingProds } = useListProducts(undefined, {
+    query: { queryKey: [], enabled: true }
   });
 
   const createOrder = useCreateOrder();

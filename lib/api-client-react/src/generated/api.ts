@@ -382,6 +382,58 @@ export function useGetMe<TData = Awaited<ReturnType<typeof getMe>>, TError = Err
 
 
 
+export const getRefreshTokenUrl = () => {
+  return `/api/auth/refresh`
+}
+
+/**
+ * @summary Refresh access token using refresh token
+ */
+export const refreshToken = async (body: { refreshToken: string }, options?: RequestInit): Promise<AuthResponse> => {
+  return customFetch<AuthResponse>(getRefreshTokenUrl(), {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(body),
+  });
+}
+
+export const getRefreshTokenMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshToken>>, TError,{data: { refreshToken: string }}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshToken>>, TError,{data: { refreshToken: string }}, TContext> => {
+const mutationKey = ['refreshToken'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshToken>>, {data: { refreshToken: string }}> = (props) => {
+          const {data} = props ?? {};
+          return refreshToken(data, requestOptions)
+        }
+
+  return  { mutationFn, ...mutationOptions }
+}
+
+export type RefreshTokenMutationResult = NonNullable<Awaited<ReturnType<typeof refreshToken>>>
+export type RefreshTokenMutationBody = { refreshToken: string }
+export type RefreshTokenMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Refresh access token using refresh token
+ */
+export const useRefreshToken = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshToken>>, TError,{data: { refreshToken: string }}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof refreshToken>>,
+        TError,
+        {data: { refreshToken: string }},
+        TContext
+      > => {
+      return useMutation(getRefreshTokenMutationOptions(options));
+    }
+
 export const getListTenantsUrl = () => {
 
 

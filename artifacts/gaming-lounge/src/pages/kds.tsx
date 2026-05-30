@@ -8,7 +8,7 @@ import { toast } from "sonner";
 export default function Kds() {
   const queryClient = useQueryClient();
   const { data: orders, isLoading } = useListKdsOrders({
-    query: { refetchInterval: 5000 }
+    query: { queryKey: getListKdsOrdersQueryKey(), refetchInterval: 5000 }
   });
 
   const updateStatus = useUpdateOrderStatus();

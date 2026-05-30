@@ -16,6 +16,7 @@ export default function SessionDetail() {
 
   const { data: session, isLoading } = useGetSession(sessionId, {
     query: { 
+      queryKey: getGetSessionQueryKey(sessionId),
       enabled: !!sessionId,
       refetchInterval: 10000 
     }
