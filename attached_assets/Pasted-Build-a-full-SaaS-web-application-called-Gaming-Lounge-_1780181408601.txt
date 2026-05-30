@@ -1,0 +1,314 @@
+Build a full SaaS web application called “Gaming Lounge OS”.
+
+This is a multi-tenant, real-time operations system for gaming centers in Egypt and similar markets. It manages PlayStation cafés, billiard halls, air hockey, babyfoot, and buffet services with strong control over employees, inventory, payments, and customer orders.
+
+The system must be built as a scalable SaaS platform from day one.
+
+────────────────────────────────────
+1. MULTI-TENANT SAAS ARCHITECTURE
+────────────────────────────────────
+- Support multiple gaming centers (tenants).
+- Each tenant has fully isolated data:
+  users, services, sessions, orders, inventory, pricing, payments, reports.
+- Platform owner can manage all tenants.
+- Tenant owners only see their own data.
+
+────────────────────────────────────
+2. ROLE-BASED ACCESS CONTROL
+────────────────────────────────────
+Roles:
+- Platform Owner
+- Gaming Center Owner
+- Manager
+- Cashier
+- Buffet Worker
+
+Permissions:
+- Buffet workers: only manage order preparation
+- Cashiers: manage POS and payments
+- Managers: approve sensitive actions
+- Owners: full analytics and control
+
+Every action must be linked to a user.
+
+────────────────────────────────────
+3. ARABIC-FIRST SMART UX (CRITICAL)
+────────────────────────────────────
+- Default language is Arabic (RTL layout).
+- English is optional toggle for admins only.
+- System must be optimized for low-skilled workers.
+
+UX RULES:
+- Maximum 3 clicks per action.
+- No complex forms in daily operations.
+- Use large buttons and minimal text.
+- Avoid typing wherever possible.
+
+Example:
+Buffet screen shows:
+"قهوة / شاي / بيبسي" as big buttons.
+
+Cashier screen shows:
+[ كاش ] [ إنستا باي ] [ فيزا ]
+
+────────────────────────────────────
+4. SERVICES / ASSETS SYSTEM (VERY IMPORTANT)
+────────────────────────────────────
+DO NOT hardcode PlayStation or any service.
+
+All services are dynamic "assets".
+
+Each gaming center defines services such as:
+- PS4 Room
+- PS5 Room
+- Billiard Table
+- Air Hockey
+- Babyfoot
+- VR Station
+
+Each service (asset) includes:
+- name (Arabic + English)
+- type (ps / billiard / air_hockey / babyfoot / other)
+- price_per_hour
+- status (available / busy)
+
+All session logic is based on assets.
+
+────────────────────────────────────
+5. SESSION MANAGEMENT SYSTEM
+────────────────────────────────────
+- Start session per asset.
+- Pause / resume / end session.
+- Auto billing based on hourly pricing.
+- Sessions linked to:
+  asset + user + tenant
+
+Rules:
+- Sessions cannot be deleted.
+- Only cancelled with reason.
+
+────────────────────────────────────
+6. QR CUSTOMER ORDERING SYSTEM
+────────────────────────────────────
+- Each asset has a unique QR code.
+- Customers scan QR to access menu.
+- Customers can place orders directly.
+
+Order lifecycle:
+PENDING → PREPARING → READY → DELIVERED → CLOSED
+
+Rules:
+- Orders linked to asset and session.
+- Orders cannot be deleted, only cancelled with reason.
+- Real-time updates to buffet system.
+
+────────────────────────────────────
+7. CASHIER POS SYSTEM
+────────────────────────────────────
+- Cashier can create manual orders.
+- Used for walk-in customers or exceptions.
+- POS and QR orders are unified.
+
+Each order must include:
+- order_source: qr | pos
+- created_by_user_id
+
+────────────────────────────────────
+8. BUFFET / KITCHEN DISPLAY SYSTEM (KDS)
+────────────────────────────────────
+- Real-time buffet screen (kitchen display system).
+- Shows all QR and POS orders instantly.
+
+Order statuses:
+- PENDING
+- PREPARING
+- READY
+- DELIVERED
+
+Features:
+- Buffet workers can only update status.
+- Orders can be assigned to workers.
+- Track preparation time.
+- Real-time updates via WebSockets or polling.
+- Visual priority system.
+
+────────────────────────────────────
+9. INVENTORY SYSTEM (RECIPE BASED)
+────────────────────────────────────
+- Products are linked to recipes (ingredients).
+
+Example:
+Coffee Cup =
+- 10g coffee
+- 150ml water
+
+Rules:
+- Inventory auto-deducts on delivery.
+- Manual adjustments require manager approval.
+- Track:
+  sales consumption, waste, adjustments, purchases.
+
+Goal: prevent theft and hidden sales.
+
+────────────────────────────────────
+10. PAYMENT SYSTEM (EGYPT REALITY)
+────────────────────────────────────
+Supported payment methods:
+- Cash
+- Instapay
+- Visa / Mastercard (external POS machine)
+
+Rules:
+- System does NOT process payments directly.
+- Cashier must manually confirm all payments.
+
+Instapay:
+- System generates bill reference / QR.
+- Customer pays externally.
+- Cashier verifies payment manually.
+
+Visa:
+- Paid via external card machine.
+- Cashier confirms in system.
+
+Each payment includes:
+- method (cash / instapay / visa)
+- status (pending / verified)
+- transaction_reference (optional)
+- receipt_image (optional)
+- verified_by_user_id
+
+A bill cannot be closed without verified payment.
+
+────────────────────────────────────
+11. CASH SHIFT SYSTEM
+────────────────────────────────────
+- Cashiers open and close shifts.
+- Track:
+  opening cash, expected cash, actual cash, difference.
+
+All discrepancies require explanation.
+
+────────────────────────────────────
+12. AUDIT LOG SYSTEM (CRITICAL)
+────────────────────────────────────
+Every action must be logged:
+- user_id
+- timestamp
+- action type
+- entity affected
+- old value / new value
+
+Logs are immutable (cannot be deleted).
+
+Examples:
+- order created
+- session started
+- payment verified
+- inventory adjusted
+
+────────────────────────────────────
+13. REAL-TIME DASHBOARD
+────────────────────────────────────
+Show:
+- active sessions
+- occupied assets
+- revenue today
+- pending orders
+- buffet workload
+- inventory alerts
+- employee performance
+- cash discrepancies
+
+────────────────────────────────────
+14. QR MENU SYSTEM
+────────────────────────────────────
+- Digital menu per tenant.
+- Categories: drinks, food, snacks.
+- Managed centrally and synced with POS and QR system.
+
+────────────────────────────────────
+15. REAL-TIME REQUIREMENTS
+────────────────────────────────────
+- All sessions, orders, payments must update in real-time.
+- Use WebSockets or polling.
+- Buffet screen must update instantly.
+- Dashboard must reflect live system state.
+
+────────────────────────────────────
+16. DATABASE STRUCTURE (HIGH LEVEL)
+────────────────────────────────────
+- tenants
+- users
+- roles
+- services (assets)
+- sessions
+- session_logs
+- orders
+- order_items
+- products
+- recipes
+- inventory_items
+- inventory_movements
+- payments
+- shifts
+- shift_cash_logs
+- audit_logs
+- pricing_rules
+- qr_codes
+- order_assignments
+
+────────────────────────────────────
+17. ARABIC-FIRST UX SYSTEM (CRITICAL)
+────────────────────────────────────
+- System must be Arabic-first (RTL default).
+- All operational interfaces (buffet, cashier, sessions) must be in Arabic.
+- English is optional admin toggle only.
+
+UX REQUIREMENTS:
+- Extremely simple UI for low-skilled workers.
+- Large buttons, minimal text.
+- No complex forms.
+- Max 3 clicks per action.
+
+BUFFET UI:
+- Big product buttons (قهوة، شاي، بيبسي)
+- One-click order actions
+
+CASHIER UI:
+- Large payment buttons:
+  [ كاش ] [ إنستا باي ] [ فيزا ]
+
+────────────────────────────────────
+18. CORE SYSTEM RULES
+────────────────────────────────────
+- Nothing can be deleted, only cancelled with reason.
+- Every action must be traceable to a user.
+- No sale or order can exist outside system.
+- Inventory must reflect real consumption.
+- Cashier confirmation required for all payments.
+- System must prevent bypass of sales or payments.
+
+────────────────────────────────────
+TECH STACK
+────────────────────────────────────
+- Frontend: React + TypeScript + Tailwind CSS
+- Backend: Node.js + Express
+- Database: PostgreSQL (or SQLite for MVP)
+- ORM: Prisma
+- Auth: JWT role-based access control
+- Real-time: WebSockets
+
+────────────────────────────────────
+MVP BUILD PRIORITY
+────────────────────────────────────
+1. Authentication + multi-tenant system
+2. Services (assets) + session system
+3. QR ordering system
+4. POS system
+5. Buffet real-time display (KDS)
+6. Payment system (cash + instapay + visa manual confirmation)
+7. Inventory recipe system
+8. Dashboard + reports
+9. Audit logs system
+10. Arabic-first UI polishing
