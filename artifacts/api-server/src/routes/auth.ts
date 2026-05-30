@@ -1,10 +1,17 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { signToken, requireAuth } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET || process.env.SESSION_SECRET;
+  if (!secret) throw new Error("Neither JWT_SECRET nor SESSION_SECRET is set");
+  return secret;
+}
 
 const router = Router();
 
@@ -26,6 +33,7 @@ router.post("/auth/login", async (req, res) => {
       return;
     }
     const token = signToken(user.id);
+    const refreshToken = jwt.sign({ userId: user.id, type: "refresh" }, getJwtSecret(), { expiresIn: "30d" });
     await writeAuditLog({
       user: { id: user.id, email: user.email, name: user.name, nameAr: user.nameAr, role: user.role, tenantId: user.tenantId, isActive: user.isActive },
       action: "login",
@@ -35,6 +43,7 @@ router.post("/auth/login", async (req, res) => {
     });
     res.json({
       token,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -73,6 +82,44 @@ router.get("/auth/me", requireAuth, async (req, res) => {
     isActive: req.user!.isActive,
     createdAt: new Date(),
   });
+});
+
+router.post("/auth/refresh", async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      res.status(400).json({ error: "refreshToken required" });
+      return;
+    }
+    let payload: { userId: number; type?: string };
+    try {
+      payload = jwt.verify(refreshToken, getJwtSecret()) as { userId: number; type?: string };
+    } catch {
+      res.status(401).json({ error: "Invalid or expired refresh token" });
+      return;
+    }
+    if (payload.type !== "refresh") {
+      res.status(401).json({ error: "Not a refresh token" });
+      return;
+    }
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, payload.userId)).limit(1);
+    if (!user || !user.isActive) {
+      res.status(401).json({ error: "User not found or inactive" });
+      return;
+    }
+    const accessToken = signToken(user.id);
+    const newRefreshToken = jwt.sign({ userId: user.id, type: "refresh" }, getJwtSecret(), { expiresIn: "30d" });
+    res.json({
+      token: accessToken,
+      refreshToken: newRefreshToken,
+      user: {
+        id: user.id, email: user.email, name: user.name, nameAr: user.nameAr,
+        role: user.role, tenantId: user.tenantId, isActive: user.isActive, createdAt: user.createdAt,
+      },
+    });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 export default router;

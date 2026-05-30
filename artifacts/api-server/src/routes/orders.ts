@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { ordersTable, orderItemsTable, productsTable, usersTable, assetsTable, inventoryItemsTable, inventoryMovementsTable } from "@workspace/db";
+import { ordersTable, orderItemsTable, productsTable, usersTable, assetsTable, inventoryItemsTable, inventoryMovementsTable, recipeItemsTable, orderAssignmentsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
@@ -151,16 +151,40 @@ router.patch("/orders/:orderId/status", requireAuth, requireTenant, async (req, 
     if (status === "ready") updates.readyAt = new Date();
     if (status === "delivered") {
       updates.deliveredAt = new Date();
-      // Auto-deduct inventory
-      const [o] = await db.select().from(ordersTable)
-        .where(and(eq(ordersTable.id, id), eq(ordersTable.tenantId, req.user!.tenantId!))).limit(1);
-      if (o) {
-        const items = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, id));
-        // Simple deduction: 1 unit per item per quantity (recipe system simplified)
-        for (const item of items) {
-          const invItems = await db.select().from(inventoryItemsTable)
-            .where(eq(inventoryItemsTable.tenantId, req.user!.tenantId!));
-          // Match by product if recipe exists (simplified: skip if no match)
+      // Recipe-based inventory auto-deduction
+      const orderItems = await db.select().from(orderItemsTable).where(eq(orderItemsTable.orderId, id));
+      for (const item of orderItems) {
+        const recipeItems = await db.select().from(recipeItemsTable)
+          .where(and(
+            eq(recipeItemsTable.productId, item.productId),
+            eq(recipeItemsTable.tenantId, req.user!.tenantId!)
+          ));
+        for (const recipe of recipeItems) {
+          const deductQty = parseFloat(recipe.quantityUsed as string) * item.quantity;
+          // Fetch current stock scoped to tenant
+          const [invItem] = await db.select().from(inventoryItemsTable)
+            .where(and(
+              eq(inventoryItemsTable.id, recipe.inventoryItemId),
+              eq(inventoryItemsTable.tenantId, req.user!.tenantId!)
+            )).limit(1);
+          if (invItem) {
+            const newStock = Math.max(0, parseFloat(invItem.currentStock as string) - deductQty);
+            await db.update(inventoryItemsTable)
+              .set({ currentStock: String(newStock) })
+              .where(and(
+                eq(inventoryItemsTable.id, recipe.inventoryItemId),
+                eq(inventoryItemsTable.tenantId, req.user!.tenantId!)
+              ));
+            // Record movement
+            await db.insert(inventoryMovementsTable).values({
+              tenantId: req.user!.tenantId!,
+              inventoryItemId: recipe.inventoryItemId,
+              type: "sale",
+              quantity: String(deductQty),
+              reason: `Auto-deducted from order #${id}`,
+              createdByUserId: req.user!.id,
+            });
+          }
         }
       }
     }

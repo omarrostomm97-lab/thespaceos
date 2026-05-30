@@ -5,9 +5,11 @@ import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
+  // JWT_SECRET is the preferred secret (set via Replit Secrets manager, never hardcoded).
+  // SESSION_SECRET is used as a secure fallback — it is a pre-existing Replit-managed secret.
+  const secret = process.env.JWT_SECRET || process.env.SESSION_SECRET;
   if (!secret) {
-    throw new Error("JWT_SECRET environment variable is required but not set. Server cannot start securely.");
+    throw new Error("Neither JWT_SECRET nor SESSION_SECRET is set. Cannot sign tokens.");
   }
   return secret;
 }
