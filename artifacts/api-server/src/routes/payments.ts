@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@workspace/db";
-import { paymentsTable, usersTable } from "@workspace/db";
+import { paymentsTable, sessionsTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireTenant } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
@@ -35,6 +35,15 @@ router.post("/payments", requireAuth, requireTenant, async (req, res) => {
     const { sessionId, method, amount, transactionReference } = req.body;
     if (!sessionId || !method || amount === undefined) {
       res.status(400).json({ error: "sessionId, method, amount required" }); return;
+    }
+    // Verify session belongs to caller's tenant before creating payment
+    const [session] = await db.select().from(sessionsTable)
+      .where(and(
+        eq(sessionsTable.id, sessionId),
+        eq(sessionsTable.tenantId, req.user!.tenantId!)
+      )).limit(1);
+    if (!session) {
+      res.status(404).json({ error: "Session not found in your tenant" }); return;
     }
     let instapayReference = null;
     if (method === "instapay") {

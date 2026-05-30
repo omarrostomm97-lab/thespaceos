@@ -189,8 +189,6 @@ router.post("/sessions/:sessionId/resume", requireAuth, requireTenant, async (re
 router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, res) => {
   try {
     const id = parseInt(req.params.sessionId);
-    const { paymentMethod, skipPaymentCheck } = req.body;
-
     const [s] = await db.select().from(sessionsTable)
       .where(and(eq(sessionsTable.id, id), eq(sessionsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -209,33 +207,24 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, 
     const totalCost = (totalMinutes / 60) * pricePerHour;
     const roundedCost = Math.round(totalCost * 100) / 100;
 
-    // Payment gating: require verified payment or inline payment method for non-zero cost
-    if (roundedCost > 0 && !skipPaymentCheck) {
+    // Payment gating: require at least one verified payment covering full cost before ending.
+    // Cashiers must use POST /payments + POST /payments/:id/verify BEFORE calling this endpoint.
+    if (roundedCost > 0) {
       const existingPayments = await db.select().from(paymentsTable)
-        .where(and(eq(paymentsTable.sessionId, id), eq(paymentsTable.status, "verified")));
+        .where(and(
+          eq(paymentsTable.sessionId, id),
+          eq(paymentsTable.tenantId, req.user!.tenantId!),
+          eq(paymentsTable.status, "verified")
+        ));
       const verifiedTotal = existingPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
-
       if (verifiedTotal < roundedCost) {
-        // If payment method is provided inline, auto-create and verify it
-        if (paymentMethod) {
-          await db.insert(paymentsTable).values({
-            tenantId: req.user!.tenantId!,
-            sessionId: id,
-            method: paymentMethod,
-            amount: String(roundedCost - verifiedTotal),
-            status: "verified",
-            verifiedByUserId: req.user!.id,
-            verifiedAt: new Date(),
-          });
-        } else {
-          res.status(402).json({
-            error: "Payment required before ending session",
-            totalCost: roundedCost,
-            verifiedAmount: Math.round(verifiedTotal * 100) / 100,
-            remainingAmount: Math.round((roundedCost - verifiedTotal) * 100) / 100,
-          });
-          return;
-        }
+        res.status(402).json({
+          error: "Payment required before ending session. Create and verify a payment first.",
+          totalCost: roundedCost,
+          verifiedAmount: Math.round(verifiedTotal * 100) / 100,
+          remainingAmount: Math.round((roundedCost - verifiedTotal) * 100) / 100,
+        });
+        return;
       }
     }
 
