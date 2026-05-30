@@ -8,7 +8,7 @@ import { usersTable } from "./users";
 export const paymentsTable = pgTable("payments", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").notNull().references(() => tenantsTable.id),
-  sessionId: integer("session_id").notNull().references(() => sessionsTable.id),
+  sessionId: integer("session_id").references(() => sessionsTable.id),
   method: text("method").notNull(),
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
   status: text("status").notNull().default("pending"),

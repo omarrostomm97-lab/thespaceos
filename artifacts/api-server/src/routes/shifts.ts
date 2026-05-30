@@ -2,10 +2,13 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { shiftsTable, usersTable, paymentsTable } from "@workspace/db";
 import { eq, and, gte } from "drizzle-orm";
-import { requireAuth, requireTenant } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
 const router = Router();
+
+const CASHIER_UP = requireRole("platform_owner", "owner", "manager", "cashier");
+const MGMT = requireRole("platform_owner", "owner", "manager");
 
 const fmtShift = (s: typeof shiftsTable.$inferSelect, userName?: string | null) => ({
   id: s.id, userId: s.userId, userName: userName ?? null,
@@ -45,11 +48,11 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/shifts", requireAuth, requireTenant, async (req, res) => {
+// Open shift: cashier and above
+router.post("/shifts", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const { openingCash } = req.body;
     if (openingCash === undefined) { res.status(400).json({ error: "openingCash required" }); return; }
-    // Check no open shift
     const [existing] = await db.select().from(shiftsTable)
       .where(and(eq(shiftsTable.tenantId, req.user!.tenantId!), eq(shiftsTable.status, "open")))
       .limit(1);
@@ -67,7 +70,8 @@ router.post("/shifts", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/shifts/:shiftId/close", requireAuth, requireTenant, async (req, res) => {
+// Close shift: manager and above (reconciliation is a management action)
+router.post("/shifts/:shiftId/close", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const id = parseInt(req.params.shiftId as string);
     const { actualCash, differenceExplanation } = req.body;
@@ -76,7 +80,6 @@ router.post("/shifts/:shiftId/close", requireAuth, requireTenant, async (req, re
       .where(and(eq(shiftsTable.id, id), eq(shiftsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
     if (!shift || shift.status !== "open") { res.status(400).json({ error: "Shift not open" }); return; }
-    // Calculate expected: opening + cash payments during shift
     const cashPayments = await db.select({ amount: paymentsTable.amount })
       .from(paymentsTable)
       .where(and(

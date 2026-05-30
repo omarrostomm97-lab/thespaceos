@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@workspace/db";
-import { paymentsTable, sessionsTable, usersTable } from "@workspace/db";
+import { paymentsTable, sessionsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, requireTenant } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
 const router = Router();
+
+const CASHIER_UP = requireRole("platform_owner", "owner", "manager", "cashier");
 
 const fmtPayment = (p: typeof paymentsTable.$inferSelect, verifiedByName?: string | null) => ({
   id: p.id, sessionId: p.sessionId, method: p.method,
@@ -30,20 +32,22 @@ router.get("/payments", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/payments", requireAuth, requireTenant, async (req, res) => {
+router.post("/payments", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const { sessionId, method, amount, transactionReference } = req.body;
-    if (!sessionId || !method || amount === undefined) {
-      res.status(400).json({ error: "sessionId, method, amount required" }); return;
+    if (!method || amount === undefined) {
+      res.status(400).json({ error: "method and amount required" }); return;
     }
-    // Verify session belongs to caller's tenant before creating payment
-    const [session] = await db.select().from(sessionsTable)
-      .where(and(
-        eq(sessionsTable.id, sessionId),
-        eq(sessionsTable.tenantId, req.user!.tenantId!)
-      )).limit(1);
-    if (!session) {
-      res.status(404).json({ error: "Session not found in your tenant" }); return;
+    // If sessionId provided, verify it belongs to this tenant
+    if (sessionId) {
+      const [session] = await db.select().from(sessionsTable)
+        .where(and(
+          eq(sessionsTable.id, sessionId),
+          eq(sessionsTable.tenantId, req.user!.tenantId!)
+        )).limit(1);
+      if (!session) {
+        res.status(404).json({ error: "Session not found in your tenant" }); return;
+      }
     }
     let instapayReference = null;
     if (method === "instapay") {
@@ -51,7 +55,8 @@ router.post("/payments", requireAuth, requireTenant, async (req, res) => {
     }
     const [payment] = await db.insert(paymentsTable).values({
       tenantId: req.user!.tenantId!,
-      sessionId, method, amount: String(amount), status: "pending",
+      sessionId: sessionId ?? null,
+      method, amount: String(amount), status: "pending",
       transactionReference, instapayReference,
     }).returning();
     await writeAuditLog({ user: req.user, action: "create_payment", entityType: "payment", entityId: payment.id, newValue: { method, amount } });
@@ -61,7 +66,7 @@ router.post("/payments", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/payments/:paymentId/verify", requireAuth, requireTenant, async (req, res) => {
+router.post("/payments/:paymentId/verify", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const id = parseInt(req.params.paymentId as string);
     const { transactionReference } = req.body;

@@ -3,10 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "@workspace/db";
 import { assetsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, requireTenant } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
 const router = Router();
+
+const MGMT = requireRole("platform_owner", "owner", "manager");
 
 router.get("/assets", requireAuth, requireTenant, async (req, res) => {
   try {
@@ -22,7 +24,7 @@ router.get("/assets", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/assets", requireAuth, requireTenant, async (req, res) => {
+router.post("/assets", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const { name, nameAr, type, pricePerHour } = req.body;
     if (!name || !type || pricePerHour === undefined) {
@@ -55,7 +57,7 @@ router.get("/assets/:assetId", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.patch("/assets/:assetId", requireAuth, requireTenant, async (req, res) => {
+router.patch("/assets/:assetId", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const id = parseInt(req.params.assetId as string);
     const { name, nameAr, type, pricePerHour, status } = req.body;
@@ -72,7 +74,7 @@ router.patch("/assets/:assetId", requireAuth, requireTenant, async (req, res) =>
   }
 });
 
-router.post("/assets/:assetId/qr", requireAuth, requireTenant, async (req, res) => {
+router.post("/assets/:assetId/qr", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const id = parseInt(req.params.assetId as string);
     const token = uuidv4();

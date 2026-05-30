@@ -2,10 +2,13 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { sessionsTable, assetsTable, usersTable, paymentsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
-import { requireAuth, requireTenant } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
 const router = Router();
+
+const CASHIER_UP = requireRole("platform_owner", "owner", "manager", "cashier");
+const MGMT = requireRole("platform_owner", "owner", "manager");
 
 function calcMinutes(startedAt: Date, pausedAt: Date | null, endedAt: Date | null, pausedDuration: number): number {
   const end = endedAt || new Date();
@@ -108,7 +111,8 @@ router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) 
         items: items.map(i => ({ ...i, unitPrice: parseFloat(i.unitPrice as string), totalPrice: parseFloat(i.totalPrice as string) })),
       };
     }));
-    const payments = await db.select().from(paymentsTable).where(eq(paymentsTable.sessionId, id));
+    const payments = await db.select().from(paymentsTable)
+      .where(and(eq(paymentsTable.sessionId, id), eq(paymentsTable.tenantId, req.user!.tenantId!)));
     res.json({
       ...base,
       orders: ordersWithItems,
@@ -119,11 +123,11 @@ router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) 
   }
 });
 
-router.post("/sessions", requireAuth, requireTenant, async (req, res) => {
+// Start session: cashier and above
+router.post("/sessions", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const { assetId, notes } = req.body;
     if (!assetId) { res.status(400).json({ error: "assetId required" }); return; }
-    // Check asset availability
     const [asset] = await db.select().from(assetsTable)
       .where(and(eq(assetsTable.id, assetId), eq(assetsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -137,7 +141,6 @@ router.post("/sessions", requireAuth, requireTenant, async (req, res) => {
       status: "active",
       notes,
     }).returning();
-    // Mark asset busy
     await db.update(assetsTable).set({ status: "busy" }).where(eq(assetsTable.id, assetId));
     await writeAuditLog({ user: req.user, action: "start_session", entityType: "session", entityId: session.id, newValue: { assetId } });
     res.status(201).json(await formatSession(session));
@@ -146,7 +149,8 @@ router.post("/sessions", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/sessions/:sessionId/pause", requireAuth, requireTenant, async (req, res) => {
+// Pause/resume: cashier and above
+router.post("/sessions/:sessionId/pause", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const id = parseInt(req.params.sessionId as string);
     const [s] = await db.select().from(sessionsTable)
@@ -162,14 +166,13 @@ router.post("/sessions/:sessionId/pause", requireAuth, requireTenant, async (req
   }
 });
 
-router.post("/sessions/:sessionId/resume", requireAuth, requireTenant, async (req, res) => {
+router.post("/sessions/:sessionId/resume", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const id = parseInt(req.params.sessionId as string);
     const [s] = await db.select().from(sessionsTable)
       .where(and(eq(sessionsTable.id, id), eq(sessionsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
     if (!s || s.status !== "paused") { res.status(400).json({ error: "Session not paused" }); return; }
-    // Accumulate paused duration
     const pausedMinutes = s.pausedAt ? (Date.now() - s.pausedAt.getTime()) / 60000 : 0;
     const prevPaused = parseFloat((s.pausedDurationMinutes as string) || "0");
     const [updated] = await db.update(sessionsTable).set({
@@ -184,7 +187,8 @@ router.post("/sessions/:sessionId/resume", requireAuth, requireTenant, async (re
   }
 });
 
-router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, res) => {
+// End session: cashier and above; requires verified payment
+router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const id = parseInt(req.params.sessionId as string);
     const [s] = await db.select().from(sessionsTable)
@@ -205,7 +209,7 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, 
     const totalCost = (totalMinutes / 60) * pricePerHour;
     const roundedCost = Math.round(totalCost * 100) / 100;
 
-    // Payment gating: require at least one verified payment covering full cost before ending.
+    // Payment gating: require verified payment covering full cost before ending.
     // Cashiers must use POST /payments + POST /payments/:id/verify BEFORE calling this endpoint.
     if (roundedCost > 0) {
       const existingPayments = await db.select().from(paymentsTable)
@@ -232,7 +236,6 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, 
       totalMinutes: String(Math.round(totalMinutes * 100) / 100),
       totalCost: String(roundedCost),
     }).where(eq(sessionsTable.id, id)).returning();
-    // Free asset
     await db.update(assetsTable).set({ status: "available" }).where(eq(assetsTable.id, s.assetId));
     await writeAuditLog({ user: req.user, action: "end_session", entityType: "session", entityId: id, newValue: { totalMinutes: Math.round(totalMinutes * 100) / 100, totalCost: roundedCost } });
     res.json(await formatSession(updated));
@@ -241,7 +244,8 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, 
   }
 });
 
-router.post("/sessions/:sessionId/cancel", requireAuth, requireTenant, async (req, res) => {
+// Cancel session: manager and above
+router.post("/sessions/:sessionId/cancel", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const id = parseInt(req.params.sessionId as string);
     const { reason } = req.body;
