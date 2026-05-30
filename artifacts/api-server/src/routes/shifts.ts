@@ -69,7 +69,7 @@ router.post("/shifts", requireAuth, requireTenant, async (req, res) => {
 
 router.post("/shifts/:shiftId/close", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.shiftId);
+    const id = parseInt(req.params.shiftId as string);
     const { actualCash, differenceExplanation } = req.body;
     if (actualCash === undefined) { res.status(400).json({ error: "actualCash required" }); return; }
     const [shift] = await db.select().from(shiftsTable)

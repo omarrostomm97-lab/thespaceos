@@ -54,7 +54,7 @@ router.post("/products", requireAuth, requireTenant, async (req, res) => {
 
 router.get("/products/:productId", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.productId);
+    const id = parseInt(req.params.productId as string);
     const [p] = await db.select().from(productsTable)
       .where(and(eq(productsTable.id, id), eq(productsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -72,7 +72,7 @@ router.get("/products/:productId", requireAuth, requireTenant, async (req, res) 
 
 router.patch("/products/:productId", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.productId);
+    const id = parseInt(req.params.productId as string);
     const { name, nameAr, categoryId, price, description, descriptionAr, isAvailable } = req.body;
     const updates: Partial<typeof productsTable.$inferInsert> = { name, nameAr, categoryId, description, descriptionAr, isAvailable };
     if (price !== undefined) updates.price = String(price);

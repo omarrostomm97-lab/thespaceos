@@ -63,7 +63,7 @@ router.post("/payments", requireAuth, requireTenant, async (req, res) => {
 
 router.post("/payments/:paymentId/verify", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.paymentId);
+    const id = parseInt(req.params.paymentId as string);
     const { transactionReference } = req.body;
     const [payment] = await db.update(paymentsTable).set({
       status: "verified",

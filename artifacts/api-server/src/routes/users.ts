@@ -22,7 +22,7 @@ const formatUser = (u: typeof usersTable.$inferSelect) => ({
 /**
  * Build the WHERE condition for a user mutation, scoping to tenant for non-platform-owners.
  */
-function buildUserWhere(id: number, requestingUser: NonNullable<typeof import("../lib/auth").AuthUser extends infer T ? T : never>) {
+function buildUserWhere(id: number, requestingUser: import("../lib/auth").AuthUser) {
   if (requestingUser.role === "platform_owner") {
     return eq(usersTable.id, id);
   }
@@ -70,7 +70,7 @@ router.post("/users", requireAuth, requireRole("platform_owner", "owner", "manag
 
 router.get("/users/:userId", requireAuth, async (req, res) => {
   try {
-    const id = parseInt(req.params.userId);
+    const id = parseInt(req.params.userId as string);
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
     if (!user) { res.status(404).json({ error: "Not found" }); return; }
     // Enforce tenant scoping for non-platform-owners
@@ -85,7 +85,7 @@ router.get("/users/:userId", requireAuth, async (req, res) => {
 
 router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
   try {
-    const id = parseInt(req.params.userId);
+    const id = parseInt(req.params.userId as string);
     const { name, nameAr, role, password } = req.body;
     // Non-platform-owners cannot elevate to platform_owner
     if (role === "platform_owner" && req.user!.role !== "platform_owner") {
@@ -114,7 +114,7 @@ router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner
 
 router.post("/users/:userId/deactivate", requireAuth, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
   try {
-    const id = parseInt(req.params.userId);
+    const id = parseInt(req.params.userId as string);
     // Prevent self-deactivation
     if (id === req.user!.id) {
       res.status(400).json({ error: "Cannot deactivate your own account" });

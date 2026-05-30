@@ -48,7 +48,7 @@ router.post("/inventory", requireAuth, requireTenant, requireRole("platform_owne
 
 router.patch("/inventory/:itemId", requireAuth, requireTenant, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
   try {
-    const id = parseInt(req.params.itemId);
+    const id = parseInt(req.params.itemId as string);
     const { name, nameAr, unit, currentStock, minStockLevel } = req.body;
     const updates: Partial<typeof inventoryItemsTable.$inferInsert> = {};
     if (name !== undefined) updates.name = name;

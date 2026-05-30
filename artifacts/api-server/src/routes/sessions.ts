@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { sessionsTable, assetsTable, usersTable, paymentsTable } from "@workspace/db";
+import { sessionsTable, assetsTable, usersTable, paymentsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
@@ -82,14 +82,12 @@ router.get("/sessions/active", requireAuth, requireTenant, async (req, res) => {
 
 router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.sessionId);
+    const id = parseInt(req.params.sessionId as string);
     const [s] = await db.select().from(sessionsTable)
       .where(and(eq(sessionsTable.id, id), eq(sessionsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
     if (!s) { res.status(404).json({ error: "Not found" }); return; }
     const base = await formatSession(s);
-    // Import orders and payments inline
-    const { ordersTable, orderItemsTable, productsTable, paymentsTable } = await import("@workspace/db");
     const orders = await db.select().from(ordersTable).where(eq(ordersTable.sessionId, id));
     const ordersWithItems = await Promise.all(orders.map(async o => {
       const items = await db.select({
@@ -150,7 +148,7 @@ router.post("/sessions", requireAuth, requireTenant, async (req, res) => {
 
 router.post("/sessions/:sessionId/pause", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.sessionId);
+    const id = parseInt(req.params.sessionId as string);
     const [s] = await db.select().from(sessionsTable)
       .where(and(eq(sessionsTable.id, id), eq(sessionsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -166,7 +164,7 @@ router.post("/sessions/:sessionId/pause", requireAuth, requireTenant, async (req
 
 router.post("/sessions/:sessionId/resume", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.sessionId);
+    const id = parseInt(req.params.sessionId as string);
     const [s] = await db.select().from(sessionsTable)
       .where(and(eq(sessionsTable.id, id), eq(sessionsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -188,7 +186,7 @@ router.post("/sessions/:sessionId/resume", requireAuth, requireTenant, async (re
 
 router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.sessionId);
+    const id = parseInt(req.params.sessionId as string);
     const [s] = await db.select().from(sessionsTable)
       .where(and(eq(sessionsTable.id, id), eq(sessionsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -245,7 +243,7 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, async (req, 
 
 router.post("/sessions/:sessionId/cancel", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.sessionId);
+    const id = parseInt(req.params.sessionId as string);
     const { reason } = req.body;
     if (!reason) { res.status(400).json({ error: "reason required" }); return; }
     const [s] = await db.select().from(sessionsTable)

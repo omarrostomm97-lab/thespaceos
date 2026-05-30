@@ -44,7 +44,7 @@ router.post("/assets", requireAuth, requireTenant, async (req, res) => {
 
 router.get("/assets/:assetId", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.assetId);
+    const id = parseInt(req.params.assetId as string);
     const [asset] = await db.select().from(assetsTable)
       .where(and(eq(assetsTable.id, id), eq(assetsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -57,7 +57,7 @@ router.get("/assets/:assetId", requireAuth, requireTenant, async (req, res) => {
 
 router.patch("/assets/:assetId", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.assetId);
+    const id = parseInt(req.params.assetId as string);
     const { name, nameAr, type, pricePerHour, status } = req.body;
     const updates: Partial<typeof assetsTable.$inferInsert> = { name, nameAr, type, status };
     if (pricePerHour !== undefined) updates.pricePerHour = String(pricePerHour);
@@ -74,7 +74,7 @@ router.patch("/assets/:assetId", requireAuth, requireTenant, async (req, res) =>
 
 router.post("/assets/:assetId/qr", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.assetId);
+    const id = parseInt(req.params.assetId as string);
     const token = uuidv4();
     const [asset] = await db.update(assetsTable).set({ qrToken: token })
       .where(and(eq(assetsTable.id, id), eq(assetsTable.tenantId, req.user!.tenantId!)))

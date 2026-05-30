@@ -83,7 +83,7 @@ router.get("/orders/kds", requireAuth, requireTenant, async (req, res) => {
 
 router.get("/orders/:orderId", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.orderId);
+    const id = parseInt(req.params.orderId as string);
     const [o] = await db.select().from(ordersTable)
       .where(and(eq(ordersTable.id, id), eq(ordersTable.tenantId, req.user!.tenantId!)))
       .limit(1);
@@ -143,7 +143,7 @@ router.post("/orders", requireAuth, requireTenant, async (req, res) => {
 
 router.patch("/orders/:orderId/status", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.orderId);
+    const id = parseInt(req.params.orderId as string);
     const { status } = req.body;
     if (!status) { res.status(400).json({ error: "status required" }); return; }
     const updates: Partial<typeof ordersTable.$inferInsert> = { status };
@@ -201,7 +201,7 @@ router.patch("/orders/:orderId/status", requireAuth, requireTenant, async (req, 
 
 router.patch("/orders/:orderId/assign", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.orderId);
+    const id = parseInt(req.params.orderId as string);
     const { userId } = req.body;
     const [updated] = await db.update(ordersTable).set({ assignedToUserId: userId })
       .where(and(eq(ordersTable.id, id), eq(ordersTable.tenantId, req.user!.tenantId!)))
@@ -215,7 +215,7 @@ router.patch("/orders/:orderId/assign", requireAuth, requireTenant, async (req, 
 
 router.post("/orders/:orderId/cancel", requireAuth, requireTenant, async (req, res) => {
   try {
-    const id = parseInt(req.params.orderId);
+    const id = parseInt(req.params.orderId as string);
     const { reason } = req.body;
     if (!reason) { res.status(400).json({ error: "reason required" }); return; }
     const [updated] = await db.update(ordersTable).set({ status: "cancelled", cancelReason: reason })
