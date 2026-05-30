@@ -91,7 +91,8 @@ router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) 
       .limit(1);
     if (!s) { res.status(404).json({ error: "Not found" }); return; }
     const base = await formatSession(s);
-    const orders = await db.select().from(ordersTable).where(eq(ordersTable.sessionId, id));
+    const orders = await db.select().from(ordersTable)
+      .where(and(eq(ordersTable.sessionId, id), eq(ordersTable.tenantId, req.user!.tenantId!)));
     const ordersWithItems = await Promise.all(orders.map(async o => {
       const items = await db.select({
         id: orderItemsTable.id,

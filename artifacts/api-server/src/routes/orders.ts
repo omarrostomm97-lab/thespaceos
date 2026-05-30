@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { ordersTable, orderItemsTable, productsTable, usersTable, assetsTable, inventoryItemsTable, inventoryMovementsTable, recipeItemsTable, orderAssignmentsTable, paymentsTable } from "@workspace/db";
+import { ordersTable, orderItemsTable, productsTable, usersTable, assetsTable, sessionsTable, inventoryItemsTable, inventoryMovementsTable, recipeItemsTable, orderAssignmentsTable, paymentsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
@@ -139,6 +139,21 @@ router.post("/orders", requireAuth, requireTenant, CASHIER_UP, async (req, res) 
   try {
     const { sessionId, assetId, items, customerName, paymentMethod } = req.body;
     if (!items?.length) { res.status(400).json({ error: "items required" }); return; }
+
+    // SECURITY: validate sessionId and assetId belong to this tenant before insert
+    if (sessionId) {
+      const [sess] = await db.select({ id: sessionsTable.id }).from(sessionsTable)
+        .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.tenantId, req.user!.tenantId!)))
+        .limit(1);
+      if (!sess) { res.status(404).json({ error: "Session not found" }); return; }
+    }
+    if (assetId) {
+      const [asset] = await db.select({ id: assetsTable.id }).from(assetsTable)
+        .where(and(eq(assetsTable.id, assetId), eq(assetsTable.tenantId, req.user!.tenantId!)))
+        .limit(1);
+      if (!asset) { res.status(404).json({ error: "Asset not found" }); return; }
+    }
+
     const order = await createOrderWithItems(req.user!.tenantId!, {
       sessionId, assetId, source: "pos",
       createdByUserId: req.user!.id, items, customerName,
