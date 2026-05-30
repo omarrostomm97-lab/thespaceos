@@ -3,20 +3,46 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Gaming Lounge OS API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: tenants
+    description: Tenant management
+  - name: users
+    description: User management
+  - name: assets
+    description: Asset/service management
+  - name: sessions
+    description: Gaming sessions
+  - name: products
+    description: Menu products
+  - name: orders
+    description: Orders
+  - name: payments
+    description: Payments
+  - name: shifts
+    description: Cash shifts
+  - name: inventory
+    description: Inventory management
+  - name: dashboard
+    description: Dashboard & analytics
+  - name: audit
+    description: Audit logs
+  - name: qr
+    description: QR ordering
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +50,1156 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── AUTH ──────────────────────────────────────────────
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Logged in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── TENANTS ──────────────────────────────────────────
+  /tenants:
+    get:
+      operationId: listTenants
+      tags: [tenants]
+      summary: List all tenants (platform owner only)
+      responses:
+        "200":
+          description: List of tenants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tenant"
+    post:
+      operationId: createTenant
+      tags: [tenants]
+      summary: Create a tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+
+  /tenants/{tenantId}:
+    get:
+      operationId: getTenant
+      tags: [tenants]
+      summary: Get a tenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+    patch:
+      operationId: updateTenant
+      tags: [tenants]
+      summary: Update a tenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantUpdate"
+      responses:
+        "200":
+          description: Updated tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+
+  # ── USERS ──────────────────────────────────────────
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List users for current tenant
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    patch:
+      operationId: updateUser
+      tags: [users]
+      summary: Update a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{userId}/deactivate:
+    post:
+      operationId: deactivateUser
+      tags: [users]
+      summary: Deactivate a user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deactivated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  # ── ASSETS ──────────────────────────────────────────
+  /assets:
+    get:
+      operationId: listAssets
+      tags: [assets]
+      summary: List assets for current tenant
+      responses:
+        "200":
+          description: List of assets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Asset"
+    post:
+      operationId: createAsset
+      tags: [assets]
+      summary: Create an asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssetInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+
+  /assets/{assetId}:
+    get:
+      operationId: getAsset
+      tags: [assets]
+      summary: Get an asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+    patch:
+      operationId: updateAsset
+      tags: [assets]
+      summary: Update an asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssetUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Asset"
+
+  /assets/{assetId}/qr:
+    post:
+      operationId: generateAssetQr
+      tags: [assets]
+      summary: Generate QR code for an asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: QR code data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QrCode"
+
+  # ── SESSIONS ──────────────────────────────────────────
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [sessions]
+      summary: List sessions (active + history)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, paused, ended, cancelled]
+        - name: assetId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Session"
+    post:
+      operationId: startSession
+      tags: [sessions]
+      summary: Start a session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionInput"
+      responses:
+        "201":
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/active:
+    get:
+      operationId: listActiveSessions
+      tags: [sessions]
+      summary: List all active sessions with billing preview
+      responses:
+        "200":
+          description: Active sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionWithBilling"
+
+  /sessions/{sessionId}:
+    get:
+      operationId: getSession
+      tags: [sessions]
+      summary: Get a session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionDetail"
+
+  /sessions/{sessionId}/pause:
+    post:
+      operationId: pauseSession
+      tags: [sessions]
+      summary: Pause a session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session paused
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/{sessionId}/resume:
+    post:
+      operationId: resumeSession
+      tags: [sessions]
+      summary: Resume a paused session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session resumed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/{sessionId}/end:
+    post:
+      operationId: endSession
+      tags: [sessions]
+      summary: End a session and compute billing
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session ended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/{sessionId}/cancel:
+    post:
+      operationId: cancelSession
+      tags: [sessions]
+      summary: Cancel a session with reason
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelInput"
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  # ── PRODUCTS ──────────────────────────────────────────
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products/menu items
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{productId}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /product-categories:
+    get:
+      operationId: listProductCategories
+      tags: [products]
+      summary: List product categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductCategory"
+    post:
+      operationId: createProductCategory
+      tags: [products]
+      summary: Create a product category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductCategory"
+
+  # ── QR MENU ──────────────────────────────────────────
+  /qr/{token}/menu:
+    get:
+      operationId: getQrMenu
+      tags: [qr]
+      summary: Get menu by QR token (public, no auth)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Menu with asset info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QrMenuResponse"
+        "404":
+          description: Token not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /qr/{token}/order:
+    post:
+      operationId: placeQrOrder
+      tags: [qr]
+      summary: Place an order via QR (public, no auth)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QrOrderInput"
+      responses:
+        "201":
+          description: Order placed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # ── ORDERS ──────────────────────────────────────────
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, preparing, ready, delivered, closed, cancelled]
+        - name: source
+          in: query
+          schema:
+            type: string
+            enum: [qr, pos]
+        - name: sessionId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create a POS order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/kds:
+    get:
+      operationId: listKdsOrders
+      tags: [orders]
+      summary: List orders for KDS (pending + preparing + ready)
+      responses:
+        "200":
+          description: KDS orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}/status:
+    patch:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderStatusUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}/assign:
+    patch:
+      operationId: assignOrder
+      tags: [orders]
+      summary: Assign order to a buffet worker
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderAssignInput"
+      responses:
+        "200":
+          description: Assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}/cancel:
+    post:
+      operationId: cancelOrder
+      tags: [orders]
+      summary: Cancel an order with reason
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelInput"
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # ── PAYMENTS ──────────────────────────────────────────
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List payments
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, verified]
+        - name: sessionId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Payments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Create a payment record
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentInput"
+      responses:
+        "201":
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  /payments/{paymentId}/verify:
+    post:
+      operationId: verifyPayment
+      tags: [payments]
+      summary: Verify a payment (cashier confirms)
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentVerifyInput"
+      responses:
+        "200":
+          description: Verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  # ── SHIFTS ──────────────────────────────────────────
+  /shifts:
+    get:
+      operationId: listShifts
+      tags: [shifts]
+      summary: List shifts
+      responses:
+        "200":
+          description: Shifts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Shift"
+    post:
+      operationId: openShift
+      tags: [shifts]
+      summary: Open a new shift
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShiftInput"
+      responses:
+        "201":
+          description: Shift opened
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shift"
+
+  /shifts/current:
+    get:
+      operationId: getCurrentShift
+      tags: [shifts]
+      summary: Get the currently open shift
+      responses:
+        "200":
+          description: Current shift
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shift"
+        "404":
+          description: No open shift
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /shifts/{shiftId}/close:
+    post:
+      operationId: closeShift
+      tags: [shifts]
+      summary: Close a shift with actual cash count
+      parameters:
+        - name: shiftId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShiftCloseInput"
+      responses:
+        "200":
+          description: Shift closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shift"
+
+  # ── INVENTORY ──────────────────────────────────────────
+  /inventory:
+    get:
+      operationId: listInventoryItems
+      tags: [inventory]
+      summary: List inventory items
+      responses:
+        "200":
+          description: Inventory items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItem"
+    post:
+      operationId: createInventoryItem
+      tags: [inventory]
+      summary: Create inventory item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventoryItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItem"
+
+  /inventory/{itemId}:
+    patch:
+      operationId: updateInventoryItem
+      tags: [inventory]
+      summary: Update inventory item
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventoryItemUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItem"
+
+  /inventory/movements:
+    get:
+      operationId: listInventoryMovements
+      tags: [inventory]
+      summary: List inventory movements
+      parameters:
+        - name: itemId
+          in: query
+          schema:
+            type: integer
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [sale, waste, adjustment, purchase]
+      responses:
+        "200":
+          description: Movements
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryMovement"
+    post:
+      operationId: createInventoryMovement
+      tags: [inventory]
+      summary: Create inventory adjustment (manager approval required)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventoryMovementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryMovement"
+
+  /inventory/alerts:
+    get:
+      operationId: listInventoryAlerts
+      tags: [inventory]
+      summary: List low-stock inventory items
+      responses:
+        "200":
+          description: Low-stock items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItem"
+
+  # ── DASHBOARD ──────────────────────────────────────────
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get real-time dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+
+  /dashboard/revenue:
+    get:
+      operationId: getRevenueStats
+      tags: [dashboard]
+      summary: Get revenue statistics
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month]
+      responses:
+        "200":
+          description: Revenue stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RevenueStats"
+
+  /dashboard/employee-performance:
+    get:
+      operationId: getEmployeePerformance
+      tags: [dashboard]
+      summary: Get employee performance stats
+      responses:
+        "200":
+          description: Employee performance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EmployeePerformance"
+
+  # ── AUDIT LOGS ──────────────────────────────────────────
+  /audit-logs:
+    get:
+      operationId: listAuditLogs
+      tags: [audit]
+      summary: List audit logs (immutable)
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditLogList"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +1210,863 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    # ── AUTH SCHEMAS ──
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+
+    # ── TENANT SCHEMAS ──
+    Tenant:
+      type: object
+      required: [id, name, slug, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        slug:
+          type: string
+        isActive:
+          type: boolean
+        language:
+          type: string
+          enum: [ar, en]
+        createdAt:
+          type: string
+          format: date-time
+
+    TenantInput:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        slug:
+          type: string
+        language:
+          type: string
+          enum: [ar, en]
+
+    TenantUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        language:
+          type: string
+          enum: [ar, en]
+        isActive:
+          type: boolean
+
+    # ── USER SCHEMAS ──
+    User:
+      type: object
+      required: [id, email, name, role, isActive, createdAt]
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [platform_owner, owner, manager, cashier, buffet_worker]
+        tenantId:
+          type: ["integer", "null"]
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    UserInput:
+      type: object
+      required: [email, name, role, password]
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        nameAr:
+          type: string
+        role:
+          type: string
+          enum: [owner, manager, cashier, buffet_worker]
+        password:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        role:
+          type: string
+          enum: [owner, manager, cashier, buffet_worker]
+        password:
+          type: string
+
+    # ── ASSET SCHEMAS ──
+    Asset:
+      type: object
+      required: [id, name, type, pricePerHour, status, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        type:
+          type: string
+          enum: [ps, billiard, air_hockey, babyfoot, other]
+        pricePerHour:
+          type: number
+        status:
+          type: string
+          enum: [available, busy]
+        qrToken:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    AssetInput:
+      type: object
+      required: [name, type, pricePerHour]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        type:
+          type: string
+          enum: [ps, billiard, air_hockey, babyfoot, other]
+        pricePerHour:
+          type: number
+
+    AssetUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        type:
+          type: string
+          enum: [ps, billiard, air_hockey, babyfoot, other]
+        pricePerHour:
+          type: number
+        status:
+          type: string
+          enum: [available, busy]
+
+    QrCode:
+      type: object
+      required: [token, assetId]
+      properties:
+        token:
+          type: string
+        assetId:
+          type: integer
+        qrDataUrl:
+          type: ["string", "null"]
+
+    # ── SESSION SCHEMAS ──
+    Session:
+      type: object
+      required: [id, assetId, status, startedAt]
+      properties:
+        id:
+          type: integer
+        assetId:
+          type: integer
+        assetName:
+          type: ["string", "null"]
+        assetNameAr:
+          type: ["string", "null"]
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, paused, ended, cancelled]
+        startedAt:
+          type: string
+          format: date-time
+        pausedAt:
+          type: ["string", "null"]
+          format: date-time
+        endedAt:
+          type: ["string", "null"]
+          format: date-time
+        totalMinutes:
+          type: ["number", "null"]
+        totalCost:
+          type: ["number", "null"]
+        cancelReason:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    SessionWithBilling:
+      type: object
+      required: [id, assetId, status, startedAt, currentMinutes, currentCost]
+      properties:
+        id:
+          type: integer
+        assetId:
+          type: integer
+        assetName:
+          type: ["string", "null"]
+        assetNameAr:
+          type: ["string", "null"]
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, paused]
+        startedAt:
+          type: string
+          format: date-time
+        pausedAt:
+          type: ["string", "null"]
+          format: date-time
+        currentMinutes:
+          type: number
+        currentCost:
+          type: number
+
+    SessionDetail:
+      type: object
+      required: [id, assetId, status, startedAt, orders]
+      properties:
+        id:
+          type: integer
+        assetId:
+          type: integer
+        assetName:
+          type: ["string", "null"]
+        assetNameAr:
+          type: ["string", "null"]
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, paused, ended, cancelled]
+        startedAt:
+          type: string
+          format: date-time
+        pausedAt:
+          type: ["string", "null"]
+          format: date-time
+        endedAt:
+          type: ["string", "null"]
+          format: date-time
+        totalMinutes:
+          type: ["number", "null"]
+        totalCost:
+          type: ["number", "null"]
+        cancelReason:
+          type: ["string", "null"]
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+
+    SessionInput:
+      type: object
+      required: [assetId]
+      properties:
+        assetId:
+          type: integer
+        notes:
+          type: string
+
+    CancelInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    # ── PRODUCT SCHEMAS ──
+    Product:
+      type: object
+      required: [id, name, price, isAvailable, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        categoryId:
+          type: ["integer", "null"]
+        categoryName:
+          type: ["string", "null"]
+        categoryNameAr:
+          type: ["string", "null"]
+        price:
+          type: number
+        isAvailable:
+          type: boolean
+        description:
+          type: ["string", "null"]
+        descriptionAr:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ProductInput:
+      type: object
+      required: [name, price]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        categoryId:
+          type: integer
+        price:
+          type: number
+        description:
+          type: string
+        descriptionAr:
+          type: string
+
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        categoryId:
+          type: integer
+        price:
+          type: number
+        description:
+          type: string
+        descriptionAr:
+          type: string
+        isAvailable:
+          type: boolean
+
+    ProductCategory:
+      type: object
+      required: [id, name, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    ProductCategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+
+    # ── QR MENU SCHEMAS ──
+    QrMenuResponse:
+      type: object
+      required: [asset, categories, products]
+      properties:
+        asset:
+          $ref: "#/components/schemas/Asset"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductCategory"
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        activeSession:
+          $ref: "#/components/schemas/Session"
+
+    QrOrderInput:
+      type: object
+      required: [items]
+      properties:
+        customerName:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemInput"
+
+    OrderItemInput:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+        notes:
+          type: string
+
+    # ── ORDER SCHEMAS ──
+    OrderItem:
+      type: object
+      required: [id, productId, productName, quantity, unitPrice, totalPrice]
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        productName:
+          type: string
+        productNameAr:
+          type: ["string", "null"]
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        totalPrice:
+          type: number
+        notes:
+          type: ["string", "null"]
+
+    Order:
+      type: object
+      required: [id, source, status, totalAmount, items, createdAt]
+      properties:
+        id:
+          type: integer
+        source:
+          type: string
+          enum: [qr, pos]
+        status:
+          type: string
+          enum: [pending, preparing, ready, delivered, closed, cancelled]
+        sessionId:
+          type: ["integer", "null"]
+        assetId:
+          type: ["integer", "null"]
+        assetName:
+          type: ["string", "null"]
+        assetNameAr:
+          type: ["string", "null"]
+        createdByUserId:
+          type: ["integer", "null"]
+        createdByUserName:
+          type: ["string", "null"]
+        assignedToUserId:
+          type: ["integer", "null"]
+        assignedToUserName:
+          type: ["string", "null"]
+        customerName:
+          type: ["string", "null"]
+        totalAmount:
+          type: number
+        cancelReason:
+          type: ["string", "null"]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        createdAt:
+          type: string
+          format: date-time
+        preparingAt:
+          type: ["string", "null"]
+          format: date-time
+        readyAt:
+          type: ["string", "null"]
+          format: date-time
+        deliveredAt:
+          type: ["string", "null"]
+          format: date-time
+
+    OrderInput:
+      type: object
+      required: [items]
+      properties:
+        sessionId:
+          type: integer
+        assetId:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemInput"
+        customerName:
+          type: string
+
+    OrderStatusUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, preparing, ready, delivered, closed, cancelled]
+
+    OrderAssignInput:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: integer
+
+    # ── PAYMENT SCHEMAS ──
+    Payment:
+      type: object
+      required: [id, sessionId, method, amount, status, createdAt]
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        method:
+          type: string
+          enum: [cash, instapay, visa]
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [pending, verified]
+        transactionReference:
+          type: ["string", "null"]
+        instapayReference:
+          type: ["string", "null"]
+        verifiedByUserId:
+          type: ["integer", "null"]
+        verifiedByUserName:
+          type: ["string", "null"]
+        verifiedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    PaymentInput:
+      type: object
+      required: [sessionId, method, amount]
+      properties:
+        sessionId:
+          type: integer
+        method:
+          type: string
+          enum: [cash, instapay, visa]
+        amount:
+          type: number
+        transactionReference:
+          type: string
+
+    PaymentVerifyInput:
+      type: object
+      properties:
+        transactionReference:
+          type: string
+
+    # ── SHIFT SCHEMAS ──
+    Shift:
+      type: object
+      required: [id, userId, status, openingCash, openedAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [open, closed]
+        openingCash:
+          type: number
+        expectedCash:
+          type: ["number", "null"]
+        actualCash:
+          type: ["number", "null"]
+        difference:
+          type: ["number", "null"]
+        differenceExplanation:
+          type: ["string", "null"]
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: ["string", "null"]
+          format: date-time
+
+    ShiftInput:
+      type: object
+      required: [openingCash]
+      properties:
+        openingCash:
+          type: number
+
+    ShiftCloseInput:
+      type: object
+      required: [actualCash]
+      properties:
+        actualCash:
+          type: number
+        differenceExplanation:
+          type: string
+
+    # ── INVENTORY SCHEMAS ──
+    InventoryItem:
+      type: object
+      required: [id, name, unit, currentStock, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        unit:
+          type: string
+        currentStock:
+          type: number
+        minStockLevel:
+          type: ["number", "null"]
+        isLowStock:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    InventoryItemInput:
+      type: object
+      required: [name, unit, currentStock]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        unit:
+          type: string
+        currentStock:
+          type: number
+        minStockLevel:
+          type: number
+
+    InventoryItemUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: string
+        unit:
+          type: string
+        currentStock:
+          type: number
+        minStockLevel:
+          type: number
+
+    InventoryMovement:
+      type: object
+      required: [id, inventoryItemId, type, quantity, createdAt]
+      properties:
+        id:
+          type: integer
+        inventoryItemId:
+          type: integer
+        itemName:
+          type: ["string", "null"]
+        type:
+          type: string
+          enum: [sale, waste, adjustment, purchase]
+        quantity:
+          type: number
+        reason:
+          type: ["string", "null"]
+        approvedByUserId:
+          type: ["integer", "null"]
+        approvedByUserName:
+          type: ["string", "null"]
+        createdByUserId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    InventoryMovementInput:
+      type: object
+      required: [inventoryItemId, type, quantity]
+      properties:
+        inventoryItemId:
+          type: integer
+        type:
+          type: string
+          enum: [waste, adjustment, purchase]
+        quantity:
+          type: number
+        reason:
+          type: string
+
+    # ── DASHBOARD SCHEMAS ──
+    DashboardSummary:
+      type: object
+      required: [activeSessions, occupiedAssets, totalAssets, revenueToday, pendingOrders, preparingOrders, lowStockAlerts, openShift]
+      properties:
+        activeSessions:
+          type: integer
+        occupiedAssets:
+          type: integer
+        totalAssets:
+          type: integer
+        revenueToday:
+          type: number
+        pendingOrders:
+          type: integer
+        preparingOrders:
+          type: integer
+        lowStockAlerts:
+          type: integer
+        openShift:
+          type: boolean
+        cashDiscrepancyCount:
+          type: integer
+        buffetWorkload:
+          type: integer
+
+    RevenueStats:
+      type: object
+      required: [total, sessionRevenue, orderRevenue, period]
+      properties:
+        total:
+          type: number
+        sessionRevenue:
+          type: number
+        orderRevenue:
+          type: number
+        period:
+          type: string
+        paymentMethodBreakdown:
+          type: object
+          properties:
+            cash:
+              type: number
+            instapay:
+              type: number
+            visa:
+              type: number
+
+    EmployeePerformance:
+      type: object
+      required: [userId, userName, ordersHandled, sessionsStarted]
+      properties:
+        userId:
+          type: integer
+        userName:
+          type: string
+        role:
+          type: string
+        ordersHandled:
+          type: integer
+        sessionsStarted:
+          type: integer
+        revenue:
+          type: number
+
+    # ── AUDIT SCHEMAS ──
+    AuditLog:
+      type: object
+      required: [id, userId, action, entityType, createdAt]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: ["integer", "null"]
+        userName:
+          type: ["string", "null"]
+        action:
+          type: string
+        entityType:
+          type: string
+        entityId:
+          type: ["integer", "null"]
+        oldValue:
+          type: ["string", "null"]
+        newValue:
+          type: ["string", "null"]
+        ipAddress:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    AuditLogList:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditLog"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer

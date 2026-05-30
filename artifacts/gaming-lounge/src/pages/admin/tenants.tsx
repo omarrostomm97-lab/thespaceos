@@ -1,0 +1,70 @@
+import { useListTenants } from "@workspace/api-client-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Globe } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+export default function Tenants() {
+  const { data: tenants, isLoading } = useListTenants();
+
+  if (isLoading) {
+    return (
+      <div className="p-8 flex items-center justify-center h-full">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-primary">إدارة الفروع (Tenants)</h2>
+          <p className="text-muted-foreground mt-1">إدارة كافة المشتركين والفروع في النظام</p>
+        </div>
+        <Button>إضافة فرع جديد</Button>
+      </div>
+
+      <div className="bg-card rounded-lg border border-border overflow-hidden">
+        <table className="w-full text-sm text-right">
+          <thead className="bg-secondary text-muted-foreground uppercase text-xs">
+            <tr>
+              <th className="px-6 py-4">الاسم</th>
+              <th className="px-6 py-4">الرابط التعريفي</th>
+              <th className="px-6 py-4">اللغة</th>
+              <th className="px-6 py-4">الحالة</th>
+              <th className="px-6 py-4 text-left">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tenants?.map(tenant => (
+              <tr key={tenant.id} className="border-b border-border hover:bg-secondary/30">
+                <td className="px-6 py-4 font-bold flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" />
+                  {tenant.nameAr || tenant.name}
+                </td>
+                <td className="px-6 py-4 font-mono text-muted-foreground" dir="ltr">{tenant.slug}</td>
+                <td className="px-6 py-4">
+                  <span className="flex items-center gap-1">
+                    <Globe className="h-3 w-3 text-muted-foreground" />
+                    {tenant.language === 'en' ? 'English' : 'العربية'}
+                  </span>
+                </td>
+                <td className="px-6 py-4">
+                  {tenant.isActive ? (
+                    <Badge variant="outline" className="border-emerald-500 text-emerald-500">نشط</Badge>
+                  ) : (
+                    <Badge variant="secondary">موقوف</Badge>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-left">
+                  <Button variant="ghost" size="sm">إدارة</Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
