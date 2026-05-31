@@ -1,5 +1,6 @@
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { I18nProvider } from "@heroui/react";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/components/protected-route";
@@ -129,12 +130,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-        <AuthProvider>
-          <Router />
-          <Toaster />
-        </AuthProvider>
-      </WouterRouter>
+      <I18nProvider locale="ar-AE">
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <AuthProvider>
+            <Router />
+            <Toaster />
+          </AuthProvider>
+        </WouterRouter>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

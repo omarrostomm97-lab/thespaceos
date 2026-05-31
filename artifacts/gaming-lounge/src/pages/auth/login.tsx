@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { useLogin } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -6,43 +5,40 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Gamepad2 } from "lucide-react";
 import { defaultRedirect, UserRole } from "@/lib/permissions";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email("البريد الإلكتروني غير صالح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { login: setAuth } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const [error, setError] = useState<string | null>(null);
-
   const loginMutation = useLogin();
 
-  const validate = (): { email?: string; password?: string } => {
-    const errs: { email?: string; password?: string } = {};
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errs.email = "البريد الإلكتروني غير صالح";
-    }
-    if (!password || password.length < 6) {
-      errs.password = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
-    }
-    return errs;
-  };
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+  });
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const errs = validate();
-    if (Object.keys(errs).length > 0) {
-      setErrors(errs);
-      return;
-    }
-    setErrors({});
-    setError(null);
+  const onSubmit = async (data: LoginForm) => {
     try {
-      const response = await loginMutation.mutateAsync({ data: { email, password } });
+      const response = await loginMutation.mutateAsync({ data });
       setAuth(response.token, response.user, response.refreshToken ?? undefined);
       setLocation(defaultRedirect(response.user.role as UserRole));
     } catch (err: any) {
-      setError(err?.data?.error || err?.response?.data?.error || "حدث خطأ أثناء تسجيل الدخول");
+      setError("root", {
+        message: err?.data?.error || err?.response?.data?.error || "حدث خطأ أثناء تسجيل الدخول",
+      });
     }
   };
 
@@ -57,10 +53,10 @@ export default function Login() {
           <p className="text-muted-foreground">تسجيل الدخول للوحة التحكم</p>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-6">
-          {error && (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {errors.root && (
             <div className="p-3 text-sm text-destructive-foreground bg-destructive/90 rounded-md text-center font-medium">
-              {error}
+              {errors.root.message}
             </div>
           )}
 
@@ -70,12 +66,11 @@ export default function Login() {
               <Input
                 type="email"
                 placeholder="admin@gaminglounge.com"
-                value={email}
-                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
                 className="h-12 text-lg text-left"
                 dir="ltr"
+                {...register("email")}
               />
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1.5">
@@ -83,19 +78,18 @@ export default function Login() {
               <Input
                 type="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
                 className="h-12 text-lg text-left"
                 dir="ltr"
+                {...register("password")}
               />
-              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+              {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
             </div>
           </div>
 
           <Button
             type="submit"
             className="w-full h-14 text-xl font-bold shadow-lg shadow-primary/20"
-            disabled={loginMutation.isPending}
+            disabled={loginMutation.isPending || isSubmitting}
           >
             {loginMutation.isPending ? "جاري الدخول..." : "دخول"}
           </Button>
