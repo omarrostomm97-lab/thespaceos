@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import {
   useListAssets,
   useStartSession,
@@ -9,7 +10,6 @@ import {
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
 import type { Asset } from "@workspace/api-client-react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +20,10 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Gamepad2, Tv, Trophy, Play, Plus, Pencil, Wind, Target, QrCode, Printer, RefreshCw } from "lucide-react";
+import {
+  Gamepad2, Tv, Trophy, Play, Plus, Pencil, Wind, Target,
+  QrCode, Printer, RefreshCw, Zap,
+} from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -37,7 +40,7 @@ const ASSET_TYPES = [
   { value: "other",      labelAr: "أخرى" },
 ] as const;
 
-function getAssetIcon(type: string, className = "h-8 w-8") {
+function getAssetIcon(type: string, className = "h-7 w-7") {
   switch (type) {
     case "ps":         return <Tv className={className} />;
     case "billiard":   return <Trophy className={className} />;
@@ -46,6 +49,210 @@ function getAssetIcon(type: string, className = "h-8 w-8") {
     default:           return <Gamepad2 className={className} />;
   }
 }
+
+/* ─── Premium Asset Card ─────────────────────────────── */
+
+interface AssetCardProps {
+  asset: Asset;
+  isMgmt: boolean;
+  onEdit: (a: Asset) => void;
+  onQr: (a: Asset) => void;
+  onStart: (id: number) => void;
+  starting: boolean;
+}
+
+function AssetCard({ asset, isMgmt, onEdit, onQr, onStart, starting }: AssetCardProps) {
+  const isAvailable = asset.status === "available";
+
+  const glowColor = isAvailable
+    ? "rgba(0, 111, 238, 0.25)"
+    : "rgba(245, 165, 36, 0.25)";
+
+  const accentColor = isAvailable ? "#006FEE" : "#f5a524";
+  const accentGrad  = isAvailable
+    ? "linear-gradient(90deg, #006FEE, #338ef7)"
+    : "linear-gradient(90deg, #f5a524, #f5a524cc)";
+  const iconGrad    = isAvailable
+    ? "linear-gradient(135deg, rgba(0,111,238,0.25) 0%, rgba(51,142,247,0.12) 100%)"
+    : "linear-gradient(135deg, rgba(245,165,36,0.25) 0%, rgba(245,165,36,0.1) 100%)";
+  const iconColor   = isAvailable ? "#338ef7" : "#f5a524";
+
+  return (
+    <motion.div
+      whileHover={{
+        y: -5,
+        transition: { type: "spring", stiffness: 400, damping: 25 },
+      }}
+      whileTap={{ scale: 0.98 }}
+      className="relative flex flex-col overflow-hidden rounded-2xl cursor-default"
+      style={{
+        background: "linear-gradient(145deg, hsl(0 0% 11%) 0%, hsl(0 0% 8%) 100%)",
+        border: `1px solid hsl(0 0% 15%)`,
+        boxShadow: `0 4px 24px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.05) inset`,
+        transition: "box-shadow 0.25s ease, border-color 0.25s ease",
+      }}
+      onMouseEnter={e => {
+        (e.currentTarget as HTMLDivElement).style.boxShadow =
+          `0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px ${accentColor}40, 0 0 32px ${glowColor}, 0 1px 0 rgba(255,255,255,0.06) inset`;
+        (e.currentTarget as HTMLDivElement).style.borderColor = `${accentColor}50`;
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLDivElement).style.boxShadow =
+          `0 4px 24px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.05) inset`;
+        (e.currentTarget as HTMLDivElement).style.borderColor = "hsl(0 0% 15%)";
+      }}
+    >
+      {/* Top accent line */}
+      <div
+        className="absolute top-0 inset-x-0 h-[3px] rounded-t-2xl"
+        style={{ background: accentGrad }}
+      />
+
+      {/* Top-right inner shine */}
+      <div
+        className="absolute top-0 left-0 w-24 h-24 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at top right, ${accentColor}08 0%, transparent 70%)`,
+        }}
+      />
+
+      {/* ── Card Body ── */}
+      <div className="p-5 flex flex-col flex-1 pt-6">
+
+        {/* Top row: icon + action buttons */}
+        <div className="flex items-start justify-between mb-4">
+          {/* Icon with gradient glow circle */}
+          <div
+            className="relative w-14 h-14 rounded-2xl flex items-center justify-center"
+            style={{
+              background: iconGrad,
+              boxShadow: `0 0 20px ${accentColor}20, inset 0 1px 0 rgba(255,255,255,0.08)`,
+              border: `1px solid ${accentColor}20`,
+            }}
+          >
+            <div style={{ color: iconColor }}>
+              {getAssetIcon(asset.type, "h-7 w-7")}
+            </div>
+          </div>
+
+          {/* Status badge + action icons */}
+          <div className="flex flex-col items-end gap-2">
+            {/* Status badge */}
+            <div
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold"
+              style={
+                isAvailable
+                  ? {
+                      background: "rgba(23,201,100,0.12)",
+                      border: "1px solid rgba(23,201,100,0.2)",
+                      color: "#17c964",
+                    }
+                  : {
+                      background: "rgba(245,165,36,0.12)",
+                      border: "1px solid rgba(245,165,36,0.25)",
+                      color: "#f5a524",
+                    }
+              }
+            >
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: isAvailable ? "#17c964" : "#f5a524",
+                  boxShadow: isAvailable
+                    ? "0 0 6px rgba(23,201,100,0.8)"
+                    : "0 0 6px rgba(245,165,36,0.8)",
+                }}
+              />
+              {isAvailable ? "متاح" : "مشغول"}
+            </div>
+
+            {/* Icon buttons */}
+            <div className="flex items-center gap-1">
+              <button
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/[0.07] transition-all duration-150"
+                onClick={() => onQr(asset)}
+                title="رمز QR"
+              >
+                <QrCode className="h-3.5 w-3.5" />
+              </button>
+              {isMgmt && (
+                <button
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-white/30 hover:text-white/70 hover:bg-white/[0.07] transition-all duration-150"
+                  onClick={() => onEdit(asset)}
+                  title="تعديل"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Name */}
+        <h3 className="text-lg font-bold text-white leading-tight mb-1">
+          {asset.nameAr || asset.name}
+        </h3>
+
+        {/* Type label */}
+        <p className="text-xs text-white/35 mb-3">
+          {ASSET_TYPES.find(t => t.value === asset.type)?.labelAr ?? asset.type}
+        </p>
+
+        {/* Price */}
+        <div className="flex items-baseline gap-1 mb-5">
+          <span
+            className="text-2xl font-bold tabular"
+            style={{
+              fontFamily: "Inter, system-ui, sans-serif",
+              color: accentColor,
+            }}
+          >
+            {asset.pricePerHour}
+          </span>
+          <span className="text-xs text-white/35 font-medium">ج.م / ساعة</span>
+        </div>
+
+        {/* CTA button */}
+        {isAvailable ? (
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            className="w-full h-11 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            style={{
+              background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
+              boxShadow: "0 4px 16px rgba(0,111,238,0.35), 0 1px 0 rgba(255,255,255,0.15) inset",
+            }}
+            onClick={() => onStart(asset.id)}
+            disabled={starting}
+          >
+            <Zap className="h-4 w-4" />
+            بدء اللعب
+          </motion.button>
+        ) : (
+          <Link href="/sessions" className="block">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className="w-full h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer"
+              style={{
+                background: "rgba(245,165,36,0.1)",
+                border: "1px solid rgba(245,165,36,0.3)",
+                color: "#f5a524",
+              }}
+            >
+              <Play className="h-4 w-4" />
+              عرض الجلسة
+            </motion.div>
+          </Link>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Form state ─────────────────────────────────────── */
 
 interface FormState {
   nameAr: string;
@@ -56,6 +263,8 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { nameAr: "", name: "", type: "ps", pricePerHour: "" };
 
+/* ─── Page ───────────────────────────────────────────── */
+
 export default function Assets() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -64,24 +273,20 @@ export default function Assets() {
 
   const { data: assets, isLoading } = useListAssets();
   const startSession = useStartSession();
-  const createAsset = useCreateAsset();
-  const updateAsset = useUpdateAsset();
-  const generateQr = useGenerateAssetQr();
+  const createAsset  = useCreateAsset();
+  const updateAsset  = useUpdateAsset();
+  const generateQr   = useGenerateAssetQr();
 
-  // Add/Edit dialog state
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen]   = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [errors, setErrors] = useState<Partial<FormState>>({});
+  const [form, setForm]               = useState<FormState>(EMPTY_FORM);
+  const [errors, setErrors]           = useState<Partial<FormState>>({});
 
-  // QR dialog state
-  const [qrDialogOpen, setQrDialogOpen] = useState(false);
-  const [qrAsset, setQrAsset] = useState<Asset | null>(null);
-  const [qrToken, setQrToken] = useState<string | null>(null);
-  const [qrLoading, setQrLoading] = useState(false);
-  const [qrConfirmRegen, setQrConfirmRegen] = useState(false);
-
-  // ── Add/Edit handlers ──────────────────────────────────────────────────────
+  const [qrDialogOpen, setQrDialogOpen]       = useState(false);
+  const [qrAsset, setQrAsset]                 = useState<Asset | null>(null);
+  const [qrToken, setQrToken]                 = useState<string | null>(null);
+  const [qrLoading, setQrLoading]             = useState(false);
+  const [qrConfirmRegen, setQrConfirmRegen]   = useState(false);
 
   const openAdd = () => {
     setEditingAsset(null);
@@ -107,7 +312,8 @@ export default function Assets() {
     if (!form.nameAr.trim()) errs.nameAr = "الاسم العربي مطلوب";
     if (!form.type) errs.type = "نوع الجهاز مطلوب";
     const price = parseFloat(form.pricePerHour);
-    if (!form.pricePerHour || isNaN(price) || price <= 0) errs.pricePerHour = "السعر يجب أن يكون رقماً أكبر من صفر";
+    if (!form.pricePerHour || isNaN(price) || price <= 0)
+      errs.pricePerHour = "السعر يجب أن يكون رقماً أكبر من صفر";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -120,22 +326,12 @@ export default function Assets() {
       if (editingAsset) {
         await updateAsset.mutateAsync({
           assetId: editingAsset.id,
-          data: {
-            name: nameValue,
-            nameAr: form.nameAr.trim() || undefined,
-            type: form.type as Asset["type"],
-            pricePerHour: price,
-          },
+          data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price },
         });
         toast.success("تم تحديث الجهاز بنجاح");
       } else {
         await createAsset.mutateAsync({
-          data: {
-            name: nameValue,
-            nameAr: form.nameAr.trim() || undefined,
-            type: form.type as Asset["type"],
-            pricePerHour: price,
-          },
+          data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price },
         });
         toast.success("تم إضافة الجهاز بنجاح");
       }
@@ -158,13 +354,10 @@ export default function Assets() {
     }
   };
 
-  // ── QR handlers ────────────────────────────────────────────────────────────
-
   const openQr = async (asset: Asset) => {
     setQrAsset(asset);
     setQrConfirmRegen(false);
     setQrDialogOpen(true);
-
     if (asset.qrToken) {
       setQrToken(asset.qrToken);
     } else {
@@ -199,27 +392,31 @@ export default function Assets() {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const qrUrl = qrToken
-    ? `${window.location.origin}/qr/${qrToken}`
-    : "";
-
+  const qrUrl = qrToken ? `${window.location.origin}/qr/${qrToken}` : "";
   const isSaving = createAsset.isPending || updateAsset.isPending;
 
+  /* ── Loading skeleton ── */
   if (isLoading) {
     return (
-      <div className="p-8 flex items-center justify-center h-full">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="p-8 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-8 w-56 rounded-xl bg-muted skeleton-shimmer" />
+            <div className="h-4 w-36 rounded-lg bg-muted skeleton-shimmer" />
+          </div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-64 rounded-2xl skeleton-shimmer" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      {/* Print-only target — hidden on screen, shown on print */}
+      {/* Print target */}
       <div className="hidden print:flex flex-col items-center p-10" dir="rtl">
         {qrAsset && qrToken && (
           <>
@@ -230,133 +427,124 @@ export default function Assets() {
         )}
       </div>
 
-      {/* Screen content — hidden on print */}
-      <div className="p-8 space-y-6 print:hidden">
+      <div className="p-8 space-y-8 print:hidden">
+
+        {/* ── Page header ── */}
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight text-primary">الأجهزة والجلسات</h2>
-            <p className="text-muted-foreground mt-1">إدارة الأجهزة وبدء جلسات اللعب</p>
+          <div className="flex items-center gap-4">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+              style={{
+                background: "linear-gradient(135deg, rgba(0,111,238,0.2) 0%, rgba(51,142,247,0.1) 100%)",
+                border: "1px solid rgba(0,111,238,0.25)",
+                boxShadow: "0 0 20px rgba(0,111,238,0.12)",
+              }}
+            >
+              <Gamepad2 className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h2
+                className="text-2xl font-bold tracking-tight"
+                style={{ color: "hsl(var(--foreground))" }}
+              >
+                الأجهزة والجلسات
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                إدارة الأجهزة وبدء جلسات اللعب
+              </p>
+            </div>
           </div>
+
           {isMgmt && (
-            <Button onClick={openAdd} className="gap-2">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              onClick={openAdd}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              style={{
+                background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
+                boxShadow: "0 4px 16px rgba(0,111,238,0.3), 0 1px 0 rgba(255,255,255,0.12) inset",
+              }}
+            >
               <Plus className="h-4 w-4" />
               إضافة جهاز
-            </Button>
+            </motion.button>
           )}
         </div>
 
-        {/* Empty state */}
+        {/* ── Empty state ── */}
         {assets?.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 border-2 border-dashed border-border rounded-xl text-center space-y-4">
-            <div className="p-5 rounded-full bg-secondary">
-              <Gamepad2 className="h-12 w-12 text-muted-foreground" />
+          <div
+            className="flex flex-col items-center justify-center py-24 rounded-2xl text-center space-y-4"
+            style={{
+              background: "linear-gradient(145deg, hsl(0 0% 9%) 0%, hsl(0 0% 7%) 100%)",
+              border: "1px dashed hsl(0 0% 18%)",
+            }}
+          >
+            <div
+              className="p-5 rounded-2xl"
+              style={{
+                background: "rgba(0,111,238,0.1)",
+                border: "1px solid rgba(0,111,238,0.15)",
+                boxShadow: "0 0 24px rgba(0,111,238,0.1)",
+              }}
+            >
+              <Gamepad2 className="h-12 w-12 text-primary opacity-60" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold">لا توجد أجهزة بعد</h3>
-              <p className="text-muted-foreground mt-1 text-sm max-w-xs">
+              <h3 className="text-xl font-bold">لا توجد أجهزة بعد</h3>
+              <p className="text-muted-foreground mt-1.5 text-sm max-w-xs leading-relaxed">
                 أضف أجهزتك (PS، بلياردو، PC...) لتتمكن من بدء جلسات اللعب وتتبع الإيرادات
               </p>
             </div>
             {isMgmt && (
-              <Button onClick={openAdd} className="mt-2 gap-2">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={openAdd}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white mt-2"
+                style={{
+                  background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
+                  boxShadow: "0 4px 16px rgba(0,111,238,0.3)",
+                }}
+              >
                 <Plus className="h-4 w-4" />
                 إضافة أول جهاز
-              </Button>
+              </motion.button>
             )}
           </div>
         )}
 
-        {/* Device grid */}
+        {/* ── Asset grid ── */}
         {assets && assets.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {assets.map((asset) => {
-              const isAvailable = asset.status === "available";
-              return (
-                <Card
-                  key={asset.id}
-                  className={`relative overflow-hidden border-2 transition-all ${
-                    isAvailable ? "border-border hover:border-primary" : "border-amber-500/50"
-                  }`}
-                >
-                  <div className={`absolute top-0 right-0 w-2 h-full ${isAvailable ? "bg-emerald-500" : "bg-amber-500"}`} />
-
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div className={`p-3 rounded-lg ${isAvailable ? "bg-secondary text-foreground" : "bg-amber-500/20 text-amber-500"}`}>
-                        {getAssetIcon(asset.type)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <div className={`px-2 py-1 text-xs font-bold rounded-md ${
-                          isAvailable ? "bg-emerald-500/20 text-emerald-500" : "bg-amber-500/20 text-amber-500"
-                        }`}>
-                          {isAvailable ? "متاح" : "مشغول"}
-                        </div>
-                        {/* QR button — visible to all roles */}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                          onClick={() => openQr(asset)}
-                          title="رمز QR"
-                        >
-                          <QrCode className="h-3.5 w-3.5" />
-                        </Button>
-                        {isMgmt && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => openEdit(asset)}
-                            title="تعديل الجهاز"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <CardTitle className="mt-4 text-xl">{asset.nameAr || asset.name}</CardTitle>
-                  </CardHeader>
-
-                  <CardContent className="pb-4">
-                    <p className="text-sm font-medium text-muted-foreground">
-                      <span className="text-foreground">{asset.pricePerHour}</span> ج.م / ساعة
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {ASSET_TYPES.find(t => t.value === asset.type)?.labelAr ?? asset.type}
-                    </p>
-                  </CardContent>
-
-                  <CardFooter className="pt-0">
-                    {isAvailable ? (
-                      <Button
-                        className="w-full h-12 text-md font-bold"
-                        onClick={() => handleStartSession(asset.id)}
-                        disabled={startSession.isPending}
-                      >
-                        <Play className="ml-2 h-5 w-5" />
-                        بدء اللعب
-                      </Button>
-                    ) : (
-                      <Link href="/sessions" className="w-full">
-                        <Button variant="outline" className="w-full h-12 text-md border-amber-500/50 text-amber-500 hover:bg-amber-500/10">
-                          عرض الجلسة
-                        </Button>
-                      </Link>
-                    )}
-                  </CardFooter>
-                </Card>
-              );
-            })}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+            {assets.map((asset, i) => (
+              <motion.div
+                key={asset.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05, duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <AssetCard
+                  asset={asset}
+                  isMgmt={isMgmt}
+                  onEdit={openEdit}
+                  onQr={openQr}
+                  onStart={handleStartSession}
+                  starting={startSession.isPending}
+                />
+              </motion.div>
+            ))}
           </div>
         )}
 
-        {/* Add / Edit dialog */}
+        {/* ── Add / Edit dialog ── */}
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="sm:max-w-md" dir="rtl">
             <DialogHeader>
               <DialogTitle>{editingAsset ? "تعديل الجهاز" : "إضافة جهاز جديد"}</DialogTitle>
             </DialogHeader>
-
             <div className="space-y-4 py-2">
               <div className="space-y-1.5">
                 <Label htmlFor="nameAr">اسم الجهاز (عربي) <span className="text-destructive">*</span></Label>
@@ -368,7 +556,6 @@ export default function Assets() {
                 />
                 {errors.nameAr && <p className="text-xs text-destructive">{errors.nameAr}</p>}
               </div>
-
               <div className="space-y-1.5">
                 <Label htmlFor="name">اسم الجهاز (إنجليزي) <span className="text-muted-foreground text-xs">(اختياري)</span></Label>
                 <Input
@@ -378,7 +565,6 @@ export default function Assets() {
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 />
               </div>
-
               <div className="space-y-1.5">
                 <Label htmlFor="type">نوع الجهاز <span className="text-destructive">*</span></Label>
                 <select
@@ -393,7 +579,6 @@ export default function Assets() {
                 </select>
                 {errors.type && <p className="text-xs text-destructive">{errors.type}</p>}
               </div>
-
               <div className="space-y-1.5">
                 <Label htmlFor="pricePerHour">سعر الساعة (ج.م) <span className="text-destructive">*</span></Label>
                 <Input
@@ -408,11 +593,8 @@ export default function Assets() {
                 {errors.pricePerHour && <p className="text-xs text-destructive">{errors.pricePerHour}</p>}
               </div>
             </div>
-
             <DialogFooter className="gap-2 sm:gap-0">
-              <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isSaving}>
-                إلغاء
-              </Button>
+              <Button variant="outline" onClick={() => setDialogOpen(false)} disabled={isSaving}>إلغاء</Button>
               <Button onClick={handleSubmit} disabled={isSaving}>
                 {isSaving ? "جاري الحفظ..." : editingAsset ? "حفظ التعديلات" : "إضافة الجهاز"}
               </Button>
@@ -420,7 +602,7 @@ export default function Assets() {
           </DialogContent>
         </Dialog>
 
-        {/* QR code dialog */}
+        {/* ── QR dialog ── */}
         <Dialog open={qrDialogOpen} onOpenChange={(open) => { setQrDialogOpen(open); if (!open) setQrConfirmRegen(false); }}>
           <DialogContent className="sm:max-w-sm" dir="rtl">
             <DialogHeader>
@@ -429,7 +611,6 @@ export default function Assets() {
                 رمز QR — {qrAsset?.nameAr || qrAsset?.name}
               </DialogTitle>
             </DialogHeader>
-
             <div className="flex flex-col items-center py-4 space-y-4">
               {qrLoading ? (
                 <div className="flex flex-col items-center gap-3 py-8">
@@ -444,48 +625,28 @@ export default function Assets() {
                   <p className="text-sm text-center text-muted-foreground">
                     امسح الكود بكاميرا هاتفك لطلب الطعام والمشروبات
                   </p>
-                  <p className="text-xs text-center text-muted-foreground/60 font-mono break-all px-2">
-                    {qrUrl}
-                  </p>
+                  <p className="text-xs text-center text-muted-foreground/60 font-mono break-all px-2">{qrUrl}</p>
                 </>
               ) : null}
             </div>
-
-            {/* Regenerate confirmation */}
             {qrConfirmRegen && (
               <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-600 space-y-2" dir="rtl">
                 <p className="font-semibold">تأكيد تجديد الكود</p>
                 <p className="text-xs">الكود القديم سيتوقف عن العمل فوراً. هل أنت متأكد؟</p>
                 <div className="flex gap-2 pt-1">
-                  <Button size="sm" variant="destructive" onClick={handleRegenerate} disabled={qrLoading}>
-                    نعم، جدد الكود
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => setQrConfirmRegen(false)}>
-                    إلغاء
-                  </Button>
+                  <Button size="sm" variant="destructive" onClick={handleRegenerate} disabled={qrLoading}>نعم، جدد الكود</Button>
+                  <Button size="sm" variant="outline" onClick={() => setQrConfirmRegen(false)}>إلغاء</Button>
                 </div>
               </div>
             )}
-
             <DialogFooter className="gap-2 flex-row-reverse sm:flex-row-reverse" dir="rtl">
               {!qrConfirmRegen && isMgmt && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQrConfirmRegen(true)}
-                  disabled={qrLoading}
-                  className="gap-1.5"
-                >
+                <Button variant="outline" size="sm" onClick={() => setQrConfirmRegen(true)} disabled={qrLoading} className="gap-1.5">
                   <RefreshCw className="h-3.5 w-3.5" />
                   تجديد الكود
                 </Button>
               )}
-              <Button
-                size="sm"
-                onClick={handlePrint}
-                disabled={!qrToken || qrLoading}
-                className="gap-1.5"
-              >
+              <Button size="sm" onClick={() => window.print()} disabled={!qrToken || qrLoading} className="gap-1.5">
                 <Printer className="h-3.5 w-3.5" />
                 طباعة
               </Button>
