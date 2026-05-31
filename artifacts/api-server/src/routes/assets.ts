@@ -74,14 +74,27 @@ router.patch("/assets/:assetId", requireAuth, requireTenant, MGMT, async (req, r
   }
 });
 
-router.post("/assets/:assetId/qr", requireAuth, requireTenant, MGMT, async (req, res) => {
+router.post("/assets/:assetId/qr", requireAuth, requireTenant, async (req, res) => {
   try {
     const id = parseInt(req.params.assetId as string);
-    const token = uuidv4();
-    const [asset] = await db.update(assetsTable).set({ qrToken: token })
+    const isMgmt = ["platform_owner", "owner", "manager"].includes(req.user!.role);
+
+    // Fetch the existing asset first
+    const [existing] = await db.select().from(assetsTable)
       .where(and(eq(assetsTable.id, id), eq(assetsTable.tenantId, req.user!.tenantId!)))
-      .returning();
-    if (!asset) { res.status(404).json({ error: "Not found" }); return; }
+      .limit(1);
+    if (!existing) { res.status(404).json({ error: "Not found" }); return; }
+
+    // Non-MGMT: return existing token if present (no regeneration)
+    if (!isMgmt && existing.qrToken) {
+      res.json({ token: existing.qrToken, assetId: id, qrDataUrl: null });
+      return;
+    }
+
+    // MGMT or no token yet: generate a fresh token
+    const token = uuidv4();
+    await db.update(assetsTable).set({ qrToken: token })
+      .where(and(eq(assetsTable.id, id), eq(assetsTable.tenantId, req.user!.tenantId!)));
     await writeAuditLog({ user: req.user, action: "generate_qr", entityType: "asset", entityId: id });
     res.json({ token, assetId: id, qrDataUrl: null });
   } catch {
