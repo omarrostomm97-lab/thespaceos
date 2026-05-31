@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Gamepad2 } from "lucide-react";
+import { defaultRedirect, UserRole } from "@/lib/permissions";
 
 const loginSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صالح"),
@@ -35,7 +36,7 @@ export default function Login() {
     try {
       const response = await loginMutation.mutateAsync({ data: values });
       setAuth(response.token, response.user, response.refreshToken ?? undefined);
-      setLocation("/dashboard");
+      setLocation(defaultRedirect(response.user.role as UserRole));
     } catch (err: any) {
       setError(err?.data?.error || "حدث خطأ أثناء تسجيل الدخول");
     }
