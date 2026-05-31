@@ -13,14 +13,14 @@ import {
 import {
   Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart,
   Activity, Monitor, TrendingUp, Utensils, Bell, Plus,
-  LayoutDashboard, ChefHat,
+  LayoutDashboard, ChefHat, Search, Download,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { FadeIn, StaggerChildren, StaggerItem, HoverCard } from "@/components/motion";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer,
+  BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer,
 } from "recharts";
 
 /* ─── Count-up hook ──────────────────────────────────── */
@@ -203,7 +203,7 @@ export default function Dashboard() {
     query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 10000 },
   });
 
-  const { data: revenueStats } = useGetRevenueStats({ period }, {
+  const { data: revenueStats, isLoading: isLoadingRevenue } = useGetRevenueStats({ period }, {
     query: { queryKey: getGetRevenueStatsQueryKey({ period }) },
   });
 
@@ -258,13 +258,27 @@ export default function Dashboard() {
             <FadeIn delay={0.05}>
               <div className="flex items-center gap-2">
                 <button
-                  className="relative w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-150"
+                  className="w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  aria-label="بحث"
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+
+                <button
+                  className="relative w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                   aria-label="الإشعارات"
                 >
                   <Bell className="h-4 w-4" />
                   {(summary?.pendingOrders ?? 0) > 0 && (
                     <span className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
                   )}
+                </button>
+
+                <button
+                  className="w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  aria-label="تصدير التقرير"
+                >
+                  <Download className="h-4 w-4" />
                 </button>
 
                 {!summary?.openShift ? (
@@ -308,7 +322,7 @@ export default function Dashboard() {
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
-                  className={`relative px-4 py-1.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
+                  className={`relative px-4 py-1.5 text-sm font-medium rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                     tab === t.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -329,7 +343,7 @@ export default function Dashboard() {
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
-                  className={`relative px-3 py-1 text-xs font-medium rounded-md transition-colors duration-150 ${
+                  className={`relative px-3 py-1 text-xs font-medium rounded-md transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                     period === p ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -422,7 +436,15 @@ export default function Dashboard() {
                         </p>
                       </div>
                     </div>
-                    {dailyChartData.length === 0 ? (
+                    {isLoadingRevenue ? (
+                      <div className="h-[200px] space-y-3 pt-2">
+                        <div className="flex items-end gap-2 h-full">
+                          {Array.from({ length: 7 }).map((_, i) => (
+                            <div key={i} className="flex-1 rounded-t-md bg-muted skeleton-shimmer" style={{ height: `${40 + (i % 3) * 25}%` }} />
+                          ))}
+                        </div>
+                      </div>
+                    ) : dailyChartData.length === 0 ? (
                       <div className="h-[200px] flex flex-col items-center justify-center text-muted-foreground gap-2">
                         <TrendingUp className="h-8 w-8 opacity-25" />
                         <p className="text-sm">لا توجد بيانات لهذه الفترة</p>
@@ -461,57 +483,86 @@ export default function Dashboard() {
 
                 <HoverCard>
                   <div className="bg-card border border-card-border rounded-xl p-6 h-full flex flex-col">
-                    <div className="flex items-center gap-2 mb-5">
+                    <div className="flex items-center gap-2 mb-4">
                       <Receipt className="h-4 w-4 text-primary" />
-                      <h3 className="text-base font-semibold">ملخص {PERIOD_LABELS[period]}</h3>
+                      <h3 className="text-base font-semibold">مصادر الدفع</h3>
                     </div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center pb-3 border-b border-border/50">
-                        <span className="text-sm text-muted-foreground">الجلسات</span>
-                        <span className="text-sm font-bold text-primary">
+
+                    {/* Payment method legend row */}
+                    {paymentChartData.length > 0 && (
+                      <div className="flex items-center gap-3 flex-wrap mb-4">
+                        {paymentChartData.map(d => (
+                          <div key={d.name} className="flex items-center gap-1.5">
+                            <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: d.fill }} />
+                            <span className="text-[11px] text-muted-foreground">{d.name}</span>
+                            <span className="text-[11px] font-semibold tabular-nums">
+                              {d.value.toFixed(0)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Area chart */}
+                    <div className="flex-1 min-h-0">
+                      {isLoadingRevenue ? (
+                        <div className="h-[160px] rounded-lg bg-muted skeleton-shimmer" />
+                      ) : dailyChartData.length === 0 ? (
+                        <div className="h-[160px] flex flex-col items-center justify-center text-muted-foreground gap-2">
+                          <TrendingUp className="h-7 w-7 opacity-20" />
+                          <p className="text-xs">لا توجد بيانات</p>
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={160}>
+                          <AreaChart data={dailyChartData} margin={{ top: 4, right: 0, left: -20, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#006FEE" stopOpacity={0.28} />
+                                <stop offset="95%" stopColor="#006FEE" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 14%)" vertical={false} />
+                            <XAxis
+                              dataKey="day"
+                              tick={{ fill: "hsl(0 0% 50%)", fontSize: 10 }}
+                              axisLine={false}
+                              tickLine={false}
+                            />
+                            <YAxis hide />
+                            <Tooltip
+                              content={<CustomTooltip />}
+                              cursor={{ stroke: "hsl(0 0% 20%)", strokeWidth: 1 }}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="الإيرادات"
+                              stroke="#006FEE"
+                              strokeWidth={2}
+                              fill="url(#areaGrad)"
+                              dot={false}
+                              animationDuration={1000}
+                              animationEasing="ease-out"
+                            />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      )}
+                    </div>
+
+                    {/* Summary totals */}
+                    <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">الجلسات</span>
+                        <span className="font-semibold text-primary tabular-nums">
                           {(revenueStats?.sessionRevenue ?? 0).toFixed(2)} ج.م
                         </span>
                       </div>
-                      <div className="flex justify-between items-center pb-3 border-b border-border/50">
-                        <span className="text-sm text-muted-foreground">الطلبات</span>
-                        <span className="text-sm font-bold text-emerald-400">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">الطلبات</span>
+                        <span className="font-semibold text-emerald-400 tabular-nums">
                           {(revenueStats?.orderRevenue ?? 0).toFixed(2)} ج.م
                         </span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">الإجمالي</span>
-                        <span className="text-sm font-bold">
-                          {(revenueStats?.total ?? 0).toFixed(2)} ج.م
-                        </span>
-                      </div>
                     </div>
-
-                    {paymentChartData.length > 0 && (
-                      <div className="mt-auto pt-4 border-t border-border">
-                        <p className="text-xs text-muted-foreground font-medium mb-3">طرق الدفع</p>
-                        <div className="space-y-2.5">
-                          {paymentChartData.map(d => (
-                            <div key={d.name}>
-                              <div className="flex justify-between text-xs mb-1">
-                                <span className="text-muted-foreground">{d.name}</span>
-                                <span className="font-medium">
-                                  {totalPayments > 0 ? Math.round((d.value / totalPayments) * 100) : 0}%
-                                </span>
-                              </div>
-                              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                                <motion.div
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${totalPayments > 0 ? (d.value / totalPayments) * 100 : 0}%` }}
-                                  transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
-                                  className="h-full rounded-full"
-                                  style={{ backgroundColor: d.fill }}
-                                />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </HoverCard>
               </div>
