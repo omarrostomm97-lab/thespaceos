@@ -219,33 +219,19 @@ export default function Assets() {
 
   return (
     <>
-      {/* Print-only styles — only the QR block is shown on print */}
-      <style>{`
-        @media print {
-          body > *:not(#qr-print-root) { display: none !important; }
-          #qr-print-root { display: flex !important; flex-direction: column; align-items: center; padding: 40px; }
-        }
-        @media screen {
-          #qr-print-root { display: none; }
-        }
-      `}</style>
-
-      {/* Hidden print target */}
-      <div id="qr-print-root">
+      {/* Print-only target — hidden on screen, shown on print */}
+      <div className="hidden print:flex flex-col items-center p-10" dir="rtl">
         {qrAsset && qrToken && (
           <>
-            <p style={{ fontSize: 24, fontWeight: "bold", marginBottom: 16, direction: "rtl" }}>
-              {qrAsset.nameAr || qrAsset.name}
-            </p>
+            <p className="text-2xl font-bold mb-4">{qrAsset.nameAr || qrAsset.name}</p>
             <QRCodeSVG value={qrUrl} size={280} />
-            <p style={{ marginTop: 16, fontSize: 14, color: "#555", direction: "rtl" }}>
-              امسح الكود لطلب الطعام والمشروبات
-            </p>
+            <p className="mt-4 text-sm text-gray-500">امسح الكود لطلب الطعام والمشروبات</p>
           </>
         )}
       </div>
 
-      <div className="p-8 space-y-6">
+      {/* Screen content — hidden on print */}
+      <div className="p-8 space-y-6 print:hidden">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-primary">الأجهزة والجلسات</h2>
