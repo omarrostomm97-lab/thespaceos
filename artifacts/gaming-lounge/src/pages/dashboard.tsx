@@ -1,13 +1,16 @@
+import { useState } from "react";
 import {
   useGetDashboardSummary,
   useListActiveSessions,
   useGetRevenueStats,
+  useGetDashboardBreakdown,
   getGetDashboardSummaryQueryKey,
   getListActiveSessionsQueryKey,
   getGetRevenueStatsQueryKey,
+  getGetDashboardBreakdownQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart, Activity, Menu, Monitor, TrendingUp } from "lucide-react";
+import { Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart, Activity, Menu, Monitor, TrendingUp, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import {
@@ -32,7 +35,23 @@ function formatDayLabel(dateStr: string) {
   return DAY_NAMES[d.getDay()];
 }
 
+const PERIOD_LABELS: Record<string, string> = {
+  today: "اليوم",
+  week: "الأسبوع",
+  month: "الشهر",
+};
+
+const ASSET_TYPE_ICON: Record<string, string> = {
+  ps: "🎮",
+  billiard: "🎱",
+  air_hockey: "🏒",
+  babyfoot: "⚽",
+  other: "🕹️",
+};
+
 export default function Dashboard() {
+  const [period, setPeriod] = useState<"today" | "week" | "month">("week");
+
   const { data: summary, isLoading: isLoadingSummary } = useGetDashboardSummary({
     query: { queryKey: getGetDashboardSummaryQueryKey(), refetchInterval: 10000 }
   });
@@ -41,8 +60,12 @@ export default function Dashboard() {
     query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 10000 }
   });
 
-  const { data: revenueWeek } = useGetRevenueStats({ period: "week" }, {
-    query: { queryKey: getGetRevenueStatsQueryKey({ period: "week" }) }
+  const { data: revenueStats } = useGetRevenueStats({ period }, {
+    query: { queryKey: getGetRevenueStatsQueryKey({ period }) }
+  });
+
+  const { data: breakdown, isLoading: isLoadingBreakdown } = useGetDashboardBreakdown({ period }, {
+    query: { queryKey: getGetDashboardBreakdownQueryKey({ period }) }
   });
 
   if (isLoadingSummary || isLoadingSessions) {
@@ -53,18 +76,19 @@ export default function Dashboard() {
     );
   }
 
-  // Build 7-day chart data from dailyBreakdown
-  const dailyChartData = (revenueWeek?.dailyBreakdown ?? []).map(d => ({
+  const dailyChartData = (revenueStats?.dailyBreakdown ?? []).map(d => ({
     day: formatDayLabel(d.date),
     "الإيرادات": d.total,
   }));
 
-  const paymentBreakdown = revenueWeek?.paymentMethodBreakdown;
+  const paymentBreakdown = revenueStats?.paymentMethodBreakdown;
   const paymentChartData = [
     { name: "نقداً", value: paymentBreakdown?.cash ?? 0 },
     { name: "إنستاباي", value: paymentBreakdown?.instapay ?? 0 },
     { name: "فيزا", value: paymentBreakdown?.visa ?? 0 },
   ].filter(d => d.value > 0);
+
+  const noBreakdownData = !breakdown || breakdown.grandTotal === 0;
 
   return (
     <div className="p-8 space-y-8">
@@ -98,7 +122,7 @@ export default function Dashboard() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-card hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
             <CardTitle className="text-sm font-medium">إيرادات اليوم</CardTitle>
@@ -133,13 +157,33 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* 7-Day Revenue Chart */}
+      {/* Period Selector */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm text-muted-foreground font-medium">الفترة الزمنية:</span>
+        <div className="flex gap-1 bg-muted rounded-lg p-1">
+          {(["today", "week", "month"] as const).map(p => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                period === p
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {PERIOD_LABELS[p]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Revenue Chart */}
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-emerald-500" />
-              إيرادات آخر 7 أيام
+              {period === "today" ? "إيرادات اليوم" : period === "week" ? "إيرادات آخر 7 أيام" : "إيرادات آخر 30 يوماً"}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -180,21 +224,21 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
               <Receipt className="h-4 w-4 text-primary" />
-              ملخص الأسبوع
+              ملخص {PERIOD_LABELS[period]}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center border-b border-border pb-3">
               <span className="text-sm text-muted-foreground">الإجمالي</span>
-              <span className="font-bold text-emerald-500">{(revenueWeek?.total ?? 0).toFixed(2)} ج.م</span>
+              <span className="font-bold text-emerald-500">{(revenueStats?.total ?? 0).toFixed(2)} ج.م</span>
             </div>
             <div className="flex justify-between items-center border-b border-border pb-3">
               <span className="text-sm text-muted-foreground">الجلسات</span>
-              <span className="font-bold">{(revenueWeek?.sessionRevenue ?? 0).toFixed(2)} ج.م</span>
+              <span className="font-bold">{(revenueStats?.sessionRevenue ?? 0).toFixed(2)} ج.م</span>
             </div>
             <div className="flex justify-between items-center border-b border-border pb-3">
               <span className="text-sm text-muted-foreground">الطلبات</span>
-              <span className="font-bold">{(revenueWeek?.orderRevenue ?? 0).toFixed(2)} ج.م</span>
+              <span className="font-bold">{(revenueStats?.orderRevenue ?? 0).toFixed(2)} ج.م</span>
             </div>
             {paymentChartData.length > 0 && (
               <div className="pt-1 space-y-2">
@@ -209,6 +253,113 @@ export default function Dashboard() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Revenue Breakdown Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <h3 className="text-xl font-bold">تفصيل الإيرادات</h3>
+          <span className="text-sm text-muted-foreground">— {PERIOD_LABELS[period]}</span>
+        </div>
+
+        {isLoadingBreakdown ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          </div>
+        ) : noBreakdownData ? (
+          <div className="rounded-xl border border-border bg-card p-10 text-center text-muted-foreground">
+            لا توجد بيانات لهذه الفترة
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Gaming Panel */}
+              <Card className="bg-card border-emerald-500/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+                      <Gamepad2 className="h-4 w-4 text-emerald-500" />
+                    </div>
+                    <span>إيرادات الألعاب</span>
+                    <span className="mr-auto font-bold text-emerald-500">
+                      {(breakdown?.gaming.total ?? 0).toFixed(2)} ج.م
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(breakdown?.gaming.byType.length ?? 0) === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">لا توجد جلسات منتهية</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {breakdown!.gaming.byType.map(item => (
+                        <div key={item.type} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+                          <span className="text-xl">{ASSET_TYPE_ICON[item.type] ?? "🕹️"}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm">{item.typeAr}</p>
+                            <p className="text-xs text-muted-foreground">{item.sessions} جلسة</p>
+                          </div>
+                          <span className="font-bold text-emerald-500 text-sm whitespace-nowrap">
+                            {item.total.toFixed(2)} ج.م
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Buffet Panel */}
+              <Card className="bg-card border-orange-500/20">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <div className="w-7 h-7 rounded-lg bg-orange-500/15 flex items-center justify-center">
+                      <Utensils className="h-4 w-4 text-orange-500" />
+                    </div>
+                    <span>إيرادات البوفيه</span>
+                    <span className="mr-auto font-bold text-orange-500">
+                      {(breakdown?.buffet.total ?? 0).toFixed(2)} ج.م
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(breakdown?.buffet.byCategory.length ?? 0) === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">لا توجد طلبات في هذه الفترة</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {breakdown!.buffet.byCategory.map(cat => (
+                        <div key={cat.categoryId ?? "__none__"}>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-sm font-semibold text-orange-400">
+                              {cat.categoryNameAr || cat.categoryName}
+                            </span>
+                            <span className="text-sm font-bold text-orange-500">{cat.total.toFixed(2)} ج.م</span>
+                          </div>
+                          <div className="space-y-1 pr-3 border-r-2 border-orange-500/20">
+                            {cat.products.map(product => (
+                              <div key={product.productId} className="flex items-center justify-between text-xs">
+                                <span className="text-muted-foreground truncate">
+                                  {product.nameAr || product.name}
+                                  <span className="mr-1 text-muted-foreground/60">×{product.quantity}</span>
+                                </span>
+                                <span className="font-medium whitespace-nowrap mr-2">{product.total.toFixed(2)} ج.م</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Grand Total */}
+            <div className="rounded-xl bg-primary/10 border border-primary/20 px-6 py-4 flex items-center justify-between">
+              <span className="text-base font-bold">الإجمالي الكلي ({PERIOD_LABELS[period]})</span>
+              <span className="text-2xl font-bold text-primary">{(breakdown?.grandTotal ?? 0).toFixed(2)} ج.م</span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">

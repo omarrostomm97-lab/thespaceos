@@ -873,3 +873,43 @@ page?: number;
 limit?: number;
 };
 
+export interface DashboardBreakdownGamingType {
+  type: string;
+  typeAr: string;
+  total: number;
+  sessions: number;
+}
+
+export interface DashboardBreakdownBuffetProduct {
+  productId: number;
+  name: string;
+  nameAr?: string | null;
+  quantity: number;
+  total: number;
+}
+
+export interface DashboardBreakdownBuffetCategory {
+  categoryId: number | null;
+  categoryName: string;
+  categoryNameAr?: string | null;
+  total: number;
+  products: DashboardBreakdownBuffetProduct[];
+}
+
+export interface DashboardBreakdown {
+  period: string;
+  gaming: {
+    total: number;
+    byType: DashboardBreakdownGamingType[];
+  };
+  buffet: {
+    total: number;
+    byCategory: DashboardBreakdownBuffetCategory[];
+  };
+  grandTotal: number;
+}
+
+export type GetDashboardBreakdownParams = {
+  period?: 'today' | 'week' | 'month';
+};
+

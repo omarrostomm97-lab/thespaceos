@@ -26,9 +26,11 @@ import type {
   AuditLogList,
   AuthResponse,
   CancelInput,
+  DashboardBreakdown,
   DashboardSummary,
   EmployeePerformance,
   ErrorResponse,
+  GetDashboardBreakdownParams,
   GetRevenueStatsParams,
   HealthStatus,
   InventoryItem,
@@ -4494,6 +4496,43 @@ export const useUpdateProductRecipe = <TError = ErrorType<unknown>, TContext = u
 ): UseMutationResult<Awaited<ReturnType<typeof updateProductRecipe>>, TError, { productId: number; data: BodyType<RecipeInput> }, TContext> => {
   return useMutation(getUpdateProductRecipeMutationOptions(options));
 };
+
+// ── DASHBOARD BREAKDOWN ───────────────────────────────────────────────────────
+
+export const getGetDashboardBreakdownUrl = (params?: GetDashboardBreakdownParams) => {
+  const normalizedParams = new URLSearchParams();
+  if (params?.period !== undefined) normalizedParams.append('period', params.period);
+  const stringifiedParams = normalizedParams.toString();
+  return stringifiedParams.length > 0 ? `/api/dashboard/breakdown?${stringifiedParams}` : `/api/dashboard/breakdown`;
+};
+
+export const getDashboardBreakdown = async (params?: GetDashboardBreakdownParams, options?: RequestInit): Promise<DashboardBreakdown> => {
+  return customFetch<DashboardBreakdown>(getGetDashboardBreakdownUrl(params), { ...options, method: 'GET' });
+};
+
+export const getGetDashboardBreakdownQueryKey = (params?: GetDashboardBreakdownParams) => ['/api/dashboard/breakdown', ...(params ? [params] : [])] as const;
+
+export const getGetDashboardBreakdownQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardBreakdown>>, TError = ErrorType<unknown>>(
+  params?: GetDashboardBreakdownParams,
+  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getDashboardBreakdown>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetDashboardBreakdownQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardBreakdown>>> = ({ signal }) => getDashboardBreakdown(params, { signal, ...requestOptions });
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getDashboardBreakdown>>, TError, TData> & { queryKey: QueryKey };
+};
+
+export type GetDashboardBreakdownQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardBreakdown>>>;
+export type GetDashboardBreakdownQueryError = ErrorType<unknown>;
+
+export function useGetDashboardBreakdown<TData = Awaited<ReturnType<typeof getDashboardBreakdown>>, TError = ErrorType<unknown>>(
+  params?: GetDashboardBreakdownParams,
+  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getDashboardBreakdown>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetDashboardBreakdownQueryOptions(params, options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 export const getListAuditLogsUrl = (params?: ListAuditLogsParams,) => {
   const normalizedParams = new URLSearchParams();

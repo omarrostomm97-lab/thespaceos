@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { sessionsTable, ordersTable, paymentsTable, assetsTable, shiftsTable, inventoryItemsTable, usersTable } from "@workspace/db";
-import { eq, and, inArray, gte, sql } from "drizzle-orm";
+import { sessionsTable, ordersTable, orderItemsTable, paymentsTable, assetsTable, shiftsTable, inventoryItemsTable, usersTable, productsTable, productCategoriesTable } from "@workspace/db";
+import { eq, and, inArray, gte, ne, sql } from "drizzle-orm";
 import { requireAuth, requireTenant } from "../lib/auth";
 
 const router = Router();
@@ -127,6 +127,131 @@ router.get("/dashboard/employee-performance", requireAuth, requireTenant, async 
     res.json(result);
   } catch {
     res.status(500).json({ error: "Failed to get employee performance" });
+  }
+});
+
+const ASSET_TYPE_AR: Record<string, string> = {
+  ps: "بلايستيشن",
+  billiard: "بلياردو",
+  air_hockey: "هوكي الهواء",
+  babyfoot: "كرة القدم المصغرة",
+  other: "أخرى",
+};
+
+router.get("/dashboard/breakdown", requireAuth, requireTenant, async (req, res) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { period = "today" } = req.query;
+    const now = new Date();
+    let from: Date;
+    if (period === "today") { from = new Date(); from.setHours(0, 0, 0, 0); }
+    else if (period === "week") { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - 6); }
+    else { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - 29); }
+
+    // Gaming: ended sessions in period, grouped by asset type
+    const gamingRows = await db
+      .select({
+        type: assetsTable.type,
+        total: sql<string>`coalesce(sum(${sessionsTable.totalCost}), 0)`,
+        sessions: sql<string>`count(${sessionsTable.id})`,
+      })
+      .from(sessionsTable)
+      .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
+      .where(and(
+        eq(sessionsTable.tenantId, tenantId),
+        eq(sessionsTable.status, "ended"),
+        gte(sessionsTable.endedAt, from),
+      ))
+      .groupBy(assetsTable.type);
+
+    const gamingByType = gamingRows
+      .map(r => ({
+        type: r.type,
+        typeAr: ASSET_TYPE_AR[r.type] ?? r.type,
+        total: Math.round(parseFloat(r.total) * 100) / 100,
+        sessions: parseInt(r.sessions, 10),
+      }))
+      .sort((a, b) => b.total - a.total);
+
+    const gamingTotal = gamingByType.reduce((s, r) => s + r.total, 0);
+
+    // Buffet: order_items for non-cancelled orders in period, grouped by category + product
+    const buffetRows = await db
+      .select({
+        categoryId: productCategoriesTable.id,
+        categoryName: productCategoriesTable.name,
+        categoryNameAr: productCategoriesTable.nameAr,
+        productId: productsTable.id,
+        productName: productsTable.name,
+        productNameAr: productsTable.nameAr,
+        quantity: sql<string>`sum(${orderItemsTable.quantity})`,
+        total: sql<string>`coalesce(sum(${orderItemsTable.totalPrice}), 0)`,
+      })
+      .from(orderItemsTable)
+      .innerJoin(ordersTable, eq(orderItemsTable.orderId, ordersTable.id))
+      .innerJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
+      .leftJoin(productCategoriesTable, eq(productsTable.categoryId, productCategoriesTable.id))
+      .where(and(
+        eq(ordersTable.tenantId, tenantId),
+        ne(ordersTable.status, "cancelled"),
+        gte(ordersTable.createdAt, from),
+      ))
+      .groupBy(
+        productCategoriesTable.id,
+        productCategoriesTable.name,
+        productCategoriesTable.nameAr,
+        productsTable.id,
+        productsTable.name,
+        productsTable.nameAr,
+      );
+
+    // Aggregate buffet rows into categories
+    const categoryMap = new Map<string, {
+      categoryId: number | null;
+      categoryName: string;
+      categoryNameAr: string | null;
+      total: number;
+      products: { productId: number; name: string; nameAr: string | null; quantity: number; total: number }[];
+    }>();
+
+    for (const r of buffetRows) {
+      const key = r.categoryId !== null ? String(r.categoryId) : "__none__";
+      if (!categoryMap.has(key)) {
+        categoryMap.set(key, {
+          categoryId: r.categoryId ?? null,
+          categoryName: r.categoryName ?? "غير مصنف",
+          categoryNameAr: r.categoryNameAr ?? null,
+          total: 0,
+          products: [],
+        });
+      }
+      const cat = categoryMap.get(key)!;
+      const rowTotal = Math.round(parseFloat(r.total) * 100) / 100;
+      cat.total = Math.round((cat.total + rowTotal) * 100) / 100;
+      cat.products.push({
+        productId: r.productId,
+        name: r.productName,
+        nameAr: r.productNameAr ?? null,
+        quantity: parseInt(r.quantity, 10),
+        total: rowTotal,
+      });
+    }
+
+    const byCategory = Array.from(categoryMap.values())
+      .map(c => ({ ...c, products: c.products.sort((a, b) => b.total - a.total) }))
+      .sort((a, b) => b.total - a.total);
+
+    const buffetTotal = byCategory.reduce((s, c) => s + c.total, 0);
+
+    res.json({
+      period: period as string,
+      gaming: { total: Math.round(gamingTotal * 100) / 100, byType: gamingByType },
+      buffet: { total: Math.round(buffetTotal * 100) / 100, byCategory },
+      grandTotal: Math.round((gamingTotal + buffetTotal) * 100) / 100,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get revenue breakdown" });
   }
 });
 
