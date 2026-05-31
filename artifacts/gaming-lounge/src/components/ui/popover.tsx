@@ -1,31 +1,34 @@
 import * as React from "react"
-import * as PopoverPrimitive from "@radix-ui/react-popover"
-
+import { PopoverRoot, PopoverTrigger as HeroPopoverTrigger, PopoverContent as HeroPopoverContent, PopoverDialog } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-const Popover = PopoverPrimitive.Root
+const Popover = ({ children, ...props }: React.ComponentPropsWithoutRef<typeof PopoverRoot>) => (
+  <PopoverRoot {...(props as any)}>{children}</PopoverRoot>
+)
 
-const PopoverTrigger = PopoverPrimitive.Trigger
+const PopoverTrigger = ({ children, asChild, ...props }: React.HTMLAttributes<HTMLElement> & { asChild?: boolean }) => (
+  <HeroPopoverTrigger {...(props as any)}>{children}</HeroPopoverTrigger>
+)
+PopoverTrigger.displayName = "PopoverTrigger"
 
-const PopoverAnchor = PopoverPrimitive.Anchor
+const PopoverContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { align?: string; sideOffset?: number }>(
+  ({ className, children, ...props }, ref) => (
+    <HeroPopoverContent>
+      <PopoverDialog
+        ref={ref as any}
+        className={cn(
+          "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none",
+          className
+        )}
+        {...(props as any)}
+      >
+        {children}
+      </PopoverDialog>
+    </HeroPopoverContent>
+  )
+)
+PopoverContent.displayName = "PopoverContent"
 
-const PopoverContent = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
-      ref={ref}
-      align={align}
-      sideOffset={sideOffset}
-      className={cn(
-        "z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-popover-content-transform-origin]",
-        className
-      )}
-      {...props}
-    />
-  </PopoverPrimitive.Portal>
-))
-PopoverContent.displayName = PopoverPrimitive.Content.displayName
+const PopoverAnchor = ({ children }: { children: React.ReactNode }) => <>{children}</>
 
 export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor }

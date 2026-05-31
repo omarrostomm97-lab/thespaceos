@@ -1,42 +1,31 @@
 import * as React from "react"
-import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
-import { Circle } from "lucide-react"
-
+import { RadioGroupRoot, RadioRoot, RadioControl, RadioIndicator } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-const RadioGroup = React.forwardRef<
-  React.ElementRef<typeof RadioGroupPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
->(({ className, ...props }, ref) => {
-  return (
-    <RadioGroupPrimitive.Root
+const RadioGroup = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<typeof RadioGroupRoot>>(
+  ({ className, ...props }, ref) => (
+    <RadioGroupRoot
+      ref={ref as any}
       className={cn("grid gap-2", className)}
-      {...props}
-      ref={ref}
+      {...(props as any)}
     />
   )
-})
-RadioGroup.displayName = RadioGroupPrimitive.Root.displayName
+)
+RadioGroup.displayName = "RadioGroup"
 
-const RadioGroupItem = React.forwardRef<
-  React.ElementRef<typeof RadioGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
->(({ className, ...props }, ref) => {
-  return (
-    <RadioGroupPrimitive.Item
-      ref={ref}
-      className={cn(
-        "aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
-      {...props}
+const RadioGroupItem = React.forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<typeof RadioRoot> & { value?: string }>(
+  ({ className, ...props }, ref) => (
+    <RadioRoot
+      ref={ref as any}
+      className={cn("aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50", className)}
+      {...(props as any)}
     >
-      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-        <Circle className="h-3.5 w-3.5 fill-primary" />
-      </RadioGroupPrimitive.Indicator>
-    </RadioGroupPrimitive.Item>
+      <RadioControl>
+        <RadioIndicator />
+      </RadioControl>
+    </RadioRoot>
   )
-})
-RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName
+)
+RadioGroupItem.displayName = "RadioGroupItem"
 
 export { RadioGroup, RadioGroupItem }

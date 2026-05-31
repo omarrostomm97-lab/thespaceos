@@ -1,32 +1,49 @@
-"use client"
-
 import * as React from "react"
-import * as TooltipPrimitive from "@radix-ui/react-tooltip"
-
+import { TooltipRoot, TooltipContent as HeroTooltipContent } from "@heroui/react"
 import { cn } from "@/lib/utils"
 
-const TooltipProvider = TooltipPrimitive.Provider
+const TooltipProvider = ({ children }: { children: React.ReactNode; delayDuration?: number }) => (
+  <>{children}</>
+)
 
-const Tooltip = TooltipPrimitive.Root
+const Tooltip = ({ children }: { children: React.ReactNode }) => (
+  <TooltipRoot>{children}</TooltipRoot>
+)
 
-const TooltipTrigger = TooltipPrimitive.Trigger
+const TooltipTrigger = ({ asChild, children }: { asChild?: boolean; children: React.ReactNode }) => (
+  <>{children}</>
+)
 
-const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
-  <TooltipPrimitive.Portal>
-    <TooltipPrimitive.Content
-      ref={ref}
-      sideOffset={sideOffset}
+type Side = "top" | "right" | "bottom" | "left"
+
+const placementMap: Record<Side, string> = {
+  top: "top",
+  right: "right",
+  bottom: "bottom",
+  left: "left",
+}
+
+interface TooltipContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  sideOffset?: number
+  side?: Side
+  align?: string
+}
+
+const TooltipContent = React.forwardRef<HTMLDivElement, TooltipContentProps>(
+  ({ className, children, sideOffset, side, ...props }, ref) => (
+    <HeroTooltipContent
       className={cn(
-        "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 origin-[--radix-tooltip-content-transform-origin]",
+        "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground",
         className
       )}
-      {...props}
-    />
-  </TooltipPrimitive.Portal>
-))
-TooltipContent.displayName = TooltipPrimitive.Content.displayName
+      offset={sideOffset}
+      placement={side ? (placementMap[side] as any) : undefined}
+      {...(props as any)}
+    >
+      {children}
+    </HeroTooltipContent>
+  )
+)
+TooltipContent.displayName = "TooltipContent"
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
