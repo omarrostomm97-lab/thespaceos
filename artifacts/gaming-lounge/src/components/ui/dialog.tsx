@@ -24,7 +24,9 @@ const Dialog = ({ open, onOpenChange, defaultOpen, children }: DialogProps) => (
 )
 Dialog.displayName = "Dialog"
 
-const DialogTrigger = ModalTrigger
+const DialogTrigger = ({ children, ...props }: React.ComponentPropsWithoutRef<typeof ModalTrigger>) => (
+  <ModalTrigger {...props}>{children}</ModalTrigger>
+)
 DialogTrigger.displayName = "DialogTrigger"
 
 const DialogPortal = ({ children }: { children: React.ReactNode }) => <>{children}</>
@@ -41,7 +43,9 @@ const DialogOverlay = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTML
 )
 DialogOverlay.displayName = "DialogOverlay"
 
-const DialogClose = ModalCloseTrigger
+const DialogClose = ({ children, ...props }: React.ComponentPropsWithoutRef<typeof ModalCloseTrigger>) => (
+  <ModalCloseTrigger {...props}>{children}</ModalCloseTrigger>
+)
 DialogClose.displayName = "DialogClose"
 
 const DialogContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(

@@ -125,7 +125,7 @@ export default function Inventory() {
       await createMovement.mutateAsync({
         data: {
           inventoryItemId: movementDialog.itemId,
-          type: movementForm.type,
+          type: movementForm.type as any,
           quantity: qty,
           reason: movementForm.reason || undefined,
         }

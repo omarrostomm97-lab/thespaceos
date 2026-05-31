@@ -1,42 +1,54 @@
 ---
 name: HeroUI v3 Migration Lessons
-description: Key facts and constraints discovered during shadcn/ui → HeroUI v3 migration for gaming-lounge artifact
+description: Key facts and constraints for the shadcn/ui → HeroUI v3 migration in gaming-lounge
 ---
 
 # HeroUI v3 Migration — Key Facts
 
 ## No HeroUIProvider
-HeroUI v3 has **no `HeroUIProvider`** exported. Dark mode is purely CSS-class-based — add `dark` class to `<html>`. Use `I18nProvider locale="ar-AE"` from `@heroui/react` (re-exported from react-aria-components) for RTL/locale support.
+HeroUI v3 exports no `HeroUIProvider`. Dark mode is CSS-class-based (`dark` on `<html>`).
+Use `I18nProvider locale="ar-AE"` from `@heroui/react` (re-exports react-aria-components) for RTL.
 
-**Why:** HeroUI v3 is headless (built on react-aria-components). Configuration is via CSS vars and class tokens, not a React context provider.
+**Why:** HeroUI v3 is headless (react-aria based). Config is via CSS tokens and class, not React context.
 
 ## CSS Import
-Import HeroUI styles via `@heroui/styles/css` (maps to `./dist/index.css`). The path `@heroui/styles` alone or `./dist/heroui.min.css` may be blocked by package exports.
+`import "@heroui/styles/css"` — maps to `./dist/index.css`. Do not use `@heroui/styles` alone.
 
-## Compound Component Exports
-HeroUI v3 exports compound components. All confirmed working from `@heroui/react`:
-- `Card`, `CardHeader`, `CardContent`, `CardFooter`, `CardTitle`, `CardDescription`
-- `Switch`, `SwitchControl`, `SwitchThumb`, `SwitchContent`, `SwitchIcon` — react-aria props: `isSelected`, `isDisabled`, `onChange`
-- `Chip`, `ChipLabel`
-- `Skeleton`
-- `Separator`
-- `ModalRoot`, `ModalTrigger`, `ModalBackdrop`, `ModalContainer`, `ModalDialog`, `ModalHeader`, `ModalBody`, `ModalFooter`, `ModalHeading`, `ModalCloseTrigger` — for Dialog/AlertDialog wrappers
-- `Select` (SelectRoot), `SelectTrigger`, `SelectValue`, `SelectIndicator`, `SelectPopover` — for Select wrapper
-- `ListBox`, `ListBoxItem` — used inside SelectPopover for options
-- `I18nProvider` — locale/RTL support, wrap entire app with `locale="ar-AE"`
+## displayName on HeroUI Component Aliases
+Do NOT do `const Foo = HeroUIComponent; Foo.displayName = "Foo"` — TS2339 since the exported
+types don't declare that property. Instead, wrap: `const Foo = ({ children, ...p }) => <HeroUIComponent {...p}>{children}</HeroUIComponent>`.
 
-## Modal/Dialog Pattern
-ModalRoot accepts `isOpen`/`onOpenChange` as props (passed through to react-aria's DialogTrigger). AlertDialog uses `isDismissable={false}` on ModalBackdrop.
+**Why:** Assigning .displayName to HeroUI function refs causes compile errors.
 
-Structure: `ModalRoot > ModalBackdrop > ModalContainer > ModalDialog > {content} + ModalCloseTrigger`
-
-**How to apply:** Dialog.tsx and AlertDialog.tsx wrappers expose the same shadcn API (open/onOpenChange/DialogContent/etc.) but use HeroUI Modal internally.
+## Modal / Dialog Pattern
+`ModalRoot` accepts `isOpen`/`onOpenChange` (react-aria DialogTrigger props).
+AlertDialog: `isDismissable={false}` on `ModalBackdrop`.
+Structure: `ModalRoot > ModalBackdrop > ModalContainer > ModalDialog > content + ModalCloseTrigger`
 
 ## Select Pattern
-SelectRoot accepts `selectedKey`/`onSelectionChange`. Map from shadcn API: `value → selectedKey`, `onValueChange → onSelectionChange(key => String(key))`. Items use `ListBox > ListBoxItem id={value}` inside `SelectPopover`.
+`SelectRoot` uses `selectedKey`/`onSelectionChange`. Map from shadcn: `value → selectedKey`,
+`onValueChange → v => String(v)`. Items: `SelectPopover > ListBox > ListBoxItem id={value}`.
 
-## Packages Removed (migrated away)
-Removed from devDependencies: `@radix-ui/react-dialog`, `@radix-ui/react-alert-dialog`, `@radix-ui/react-select`, `@radix-ui/react-switch`, `@radix-ui/react-separator`, `@radix-ui/react-tabs`.
+## Input + Validation (isInvalid / errorMessage)
+Wrap in `TextField` from `@heroui/react` (which wraps react-aria's TextField for context).
+Then `Input` from `@heroui/react` inside picks up the isInvalid state automatically.
+Use `FieldError` from `@heroui/react` to render the message.
+**Important:** Fall back to native `<input>` when no isInvalid/errorMessage props are passed —
+avoids breaking the hundreds of call sites that don't need validation context.
 
-## Vite Cache Issues
-After swapping HeroUI component names, Vite caches stale bundles. If runtime errors persist after code fixes, restart the workflow to clear Vite's dep optimization cache.
+## Toaster: Use Sonner
+Pages already import `toast` from `sonner`. Replace Radix-based `toaster.tsx` by
+importing `Toaster` from `@/components/ui/sonner` in App.tsx. Use `theme="dark"` directly
+(no next-themes needed — app always uses html.dark class).
+
+## Label
+HeroUI exports `Label` from `@heroui/react`. Replaces `@radix-ui/react-label`.
+Wrap it with the same cva/cn API for drop-in shadcn compatibility.
+
+## Packages Removed (migrated to HeroUI)
+`@radix-ui/react-dialog`, `@radix-ui/react-alert-dialog`, `@radix-ui/react-select`,
+`@radix-ui/react-switch`, `@radix-ui/react-separator`, `@radix-ui/react-tabs`,
+`@radix-ui/react-label`.
+
+## Vite Cache
+After swapping HeroUI component names, restart workflow to clear Vite's dep optimization cache.

@@ -68,9 +68,10 @@ export default function Login() {
                 placeholder="admin@gaminglounge.com"
                 className="h-12 text-lg text-left"
                 dir="ltr"
+                isInvalid={!!errors.email}
+                errorMessage={errors.email?.message}
                 {...register("email")}
               />
-              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-1.5">
@@ -80,9 +81,10 @@ export default function Login() {
                 placeholder="••••••••"
                 className="h-12 text-lg text-left"
                 dir="ltr"
+                isInvalid={!!errors.password}
+                errorMessage={errors.password?.message}
                 {...register("password")}
               />
-              {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
             </div>
           </div>
 

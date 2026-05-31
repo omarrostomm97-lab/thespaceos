@@ -25,7 +25,9 @@ const AlertDialog = ({ open, onOpenChange, defaultOpen, children }: AlertDialogP
 )
 AlertDialog.displayName = "AlertDialog"
 
-const AlertDialogTrigger = ModalTrigger
+const AlertDialogTrigger = ({ children, ...props }: React.ComponentPropsWithoutRef<typeof ModalTrigger>) => (
+  <ModalTrigger {...props}>{children}</ModalTrigger>
+)
 AlertDialogTrigger.displayName = "AlertDialogTrigger"
 
 const AlertDialogPortal = ({ children }: { children: React.ReactNode }) => <>{children}</>
