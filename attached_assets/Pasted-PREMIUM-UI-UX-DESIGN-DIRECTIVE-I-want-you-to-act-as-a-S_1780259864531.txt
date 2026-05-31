@@ -1,0 +1,275 @@
+PREMIUM UI/UX DESIGN DIRECTIVE
+
+I want you to act as a Senior Product Designer from Apple, Stripe, Linear, Notion, Vercel, and Arc Browser.
+
+The attached image is ONLY visual inspiration.
+
+Do NOT clone it.
+
+Instead, create a significantly more polished, premium, interactive, and modern version.
+
+Design Philosophy
+
+The product should feel:
+
+Premium
+Expensive
+Modern
+Interactive
+Fast
+Elegant
+Clean
+Delightful
+
+Users should immediately feel that this is a high-end SaaS product worth paying for.
+
+Every screen should feel alive.
+
+Avoid generic admin dashboard designs.
+
+Avoid templates.
+
+Avoid Bootstrap-style layouts.
+
+Avoid crowded interfaces.
+
+Visual Style
+
+Create a futuristic SaaS experience combining:
+
+Apple Human Interface Guidelines
+Linear
+Stripe Dashboard
+Arc Browser
+Notion
+Vercel
+Framer
+
+The design must have:
+
+Large breathing spaces
+Perfect visual hierarchy
+Exceptional typography
+Premium shadows
+Glass effects where appropriate
+Soft gradients
+Layered depth
+Micro-interactions
+
+The UI should feel designed, not assembled.
+
+User Experience Requirements
+
+Every interaction should provide feedback.
+
+Examples:
+
+Hover states
+Animated buttons
+Smooth card transitions
+Interactive charts
+Dynamic tooltips
+Skeleton loading states
+Context-aware actions
+Smart empty states
+
+Nothing should feel static.
+
+Everything should feel responsive and alive.
+
+Motion Design
+
+Motion is mandatory.
+
+Use premium animations similar to:
+
+Linear
+Framer
+Apple
+
+Requirements:
+
+Smooth page transitions
+Layout animations
+Shared element transitions
+Hover animations
+Button press animations
+Card elevation effects
+Sidebar expansion animations
+Modal transitions
+Drawer transitions
+
+Animation duration:
+
+150ms–350ms
+
+Use spring animations where appropriate.
+
+Avoid excessive animation.
+
+Focus on elegance.
+
+Dashboard Feel
+
+The dashboard should feel like a command center.
+
+Not a CRUD application.
+
+Cards should:
+
+Elevate on hover
+React to cursor movement
+Show contextual actions
+Reveal additional information elegantly
+
+Charts should:
+
+Animate when loaded
+Animate when filtered
+Provide rich tooltips
+Support smooth transitions
+Premium Components
+
+Every component should be redesigned.
+
+Buttons
+
+Must feel tactile.
+
+States:
+
+Default
+Hover
+Pressed
+Loading
+Disabled
+
+Use subtle scaling and shadow changes.
+
+Cards
+
+Cards should feel layered.
+
+Requirements:
+
+Soft shadows
+Subtle gradients
+Glassmorphism accents
+Depth hierarchy
+Hover interactions
+
+Cards should never look flat.
+
+Navigation
+
+Navigation should feel premium.
+
+Examples:
+
+Floating navigation
+Active indicators
+Smooth transitions
+Animated highlights
+
+The user should always know where they are.
+
+Tables
+
+Transform boring tables into modern data experiences.
+
+Include:
+
+Row hover effects
+Expandable rows
+Quick actions
+Column personalization
+Sticky headers
+Elegant filtering
+Forms
+
+Forms should feel effortless.
+
+Include:
+
+Floating labels
+Inline validation
+Smart suggestions
+Progress indicators
+Real-time feedback
+Color System
+
+Use a luxury dark theme.
+
+Characteristics:
+
+Deep black backgrounds
+Rich dark surfaces
+Soft contrast
+Vibrant accent colors
+
+Avoid harsh pure white.
+
+Avoid flat gray designs.
+
+Create depth through layers.
+
+Typography
+
+Typography should be a major design element.
+
+Use:
+
+Inter
+
+or
+
+SF Pro Display
+
+Requirements:
+
+Strong hierarchy
+Generous spacing
+Large section headers
+Elegant KPI numbers
+
+Text should communicate importance instantly.
+
+Premium Details
+
+Add subtle premium touches:
+
+Cursor-aware effects
+Animated highlights
+Interactive statistics
+Live indicators
+Smart status badges
+Beautiful empty states
+Rich onboarding moments
+Elegant success animations
+Contextual shortcuts
+
+These details should make the product memorable.
+
+Responsiveness
+
+Design mobile, tablet, and desktop experiences separately.
+
+Do not simply stack elements.
+
+Each breakpoint should feel intentionally designed.
+
+Final Goal
+
+Create a UI that users immediately associate with:
+
+"Professional"
+"Premium"
+"Modern"
+"Enterprise-grade"
+"Best-in-class SaaS"
+
+The final result should look like a product that raised $50M in funding and spent months refining every pixel.
+
+Prioritize user experience, interaction quality, visual polish, and delight over simply displaying information.
+
+Every screen should feel world-class.
