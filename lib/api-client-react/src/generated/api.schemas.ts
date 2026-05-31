@@ -695,12 +695,19 @@ export type RevenueStatsPaymentMethodBreakdown = {
   visa?: number;
 };
 
+export interface RevenueStatsDailyBreakdownItem {
+  date: string;
+  total: number;
+}
+
 export interface RevenueStats {
   total: number;
   sessionRevenue: number;
   orderRevenue: number;
   period: string;
   paymentMethodBreakdown?: RevenueStatsPaymentMethodBreakdown;
+  /** Daily revenue series, one entry per day for the requested period */
+  dailyBreakdown?: RevenueStatsDailyBreakdownItem[];
 }
 
 export interface EmployeePerformance {

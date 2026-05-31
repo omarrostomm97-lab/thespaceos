@@ -7,7 +7,7 @@ import {
   getGetRevenueStatsQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Gamepad2, Users, Receipt, AlertTriangle, Clock, ShoppingCart, Activity, Menu, Monitor, TrendingUp } from "lucide-react";
+import { Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart, Activity, Menu, Monitor, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import {
@@ -18,8 +18,19 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
+
+const DAY_NAMES = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+
+function formatDayLabel(dateStr: string) {
+  const d = new Date(dateStr + "T12:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
+  if (diff === 0) return "اليوم";
+  if (diff === -1) return "أمس";
+  return DAY_NAMES[d.getDay()];
+}
 
 export default function Dashboard() {
   const { data: summary, isLoading: isLoadingSummary } = useGetDashboardSummary({
@@ -34,14 +45,6 @@ export default function Dashboard() {
     query: { queryKey: getGetRevenueStatsQueryKey({ period: "week" }) }
   });
 
-  const { data: revenueToday } = useGetRevenueStats({ period: "today" }, {
-    query: { queryKey: getGetRevenueStatsQueryKey({ period: "today" }) }
-  });
-
-  const { data: revenueMonth } = useGetRevenueStats({ period: "month" }, {
-    query: { queryKey: getGetRevenueStatsQueryKey({ period: "month" }) }
-  });
-
   if (isLoadingSummary || isLoadingSessions) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
@@ -50,23 +53,11 @@ export default function Dashboard() {
     );
   }
 
-  const revenueChartData = [
-    {
-      name: "اليوم",
-      "إيرادات الجلسات": revenueToday?.sessionRevenue ?? 0,
-      "إيرادات الطلبات": revenueToday?.orderRevenue ?? 0,
-    },
-    {
-      name: "الأسبوع",
-      "إيرادات الجلسات": revenueWeek?.sessionRevenue ?? 0,
-      "إيرادات الطلبات": revenueWeek?.orderRevenue ?? 0,
-    },
-    {
-      name: "الشهر",
-      "إيرادات الجلسات": revenueMonth?.sessionRevenue ?? 0,
-      "إيرادات الطلبات": revenueMonth?.orderRevenue ?? 0,
-    },
-  ];
+  // Build 7-day chart data from dailyBreakdown
+  const dailyChartData = (revenueWeek?.dailyBreakdown ?? []).map(d => ({
+    day: formatDayLabel(d.date),
+    "الإيرادات": d.total,
+  }));
 
   const paymentBreakdown = revenueWeek?.paymentMethodBreakdown;
   const paymentChartData = [
@@ -142,31 +133,46 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Revenue Chart */}
+      {/* 7-Day Revenue Chart */}
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2 bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-emerald-500" />
-              تحليل الإيرادات (اليوم / الأسبوع / الشهر)
+              إيرادات آخر 7 أيام
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={revenueChartData} barGap={4} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} width={50} tickFormatter={v => `${v} ج`} />
-                <Tooltip
-                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-                  labelStyle={{ color: "hsl(var(--foreground))", fontWeight: "bold" }}
-                  formatter={(value: number) => [`${value.toFixed(2)} ج.م`]}
-                />
-                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                <Bar dataKey="إيرادات الجلسات" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="إيرادات الطلبات" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {dailyChartData.length === 0 ? (
+              <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm">
+                جارٍ تحميل بيانات الإيرادات...
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={dailyChartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={54}
+                    tickFormatter={v => `${v} ج`}
+                  />
+                  <Tooltip
+                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                    labelStyle={{ color: "hsl(var(--foreground))", fontWeight: "bold" }}
+                    formatter={(value: number) => [`${value.toFixed(2)} ج.م`, "الإيرادات"]}
+                  />
+                  <Bar dataKey="الإيرادات" fill="#10b981" radius={[5, 5, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 

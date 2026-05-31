@@ -61,9 +61,10 @@ router.get("/dashboard/revenue", requireAuth, requireTenant, async (req, res) =>
     const { period = "today" } = req.query;
     const now = new Date();
     let from: Date;
-    if (period === "today") { from = new Date(); from.setHours(0,0,0,0); }
-    else if (period === "week") { from = new Date(now.getTime() - 7 * 24 * 3600000); }
-    else { from = new Date(now.getTime() - 30 * 24 * 3600000); }
+    let days = 1;
+    if (period === "today") { from = new Date(); from.setHours(0,0,0,0); days = 1; }
+    else if (period === "week") { from = new Date(now); from.setHours(0,0,0,0); from.setDate(from.getDate() - 6); days = 7; }
+    else { from = new Date(now); from.setHours(0,0,0,0); from.setDate(from.getDate() - 29); days = 30; }
 
     const payments = await db.select().from(paymentsTable)
       .where(and(eq(paymentsTable.tenantId, tenantId), eq(paymentsTable.status, "verified"), gte(paymentsTable.createdAt, from)));
@@ -76,12 +77,30 @@ router.get("/dashboard/revenue", requireAuth, requireTenant, async (req, res) =>
       else if (p.method === "visa") visa += amt;
     });
 
+    // Build daily breakdown map
+    const dailyMap: Record<string, number> = {};
+    for (let i = 0; i < days; i++) {
+      const d = new Date(now);
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - (days - 1 - i));
+      dailyMap[d.toISOString().slice(0, 10)] = 0;
+    }
+    payments.forEach(p => {
+      const day = new Date(p.createdAt!).toISOString().slice(0, 10);
+      if (day in dailyMap) dailyMap[day] += parseFloat(p.amount as string);
+    });
+    const dailyBreakdown = Object.entries(dailyMap).map(([date, total]) => ({
+      date,
+      total: Math.round(total * 100) / 100,
+    }));
+
     res.json({
       total: Math.round((cash + instapay + visa) * 100) / 100,
       sessionRevenue: Math.round((cash + instapay + visa) * 100) / 100,
       orderRevenue: 0,
       period: period as string,
       paymentMethodBreakdown: { cash: Math.round(cash*100)/100, instapay: Math.round(instapay*100)/100, visa: Math.round(visa*100)/100 },
+      dailyBreakdown,
     });
   } catch {
     res.status(500).json({ error: "Failed to get revenue stats" });
