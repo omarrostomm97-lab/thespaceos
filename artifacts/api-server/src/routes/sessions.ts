@@ -134,10 +134,24 @@ router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) 
     }));
     const payments = await db.select().from(paymentsTable)
       .where(and(eq(paymentsTable.sessionId, id), eq(paymentsTable.tenantId, req.user!.tenantId!)));
+    const rawLogs = await db.select({
+      id: sessionLogsTable.id,
+      action: sessionLogsTable.action,
+      previousStatus: sessionLogsTable.previousStatus,
+      newStatus: sessionLogsTable.newStatus,
+      note: sessionLogsTable.note,
+      performedByUserId: sessionLogsTable.performedByUserId,
+      performedByName: usersTable.name,
+      createdAt: sessionLogsTable.createdAt,
+    }).from(sessionLogsTable)
+      .leftJoin(usersTable, eq(sessionLogsTable.performedByUserId, usersTable.id))
+      .where(and(eq(sessionLogsTable.sessionId, id), eq(sessionLogsTable.tenantId, req.user!.tenantId!)))
+      .orderBy(sessionLogsTable.createdAt);
     res.json({
       ...base,
       orders: ordersWithItems,
       payments: payments.map(p => ({ ...p, amount: parseFloat(p.amount as string) })),
+      sessionLogs: rawLogs,
     });
   } catch {
     res.status(500).json({ error: "Failed to get session" });

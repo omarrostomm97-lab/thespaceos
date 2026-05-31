@@ -397,6 +397,21 @@ export interface Payment {
   createdAt: string;
 }
 
+export interface SessionLog {
+  id: number;
+  action: string;
+  /** @nullable */
+  previousStatus?: string | null;
+  /** @nullable */
+  newStatus?: string | null;
+  /** @nullable */
+  note?: string | null;
+  performedByUserId: number;
+  /** @nullable */
+  performedByName?: string | null;
+  createdAt: string;
+}
+
 export interface SessionDetail {
   id: number;
   assetId: number;
@@ -421,6 +436,7 @@ export interface SessionDetail {
   cancelReason?: string | null;
   orders: Order[];
   payments?: Payment[];
+  sessionLogs?: SessionLog[];
 }
 
 export interface SessionInput {
