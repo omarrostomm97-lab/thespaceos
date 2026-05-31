@@ -145,6 +145,20 @@ router.post("/inventory/movements", requireAuth, requireTenant, async (req, res)
   }
 });
 
+router.delete("/inventory/:itemId", requireAuth, requireTenant, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
+  try {
+    const id = parseInt(req.params.itemId as string);
+    const [deleted] = await db.delete(inventoryItemsTable)
+      .where(and(eq(inventoryItemsTable.id, id), eq(inventoryItemsTable.tenantId, req.user!.tenantId!)))
+      .returning();
+    if (!deleted) { res.status(404).json({ error: "Not found" }); return; }
+    await writeAuditLog({ user: req.user, action: "delete_inventory_item", entityType: "inventory_item", entityId: id });
+    res.json({ message: "Item deleted" });
+  } catch {
+    res.status(500).json({ error: "Failed to delete inventory item" });
+  }
+});
+
 router.get("/inventory/alerts", requireAuth, requireTenant, async (req, res) => {
   try {
     const items = await db.select().from(inventoryItemsTable)

@@ -115,4 +115,50 @@ router.post("/product-categories", requireAuth, requireTenant, MGMT, async (req,
   }
 });
 
+router.patch("/product-categories/:categoryId", requireAuth, requireTenant, MGMT, async (req, res) => {
+  try {
+    const id = parseInt(req.params.categoryId as string);
+    const { name, nameAr, sortOrder } = req.body;
+    const updates: Partial<typeof productCategoriesTable.$inferInsert> = {};
+    if (name !== undefined) updates.name = name;
+    if (nameAr !== undefined) updates.nameAr = nameAr;
+    if (sortOrder !== undefined) updates.sortOrder = sortOrder;
+    const [cat] = await db.update(productCategoriesTable).set(updates)
+      .where(and(eq(productCategoriesTable.id, id), eq(productCategoriesTable.tenantId, req.user!.tenantId!)))
+      .returning();
+    if (!cat) { res.status(404).json({ error: "Not found" }); return; }
+    res.json(cat);
+  } catch {
+    res.status(500).json({ error: "Failed to update category" });
+  }
+});
+
+router.delete("/product-categories/:categoryId", requireAuth, requireTenant, MGMT, async (req, res) => {
+  try {
+    const id = parseInt(req.params.categoryId as string);
+    const [deleted] = await db.delete(productCategoriesTable)
+      .where(and(eq(productCategoriesTable.id, id), eq(productCategoriesTable.tenantId, req.user!.tenantId!)))
+      .returning();
+    if (!deleted) { res.status(404).json({ error: "Not found" }); return; }
+    await writeAuditLog({ user: req.user, action: "delete_product_category", entityType: "product_category", entityId: id });
+    res.json({ message: "Category deleted" });
+  } catch {
+    res.status(500).json({ error: "Failed to delete category" });
+  }
+});
+
+router.delete("/products/:productId", requireAuth, requireTenant, MGMT, async (req, res) => {
+  try {
+    const id = parseInt(req.params.productId as string);
+    const [deleted] = await db.delete(productsTable)
+      .where(and(eq(productsTable.id, id), eq(productsTable.tenantId, req.user!.tenantId!)))
+      .returning();
+    if (!deleted) { res.status(404).json({ error: "Not found" }); return; }
+    await writeAuditLog({ user: req.user, action: "delete_product", entityType: "product", entityId: id });
+    res.json({ message: "Product deleted" });
+  } catch {
+    res.status(500).json({ error: "Failed to delete product" });
+  }
+});
+
 export default router;
