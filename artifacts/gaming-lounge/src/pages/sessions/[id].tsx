@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from "react";
 import { useGetSession, useCancelSession, getGetSessionQueryKey } from "@workspace/api-client-react";
 import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -38,6 +39,46 @@ export default function SessionDetail() {
 
   const cancelSession = useCancelSession();
 
+  /* ── Real-time clock ── */
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    if (!session || !["active", "paused"].includes(session.status)) return;
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, [session?.status]);
+
+  /* ── Elapsed minutes (live for active, frozen for paused/ended) ── */
+  const elapsedMinutes = useMemo(() => {
+    if (!session) return 0;
+    if (session.status === "ended" || session.status === "cancelled") {
+      return session.totalMinutes ?? 0;
+    }
+    const startMs = new Date(session.startedAt).getTime();
+    const endMs =
+      session.status === "paused" && session.pausedAt
+        ? new Date(session.pausedAt).getTime()
+        : now.getTime();
+    return Math.max(0, (endMs - startMs) / 60000 - ((session as any).pausedDurationMinutes ?? 0));
+  }, [session, now]);
+
+  /* ── Gaming cost (live) ── */
+  const gamingCost = useMemo(() => {
+    if (!session) return 0;
+    if (session.status === "ended" || session.status === "cancelled") {
+      return session.totalCost ?? 0;
+    }
+    const pricePerHour = (session as any).pricePerHour ?? 0;
+    return (elapsedMinutes / 60) * pricePerHour;
+  }, [session, elapsedMinutes]);
+
+  /* ── Orders cost (sum of all related orders) ── */
+  const ordersCost = useMemo(() => {
+    if (!session?.orders) return 0;
+    return session.orders.reduce((sum: number, o: any) => sum + (o.totalAmount ?? 0), 0);
+  }, [session?.orders]);
+
+  const totalCost = gamingCost + ordersCost;
+
   const handleCancel = async () => {
     try {
       await cancelSession.mutateAsync({ sessionId, data: { reason: t("cancel_reason_default") } });
@@ -61,9 +102,14 @@ export default function SessionDetail() {
   }
 
   const BackIcon = lang === "ar" ? ArrowRight : ArrowLeft;
+  const isActive = ["active", "paused"].includes(session.status);
+
+  const hoursDisplay = Math.floor(elapsedMinutes / 60);
+  const minsDisplay  = Math.round(elapsedMinutes % 60);
+  const timeLabel    = `${hoursDisplay}${lang === "ar" ? "س" : "h"} ${minsDisplay}${lang === "ar" ? "د" : "m"}`;
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-8 space-y-6" dir={dir}>
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" onClick={() => window.history.back()}>
           <BackIcon className="h-4 w-4" />
@@ -78,7 +124,7 @@ export default function SessionDetail() {
           </h2>
           <p className="text-muted-foreground mt-1 flex items-center gap-2">
             <Gamepad2 className="h-4 w-4" />
-            {session.assetNameAr || session.assetName}
+            {lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}
           </p>
         </div>
       </div>
@@ -100,16 +146,12 @@ export default function SessionDetail() {
                 <p className="font-bold">{format(new Date(session.startedAt), "hh:mm a")}</p>
               </div>
               <div className="bg-secondary/50 p-4 rounded-lg">
-                <p className="text-sm text-muted-foreground">{t("total_time")}</p>
-                <p className="font-bold">
-                  {session.totalMinutes
-                    ? `${Math.floor(session.totalMinutes / 60)}${lang === "ar" ? "س" : "h"} ${session.totalMinutes % 60}${lang === "ar" ? "د" : "m"}`
-                    : "—"}
-                </p>
+                <p className="text-sm text-muted-foreground">{t("elapsed_time")}</p>
+                <p className="font-bold tabular-nums">{timeLabel}</p>
               </div>
             </div>
 
-            {["active", "paused"].includes(session.status) && (
+            {isActive && (
               <Button
                 variant="destructive"
                 className="w-full mt-4"
@@ -132,9 +174,17 @@ export default function SessionDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-6 bg-secondary/30 rounded-xl border border-border/50">
-              <p className="text-muted-foreground mb-2">{t("total_cost_label")}</p>
-              <p className="text-4xl font-bold text-emerald-500">{(session.totalCost || 0).toFixed(2)} ج.م</p>
+            <div className="text-center py-5 bg-secondary/30 rounded-xl border border-border/50">
+              <p className="text-muted-foreground mb-1 text-sm">{t("total_cost_label")}</p>
+              <p className="text-4xl font-bold text-emerald-500 tabular-nums">{totalCost.toFixed(2)} ج.م</p>
+
+              {/* Breakdown */}
+              {(ordersCost > 0 || isActive) && (
+                <div className="flex justify-center gap-6 mt-3 text-xs text-muted-foreground">
+                  <span>{t("gaming_cost")}: <span className="font-semibold text-foreground">{gamingCost.toFixed(2)}</span></span>
+                  <span>{t("orders_cost")}: <span className="font-semibold text-foreground">{ordersCost.toFixed(2)}</span></span>
+                </div>
+              )}
             </div>
 
             {session.payments && session.payments.length > 0 && (
@@ -171,7 +221,7 @@ export default function SessionDetail() {
               </div>
             ) : (
               <ol className="relative border-e border-border/50 me-4 space-y-0">
-                {session.sessionLogs.map((log, idx) => (
+                {session.sessionLogs.map((log: any, idx: number) => (
                   <li key={log.id} className="mb-6 me-6">
                     <span className="absolute -end-3 flex h-6 w-6 items-center justify-center rounded-full bg-background border border-border ring-4 ring-background text-xs font-bold">
                       {idx + 1}
@@ -211,13 +261,13 @@ export default function SessionDetail() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {session.orders?.length === 0 ? (
+            {!session.orders || session.orders.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
                 {t("no_related_orders")}
               </div>
             ) : (
               <div className="space-y-4">
-                {session.orders?.map((order: any) => (
+                {session.orders.map((order: any) => (
                   <div key={order.id} className="flex justify-between items-start border-b border-border/50 pb-4 last:border-0">
                     <div>
                       <div className="flex gap-2 items-center mb-2">
@@ -227,7 +277,9 @@ export default function SessionDetail() {
                         </Badge>
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {order.items.map((item: any) => `${item.quantity}x ${item.productNameAr || item.productName}`).join("، ")}
+                        {order.items.map((item: any) =>
+                          `${item.quantity}x ${lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr)}`
+                        ).join(lang === "ar" ? "، " : ", ")}
                       </div>
                     </div>
                     <div className="font-bold text-emerald-500">{order.totalAmount.toFixed(2)} ج.م</div>

@@ -62,9 +62,10 @@ interface AssetCardProps {
   onStart: (id: number) => void;
   starting: boolean;
   t: (key: TranslationKey) => string;
+  lang: string;
 }
 
-function AssetCard({ asset, isMgmt, onEdit, onQr, onStart, starting, t }: AssetCardProps) {
+function AssetCard({ asset, isMgmt, onEdit, onQr, onStart, starting, t, lang }: AssetCardProps) {
   const isAvailable = asset.status === "available";
 
   const glowColor  = isAvailable ? "rgba(0, 111, 238, 0.25)" : "rgba(245, 165, 36, 0.25)";
@@ -168,7 +169,7 @@ function AssetCard({ asset, isMgmt, onEdit, onQr, onStart, starting, t }: AssetC
 
         {/* Name */}
         <h3 className="text-lg font-bold text-foreground leading-tight mb-1">
-          {asset.nameAr || asset.name}
+          {lang === "ar" ? (asset.nameAr || asset.name) : (asset.name || asset.nameAr)}
         </h3>
 
         {/* Type label */}
@@ -235,7 +236,7 @@ export default function Assets() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const { user } = useAuth();
-  const { t, dir } = useLang();
+  const { t, dir, lang } = useLang();
   const isMgmt = MGMT_ROLES.includes(user?.role ?? "");
 
   const { data: assets, isLoading } = useListAssets();
@@ -450,6 +451,7 @@ export default function Assets() {
                   onStart={handleStartSession}
                   starting={startSession.isPending}
                   t={t}
+                  lang={lang}
                 />
               </motion.div>
             ))}
