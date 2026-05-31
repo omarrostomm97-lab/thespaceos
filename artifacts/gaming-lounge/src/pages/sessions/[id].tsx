@@ -61,12 +61,9 @@ export default function SessionDetail() {
     return Math.max(0, (endMs - startMs) / 60000 - ((session as any).pausedDurationMinutes ?? 0));
   }, [session, now]);
 
-  /* ── Gaming cost (live) ── */
+  /* ── Gaming cost (live for active/paused; uses frozen elapsedMinutes for ended) ── */
   const gamingCost = useMemo(() => {
     if (!session) return 0;
-    if (session.status === "ended" || session.status === "cancelled") {
-      return session.totalCost ?? 0;
-    }
     const pricePerHour = (session as any).pricePerHour ?? 0;
     return (elapsedMinutes / 60) * pricePerHour;
   }, [session, elapsedMinutes]);

@@ -96,7 +96,7 @@ router.get("/sessions/active", requireAuth, requireTenant, async (req, res) => {
       const currentMinutes = calcMinutes(s.startedAt, s.pausedAt, null, pausedDuration);
       const pricePerHour = base.pricePerHour;
       const currentCost = Math.round((currentMinutes / 60) * pricePerHour * 100) / 100;
-      const allOrders = await db.select({ totalAmount: ordersTable.totalAmount, status: ordersTable.status })
+      const allOrders = await db.select({ id: ordersTable.id, totalAmount: ordersTable.totalAmount, status: ordersTable.status })
         .from(ordersTable)
         .where(and(eq(ordersTable.sessionId, s.id), eq(ordersTable.tenantId, s.tenantId)));
       const deliveredCost = allOrders
@@ -105,7 +105,7 @@ router.get("/sessions/active", requireAuth, requireTenant, async (req, res) => {
       const ordersCost = Math.round(deliveredCost * 100) / 100;
       const undeliveredOrders = allOrders
         .filter(o => ["pending", "preparing", "ready"].includes(o.status as string))
-        .map(o => ({ status: o.status, totalAmount: parseFloat(o.totalAmount as string) }));
+        .map(o => ({ id: o.id, status: o.status, totalAmount: parseFloat(o.totalAmount as string) }));
       const totalCost = Math.round((currentCost + ordersCost) * 100) / 100;
       return { ...base, currentMinutes: Math.round(currentMinutes), currentCost, ordersCost, totalCost, undeliveredOrders };
     }));
@@ -159,9 +159,13 @@ router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) 
       .leftJoin(usersTable, eq(sessionLogsTable.performedByUserId, usersTable.id))
       .where(and(eq(sessionLogsTable.sessionId, id), eq(sessionLogsTable.tenantId, req.user!.tenantId!)))
       .orderBy(sessionLogsTable.createdAt);
+    const undeliveredSessionOrders = ordersWithItems.filter(o =>
+      ["pending", "preparing", "ready"].includes(o.status)
+    );
     res.json({
       ...base,
       orders: ordersWithItems,
+      undeliveredOrders: undeliveredSessionOrders,
       payments: payments.map(p => ({ ...p, amount: parseFloat(p.amount as string) })),
       sessionLogs: rawLogs,
     });
@@ -260,7 +264,7 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
     const roundedGamingCost = Math.round(gamingCost * 100) / 100;
 
     // Fetch all orders for this session; only delivered ones are billable now.
-    const allSessionOrders = await db.select({ totalAmount: ordersTable.totalAmount, status: ordersTable.status })
+    const allSessionOrders = await db.select({ id: ordersTable.id, totalAmount: ordersTable.totalAmount, status: ordersTable.status })
       .from(ordersTable)
       .where(and(eq(ordersTable.sessionId, id), eq(ordersTable.tenantId, req.user!.tenantId!)));
     const deliveredOrdersCost = Math.round(
@@ -269,7 +273,7 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
     ) / 100;
     const undeliveredOrders = allSessionOrders
       .filter(o => ["pending", "preparing", "ready"].includes(o.status as string))
-      .map(o => ({ status: o.status, totalAmount: parseFloat(o.totalAmount as string) }));
+      .map(o => ({ id: o.id, status: o.status, totalAmount: parseFloat(o.totalAmount as string) }));
     const grandTotal = Math.round((roundedGamingCost + deliveredOrdersCost) * 100) / 100;
 
     // Payment gating: verified payments must cover gaming cost + delivered orders cost.
