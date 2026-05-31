@@ -1,31 +1,24 @@
 import * as React from "react"
-import {
-  Card as HeroCard,
-  CardHeader as HeroCardHeader,
-  CardContent as HeroCardContent,
-  CardFooter as HeroCardFooter,
-  CardTitle as HeroCardTitle,
-  CardDescription as HeroCardDescription,
-} from "@heroui/react"
 import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => (
-    <HeroCard
-      className={cn("bg-card text-card-foreground border border-border shadow-none rounded-lg", className)}
-      {...(props as any)}
+    <div
+      ref={ref}
+      className={cn("rounded-xl bg-card text-card-foreground card-base", className)}
+      {...props}
     >
       {children}
-    </HeroCard>
+    </div>
   )
 )
 Card.displayName = "Card"
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => (
-    <HeroCardHeader className={cn("flex flex-col space-y-1.5 p-6", className)} {...(props as any)}>
+    <div ref={ref} className={cn("flex flex-col space-y-1.5 p-6", className)} {...props}>
       {children}
-    </HeroCardHeader>
+    </div>
   )
 )
 CardHeader.displayName = "CardHeader"
@@ -50,18 +43,18 @@ CardDescription.displayName = "CardDescription"
 
 const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => (
-    <HeroCardContent className={cn("p-6 pt-0", className)} {...(props as any)}>
+    <div ref={ref} className={cn("p-6 pt-0", className)} {...props}>
       {children}
-    </HeroCardContent>
+    </div>
   )
 )
 CardContent.displayName = "CardContent"
 
 const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, children, ...props }, ref) => (
-    <HeroCardFooter className={cn("flex items-center p-6 pt-0", className)} {...(props as any)}>
+    <div ref={ref} className={cn("flex items-center p-6 pt-0", className)} {...props}>
       {children}
-    </HeroCardFooter>
+    </div>
   )
 )
 CardFooter.displayName = "CardFooter"

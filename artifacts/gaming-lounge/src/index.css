@@ -143,6 +143,7 @@
   --shadow-card:       0 1px 3px rgba(0,0,0,0.5), 0 1px 2px -1px rgba(0,0,0,0.5);
   --shadow-card-hover: 0 10px 30px rgba(0,0,0,0.6), 0 4px 10px rgba(0,0,0,0.4);
   --shadow-glow:       0 0 20px rgba(0, 111, 238, 0.15);
+  --card-shadow:       0 2px 16px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.06);
 
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-accent-border:  hsl(var(--sidebar-accent));
@@ -226,6 +227,7 @@
   --asset-card-shine:  rgba(255,255,255,0.05);
   --asset-card-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.05) inset;
   --asset-card-hover-shadow-base: 0 16px 48px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.06) inset;
+  --card-shadow:       0 2px 16px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.06);
 }
 
 /* ─── LIGHT theme ─────────────────────────────────────── */
@@ -283,6 +285,7 @@
   --shadow-card:       0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
   --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
   --shadow-glow:       0 0 20px rgba(0, 111, 238, 0.1);
+  --card-shadow:       0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(0,0,0,0.07);
 
   /* ── Light sidebar effect tokens ── */
   --sb-top-glow:       radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,111,238,0.06) 0%, transparent 70%);
@@ -379,6 +382,10 @@
   }
 
   /* Card elevation states */
+  .card-base {
+    box-shadow: var(--card-shadow);
+  }
+
   .card-glass {
     background: rgba(255,255,255,0.03);
     backdrop-filter: blur(12px);

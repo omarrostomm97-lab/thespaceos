@@ -11,7 +11,6 @@ import {
   getListProductsQueryKey,
   getListProductCategoriesQueryKey,
 } from "@workspace/api-client-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -28,48 +27,41 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Settings, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLang } from "@/hooks/use-language";
 
 const MGMT_ROLES = ["platform_owner", "owner", "manager"];
 
-interface ProductForm {
-  name: string;
-  nameAr: string;
-  price: string;
-  categoryId: string;
-}
+interface ProductForm { name: string; nameAr: string; price: string; categoryId: string; }
+interface CategoryForm { name: string; nameAr: string; }
 
-interface CategoryForm {
-  name: string;
-  nameAr: string;
-}
-
-const emptyProductForm = (): ProductForm => ({ name: "", nameAr: "", price: "", categoryId: "" });
+const emptyProductForm  = (): ProductForm  => ({ name: "", nameAr: "", price: "", categoryId: "" });
 const emptyCategoryForm = (): CategoryForm => ({ name: "", nameAr: "" });
 
 export default function Menu() {
   const { user } = useAuth();
+  const { t, dir } = useLang();
   const queryClient = useQueryClient();
   const isManager = MGMT_ROLES.includes(user?.role ?? "");
 
   const { data: categories, isLoading: isLoadingCats } = useListProductCategories();
-  const { data: products, isLoading: isLoadingProds } = useListProducts();
+  const { data: products,   isLoading: isLoadingProds } = useListProducts();
 
-  const createProduct = useCreateProduct();
-  const updateProduct = useUpdateProduct();
-  const deleteProductMut = useDeleteProduct();
-  const createCategory = useCreateProductCategory();
+  const createProduct     = useCreateProduct();
+  const updateProduct     = useUpdateProduct();
+  const deleteProductMut  = useDeleteProduct();
+  const createCategory    = useCreateProductCategory();
   const updateCategoryMut = useUpdateProductCategory();
   const deleteCategoryMut = useDeleteProductCategory();
 
   const [activeTab, setActiveTab] = useState<string>("all");
 
-  const [productDialog, setProductDialog] = useState<{ open: boolean; editing: null | { id: number } & ProductForm }>({ open: false, editing: null });
-  const [productForm, setProductForm] = useState<ProductForm>(emptyProductForm());
+  const [productDialog, setProductDialog]   = useState<{ open: boolean; editing: null | { id: number } & ProductForm }>({ open: false, editing: null });
+  const [productForm, setProductForm]       = useState<ProductForm>(emptyProductForm());
 
   const [categoryDialog, setCategoryDialog] = useState<{ open: boolean; editing: null | { id: number } & CategoryForm }>({ open: false, editing: null });
-  const [categoryForm, setCategoryForm] = useState<CategoryForm>(emptyCategoryForm());
+  const [categoryForm, setCategoryForm]     = useState<CategoryForm>(emptyCategoryForm());
 
-  const [deleteProductConfirm, setDeleteProductConfirm] = useState<{ id: number; name: string } | null>(null);
+  const [deleteProductConfirm,  setDeleteProductConfirm]  = useState<{ id: number; name: string } | null>(null);
   const [deleteCategoryConfirm, setDeleteCategoryConfirm] = useState<{ id: number; name: string } | null>(null);
 
   const refresh = () => {
@@ -77,11 +69,7 @@ export default function Menu() {
     queryClient.invalidateQueries({ queryKey: getListProductCategoriesQueryKey() });
   };
 
-  const openAddProduct = () => {
-    setProductForm(emptyProductForm());
-    setProductDialog({ open: true, editing: null });
-  };
-
+  const openAddProduct = () => { setProductForm(emptyProductForm()); setProductDialog({ open: true, editing: null }); };
   const openEditProduct = (p: { id: number; name: string; nameAr?: string | null; price: number; categoryId?: number | null }) => {
     const form = { name: p.name, nameAr: p.nameAr ?? "", price: String(p.price), categoryId: p.categoryId ? String(p.categoryId) : "" };
     setProductForm(form);
@@ -90,56 +78,39 @@ export default function Menu() {
 
   const saveProduct = async () => {
     const price = parseFloat(productForm.price);
-    if (!productForm.name || isNaN(price) || price < 0) {
-      toast.error("أدخل الاسم والسعر بشكل صحيح"); return;
-    }
-    const payload = {
-      name: productForm.name,
-      nameAr: productForm.nameAr || undefined,
-      price,
-      categoryId: productForm.categoryId ? parseInt(productForm.categoryId) : undefined,
-    };
+    if (!productForm.name || isNaN(price) || price < 0) { toast.error(t("error_name_price")); return; }
+    const payload = { name: productForm.name, nameAr: productForm.nameAr || undefined, price, categoryId: productForm.categoryId ? parseInt(productForm.categoryId) : undefined };
     try {
       if (productDialog.editing) {
         await updateProduct.mutateAsync({ productId: productDialog.editing.id, data: payload });
-        toast.success("تم تحديث المنتج");
+        toast.success(t("product_updated_ok"));
       } else {
         await createProduct.mutateAsync({ data: payload });
-        toast.success("تم إضافة المنتج");
+        toast.success(t("product_added_ok"));
       }
       setProductDialog({ open: false, editing: null });
       refresh();
-    } catch {
-      toast.error("حدث خطأ");
-    }
+    } catch { toast.error(t("error_generic")); }
   };
 
   const confirmDeleteProduct = async () => {
     if (!deleteProductConfirm) return;
     try {
       await deleteProductMut.mutateAsync({ productId: deleteProductConfirm.id });
-      toast.success("تم حذف المنتج");
+      toast.success(t("product_deleted_ok"));
       setDeleteProductConfirm(null);
       refresh();
-    } catch {
-      toast.error("حدث خطأ أثناء الحذف");
-    }
+    } catch { toast.error(t("error_generic")); }
   };
 
   const toggleAvailability = async (productId: number, current: boolean) => {
     try {
       await updateProduct.mutateAsync({ productId, data: { isAvailable: !current } });
       queryClient.invalidateQueries({ queryKey: getListProductsQueryKey() });
-    } catch {
-      toast.error("حدث خطأ");
-    }
+    } catch { toast.error(t("error_generic")); }
   };
 
-  const openAddCategory = () => {
-    setCategoryForm(emptyCategoryForm());
-    setCategoryDialog({ open: true, editing: null });
-  };
-
+  const openAddCategory  = () => { setCategoryForm(emptyCategoryForm()); setCategoryDialog({ open: true, editing: null }); };
   const openEditCategory = (c: { id: number; name: string; nameAr?: string | null }) => {
     const form = { name: c.name, nameAr: c.nameAr ?? "" };
     setCategoryForm(form);
@@ -147,38 +118,32 @@ export default function Menu() {
   };
 
   const saveCategory = async () => {
-    if (!categoryForm.name) { toast.error("أدخل اسم الفئة"); return; }
+    if (!categoryForm.name) { toast.error(t("error_category_name_req")); return; }
     try {
       if (categoryDialog.editing) {
         await updateCategoryMut.mutateAsync({ categoryId: categoryDialog.editing.id, data: { name: categoryForm.name, nameAr: categoryForm.nameAr || undefined } });
-        toast.success("تم تحديث الفئة");
+        toast.success(t("category_updated_ok"));
       } else {
         await createCategory.mutateAsync({ data: { name: categoryForm.name, nameAr: categoryForm.nameAr || undefined } });
-        toast.success("تم إضافة الفئة");
+        toast.success(t("category_added_ok"));
       }
       setCategoryDialog({ open: false, editing: null });
       refresh();
-    } catch {
-      toast.error("حدث خطأ");
-    }
+    } catch { toast.error(t("error_generic")); }
   };
 
   const confirmDeleteCategory = async () => {
     if (!deleteCategoryConfirm) return;
     try {
       await deleteCategoryMut.mutateAsync({ categoryId: deleteCategoryConfirm.id });
-      toast.success("تم حذف الفئة");
+      toast.success(t("category_deleted_ok"));
       setDeleteCategoryConfirm(null);
       if (activeTab === String(deleteCategoryConfirm.id)) setActiveTab("all");
       refresh();
-    } catch {
-      toast.error("حدث خطأ — تأكد من حذف المنتجات أولاً");
-    }
+    } catch { toast.error(t("category_delete_error")); }
   };
 
-  const visibleProducts = products?.filter(p =>
-    activeTab === "all" || p.categoryId?.toString() === activeTab
-  ) ?? [];
+  const visibleProducts = products?.filter(p => activeTab === "all" || p.categoryId?.toString() === activeTab) ?? [];
 
   if (isLoadingCats || isLoadingProds) {
     return (
@@ -188,25 +153,25 @@ export default function Menu() {
     );
   }
 
-  const isSavingProduct = createProduct.isPending || updateProduct.isPending;
+  const isSavingProduct  = createProduct.isPending || updateProduct.isPending;
   const isSavingCategory = createCategory.isPending || updateCategoryMut.isPending;
 
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">إدارة المنيو</h2>
-          <p className="text-muted-foreground mt-1">{products?.length ?? 0} منتج في {categories?.length ?? 0} فئة</p>
+          <h2 className="text-3xl font-bold tracking-tight text-primary">{t("menu_title")}</h2>
+          <p className="text-muted-foreground mt-1">{products?.length ?? 0} {t("add_product").toLowerCase()} · {categories?.length ?? 0} {t("product_category").toLowerCase()}</p>
         </div>
         {isManager && (
           <div className="flex gap-2">
             <Button variant="outline" onClick={openAddCategory} className="gap-2">
               <Settings className="h-4 w-4" />
-              إدارة الفئات
+              {t("manage_categories")}
             </Button>
             <Button onClick={openAddProduct} className="gap-2">
               <Plus className="h-4 w-4" />
-              إضافة منتج
+              {t("add_product")}
             </Button>
           </div>
         )}
@@ -214,14 +179,14 @@ export default function Menu() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4 bg-secondary flex flex-wrap h-auto p-1 gap-1">
-          <TabsTrigger value="all" className="min-w-[80px] h-9">الكل ({products?.length ?? 0})</TabsTrigger>
+          <TabsTrigger value="all" className="min-w-[80px] h-9">{t("all_tab")} ({products?.length ?? 0})</TabsTrigger>
           {categories?.map((cat) => {
             const count = products?.filter(p => p.categoryId === cat.id).length ?? 0;
             return (
               <TabsTrigger key={cat.id} value={cat.id.toString()} className="min-w-[80px] h-9 group relative">
                 <span>{cat.nameAr || cat.name} ({count})</span>
                 {isManager && (
-                  <span className="hidden group-hover:flex absolute -top-1.5 -left-1.5 gap-0.5">
+                  <span className="hidden group-hover:flex absolute -top-1.5 -start-1.5 gap-0.5">
                     <button
                       onClick={(e) => { e.stopPropagation(); openEditCategory(cat); }}
                       className="bg-secondary border border-border rounded p-0.5 hover:bg-primary hover:text-primary-foreground transition-colors"
@@ -243,16 +208,23 @@ export default function Menu() {
 
         <TabsContent value={activeTab} className="mt-0">
           {visibleProducts.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-lg">
+            <div className="py-16 text-center text-muted-foreground border border-dashed border-border rounded-xl card-base">
               <UtensilsCrossed className="h-12 w-12 mx-auto mb-4 opacity-40" />
-              <p className="text-lg font-medium">لا توجد منتجات</p>
-              {isManager && <Button onClick={openAddProduct} className="mt-4 gap-2"><Plus className="h-4 w-4" />إضافة منتج</Button>}
+              <p className="text-lg font-medium">{t("no_products")}</p>
+              {isManager && (
+                <Button onClick={openAddProduct} className="mt-4 gap-2">
+                  <Plus className="h-4 w-4" />{t("add_product")}
+                </Button>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {visibleProducts.map((product) => (
-                <Card key={product.id} className={`border-2 transition-opacity ${product.isAvailable ? "border-border" : "border-destructive/30 opacity-60"}`}>
-                  <CardContent className="p-4">
+                <div
+                  key={product.id}
+                  className={`rounded-xl overflow-hidden card-base transition-opacity ${product.isAvailable ? "" : "opacity-60"}`}
+                >
+                  <div className="p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-base leading-tight truncate">{product.nameAr || product.name}</h3>
@@ -271,7 +243,7 @@ export default function Menu() {
                           className="scale-90"
                         />
                         <span className={`text-xs font-medium ${product.isAvailable ? "text-emerald-500" : "text-destructive"}`}>
-                          {product.isAvailable ? "متاح" : "غير متاح"}
+                          {product.isAvailable ? t("product_available") : t("product_unavailable")}
                         </span>
                       </div>
                       {isManager && (
@@ -279,15 +251,17 @@ export default function Menu() {
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditProduct(product)}>
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteProductConfirm({ id: product.id, name: product.nameAr || product.name })}>
+                          <Button
+                            variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteProductConfirm({ id: product.id, name: product.nameAr || product.name })}
+                          >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           )}
@@ -296,28 +270,28 @@ export default function Menu() {
 
       {/* Add/Edit Product Dialog */}
       <Dialog open={productDialog.open} onOpenChange={(open) => !isSavingProduct && setProductDialog({ open, editing: null })}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md" dir={dir}>
           <DialogHeader>
-            <DialogTitle>{productDialog.editing ? "تعديل المنتج" : "إضافة منتج جديد"}</DialogTitle>
+            <DialogTitle>{productDialog.editing ? t("edit_product_title") : t("add_product_title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label>الاسم بالعربي *</Label>
+              <Label>{t("product_name_ar_label")} *</Label>
               <Input value={productForm.nameAr} onChange={(e) => setProductForm(f => ({ ...f, nameAr: e.target.value }))} placeholder="مثال: إسبريسو سينجل" />
             </div>
             <div className="space-y-1.5">
-              <Label>الاسم بالإنجليزي *</Label>
+              <Label>{t("product_name_en_label")} *</Label>
               <Input value={productForm.name} onChange={(e) => setProductForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Espresso Single" dir="ltr" />
             </div>
             <div className="space-y-1.5">
-              <Label>السعر (ج.م) *</Label>
+              <Label>{t("product_price_label")} *</Label>
               <Input type="number" step="0.01" min="0" value={productForm.price} onChange={(e) => setProductForm(f => ({ ...f, price: e.target.value }))} placeholder="0.00" dir="ltr" />
             </div>
             <div className="space-y-1.5">
-              <Label>الفئة</Label>
+              <Label>{t("product_category")}</Label>
               <Select value={productForm.categoryId} onValueChange={(v) => setProductForm(f => ({ ...f, categoryId: v }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="اختر فئة..." />
+                  <SelectValue placeholder={t("choose_category")} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories?.map((cat) => (
@@ -328,9 +302,9 @@ export default function Menu() {
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setProductDialog({ open: false, editing: null })} disabled={isSavingProduct}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setProductDialog({ open: false, editing: null })} disabled={isSavingProduct}>{t("cancel")}</Button>
             <Button onClick={saveProduct} disabled={isSavingProduct}>
-              {isSavingProduct ? "جاري الحفظ..." : productDialog.editing ? "حفظ التعديلات" : "إضافة المنتج"}
+              {isSavingProduct ? t("saving") : productDialog.editing ? t("save_changes") : t("add_product")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -338,56 +312,60 @@ export default function Menu() {
 
       {/* Add/Edit Category Dialog */}
       <Dialog open={categoryDialog.open} onOpenChange={(open) => !isSavingCategory && setCategoryDialog({ open, editing: null })}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm" dir={dir}>
           <DialogHeader>
-            <DialogTitle>{categoryDialog.editing ? "تعديل الفئة" : "إضافة فئة جديدة"}</DialogTitle>
+            <DialogTitle>{categoryDialog.editing ? t("edit_category_title") : t("add_category_title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label>الاسم بالعربي *</Label>
+              <Label>{t("category_name_ar_label")} *</Label>
               <Input value={categoryForm.nameAr} onChange={(e) => setCategoryForm(f => ({ ...f, nameAr: e.target.value }))} placeholder="مثال: مشروبات ساخنة" />
             </div>
             <div className="space-y-1.5">
-              <Label>الاسم بالإنجليزي *</Label>
+              <Label>{t("category_name_en_label")} *</Label>
               <Input value={categoryForm.name} onChange={(e) => setCategoryForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Hot Drinks" dir="ltr" />
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setCategoryDialog({ open: false, editing: null })} disabled={isSavingCategory}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setCategoryDialog({ open: false, editing: null })} disabled={isSavingCategory}>{t("cancel")}</Button>
             <Button onClick={saveCategory} disabled={isSavingCategory}>
-              {isSavingCategory ? "جاري الحفظ..." : categoryDialog.editing ? "حفظ" : "إضافة"}
+              {isSavingCategory ? t("saving") : categoryDialog.editing ? t("save") : t("add_product")}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Product Confirmation */}
+      {/* Delete Product */}
       <AlertDialog open={!!deleteProductConfirm} onOpenChange={(open) => !open && setDeleteProductConfirm(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent dir={dir}>
           <AlertDialogHeader>
-            <AlertDialogTitle>حذف المنتج</AlertDialogTitle>
-            <AlertDialogDescription>هل أنت متأكد من حذف "<strong>{deleteProductConfirm?.name}</strong>"؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+            <AlertDialogTitle>{t("delete_product_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("delete_product_confirm")} "<strong>{deleteProductConfirm?.name}</strong>"؟ {t("delete_product_warning")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteProduct} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleteProductMut.isPending ? "جاري الحذف..." : "حذف"}
+              {deleteProductMut.isPending ? t("deleting") : t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Category Confirmation */}
+      {/* Delete Category */}
       <AlertDialog open={!!deleteCategoryConfirm} onOpenChange={(open) => !open && setDeleteCategoryConfirm(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent dir={dir}>
           <AlertDialogHeader>
-            <AlertDialogTitle>حذف الفئة</AlertDialogTitle>
-            <AlertDialogDescription>هل أنت متأكد من حذف فئة "<strong>{deleteCategoryConfirm?.name}</strong>"؟ يجب حذف منتجاتها أولاً.</AlertDialogDescription>
+            <AlertDialogTitle>{t("delete_category_title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("delete_category_confirm")} "<strong>{deleteCategoryConfirm?.name}</strong>"؟ {t("delete_category_warning")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteCategory} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleteCategoryMut.isPending ? "جاري الحذف..." : "حذف"}
+              {deleteCategoryMut.isPending ? t("deleting") : t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

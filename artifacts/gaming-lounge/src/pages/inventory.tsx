@@ -21,6 +21,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Package, AlertTriangle, Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useLang } from "@/hooks/use-language";
 
 const MGMT_ROLES = ["platform_owner", "owner", "manager"];
 
@@ -50,6 +51,7 @@ const MOVEMENT_TYPES = [
 
 export default function Inventory() {
   const { user } = useAuth();
+  const { dir } = useLang();
   const queryClient = useQueryClient();
   const isManager = MGMT_ROLES.includes(user?.role ?? "");
 
@@ -271,7 +273,7 @@ export default function Inventory() {
 
       {/* Add/Edit Item Dialog */}
       <Dialog open={itemDialog.open} onOpenChange={(open) => !isSavingItem && setItemDialog({ open, editing: null })}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md" dir={dir}>
           <DialogHeader>
             <DialogTitle>{itemDialog.editing ? "تعديل الصنف" : "إضافة صنف جديد"}</DialogTitle>
           </DialogHeader>
@@ -312,7 +314,7 @@ export default function Inventory() {
 
       {/* Record Movement Dialog */}
       <Dialog open={movementDialog.open} onOpenChange={(open) => !createMovement.isPending && setMovementDialog({ open, itemId: null, itemName: "" })}>
-        <DialogContent className="max-w-sm" dir="rtl">
+        <DialogContent className="max-w-sm" dir={dir}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowUpDown className="h-4 w-4" />
@@ -355,7 +357,7 @@ export default function Inventory() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
-        <AlertDialogContent dir="rtl">
+        <AlertDialogContent dir={dir}>
           <AlertDialogHeader>
             <AlertDialogTitle>حذف الصنف</AlertDialogTitle>
             <AlertDialogDescription>هل أنت متأكد من حذف "<strong>{deleteConfirm?.name}</strong>" من المخزون؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
