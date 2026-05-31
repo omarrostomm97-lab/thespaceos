@@ -32,6 +32,8 @@ interface CheckoutState {
   sessionId: number;
   assetName: string;
   currentCost: number;
+  ordersCost: number;
+  totalCost: number;
 }
 
 export default function Sessions() {
@@ -59,14 +61,18 @@ export default function Sessions() {
     visa: t("pay_visa"),
   };
 
-  const openCheckout = (session: { id: number; assetName?: string | null; assetNameAr?: string | null; currentCost: number }) => {
+  const openCheckout = (session: { id: number; assetName?: string | null; assetNameAr?: string | null; currentCost: number; ordersCost?: number; totalCost?: number }) => {
+    const ordersCost = (session as any).ordersCost ?? 0;
+    const totalCost  = (session as any).totalCost  ?? session.currentCost;
     setCheckout({
       sessionId: session.id,
       assetName: session.assetNameAr || session.assetName || `${t("session_label")} #${session.id}`,
       currentCost: session.currentCost,
+      ordersCost,
+      totalCost,
     });
     setPaymentMethod("cash");
-    setAmountStr(session.currentCost.toFixed(2));
+    setAmountStr(totalCost.toFixed(2));
   };
 
   const closeCheckout = () => {
@@ -82,8 +88,8 @@ export default function Sessions() {
       toast.error(t("amount_invalid"));
       return;
     }
-    if (amount < checkout.currentCost) {
-      toast.error(`${t("amount_too_low_error")} (${checkout.currentCost.toFixed(2)} ج.م)`);
+    if (amount < checkout.totalCost) {
+      toast.error(`${t("amount_too_low_error")} (${checkout.totalCost.toFixed(2)} ج.م)`);
       return;
     }
 
@@ -171,7 +177,8 @@ export default function Sessions() {
                 </CardHeader>
 
                 <CardContent className="pt-4 pb-0 space-y-4">
-                  <div className="flex justify-between items-end">
+                  {/* Elapsed time */}
+                  <div className="flex items-end justify-between">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1">{t("elapsed_time")}</p>
                       <p className="text-2xl font-mono font-bold tracking-tight">
@@ -179,13 +186,20 @@ export default function Sessions() {
                         {(session.currentMinutes % 60).toString().padStart(2, "0")}
                       </p>
                     </div>
+                    {/* Total cost (big) */}
                     <div className="text-end">
-                      <p className="text-sm text-muted-foreground mb-1">{t("current_cost")}</p>
-                      <p className="text-2xl font-bold text-emerald-500">
-                        {session.currentCost.toFixed(2)}
+                      <p className="text-xs text-muted-foreground mb-0.5">{t("total_cost_label")}</p>
+                      <p className="text-2xl font-bold text-emerald-500 tabular-nums">
+                        {((session as any).totalCost ?? session.currentCost).toFixed(2)}
                         <span className="text-sm text-emerald-500/70 ms-1">ج.م</span>
                       </p>
                     </div>
+                  </div>
+
+                  {/* Cost breakdown */}
+                  <div className="flex justify-between text-xs text-muted-foreground bg-secondary/40 rounded-lg px-3 py-2">
+                    <span>{t("gaming_cost")}: <span className="font-semibold text-foreground">{session.currentCost.toFixed(2)}</span></span>
+                    <span>{t("orders_cost")}: <span className="font-semibold text-foreground">{((session as any).ordersCost ?? 0).toFixed(2)}</span></span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 pb-4">
@@ -248,8 +262,14 @@ export default function Sessions() {
             <div className="space-y-5 py-2">
               <div className="rounded-xl bg-secondary/50 border border-border p-4 text-center">
                 <p className="text-sm text-muted-foreground mb-1">{checkout.assetName}</p>
-                <p className="text-4xl font-bold text-emerald-500">{checkout.currentCost.toFixed(2)}</p>
+                <p className="text-4xl font-bold text-emerald-500 tabular-nums">{checkout.totalCost.toFixed(2)}</p>
                 <p className="text-sm text-muted-foreground mt-1">{t("egp_label")}</p>
+                {checkout.ordersCost > 0 && (
+                  <div className="flex justify-center gap-6 mt-3 text-xs text-muted-foreground border-t border-border/50 pt-3">
+                    <span>{t("gaming_cost")}: <span className="font-semibold text-foreground">{checkout.currentCost.toFixed(2)}</span></span>
+                    <span>{t("orders_cost")}: <span className="font-semibold text-foreground">{checkout.ordersCost.toFixed(2)}</span></span>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -278,15 +298,15 @@ export default function Sessions() {
                   id="amount"
                   type="number"
                   step="0.01"
-                  min={checkout.currentCost}
+                  min={checkout.totalCost}
                   value={amountStr}
                   onChange={(e) => setAmountStr(e.target.value)}
                   className="text-xl font-bold h-12 text-center"
                   dir="ltr"
                 />
-                {parseFloat(amountStr) > checkout.currentCost && (
+                {parseFloat(amountStr) > checkout.totalCost && (
                   <p className="text-sm text-amber-500 text-center">
-                    {t("change_due")}: {(parseFloat(amountStr) - checkout.currentCost).toFixed(2)} ج.م
+                    {t("change_due")}: {(parseFloat(amountStr) - checkout.totalCost).toFixed(2)} ج.م
                   </p>
                 )}
               </div>

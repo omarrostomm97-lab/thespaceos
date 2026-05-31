@@ -94,11 +94,14 @@ router.get("/sessions/active", requireAuth, requireTenant, async (req, res) => {
       const base = await formatSession(s);
       const pausedDuration = parseFloat((s.pausedDurationMinutes as string) || "0");
       const currentMinutes = calcMinutes(s.startedAt, s.pausedAt, null, pausedDuration);
-      const [asset] = await db.select({ pricePerHour: assetsTable.pricePerHour })
-        .from(assetsTable).where(eq(assetsTable.id, s.assetId)).limit(1);
-      const pricePerHour = asset ? parseFloat(asset.pricePerHour as string) : 0;
-      const currentCost = (currentMinutes / 60) * pricePerHour;
-      return { ...base, currentMinutes: Math.round(currentMinutes), currentCost: Math.round(currentCost * 100) / 100 };
+      const pricePerHour = base.pricePerHour;
+      const currentCost = Math.round((currentMinutes / 60) * pricePerHour * 100) / 100;
+      const orders = await db.select({ totalAmount: ordersTable.totalAmount })
+        .from(ordersTable)
+        .where(and(eq(ordersTable.sessionId, s.id), eq(ordersTable.tenantId, s.tenantId)));
+      const ordersCost = Math.round(orders.reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0) * 100) / 100;
+      const totalCost = Math.round((currentCost + ordersCost) * 100) / 100;
+      return { ...base, currentMinutes: Math.round(currentMinutes), currentCost, ordersCost, totalCost };
     }));
     res.json(result);
   } catch {
