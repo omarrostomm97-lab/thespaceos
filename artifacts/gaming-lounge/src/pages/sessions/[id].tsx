@@ -4,7 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, ArrowLeft, Clock, Gamepad2, Receipt, AlertCircle, ShoppingCart, History } from "lucide-react";
+import { ArrowRight, ArrowLeft, Clock, Gamepad2, Receipt, AlertCircle, AlertTriangle, ShoppingCart, History } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -71,10 +71,20 @@ export default function SessionDetail() {
     return (elapsedMinutes / 60) * pricePerHour;
   }, [session, elapsedMinutes]);
 
-  /* ── Orders cost (sum of all related orders) ── */
+  /* ── Orders cost (only delivered orders are billable) ── */
   const ordersCost = useMemo(() => {
     if (!session?.orders) return 0;
-    return session.orders.reduce((sum: number, o: any) => sum + (o.totalAmount ?? 0), 0);
+    return (session.orders as any[])
+      .filter((o) => o.status === "delivered")
+      .reduce((sum: number, o: any) => sum + (o.totalAmount ?? 0), 0);
+  }, [session?.orders]);
+
+  /* ── Undelivered orders (warn cashier before checkout) ── */
+  const undeliveredOrders = useMemo(() => {
+    if (!session?.orders) return [] as any[];
+    return (session.orders as any[]).filter((o) =>
+      ["pending", "preparing", "ready"].includes(o.status)
+    );
   }, [session?.orders]);
 
   const totalCost = gamingCost + ordersCost;
@@ -186,6 +196,28 @@ export default function SessionDetail() {
                 </div>
               )}
             </div>
+
+            {/* Undelivered orders warning */}
+            {undeliveredOrders.length > 0 && (
+              <div className="mt-4 rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-sm">
+                <div className="flex items-center gap-2 font-bold text-amber-500 mb-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  {t("undelivered_orders_warning")}
+                </div>
+                <ul className="space-y-1">
+                  {undeliveredOrders.map((o: any) => {
+                    const statusLabel = o.status === "pending" ? t("status_new") : o.status === "preparing" ? t("status_preparing") : t("status_ready");
+                    return (
+                      <li key={o.id} className="flex justify-between text-muted-foreground">
+                        <span>{statusLabel} — {(o.items as any[])?.map((i: any) => `${i.quantity}× ${lang === "ar" ? (i.productNameAr || i.productName) : (i.productName || i.productNameAr)}`).join("، ")}</span>
+                        <span className="font-semibold text-foreground shrink-0 ms-2">{o.totalAmount.toFixed(2)} ج.م</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">{t("undelivered_not_billed")}</p>
+              </div>
+            )}
 
             {session.payments && session.payments.length > 0 && (
               <div className="mt-4 space-y-2">

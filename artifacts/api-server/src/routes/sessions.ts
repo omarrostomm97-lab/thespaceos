@@ -96,12 +96,18 @@ router.get("/sessions/active", requireAuth, requireTenant, async (req, res) => {
       const currentMinutes = calcMinutes(s.startedAt, s.pausedAt, null, pausedDuration);
       const pricePerHour = base.pricePerHour;
       const currentCost = Math.round((currentMinutes / 60) * pricePerHour * 100) / 100;
-      const orders = await db.select({ totalAmount: ordersTable.totalAmount })
+      const allOrders = await db.select({ totalAmount: ordersTable.totalAmount, status: ordersTable.status })
         .from(ordersTable)
         .where(and(eq(ordersTable.sessionId, s.id), eq(ordersTable.tenantId, s.tenantId)));
-      const ordersCost = Math.round(orders.reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0) * 100) / 100;
+      const deliveredCost = allOrders
+        .filter(o => o.status === "delivered")
+        .reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+      const ordersCost = Math.round(deliveredCost * 100) / 100;
+      const undeliveredOrders = allOrders
+        .filter(o => ["pending", "preparing", "ready"].includes(o.status as string))
+        .map(o => ({ status: o.status, totalAmount: parseFloat(o.totalAmount as string) }));
       const totalCost = Math.round((currentCost + ordersCost) * 100) / 100;
-      return { ...base, currentMinutes: Math.round(currentMinutes), currentCost, ordersCost, totalCost };
+      return { ...base, currentMinutes: Math.round(currentMinutes), currentCost, ordersCost, totalCost, undeliveredOrders };
     }));
     res.json(result);
   } catch {
@@ -250,12 +256,24 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
       extraPause = (Date.now() - s.pausedAt.getTime()) / 60000;
     }
     const totalMinutes = calcMinutes(s.startedAt, s.pausedAt, new Date(), pausedDuration + extraPause);
-    const totalCost = (totalMinutes / 60) * pricePerHour;
-    const roundedCost = Math.round(totalCost * 100) / 100;
+    const gamingCost = (totalMinutes / 60) * pricePerHour;
+    const roundedGamingCost = Math.round(gamingCost * 100) / 100;
 
-    // Payment gating: require verified payment covering full cost before ending.
-    // Cashiers must use POST /payments + POST /payments/:id/verify BEFORE calling this endpoint.
-    if (roundedCost > 0) {
+    // Fetch all orders for this session; only delivered ones are billable now.
+    const allSessionOrders = await db.select({ totalAmount: ordersTable.totalAmount, status: ordersTable.status })
+      .from(ordersTable)
+      .where(and(eq(ordersTable.sessionId, id), eq(ordersTable.tenantId, req.user!.tenantId!)));
+    const deliveredOrdersCost = Math.round(
+      allSessionOrders.filter(o => o.status === "delivered")
+        .reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0) * 100
+    ) / 100;
+    const undeliveredOrders = allSessionOrders
+      .filter(o => ["pending", "preparing", "ready"].includes(o.status as string))
+      .map(o => ({ status: o.status, totalAmount: parseFloat(o.totalAmount as string) }));
+    const grandTotal = Math.round((roundedGamingCost + deliveredOrdersCost) * 100) / 100;
+
+    // Payment gating: verified payments must cover gaming cost + delivered orders cost.
+    if (grandTotal > 0) {
       const existingPayments = await db.select().from(paymentsTable)
         .where(and(
           eq(paymentsTable.sessionId, id),
@@ -263,12 +281,15 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
           eq(paymentsTable.status, "verified")
         ));
       const verifiedTotal = existingPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
-      if (verifiedTotal < roundedCost) {
+      if (verifiedTotal < grandTotal) {
         res.status(402).json({
           error: "Payment required before ending session. Create and verify a payment first.",
-          totalCost: roundedCost,
+          totalCost: grandTotal,
+          gamingCost: roundedGamingCost,
+          deliveredOrdersCost,
+          undeliveredOrders,
           verifiedAmount: Math.round(verifiedTotal * 100) / 100,
-          remainingAmount: Math.round((roundedCost - verifiedTotal) * 100) / 100,
+          remainingAmount: Math.round((grandTotal - verifiedTotal) * 100) / 100,
         });
         return;
       }
@@ -278,10 +299,10 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
       status: "ended",
       endedAt: new Date(),
       totalMinutes: String(Math.round(totalMinutes * 100) / 100),
-      totalCost: String(roundedCost),
+      totalCost: String(grandTotal),
     }).where(eq(sessionsTable.id, id)).returning();
     await db.update(assetsTable).set({ status: "available" }).where(eq(assetsTable.id, s.assetId));
-    await writeAuditLog({ user: req.user, action: "end_session", entityType: "session", entityId: id, newValue: { totalMinutes: Math.round(totalMinutes * 100) / 100, totalCost: roundedCost } });
+    await writeAuditLog({ user: req.user, action: "end_session", entityType: "session", entityId: id, newValue: { totalMinutes: Math.round(totalMinutes * 100) / 100, totalCost: grandTotal } });
     await writeSessionLog({ tenantId: req.user!.tenantId!, sessionId: id, action: "ended", previousStatus: s.status, newStatus: "ended", performedByUserId: req.user!.id });
     res.json(await formatSession(updated));
   } catch {

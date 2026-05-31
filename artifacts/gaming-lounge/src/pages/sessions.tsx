@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Gamepad2, Clock, Pause, Play, SquareSquare, Receipt, Banknote, CreditCard, Smartphone } from "lucide-react";
+import { Gamepad2, Clock, Pause, Play, SquareSquare, Receipt, Banknote, CreditCard, Smartphone, AlertTriangle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -34,6 +34,7 @@ interface CheckoutState {
   currentCost: number;
   ordersCost: number;
   totalCost: number;
+  undeliveredOrders: Array<{ status: string; totalAmount: number }>;
 }
 
 export default function Sessions() {
@@ -61,15 +62,23 @@ export default function Sessions() {
     visa: t("pay_visa"),
   };
 
-  const openCheckout = (session: { id: number; assetName?: string | null; assetNameAr?: string | null; currentCost: number; ordersCost?: number; totalCost?: number }) => {
+  const UNDELIVERED_STATUS_LABELS: Record<string, string> = {
+    pending: t("status_new"),
+    preparing: t("status_preparing"),
+    ready: t("status_ready"),
+  };
+
+  const openCheckout = (session: { id: number; assetName?: string | null; assetNameAr?: string | null; currentCost: number; ordersCost?: number; totalCost?: number; undeliveredOrders?: Array<{ status: string; totalAmount: number }> }) => {
     const ordersCost = (session as any).ordersCost ?? 0;
     const totalCost  = (session as any).totalCost  ?? session.currentCost;
+    const undeliveredOrders = (session as any).undeliveredOrders ?? [];
     setCheckout({
       sessionId: session.id,
       assetName: session.assetNameAr || session.assetName || `${t("session_label")} #${session.id}`,
       currentCost: session.currentCost,
       ordersCost,
       totalCost,
+      undeliveredOrders,
     });
     setPaymentMethod("cash");
     setAmountStr(totalCost.toFixed(2));
@@ -260,6 +269,23 @@ export default function Sessions() {
 
           {checkout && (
             <div className="space-y-5 py-2">
+              {checkout.undeliveredOrders.length > 0 && (
+                <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-sm">
+                  <div className="flex items-center gap-2 font-bold text-amber-500 mb-2">
+                    <AlertTriangle className="h-4 w-4 shrink-0" />
+                    {t("undelivered_orders_warning")}
+                  </div>
+                  <ul className="space-y-1">
+                    {checkout.undeliveredOrders.map((o, i) => (
+                      <li key={i} className="flex justify-between text-muted-foreground">
+                        <span>{UNDELIVERED_STATUS_LABELS[o.status] ?? o.status}</span>
+                        <span className="font-semibold text-foreground">{o.totalAmount.toFixed(2)} ج.م</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-muted-foreground mt-2">{t("undelivered_not_billed")}</p>
+                </div>
+              )}
               <div className="rounded-xl bg-secondary/50 border border-border p-4 text-center">
                 <p className="text-sm text-muted-foreground mb-1">{checkout.assetName}</p>
                 <p className="text-4xl font-bold text-emerald-500 tabular-nums">{checkout.totalCost.toFixed(2)}</p>
