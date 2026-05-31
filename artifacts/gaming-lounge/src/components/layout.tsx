@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { LayoutDashboard, Monitor, Gamepad2, ShoppingCart, Menu, Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut, TrendingUp } from "lucide-react";
+import { LayoutDashboard, Monitor, Gamepad2, ShoppingCart, Menu, Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut, TrendingUp, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
@@ -22,6 +22,7 @@ export function Layout({ children }: LayoutProps) {
     { name: "المخزون", href: "/inventory", icon: Package },
     { name: "الورديات", href: "/shifts", icon: Clock },
     { name: "المدفوعات", href: "/payments", icon: ReceiptText },
+    { name: "الوصفات", href: "/recipes", icon: BookOpen, roles: ["platform_owner", "owner", "manager"] },
     { name: "أداء الموظفين", href: "/performance", icon: TrendingUp, roles: ["platform_owner", "owner", "manager"] },
     { name: "المستخدمين", href: "/users", icon: Users },
     { name: "سجل العمليات", href: "/audit", icon: ShieldAlert },

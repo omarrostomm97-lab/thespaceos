@@ -710,6 +710,39 @@ export interface RevenueStats {
   dailyBreakdown?: RevenueStatsDailyBreakdownItem[];
 }
 
+export interface ProductWithRecipe {
+  id: number;
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  /** @nullable */
+  categoryId?: number | null;
+  price: number;
+  isAvailable?: boolean;
+  hasRecipe: boolean;
+  recipeItemCount: number;
+}
+
+export interface RecipeItem {
+  id: number;
+  productId: number;
+  inventoryItemId: number;
+  /** @nullable */
+  inventoryItemName?: string | null;
+  /** @nullable */
+  inventoryItemUnit?: string | null;
+  quantityUsed: number;
+}
+
+export interface RecipeItemInput {
+  inventoryItemId: number;
+  quantityUsed: number;
+}
+
+export interface RecipeInput {
+  items: RecipeItemInput[];
+}
+
 export interface EmployeePerformance {
   userId: number;
   userName: string;

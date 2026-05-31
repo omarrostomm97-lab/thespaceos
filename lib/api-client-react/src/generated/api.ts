@@ -56,9 +56,12 @@ import type {
   ProductCategoryInput,
   ProductInput,
   ProductUpdate,
+  ProductWithRecipe,
   QrCode,
   QrMenuResponse,
   QrOrderInput,
+  RecipeInput,
+  RecipeItem,
   RevenueStats,
   Session,
   SessionDetail,
@@ -4395,6 +4398,102 @@ export function useGetEmployeePerformance<TData = Awaited<ReturnType<typeof getE
 
 
 
+
+// ── RECIPES ──────────────────────────────────────────────────────────────────
+
+export const getProductsWithRecipesUrl = () => `/api/recipes`;
+
+export const getProductsWithRecipes = async (options?: RequestInit): Promise<ProductWithRecipe[]> => {
+  return customFetch<ProductWithRecipe[]>(getProductsWithRecipesUrl(), { ...options, method: 'GET' });
+};
+
+export const getGetProductsWithRecipesQueryKey = () => ['/api/recipes'] as const;
+
+export const getGetProductsWithRecipesQueryOptions = <TData = Awaited<ReturnType<typeof getProductsWithRecipes>>, TError = ErrorType<unknown>>(
+  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getProductsWithRecipes>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetProductsWithRecipesQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductsWithRecipes>>> = ({ signal }) => getProductsWithRecipes({ signal, ...requestOptions });
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getProductsWithRecipes>>, TError, TData> & { queryKey: QueryKey };
+};
+
+export type GetProductsWithRecipesQueryResult = NonNullable<Awaited<ReturnType<typeof getProductsWithRecipes>>>;
+export type GetProductsWithRecipesQueryError = ErrorType<unknown>;
+
+export function useGetProductsWithRecipes<TData = Awaited<ReturnType<typeof getProductsWithRecipes>>, TError = ErrorType<unknown>>(
+  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getProductsWithRecipes>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetProductsWithRecipesQueryOptions(options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getProductRecipeUrl = (productId: number) => `/api/recipes/${productId}`;
+
+export const getProductRecipe = async (productId: number, options?: RequestInit): Promise<RecipeItem[]> => {
+  return customFetch<RecipeItem[]>(getProductRecipeUrl(productId), { ...options, method: 'GET' });
+};
+
+export const getGetProductRecipeQueryKey = (productId: number) => ['/api/recipes', productId] as const;
+
+export const getGetProductRecipeQueryOptions = <TData = Awaited<ReturnType<typeof getProductRecipe>>, TError = ErrorType<unknown>>(
+  productId: number,
+  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getProductRecipe>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetProductRecipeQueryKey(productId);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getProductRecipe>>> = ({ signal }) => getProductRecipe(productId, { signal, ...requestOptions });
+  return { queryKey, queryFn, enabled: !!productId, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getProductRecipe>>, TError, TData> & { queryKey: QueryKey };
+};
+
+export type GetProductRecipeQueryResult = NonNullable<Awaited<ReturnType<typeof getProductRecipe>>>;
+export type GetProductRecipeQueryError = ErrorType<unknown>;
+
+export function useGetProductRecipe<TData = Awaited<ReturnType<typeof getProductRecipe>>, TError = ErrorType<unknown>>(
+  productId: number,
+  options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getProductRecipe>>, TError, TData>; request?: SecondParameter<typeof customFetch> }
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetProductRecipeQueryOptions(productId, options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+export const getUpdateProductRecipeUrl = (productId: number) => `/api/recipes/${productId}`;
+
+export const updateProductRecipe = async (productId: number, recipeInput: RecipeInput, options?: RequestInit): Promise<RecipeItem[]> => {
+  return customFetch<RecipeItem[]>(getUpdateProductRecipeUrl(productId), {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(recipeInput),
+  });
+};
+
+export const getUpdateProductRecipeMutationOptions = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProductRecipe>>, TError, { productId: number; data: BodyType<RecipeInput> }, TContext>; request?: SecondParameter<typeof customFetch> }
+): UseMutationOptions<Awaited<ReturnType<typeof updateProductRecipe>>, TError, { productId: number; data: BodyType<RecipeInput> }, TContext> => {
+  const mutationKey = ['updateProductRecipe'];
+  const { mutation: mutationOptions, request: requestOptions } = options ?
+    options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ? options
+    : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProductRecipe>>, { productId: number; data: BodyType<RecipeInput> }> = (props) => {
+    const { productId, data } = props ?? {};
+    return updateProductRecipe(productId, data, requestOptions);
+  };
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateProductRecipeMutationResult = NonNullable<Awaited<ReturnType<typeof updateProductRecipe>>>;
+export type UpdateProductRecipeMutationBody = BodyType<RecipeInput>;
+export type UpdateProductRecipeMutationError = ErrorType<unknown>;
+
+export const useUpdateProductRecipe = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof updateProductRecipe>>, TError, { productId: number; data: BodyType<RecipeInput> }, TContext>; request?: SecondParameter<typeof customFetch> }
+): UseMutationResult<Awaited<ReturnType<typeof updateProductRecipe>>, TError, { productId: number; data: BodyType<RecipeInput> }, TContext> => {
+  return useMutation(getUpdateProductRecipeMutationOptions(options));
+};
 
 export const getListAuditLogsUrl = (params?: ListAuditLogsParams,) => {
   const normalizedParams = new URLSearchParams();
