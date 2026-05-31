@@ -28,22 +28,34 @@ import AdminTenants from "@/pages/admin/tenants";
 import AdminUsers from "@/pages/admin/users";
 import Performance from "@/pages/performance";
 import Recipes from "@/pages/recipes";
+import { UserRole, ROUTE_ALLOWED_ROLES, defaultRedirect } from "@/lib/permissions";
 
 const queryClient = new QueryClient();
 
 function RootRedirect() {
   const { user, isLoading } = useAuth();
-  
   if (isLoading) return null;
-  
-  return user ? <Redirect to="/dashboard" /> : <Redirect to="/login" />;
+  if (!user) return <Redirect to="/login" />;
+  return <Redirect to={defaultRedirect(user.role as UserRole)} />;
 }
 
-// Simple role guard wrapper
-function AdminRoute({ children }: { children: React.ReactNode }) {
+function RoleRoute({ path, children }: { path: string; children: React.ReactNode }) {
   const { user } = useAuth();
-  if (user?.role !== 'platform_owner') return <Redirect to="/unauthorized" />;
+  const allowed = ROUTE_ALLOWED_ROLES[path];
+  if (allowed && user && !allowed.includes(user.role as UserRole)) {
+    return <Redirect to={defaultRedirect(user.role as UserRole)} />;
+  }
   return <>{children}</>;
+}
+
+function ProtectedPage({ path, children }: { path: string; children: React.ReactNode }) {
+  return (
+    <ProtectedRoute>
+      <RoleRoute path={path}>
+        <Layout>{children}</Layout>
+      </RoleRoute>
+    </ProtectedRoute>
+  );
 }
 
 function Router() {
@@ -53,153 +65,63 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/unauthorized" component={Unauthorized} />
       <Route path="/qr/:token" component={QrMenu} />
-      
-      {/* Protected Admin Routes */}
+
       <Route path="/admin/tenants">
-        <ProtectedRoute>
-          <AdminRoute>
-            <Layout>
-              <AdminTenants />
-            </Layout>
-          </AdminRoute>
-        </ProtectedRoute>
+        <ProtectedPage path="/admin/tenants"><AdminTenants /></ProtectedPage>
       </Route>
-
       <Route path="/admin/users">
-        <ProtectedRoute>
-          <AdminRoute>
-            <Layout>
-              <AdminUsers />
-            </Layout>
-          </AdminRoute>
-        </ProtectedRoute>
+        <ProtectedPage path="/admin/users"><AdminUsers /></ProtectedPage>
       </Route>
 
-      {/* Protected Tenant Routes */}
       <Route path="/dashboard">
-        <ProtectedRoute>
-          <Layout>
-            <Dashboard />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/dashboard"><Dashboard /></ProtectedPage>
       </Route>
-      
       <Route path="/assets">
-        <ProtectedRoute>
-          <Layout>
-            <Assets />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/assets"><Assets /></ProtectedPage>
       </Route>
-
-      <Route path="/sessions">
-        <ProtectedRoute>
-          <Layout>
-            <Sessions />
-          </Layout>
-        </ProtectedRoute>
-      </Route>
-
       <Route path="/sessions/:id">
-        <ProtectedRoute>
-          <Layout>
-            <SessionDetail />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/sessions/:id"><SessionDetail /></ProtectedPage>
       </Route>
-
+      <Route path="/sessions">
+        <ProtectedPage path="/sessions"><Sessions /></ProtectedPage>
+      </Route>
       <Route path="/pos">
-        <ProtectedRoute>
-          <Layout>
-            <Pos />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/pos"><Pos /></ProtectedPage>
       </Route>
-
       <Route path="/kds">
-        <ProtectedRoute>
-          <Layout>
-            <Kds />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/kds"><Kds /></ProtectedPage>
       </Route>
-
       <Route path="/orders">
-        <ProtectedRoute>
-          <Layout>
-            <Orders />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/orders"><Orders /></ProtectedPage>
       </Route>
-
       <Route path="/menu">
-        <ProtectedRoute>
-          <Layout>
-            <Menu />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/menu"><Menu /></ProtectedPage>
       </Route>
-
       <Route path="/inventory">
-        <ProtectedRoute>
-          <Layout>
-            <Inventory />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/inventory"><Inventory /></ProtectedPage>
       </Route>
-
       <Route path="/shifts">
-        <ProtectedRoute>
-          <Layout>
-            <Shifts />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/shifts"><Shifts /></ProtectedPage>
       </Route>
-
       <Route path="/payments">
-        <ProtectedRoute>
-          <Layout>
-            <Payments />
-          </Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/payments"><Payments /></ProtectedPage>
       </Route>
-
-      <Route path="/users">
-        <ProtectedRoute>
-          <Layout>
-            <Users />
-          </Layout>
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/audit">
-        <ProtectedRoute>
-          <Layout>
-            <Audit />
-          </Layout>
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/performance">
-        <ProtectedRoute>
-          <Layout><Performance /></Layout>
-        </ProtectedRoute>
-      </Route>
-
       <Route path="/recipes">
-        <ProtectedRoute>
-          <Layout><Recipes /></Layout>
-        </ProtectedRoute>
+        <ProtectedPage path="/recipes"><Recipes /></ProtectedPage>
+      </Route>
+      <Route path="/performance">
+        <ProtectedPage path="/performance"><Performance /></ProtectedPage>
+      </Route>
+      <Route path="/users">
+        <ProtectedPage path="/users"><Users /></ProtectedPage>
+      </Route>
+      <Route path="/audit">
+        <ProtectedPage path="/audit"><Audit /></ProtectedPage>
+      </Route>
+      <Route path="/settings">
+        <ProtectedPage path="/settings"><Settings /></ProtectedPage>
       </Route>
 
-      <Route path="/settings">
-        <ProtectedRoute>
-          <Layout>
-            <Settings />
-          </Layout>
-        </ProtectedRoute>
-      </Route>
-      
       <Route component={NotFound} />
     </Switch>
   );

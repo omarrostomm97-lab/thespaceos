@@ -1,7 +1,45 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { LayoutDashboard, Monitor, Gamepad2, ShoppingCart, Menu, Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut, TrendingUp, BookOpen } from "lucide-react";
+import {
+  LayoutDashboard, Monitor, Gamepad2, ShoppingCart, UtensilsCrossed,
+  Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut,
+  TrendingUp, BookOpen, ChefHat
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ROUTE_ALLOWED_ROLES, UserRole } from "@/lib/permissions";
+
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ElementType;
+  routeKey: string;
+}
+
+const navigation: NavItem[] = [
+  { name: "اللوحة الرئيسية",    href: "/dashboard",   icon: LayoutDashboard, routeKey: "/dashboard" },
+  { name: "الأجهزة",             href: "/assets",      icon: Gamepad2,        routeKey: "/assets" },
+  { name: "الجلسات",             href: "/sessions",    icon: Clock,           routeKey: "/sessions" },
+  { name: "نقطة البيع",          href: "/pos",         icon: Monitor,         routeKey: "/pos" },
+  { name: "شاشة المطبخ",         href: "/kds",         icon: ChefHat,         routeKey: "/kds" },
+  { name: "الطلبات",             href: "/orders",      icon: ShoppingCart,    routeKey: "/orders" },
+  { name: "المنيو",              href: "/menu",        icon: UtensilsCrossed, routeKey: "/menu" },
+  { name: "المخزون",             href: "/inventory",   icon: Package,         routeKey: "/inventory" },
+  { name: "الورديات",            href: "/shifts",      icon: Clock,           routeKey: "/shifts" },
+  { name: "المدفوعات",           href: "/payments",    icon: ReceiptText,     routeKey: "/payments" },
+  { name: "الوصفات",             href: "/recipes",     icon: BookOpen,        routeKey: "/recipes" },
+  { name: "أداء الموظفين",       href: "/performance", icon: TrendingUp,      routeKey: "/performance" },
+  { name: "المستخدمين",          href: "/users",       icon: Users,           routeKey: "/users" },
+  { name: "سجل العمليات",        href: "/audit",       icon: ShieldAlert,     routeKey: "/audit" },
+  { name: "الإعدادات",           href: "/settings",    icon: Settings,        routeKey: "/settings" },
+];
+
+const ROLE_LABELS: Record<string, string> = {
+  platform_owner: "مالك النظام",
+  owner: "مالك",
+  manager: "مدير",
+  cashier: "كاشير",
+  buffet_worker: "عامل بوفيه",
+};
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,23 +49,13 @@ export function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
 
-  const navigation = [
-    { name: "اللوحة الرئيسية", href: "/dashboard", icon: LayoutDashboard },
-    { name: "الأجهزة والجلسات", href: "/assets", icon: Gamepad2 },
-    { name: "الجلسات النشطة", href: "/sessions", icon: Clock },
-    { name: "نقطة البيع (POS)", href: "/pos", icon: Monitor },
-    { name: "شاشة المطبخ (KDS)", href: "/kds", icon: Menu },
-    { name: "الطلبات", href: "/orders", icon: ShoppingCart },
-    { name: "المنيو", href: "/menu", icon: Menu },
-    { name: "المخزون", href: "/inventory", icon: Package },
-    { name: "الورديات", href: "/shifts", icon: Clock },
-    { name: "المدفوعات", href: "/payments", icon: ReceiptText },
-    { name: "الوصفات", href: "/recipes", icon: BookOpen, roles: ["platform_owner", "owner", "manager"] },
-    { name: "أداء الموظفين", href: "/performance", icon: TrendingUp, roles: ["platform_owner", "owner", "manager"] },
-    { name: "المستخدمين", href: "/users", icon: Users },
-    { name: "سجل العمليات", href: "/audit", icon: ShieldAlert },
-    { name: "الإعدادات", href: "/settings", icon: Settings },
-  ];
+  const role = user?.role as UserRole | undefined;
+
+  const visibleNav = navigation.filter((item) => {
+    const allowed = ROUTE_ALLOWED_ROLES[item.routeKey];
+    if (!allowed) return true;
+    return role ? allowed.includes(role) : false;
+  });
 
   return (
     <div className="flex h-screen bg-background" dir="rtl">
@@ -36,16 +64,16 @@ export function Layout({ children }: LayoutProps) {
         <div className="h-16 flex items-center px-6 border-b border-border shrink-0">
           <h1 className="text-xl font-bold text-primary">نظام جيمينج لاونج</h1>
         </div>
-        
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {navigation.filter(item => !item.roles || item.roles.includes(user?.role ?? "")).map((item) => {
-            const isActive = location.startsWith(item.href);
+
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
+          {visibleNav.map((item) => {
+            const isActive = location === item.href || location.startsWith(item.href + "/");
             return (
-              <Link key={item.name} href={item.href}>
+              <Link key={item.routeKey} href={item.href}>
                 <div
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer ${
-                    isActive 
-                      ? "bg-primary text-primary-foreground font-medium" 
+                    isActive
+                      ? "bg-primary text-primary-foreground font-medium"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                   }`}
                 >
@@ -55,16 +83,16 @@ export function Layout({ children }: LayoutProps) {
               </Link>
             );
           })}
-        </div>
+        </nav>
 
         <div className="p-4 border-t border-border shrink-0">
-          <div className="flex items-center gap-3 px-3 py-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
-              <span className="text-sm font-bold">{user?.name?.charAt(0) || "U"}</span>
+          <div className="flex items-center gap-3 px-3 py-2 mb-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+              <span className="text-sm font-bold text-primary">{user?.name?.charAt(0)?.toUpperCase() || "U"}</span>
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-medium truncate">{user?.nameAr || user?.name}</span>
-              <span className="text-xs text-muted-foreground truncate">{user?.role}</span>
+              <span className="text-xs text-muted-foreground truncate">{ROLE_LABELS[user?.role ?? ""] || user?.role}</span>
             </div>
           </div>
           <Button variant="outline" className="w-full justify-start gap-2" onClick={logout}>
