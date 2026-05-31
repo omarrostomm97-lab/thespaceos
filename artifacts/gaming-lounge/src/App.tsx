@@ -26,6 +26,7 @@ import Settings from "@/pages/settings";
 import Unauthorized from "@/pages/unauthorized";
 import AdminTenants from "@/pages/admin/tenants";
 import AdminUsers from "@/pages/admin/users";
+import Performance from "@/pages/performance";
 
 const queryClient = new QueryClient();
 
@@ -175,6 +176,12 @@ function Router() {
           <Layout>
             <Audit />
           </Layout>
+        </ProtectedRoute>
+      </Route>
+
+      <Route path="/performance">
+        <ProtectedRoute>
+          <Layout><Performance /></Layout>
         </ProtectedRoute>
       </Route>
 

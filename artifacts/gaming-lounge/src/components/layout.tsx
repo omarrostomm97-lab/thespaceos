@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { LayoutDashboard, Monitor, Gamepad2, ShoppingCart, Menu, Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Monitor, Gamepad2, ShoppingCart, Menu, Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
@@ -22,6 +22,7 @@ export function Layout({ children }: LayoutProps) {
     { name: "المخزون", href: "/inventory", icon: Package },
     { name: "الورديات", href: "/shifts", icon: Clock },
     { name: "المدفوعات", href: "/payments", icon: ReceiptText },
+    { name: "أداء الموظفين", href: "/performance", icon: TrendingUp, roles: ["platform_owner", "owner", "manager"] },
     { name: "المستخدمين", href: "/users", icon: Users },
     { name: "سجل العمليات", href: "/audit", icon: ShieldAlert },
     { name: "الإعدادات", href: "/settings", icon: Settings },
@@ -36,7 +37,7 @@ export function Layout({ children }: LayoutProps) {
         </div>
         
         <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {navigation.map((item) => {
+          {navigation.filter(item => !item.roles || item.roles.includes(user?.role ?? "")).map((item) => {
             const isActive = location.startsWith(item.href);
             return (
               <Link key={item.name} href={item.href}>

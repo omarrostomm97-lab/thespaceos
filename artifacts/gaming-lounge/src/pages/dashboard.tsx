@@ -1,8 +1,25 @@
-import { useGetDashboardSummary, useListActiveSessions, getGetDashboardSummaryQueryKey, getListActiveSessionsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetDashboardSummary,
+  useListActiveSessions,
+  useGetRevenueStats,
+  getGetDashboardSummaryQueryKey,
+  getListActiveSessionsQueryKey,
+  getGetRevenueStatsQueryKey,
+} from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Gamepad2, Users, Receipt, AlertTriangle, Clock, ShoppingCart, Activity, Menu, Monitor } from "lucide-react";
+import { Gamepad2, Users, Receipt, AlertTriangle, Clock, ShoppingCart, Activity, Menu, Monitor, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 
 export default function Dashboard() {
   const { data: summary, isLoading: isLoadingSummary } = useGetDashboardSummary({
@@ -13,6 +30,18 @@ export default function Dashboard() {
     query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 10000 }
   });
 
+  const { data: revenueWeek } = useGetRevenueStats({ period: "week" }, {
+    query: { queryKey: getGetRevenueStatsQueryKey({ period: "week" }) }
+  });
+
+  const { data: revenueToday } = useGetRevenueStats({ period: "today" }, {
+    query: { queryKey: getGetRevenueStatsQueryKey({ period: "today" }) }
+  });
+
+  const { data: revenueMonth } = useGetRevenueStats({ period: "month" }, {
+    query: { queryKey: getGetRevenueStatsQueryKey({ period: "month" }) }
+  });
+
   if (isLoadingSummary || isLoadingSessions) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
@@ -20,6 +49,31 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  const revenueChartData = [
+    {
+      name: "اليوم",
+      "إيرادات الجلسات": revenueToday?.sessionRevenue ?? 0,
+      "إيرادات الطلبات": revenueToday?.orderRevenue ?? 0,
+    },
+    {
+      name: "الأسبوع",
+      "إيرادات الجلسات": revenueWeek?.sessionRevenue ?? 0,
+      "إيرادات الطلبات": revenueWeek?.orderRevenue ?? 0,
+    },
+    {
+      name: "الشهر",
+      "إيرادات الجلسات": revenueMonth?.sessionRevenue ?? 0,
+      "إيرادات الطلبات": revenueMonth?.orderRevenue ?? 0,
+    },
+  ];
+
+  const paymentBreakdown = revenueWeek?.paymentMethodBreakdown;
+  const paymentChartData = [
+    { name: "نقداً", value: paymentBreakdown?.cash ?? 0 },
+    { name: "إنستاباي", value: paymentBreakdown?.instapay ?? 0 },
+    { name: "فيزا", value: paymentBreakdown?.visa ?? 0 },
+  ].filter(d => d.value > 0);
 
   return (
     <div className="p-8 space-y-8">
@@ -39,6 +93,7 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* KPI Tiles */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="bg-card hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -83,6 +138,69 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-3xl font-bold">{summary?.lowStockAlerts || 0}</div>
             <p className="text-xs text-muted-foreground mt-1">أصناف قاربت على النفاذ</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Revenue Chart */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card className="md:col-span-2 bg-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-emerald-500" />
+              تحليل الإيرادات (اليوم / الأسبوع / الشهر)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={revenueChartData} barGap={4} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} width={50} tickFormatter={v => `${v} ج`} />
+                <Tooltip
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                  labelStyle={{ color: "hsl(var(--foreground))", fontWeight: "bold" }}
+                  formatter={(value: number) => [`${value.toFixed(2)} ج.م`]}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar dataKey="إيرادات الجلسات" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="إيرادات الطلبات" fill="#10b981" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Receipt className="h-4 w-4 text-primary" />
+              ملخص الأسبوع
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center border-b border-border pb-3">
+              <span className="text-sm text-muted-foreground">الإجمالي</span>
+              <span className="font-bold text-emerald-500">{(revenueWeek?.total ?? 0).toFixed(2)} ج.م</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-border pb-3">
+              <span className="text-sm text-muted-foreground">الجلسات</span>
+              <span className="font-bold">{(revenueWeek?.sessionRevenue ?? 0).toFixed(2)} ج.م</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-border pb-3">
+              <span className="text-sm text-muted-foreground">الطلبات</span>
+              <span className="font-bold">{(revenueWeek?.orderRevenue ?? 0).toFixed(2)} ج.م</span>
+            </div>
+            {paymentChartData.length > 0 && (
+              <div className="pt-1 space-y-2">
+                <p className="text-xs text-muted-foreground font-medium">طرق الدفع</p>
+                {paymentChartData.map(d => (
+                  <div key={d.name} className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">{d.name}</span>
+                    <span className="font-medium">{d.value.toFixed(2)} ج.م</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
