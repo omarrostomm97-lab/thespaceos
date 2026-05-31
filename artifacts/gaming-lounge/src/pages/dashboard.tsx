@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetDashboardSummary,
   useListActiveSessions,
@@ -9,19 +10,50 @@ import {
   getGetRevenueStatsQueryKey,
   getGetDashboardBreakdownQueryKey,
 } from "@workspace/api-client-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart, Activity, Menu, Monitor, TrendingUp, Utensils } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
+  Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart,
+  Activity, Monitor, TrendingUp, Utensils, Bell, Plus,
+  LayoutDashboard, ChefHat,
+} from "lucide-react";
+import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+import { FadeIn, StaggerChildren, StaggerItem, HoverCard } from "@/components/motion";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
+/* ─── Count-up hook ──────────────────────────────────── */
+
+function useCountUp(target: number, duration = 900) {
+  const [current, setCurrent] = useState(0);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    cancelAnimationFrame(rafRef.current);
+    if (target === 0) { setCurrent(0); return; }
+    const startTime = performance.now();
+    const animate = (now: number) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCurrent(eased * target);
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate);
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, duration]);
+
+  return current;
+}
+
+/* ─── Helpers ────────────────────────────────────────── */
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "صباح الخير";
+  if (h < 18) return "مساء الخير";
+  return "مساء النور";
+}
 
 const DAY_NAMES = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 
@@ -42,38 +74,145 @@ const PERIOD_LABELS: Record<string, string> = {
 };
 
 const ASSET_TYPE_ICON: Record<string, string> = {
-  ps: "🎮",
-  billiard: "🎱",
-  air_hockey: "🏒",
-  babyfoot: "⚽",
-  other: "🕹️",
+  ps: "🎮", billiard: "🎱", air_hockey: "🏒", babyfoot: "⚽", other: "🕹️",
 };
+
+/* ─── Sub-components ─────────────────────────────────── */
+
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-popover border border-popover-border rounded-xl px-3.5 py-2.5 shadow-2xl">
+      <p className="text-xs text-muted-foreground mb-1.5 font-medium">{label}</p>
+      {payload.map((item: any, i: number) => (
+        <p key={i} className="text-sm font-bold" style={{ color: item.color || "#006FEE" }}>
+          {typeof item.value === "number" ? item.value.toFixed(2) : item.value} ج.م
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function TrendBadge({ value }: { value?: number }) {
+  if (value === undefined || value === null) return null;
+  const pos = value >= 0;
+  return (
+    <span className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+      pos ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"
+    }`}>
+      {pos ? "↑" : "↓"} {Math.abs(value)}%
+    </span>
+  );
+}
+
+interface KpiCardProps {
+  label: string;
+  value: number;
+  subtitle?: string;
+  icon: React.ElementType;
+  iconClass: string;
+  isLive?: boolean;
+  trend?: number;
+  isFloat?: boolean;
+}
+
+function KpiCard({ label, value, subtitle, icon: Icon, iconClass, isLive, trend, isFloat }: KpiCardProps) {
+  const animated = useCountUp(value);
+  const display = isFloat ? animated.toFixed(2) : Math.round(animated).toLocaleString("ar-EG");
+
+  return (
+    <HoverCard>
+      <div className="bg-card border border-card-border rounded-xl p-5 h-full">
+        <div className="flex items-start justify-between mb-4">
+          <span className="text-[11px] uppercase tracking-wider text-muted-foreground/75 font-medium leading-tight">
+            {label}
+          </span>
+          <div className="flex items-center gap-2">
+            {isLive && (
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 live-dot" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+            )}
+            {trend !== undefined && <TrendBadge value={trend} />}
+          </div>
+        </div>
+
+        <div className="flex items-end justify-between">
+          <div>
+            <p
+              className="text-[40px] font-bold leading-none tabular"
+              style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              {display}
+            </p>
+            {isFloat && <span className="text-sm text-muted-foreground block mt-1">ج.م</span>}
+            {subtitle && <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{subtitle}</p>}
+          </div>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${iconClass}`}>
+            <Icon className="h-5 w-5" />
+          </div>
+        </div>
+      </div>
+    </HoverCard>
+  );
+}
+
+/* Dashboard skeleton */
+function DashboardSkeleton() {
+  return (
+    <div className="p-8 space-y-8 animate-pulse">
+      <div className="space-y-2">
+        <div className="h-8 w-72 rounded-xl bg-muted" />
+        <div className="h-4 w-48 rounded-lg bg-muted" />
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-36 rounded-xl bg-muted" />
+        ))}
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="md:col-span-2 h-72 rounded-xl bg-muted" />
+        <div className="h-72 rounded-xl bg-muted" />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Tabs ───────────────────────────────────────────── */
+
+const TABS = [
+  { id: "overview" as const, label: "نظرة عامة" },
+  { id: "sales"    as const, label: "المبيعات"  },
+  { id: "details"  as const, label: "التفصيل"   },
+];
+type TabId = (typeof TABS)[number]["id"];
+
+/* ─── Dashboard ──────────────────────────────────────── */
 
 export default function Dashboard() {
   const [period, setPeriod] = useState<"today" | "week" | "month">("week");
+  const [tab, setTab] = useState<TabId>("overview");
+  const { user } = useAuth();
 
   const { data: summary, isLoading: isLoadingSummary } = useGetDashboardSummary({
-    query: { queryKey: getGetDashboardSummaryQueryKey(), refetchInterval: 10000 }
+    query: { queryKey: getGetDashboardSummaryQueryKey(), refetchInterval: 10000 },
   });
 
   const { data: activeSessions, isLoading: isLoadingSessions } = useListActiveSessions({
-    query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 10000 }
+    query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 10000 },
   });
 
   const { data: revenueStats } = useGetRevenueStats({ period }, {
-    query: { queryKey: getGetRevenueStatsQueryKey({ period }) }
+    query: { queryKey: getGetRevenueStatsQueryKey({ period }) },
   });
 
   const { data: breakdown, isLoading: isLoadingBreakdown } = useGetDashboardBreakdown({ period }, {
-    query: { queryKey: getGetDashboardBreakdownQueryKey({ period }) }
+    query: { queryKey: getGetDashboardBreakdownQueryKey({ period }) },
   });
 
   if (isLoadingSummary || isLoadingSessions) {
-    return (
-      <div className="p-8 flex items-center justify-center h-full">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const dailyChartData = (revenueStats?.dailyBreakdown ?? []).map(d => ({
@@ -83,363 +222,612 @@ export default function Dashboard() {
 
   const paymentBreakdown = revenueStats?.paymentMethodBreakdown;
   const paymentChartData = [
-    { name: "نقداً", value: paymentBreakdown?.cash ?? 0 },
-    { name: "إنستاباي", value: paymentBreakdown?.instapay ?? 0 },
-    { name: "فيزا", value: paymentBreakdown?.visa ?? 0 },
+    { name: "نقداً",     value: paymentBreakdown?.cash     ?? 0, fill: "#006FEE" },
+    { name: "إنستاباي", value: paymentBreakdown?.instapay  ?? 0, fill: "#17c964" },
+    { name: "فيزا",     value: paymentBreakdown?.visa      ?? 0, fill: "#f5a524" },
   ].filter(d => d.value > 0);
 
+  const totalPayments = paymentChartData.reduce((s, d) => s + d.value, 0);
   const noBreakdownData = !breakdown || breakdown.grandTotal === 0;
+  const greeting = getGreeting();
+  const userName = user?.nameAr || user?.name || "";
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">اللوحة الرئيسية</h2>
-          <p className="text-muted-foreground mt-1">نظرة عامة على العمليات الحالية</p>
-        </div>
-        {!summary?.openShift && (
-          <div className="bg-destructive/10 text-destructive border border-destructive/20 px-4 py-2 rounded-lg flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
-            <span className="font-bold">لا توجد وردية مفتوحة</span>
-            <Link href="/shifts">
-              <Button size="sm" variant="destructive" className="ml-4">فتح وردية</Button>
-            </Link>
-          </div>
-        )}
-      </div>
+    <div className="min-h-screen bg-background">
 
-      {/* KPI Tiles */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-card hover-elevate">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">الجلسات النشطة</CardTitle>
-            <Gamepad2 className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{summary?.activeSessions || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              من أصل {summary?.totalAssets || 0} أجهزة
-            </p>
-          </CardContent>
-        </Card>
+      {/* ─── Sticky Header ──────────────────────────── */}
+      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="px-8 py-4">
 
-        <Card className="bg-card hover-elevate">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">إيرادات اليوم</CardTitle>
-            <Receipt className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{summary?.revenueToday?.toFixed(2) || "0.00"}</div>
-            <p className="text-xs text-muted-foreground mt-1">جنيه مصري</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card hover-elevate">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">الطلبات المعلقة</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{summary?.pendingOrders || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">تحتاج لتنفيذ في المطبخ</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card hover-elevate">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">تنبيهات المخزون</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{summary?.lowStockAlerts || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">أصناف قاربت على النفاذ</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Period Selector */}
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-muted-foreground font-medium">الفترة الزمنية:</span>
-        <div className="flex gap-1 bg-muted rounded-lg p-1">
-          {(["today", "week", "month"] as const).map(p => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                period === p
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {PERIOD_LABELS[p]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Revenue Chart */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="md:col-span-2 bg-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-emerald-500" />
-              {period === "today" ? "إيرادات اليوم" : period === "week" ? "إيرادات آخر 7 أيام" : "إيرادات آخر 30 يوماً"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {dailyChartData.length === 0 ? (
-              <div className="h-[220px] flex items-center justify-center text-muted-foreground text-sm">
-                جارٍ تحميل بيانات الإيرادات...
+          {/* Row 1: Greeting + Actions */}
+          <div className="flex items-center justify-between mb-4">
+            <FadeIn>
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <LayoutDashboard className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold leading-tight">
+                    {greeting}{userName ? `، ${userName}` : ""}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">نظرة شاملة على أداء المركز</p>
+                </div>
               </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={dailyChartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis
-                    dataKey="day"
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={54}
-                    tickFormatter={v => `${v} ج`}
-                  />
-                  <Tooltip
-                    contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-                    labelStyle={{ color: "hsl(var(--foreground))", fontWeight: "bold" }}
-                    formatter={(value: number) => [`${value.toFixed(2)} ج.م`, "الإيرادات"]}
-                  />
-                  <Bar dataKey="الإيرادات" fill="#10b981" radius={[5, 5, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
+            </FadeIn>
 
-        <Card className="bg-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <Receipt className="h-4 w-4 text-primary" />
-              ملخص {PERIOD_LABELS[period]}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center border-b border-border pb-3">
-              <span className="text-sm text-muted-foreground">الإجمالي</span>
-              <span className="font-bold text-emerald-500">{(revenueStats?.total ?? 0).toFixed(2)} ج.م</span>
-            </div>
-            <div className="flex justify-between items-center border-b border-border pb-3">
-              <span className="text-sm text-muted-foreground">الجلسات</span>
-              <span className="font-bold">{(revenueStats?.sessionRevenue ?? 0).toFixed(2)} ج.م</span>
-            </div>
-            <div className="flex justify-between items-center border-b border-border pb-3">
-              <span className="text-sm text-muted-foreground">الطلبات</span>
-              <span className="font-bold">{(revenueStats?.orderRevenue ?? 0).toFixed(2)} ج.م</span>
-            </div>
-            {paymentChartData.length > 0 && (
-              <div className="pt-1 space-y-2">
-                <p className="text-xs text-muted-foreground font-medium">طرق الدفع</p>
-                {paymentChartData.map(d => (
-                  <div key={d.name} className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">{d.name}</span>
-                    <span className="font-medium">{d.value.toFixed(2)} ج.م</span>
+            <FadeIn delay={0.05}>
+              <div className="flex items-center gap-2">
+                <button
+                  className="relative w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-150"
+                  aria-label="الإشعارات"
+                >
+                  <Bell className="h-4 w-4" />
+                  {(summary?.pendingOrders ?? 0) > 0 && (
+                    <span className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
+                  )}
+                </button>
+
+                {!summary?.openShift ? (
+                  <Link href="/shifts">
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      className="flex items-center gap-2 bg-primary text-white text-sm font-medium px-4 py-2 rounded-xl cursor-pointer"
+                    >
+                      <Plus className="h-4 w-4" />
+                      فتح وردية
+                    </motion.div>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium px-4 py-2 rounded-xl">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    وردية مفتوحة
                   </div>
-                ))}
+                )}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </FadeIn>
+          </div>
+
+          {/* Amber shift warning */}
+          {!summary?.openShift && (
+            <FadeIn delay={0.08}>
+              <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 text-amber-400 px-4 py-2.5 rounded-xl mb-4 text-sm">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span className="font-medium">
+                  لا توجد وردية مفتوحة — يُرجى فتح وردية لتتبع الإيرادات والعمليات
+                </span>
+              </div>
+            </FadeIn>
+          )}
+
+          {/* Row 2: Tabs + Period selector */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-0.5">
+              {TABS.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setTab(t.id)}
+                  className={`relative px-4 py-1.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
+                    tab === t.id ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab === t.id && (
+                    <motion.div
+                      layoutId="tab-pill"
+                      className="absolute inset-0 bg-secondary rounded-lg"
+                      transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10">{t.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-0.5 bg-muted/40 border border-border rounded-lg p-0.5">
+              {(["today", "week", "month"] as const).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  className={`relative px-3 py-1 text-xs font-medium rounded-md transition-colors duration-150 ${
+                    period === p ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {period === p && (
+                    <motion.div
+                      layoutId="period-pill"
+                      className="absolute inset-0 bg-card border border-border rounded-md shadow-sm"
+                      transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                    />
+                  )}
+                  <span className="relative z-10">{PERIOD_LABELS[p]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Revenue Breakdown Section */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <h3 className="text-xl font-bold">تفصيل الإيرادات</h3>
-          <span className="text-sm text-muted-foreground">— {PERIOD_LABELS[period]}</span>
-        </div>
+      {/* ─── Content ────────────────────────────────── */}
+      <div className="p-8">
+        <AnimatePresence mode="wait">
 
-        {isLoadingBreakdown ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="h-6 w-6 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          </div>
-        ) : noBreakdownData ? (
-          <div className="rounded-xl border border-border bg-card p-10 text-center text-muted-foreground">
-            لا توجد بيانات لهذه الفترة
-          </div>
-        ) : (
-          <>
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Gaming Panel */}
-              <Card className="bg-card border-emerald-500/20">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <div className="w-7 h-7 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                      <Gamepad2 className="h-4 w-4 text-emerald-500" />
+          {/* ─── Overview ─────────────────────────────── */}
+          {tab === "overview" && (
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+              className="space-y-6"
+            >
+              {/* KPI Grid */}
+              <StaggerChildren className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StaggerItem>
+                  <KpiCard
+                    label="الجلسات النشطة"
+                    value={summary?.activeSessions ?? 0}
+                    subtitle={`من أصل ${summary?.totalAssets ?? 0} أجهزة`}
+                    icon={Gamepad2}
+                    iconClass="bg-primary/15 text-primary"
+                    isLive
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <KpiCard
+                    label="إيرادات اليوم"
+                    value={summary?.revenueToday ?? 0}
+                    isFloat
+                    subtitle="الإجمالي الكلي لليوم"
+                    icon={Receipt}
+                    iconClass="bg-emerald-500/15 text-emerald-400"
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <KpiCard
+                    label="الطلبات المعلقة"
+                    value={summary?.pendingOrders ?? 0}
+                    subtitle="تحتاج لتنفيذ في المطبخ"
+                    icon={ShoppingCart}
+                    iconClass="bg-amber-500/15 text-amber-400"
+                  />
+                </StaggerItem>
+                <StaggerItem>
+                  <KpiCard
+                    label="تنبيهات المخزون"
+                    value={summary?.lowStockAlerts ?? 0}
+                    subtitle="أصناف قاربت على النفاذ"
+                    icon={AlertTriangle}
+                    iconClass="bg-red-500/15 text-red-400"
+                  />
+                </StaggerItem>
+              </StaggerChildren>
+
+              {/* Charts */}
+              <div className="grid gap-4 md:grid-cols-3">
+                <HoverCard className="md:col-span-2">
+                  <div className="bg-card border border-card-border rounded-xl p-6">
+                    <div className="flex items-start justify-between mb-5">
+                      <div>
+                        <h3 className="text-base font-semibold">أداء المبيعات</h3>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {period === "today" ? "إيرادات اليوم" : period === "week" ? "آخر 7 أيام" : "آخر 30 يوماً"}
+                        </p>
+                      </div>
+                      <div className="text-end">
+                        <p className="text-xs text-muted-foreground">الإجمالي</p>
+                        <p className="text-lg font-bold text-primary">
+                          {(revenueStats?.total ?? 0).toFixed(2)} ج.م
+                        </p>
+                      </div>
                     </div>
-                    <span>إيرادات الألعاب</span>
-                    <span className="mr-auto font-bold text-emerald-500">
-                      {(breakdown?.gaming.total ?? 0).toFixed(2)} ج.م
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(breakdown?.gaming.byType.length ?? 0) === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">لا توجد جلسات منتهية</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {breakdown!.gaming.byType.map(item => (
-                        <div key={item.type} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
-                          <span className="text-xl">{ASSET_TYPE_ICON[item.type] ?? "🕹️"}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm">{item.typeAr}</p>
-                            <p className="text-xs text-muted-foreground">{item.sessions} جلسة</p>
-                          </div>
-                          <span className="font-bold text-emerald-500 text-sm whitespace-nowrap">
-                            {item.total.toFixed(2)} ج.م
+                    {dailyChartData.length === 0 ? (
+                      <div className="h-[200px] flex flex-col items-center justify-center text-muted-foreground gap-2">
+                        <TrendingUp className="h-8 w-8 opacity-25" />
+                        <p className="text-sm">لا توجد بيانات لهذه الفترة</p>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={dailyChartData} margin={{ top: 4, right: 0, left: -12, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 14%)" vertical={false} />
+                          <XAxis
+                            dataKey="day"
+                            tick={{ fill: "hsl(0 0% 50%)", fontSize: 11 }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            tick={{ fill: "hsl(0 0% 50%)", fontSize: 11 }}
+                            axisLine={false}
+                            tickLine={false}
+                            width={48}
+                          />
+                          <Tooltip
+                            content={<CustomTooltip />}
+                            cursor={{ fill: "rgba(255,255,255,0.03)", radius: 6 } as any}
+                          />
+                          <Bar
+                            dataKey="الإيرادات"
+                            fill="#006FEE"
+                            radius={[5, 5, 0, 0]}
+                            animationDuration={800}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    )}
+                  </div>
+                </HoverCard>
+
+                <HoverCard>
+                  <div className="bg-card border border-card-border rounded-xl p-6 h-full flex flex-col">
+                    <div className="flex items-center gap-2 mb-5">
+                      <Receipt className="h-4 w-4 text-primary" />
+                      <h3 className="text-base font-semibold">ملخص {PERIOD_LABELS[period]}</h3>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center pb-3 border-b border-border/50">
+                        <span className="text-sm text-muted-foreground">الجلسات</span>
+                        <span className="text-sm font-bold text-primary">
+                          {(revenueStats?.sessionRevenue ?? 0).toFixed(2)} ج.م
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center pb-3 border-b border-border/50">
+                        <span className="text-sm text-muted-foreground">الطلبات</span>
+                        <span className="text-sm font-bold text-emerald-400">
+                          {(revenueStats?.orderRevenue ?? 0).toFixed(2)} ج.م
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">الإجمالي</span>
+                        <span className="text-sm font-bold">
+                          {(revenueStats?.total ?? 0).toFixed(2)} ج.م
+                        </span>
+                      </div>
+                    </div>
+
+                    {paymentChartData.length > 0 && (
+                      <div className="mt-auto pt-4 border-t border-border">
+                        <p className="text-xs text-muted-foreground font-medium mb-3">طرق الدفع</p>
+                        <div className="space-y-2.5">
+                          {paymentChartData.map(d => (
+                            <div key={d.name}>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="text-muted-foreground">{d.name}</span>
+                                <span className="font-medium">
+                                  {totalPayments > 0 ? Math.round((d.value / totalPayments) * 100) : 0}%
+                                </span>
+                              </div>
+                              <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                                <motion.div
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${totalPayments > 0 ? (d.value / totalPayments) * 100 : 0}%` }}
+                                  transition={{ duration: 0.7, delay: 0.2, ease: "easeOut" }}
+                                  className="h-full rounded-full"
+                                  style={{ backgroundColor: d.fill }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </HoverCard>
+              </div>
+
+              {/* Active sessions + Quick actions */}
+              <div className="grid gap-4 md:grid-cols-7">
+                <HoverCard className="md:col-span-4">
+                  <div className="bg-card border border-card-border rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="flex items-center gap-2.5">
+                        <Activity className="h-4 w-4 text-primary" />
+                        <h3 className="text-base font-semibold">الجلسات الحالية</h3>
+                        {(activeSessions?.length ?? 0) > 0 && (
+                          <span className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 live-dot" />
+                            {activeSessions?.length} نشطة
                           </span>
+                        )}
+                      </div>
+                      {(activeSessions?.length ?? 0) > 5 && (
+                        <Link href="/sessions">
+                          <span className="text-xs text-primary hover:underline cursor-pointer">عرض الكل</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    {activeSessions?.length === 0 ? (
+                      <div className="py-10 text-center text-muted-foreground">
+                        <Gamepad2 className="h-8 w-8 mx-auto mb-2 opacity-25" />
+                        <p className="text-sm">لا توجد جلسات نشطة حالياً</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-0">
+                        {activeSessions?.slice(0, 5).map((session, i) => (
+                          <motion.div
+                            key={session.id}
+                            initial={{ opacity: 0, x: 8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.04, duration: 0.2 }}
+                            className="flex items-center justify-between py-3.5 border-b border-border/40 last:border-0"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-primary/12 flex items-center justify-center shrink-0">
+                                <Gamepad2 className="h-4 w-4 text-primary" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-semibold leading-tight">
+                                  {session.assetNameAr || session.assetName}
+                                </p>
+                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                                  <Clock className="h-3 w-3" />
+                                  <span>
+                                    {Math.floor(session.currentMinutes / 60)}س {session.currentMinutes % 60}د
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2.5">
+                              <p className="text-sm font-bold text-emerald-400">
+                                {session.currentCost.toFixed(2)} ج.م
+                              </p>
+                              <Link href={`/sessions/${session.id}`}>
+                                <span className="text-xs border border-border/80 rounded-lg px-2.5 py-1 text-muted-foreground hover:text-foreground hover:border-border cursor-pointer transition-colors duration-150">
+                                  إدارة
+                                </span>
+                              </Link>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </HoverCard>
+
+                <div className="md:col-span-3 space-y-3">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    إجراءات سريعة
+                  </p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { href: "/pos",    icon: Monitor,      label: "نقطة البيع",   cls: "bg-primary/10 border-primary/25 text-primary hover:bg-primary/15" },
+                      { href: "/assets", icon: Gamepad2,     label: "الأجهزة",      cls: "bg-white/[0.04] border-border text-foreground hover:bg-white/[0.07]" },
+                      { href: "/kds",    icon: ChefHat,      label: "شاشة المطبخ", cls: "bg-white/[0.04] border-border text-foreground hover:bg-white/[0.07]" },
+                      { href: "/orders", icon: ShoppingCart, label: "الطلبات",      cls: "bg-white/[0.04] border-border text-foreground hover:bg-white/[0.07]" },
+                    ].map(({ href, icon: Icon, label, cls }) => (
+                      <Link key={href} href={href}>
+                        <motion.div
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          className={`flex flex-col items-center justify-center gap-2 h-24 rounded-xl border cursor-pointer transition-colors duration-150 ${cls}`}
+                        >
+                          <Icon className="h-5 w-5" />
+                          <span className="text-sm font-medium">{label}</span>
+                        </motion.div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ─── Sales ────────────────────────────────── */}
+          {tab === "sales" && (
+            <motion.div
+              key="sales"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+              className="space-y-6"
+            >
+              <StaggerChildren className="grid gap-4 md:grid-cols-3">
+                {[
+                  { label: "إجمالي الإيرادات",  value: revenueStats?.total          ?? 0, color: "text-primary" },
+                  { label: "إيرادات الجلسات",   value: revenueStats?.sessionRevenue ?? 0, color: "text-emerald-400" },
+                  { label: "إيرادات الطلبات",   value: revenueStats?.orderRevenue   ?? 0, color: "text-amber-400" },
+                ].map(stat => (
+                  <StaggerItem key={stat.label}>
+                    <HoverCard>
+                      <div className="bg-card border border-card-border rounded-xl p-5">
+                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground/75 font-medium mb-3">
+                          {stat.label}
+                        </p>
+                        <p
+                          className={`text-3xl font-bold tabular ${stat.color}`}
+                          style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                        >
+                          {stat.value.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">جنيه مصري</p>
+                      </div>
+                    </HoverCard>
+                  </StaggerItem>
+                ))}
+              </StaggerChildren>
+
+              <HoverCard>
+                <div className="bg-card border border-card-border rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h3 className="text-base font-semibold">توزيع الإيرادات اليومية</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">{PERIOD_LABELS[period]}</p>
+                    </div>
+                  </div>
+                  {dailyChartData.length === 0 ? (
+                    <div className="h-[260px] flex items-center justify-center text-muted-foreground text-sm">
+                      لا توجد بيانات
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={260}>
+                      <BarChart data={dailyChartData} margin={{ top: 4, right: 0, left: -12, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 14%)" vertical={false} />
+                        <XAxis dataKey="day" tick={{ fill: "hsl(0 0% 50%)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: "hsl(0 0% 50%)", fontSize: 11 }} axisLine={false} tickLine={false} width={48} />
+                        <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(255,255,255,0.03)", radius: 6 } as any} />
+                        <Bar dataKey="الإيرادات" fill="#006FEE" radius={[5, 5, 0, 0]} animationDuration={900} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </HoverCard>
+
+              {paymentChartData.length > 0 && (
+                <HoverCard>
+                  <div className="bg-card border border-card-border rounded-xl p-6">
+                    <h3 className="text-base font-semibold mb-5">توزيع طرق الدفع</h3>
+                    <div className="space-y-4">
+                      {paymentChartData.map(d => (
+                        <div key={d.name}>
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="text-sm font-medium">{d.name}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-bold">{d.value.toFixed(2)} ج.م</span>
+                              <span className="text-xs text-muted-foreground w-8 text-end">
+                                {totalPayments > 0 ? Math.round((d.value / totalPayments) * 100) : 0}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${totalPayments > 0 ? (d.value / totalPayments) * 100 : 0}%` }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
+                              className="h-full rounded-full"
+                              style={{ backgroundColor: d.fill }}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                </HoverCard>
+              )}
+            </motion.div>
+          )}
 
-              {/* Buffet Panel */}
-              <Card className="bg-card border-orange-500/20">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-base">
-                    <div className="w-7 h-7 rounded-lg bg-orange-500/15 flex items-center justify-center">
-                      <Utensils className="h-4 w-4 text-orange-500" />
-                    </div>
-                    <span>إيرادات البوفيه</span>
-                    <span className="mr-auto font-bold text-orange-500">
-                      {(breakdown?.buffet.total ?? 0).toFixed(2)} ج.م
-                    </span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(breakdown?.buffet.byCategory.length ?? 0) === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">لا توجد طلبات في هذه الفترة</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {breakdown!.buffet.byCategory.map(cat => (
-                        <div key={cat.categoryId ?? "__none__"}>
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-sm font-semibold text-orange-400">
-                              {cat.categoryNameAr || cat.categoryName}
-                            </span>
-                            <span className="text-sm font-bold text-orange-500">{cat.total.toFixed(2)} ج.م</span>
+          {/* ─── Details ──────────────────────────────── */}
+          {tab === "details" && (
+            <motion.div
+              key="details"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+              className="space-y-6"
+            >
+              {isLoadingBreakdown ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="h-64 rounded-xl bg-muted animate-pulse" />
+                  <div className="h-64 rounded-xl bg-muted animate-pulse" />
+                </div>
+              ) : noBreakdownData ? (
+                <div className="rounded-xl border border-border bg-card p-16 text-center">
+                  <TrendingUp className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                  <p className="text-muted-foreground text-sm">لا توجد بيانات لهذه الفترة</p>
+                </div>
+              ) : (
+                <>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <HoverCard>
+                      <div className="bg-card border border-emerald-500/15 rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 flex items-center justify-center">
+                              <Gamepad2 className="h-4 w-4 text-emerald-500" />
+                            </div>
+                            <h3 className="font-semibold">إيرادات الألعاب</h3>
                           </div>
-                          <div className="space-y-1 pr-3 border-r-2 border-orange-500/20">
-                            {cat.products.map(product => (
-                              <div key={product.productId} className="flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground truncate">
-                                  {product.nameAr || product.name}
-                                  <span className="mr-1 text-muted-foreground/60">×{product.quantity}</span>
-                                </span>
-                                <span className="font-medium whitespace-nowrap mr-2">{product.total.toFixed(2)} ج.م</span>
+                          <span className="text-lg font-bold text-emerald-400">
+                            {(breakdown?.gaming.total ?? 0).toFixed(2)} ج.م
+                          </span>
+                        </div>
+                        {(breakdown?.gaming.byType.length ?? 0) === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-6">لا توجد جلسات منتهية</p>
+                        ) : (
+                          <div>
+                            {breakdown!.gaming.byType.map(item => (
+                              <div key={item.type} className="flex items-center gap-3 py-3 border-b border-border/40 last:border-0">
+                                <span className="text-xl">{ASSET_TYPE_ICON[item.type] ?? "🕹️"}</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium">{item.typeAr}</p>
+                                  <p className="text-xs text-muted-foreground">{item.sessions} جلسة</p>
+                                </div>
+                                <span className="text-sm font-bold text-emerald-400">{item.total.toFixed(2)} ج.م</span>
                               </div>
                             ))}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Grand Total */}
-            <div className="rounded-xl bg-primary/10 border border-primary/20 px-6 py-4 flex items-center justify-between">
-              <span className="text-base font-bold">الإجمالي الكلي ({PERIOD_LABELS[period]})</span>
-              <span className="text-2xl font-bold text-primary">{(breakdown?.grandTotal ?? 0).toFixed(2)} ج.م</span>
-            </div>
-          </>
-        )}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 bg-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
-              الجلسات الحالية
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {activeSessions?.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">لا توجد جلسات نشطة حالياً</div>
-              ) : (
-                activeSessions?.slice(0, 5).map(session => (
-                  <div key={session.id} className="flex items-center justify-between border-b border-border pb-4 last:border-0 last:pb-0">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                        session.status === 'active' ? 'bg-primary/20 text-primary' : 'bg-amber-500/20 text-amber-500'
-                      }`}>
-                        <Gamepad2 className="h-6 w-6" />
+                        )}
                       </div>
-                      <div>
-                        <p className="font-bold">{session.assetNameAr || session.assetName}</p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <Clock className="h-3 w-3" />
-                          <span>بدأت من {Math.floor(session.currentMinutes / 60)} ساعة و {session.currentMinutes % 60} دقيقة</span>
+                    </HoverCard>
+
+                    <HoverCard>
+                      <div className="bg-card border border-orange-500/15 rounded-xl p-6">
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-xl bg-orange-500/15 flex items-center justify-center">
+                              <Utensils className="h-4 w-4 text-orange-500" />
+                            </div>
+                            <h3 className="font-semibold">إيرادات البوفيه</h3>
+                          </div>
+                          <span className="text-lg font-bold text-orange-400">
+                            {(breakdown?.buffet.total ?? 0).toFixed(2)} ج.م
+                          </span>
                         </div>
+                        {(breakdown?.buffet.byCategory.length ?? 0) === 0 ? (
+                          <p className="text-sm text-muted-foreground text-center py-6">لا توجد طلبات في هذه الفترة</p>
+                        ) : (
+                          <div className="space-y-4">
+                            {breakdown!.buffet.byCategory.map(cat => (
+                              <div key={cat.categoryId ?? "__none__"}>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-sm font-semibold text-orange-400">
+                                    {cat.categoryNameAr || cat.categoryName}
+                                  </span>
+                                  <span className="text-sm font-bold text-orange-400">{cat.total.toFixed(2)} ج.م</span>
+                                </div>
+                                <div className="space-y-1.5 pr-3 border-r-2 border-orange-500/20">
+                                  {cat.products.map(product => (
+                                    <div key={product.productId} className="flex items-center justify-between text-xs">
+                                      <span className="text-muted-foreground truncate">
+                                        {product.nameAr || product.name}
+                                        <span className="mr-1 opacity-50">×{product.quantity}</span>
+                                      </span>
+                                      <span className="font-medium mr-2 whitespace-nowrap">{product.total.toFixed(2)} ج.م</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <div className="text-left">
-                      <p className="font-bold text-emerald-500">{session.currentCost.toFixed(2)} ج.م</p>
-                      <Link href={`/sessions/${session.id}`}>
-                        <Button variant="outline" size="sm" className="mt-2 w-full h-8">إدارة</Button>
-                      </Link>
-                    </div>
+                    </HoverCard>
                   </div>
-                ))
-              )}
-            </div>
-            {activeSessions && activeSessions.length > 5 && (
-              <Button variant="ghost" className="w-full mt-4" asChild>
-                <Link href="/sessions">عرض كل الجلسات ({activeSessions.length})</Link>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
 
-        <Card className="col-span-3 bg-card">
-          <CardHeader>
-            <CardTitle>إجراءات سريعة</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <Link href="/pos">
-              <Button className="w-full h-24 text-lg flex-col gap-2 shadow-md hover-elevate">
-                <Monitor className="h-6 w-6" />
-                نقطة البيع (POS)
-              </Button>
-            </Link>
-            <Link href="/assets">
-              <Button variant="secondary" className="w-full h-24 text-lg flex-col gap-2 hover-elevate">
-                <Gamepad2 className="h-6 w-6" />
-                الأجهزة
-              </Button>
-            </Link>
-            <Link href="/kds">
-              <Button variant="secondary" className="w-full h-24 text-lg flex-col gap-2 hover-elevate">
-                <Menu className="h-6 w-6" />
-                شاشة المطبخ
-              </Button>
-            </Link>
-            <Link href="/orders">
-              <Button variant="secondary" className="w-full h-24 text-lg flex-col gap-2 hover-elevate">
-                <ShoppingCart className="h-6 w-6" />
-                الطلبات
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+                  <div className="rounded-xl bg-primary/8 border border-primary/20 px-6 py-5 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">الإجمالي الكلي</p>
+                      <p className="text-base font-semibold mt-1">{PERIOD_LABELS[period]}</p>
+                    </div>
+                    <span
+                      className="text-4xl font-bold text-primary tabular"
+                      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+                    >
+                      {(breakdown?.grandTotal ?? 0).toFixed(2)}
+                      <span className="text-xl text-primary/60 mr-1">ج.م</span>
+                    </span>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          )}
+
+        </AnimatePresence>
       </div>
     </div>
   );

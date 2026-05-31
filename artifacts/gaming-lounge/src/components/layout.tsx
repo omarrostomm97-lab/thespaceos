@@ -1,12 +1,13 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard, Monitor, Gamepad2, ShoppingCart, UtensilsCrossed,
   Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut,
-  TrendingUp, BookOpen, ChefHat
+  TrendingUp, BookOpen, ChefHat, HelpCircle,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ROUTE_ALLOWED_ROLES, UserRole } from "@/lib/permissions";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   name: string;
@@ -57,56 +58,100 @@ export function Layout({ children }: LayoutProps) {
     return role ? allowed.includes(role) : false;
   });
 
+  const initials =
+    user?.nameAr?.charAt(0) ||
+    user?.name?.charAt(0)?.toUpperCase() ||
+    "U";
+
   return (
     <div className="flex h-screen bg-background" dir="rtl">
-      {/* Sidebar */}
-      <aside className="w-64 border-l border-border bg-sidebar flex flex-col">
-        <div className="h-16 flex items-center px-6 border-b border-border shrink-0">
-          <h1 className="text-xl font-bold text-primary">نظام جيمينج لاونج</h1>
+      {/* ─── Sidebar ──────────────────────────────────── */}
+      <aside className="w-64 border-l border-sidebar-border bg-sidebar flex flex-col shrink-0">
+
+        {/* Brand + User Profile */}
+        <div className="px-4 pt-5 pb-3 shrink-0">
+          {/* Brand row */}
+          <div className="flex items-center gap-2.5 px-1 mb-5">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
+              <Gamepad2 className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-sm font-bold text-foreground tracking-tight">جيمينج لاونج</span>
+          </div>
+
+          {/* User card */}
+          <div className="rounded-xl bg-white/[0.04] border border-white/[0.07] p-3">
+            <div className="flex items-center gap-2.5">
+              {/* Avatar with gradient ring */}
+              <div className="relative shrink-0">
+                <div className="w-10 h-10 rounded-full p-[2px] bg-gradient-to-br from-primary via-blue-400 to-indigo-500">
+                  <div className="w-full h-full rounded-full bg-sidebar flex items-center justify-center">
+                    <span className="text-sm font-bold text-white">{initials}</span>
+                  </div>
+                </div>
+                {/* Online indicator */}
+                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-[2px] border-sidebar" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-sidebar-foreground truncate leading-tight">
+                  {user?.nameAr || user?.name}
+                </p>
+                <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                  {ROLE_LABELS[user?.role ?? ""] || user?.role}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
+        {/* Section label */}
+        <p className="text-[10px] uppercase tracking-widest text-muted-foreground/50 px-5 pb-1.5 shrink-0">
+          التنقل
+        </p>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto px-3 pb-2 space-y-0.5">
           {visibleNav.map((item) => {
-            const isActive = location === item.href || location.startsWith(item.href + "/");
+            const isActive =
+              location === item.href || location.startsWith(item.href + "/");
             return (
               <Link key={item.routeKey} href={item.href}>
-                <div
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors cursor-pointer ${
+                <motion.div
+                  whileHover={isActive ? {} : { x: -2 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors duration-150 select-none",
                     isActive
-                      ? "bg-primary text-primary-foreground font-medium"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                  }`}
+                      ? "bg-primary text-white font-medium"
+                      : "text-sidebar-foreground/55 hover:bg-white/[0.05] hover:text-sidebar-foreground"
+                  )}
                 >
-                  <item.icon className="h-5 w-5 shrink-0" />
-                  <span>{item.name}</span>
-                </div>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                  <span className="text-sm">{item.name}</span>
+                </motion.div>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-border shrink-0">
-          <div className="flex items-center gap-3 px-3 py-2 mb-3">
-            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
-              <span className="text-sm font-bold text-primary">{user?.name?.charAt(0)?.toUpperCase() || "U"}</span>
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium truncate">{user?.nameAr || user?.name}</span>
-              <span className="text-xs text-muted-foreground truncate">{ROLE_LABELS[user?.role ?? ""] || user?.role}</span>
-            </div>
-          </div>
-          <Button variant="outline" className="w-full justify-start gap-2" onClick={logout}>
-            <LogOut className="h-4 w-4" />
-            تسجيل الخروج
-          </Button>
+        {/* Bottom pinned */}
+        <div className="px-3 py-3 border-t border-sidebar-border shrink-0 space-y-0.5">
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/45 hover:text-sidebar-foreground hover:bg-white/[0.05] transition-colors duration-150 text-sm">
+            <HelpCircle className="h-4 w-4 shrink-0" />
+            <span>المساعدة والمعلومات</span>
+          </button>
+          <button
+            onClick={logout}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sidebar-foreground/45 hover:text-red-400 hover:bg-red-500/[0.08] transition-colors duration-150 text-sm"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span>تسجيل الخروج</span>
+          </button>
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* ─── Main Content ─────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <div className="flex-1 overflow-y-auto">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto">{children}</div>
       </main>
     </div>
   );
