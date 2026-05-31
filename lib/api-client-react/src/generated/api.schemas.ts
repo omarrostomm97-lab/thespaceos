@@ -49,6 +49,8 @@ export interface User {
 export interface AuthResponse {
   token: string;
   user: User;
+  /** @nullable */
+  refreshToken?: string | null;
 }
 
 export type TenantLanguage = typeof TenantLanguage[keyof typeof TenantLanguage];

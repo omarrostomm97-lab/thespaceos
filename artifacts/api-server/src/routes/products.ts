@@ -2,10 +2,13 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { productsTable, productCategoriesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, requireTenant } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole } from "../lib/auth";
+
 import { writeAuditLog } from "../lib/audit";
 
 const router = Router();
+
+const MGMT = requireRole("platform_owner", "owner", "manager");
 
 const fmtProduct = (p: typeof productsTable.$inferSelect, cat?: typeof productCategoriesTable.$inferSelect | null) => ({
   id: p.id,
@@ -37,7 +40,7 @@ router.get("/products", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/products", requireAuth, requireTenant, async (req, res) => {
+router.post("/products", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const { name, nameAr, categoryId, price, description, descriptionAr } = req.body;
     if (!name || price === undefined) { res.status(400).json({ error: "name and price required" }); return; }
@@ -70,7 +73,7 @@ router.get("/products/:productId", requireAuth, requireTenant, async (req, res) 
   }
 });
 
-router.patch("/products/:productId", requireAuth, requireTenant, async (req, res) => {
+router.patch("/products/:productId", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const id = parseInt(req.params.productId as string);
     const { name, nameAr, categoryId, price, description, descriptionAr, isAvailable } = req.body;
@@ -98,7 +101,7 @@ router.get("/product-categories", requireAuth, requireTenant, async (req, res) =
   }
 });
 
-router.post("/product-categories", requireAuth, requireTenant, async (req, res) => {
+router.post("/product-categories", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const { name, nameAr } = req.body;
     if (!name) { res.status(400).json({ error: "name required" }); return; }

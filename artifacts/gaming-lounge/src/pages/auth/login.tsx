@@ -34,7 +34,7 @@ export default function Login() {
     setError(null);
     try {
       const response = await loginMutation.mutateAsync({ data: values });
-      setAuth(response.token, response.user);
+      setAuth(response.token, response.user, response.refreshToken ?? undefined);
       setLocation("/dashboard");
     } catch (err: any) {
       setError(err?.data?.error || "حدث خطأ أثناء تسجيل الدخول");

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { sessionsTable, assetsTable, usersTable, paymentsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
+import { sessionsTable, sessionLogsTable, assetsTable, usersTable, paymentsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
@@ -9,6 +9,26 @@ const router = Router();
 
 const CASHIER_UP = requireRole("platform_owner", "owner", "manager", "cashier");
 const MGMT = requireRole("platform_owner", "owner", "manager");
+
+async function writeSessionLog(params: {
+  tenantId: number;
+  sessionId: number;
+  action: string;
+  previousStatus: string | null;
+  newStatus: string | null;
+  performedByUserId: number;
+  note?: string;
+}) {
+  await db.insert(sessionLogsTable).values({
+    tenantId: params.tenantId,
+    sessionId: params.sessionId,
+    action: params.action,
+    previousStatus: params.previousStatus,
+    newStatus: params.newStatus,
+    performedByUserId: params.performedByUserId,
+    note: params.note ?? null,
+  });
+}
 
 function calcMinutes(startedAt: Date, pausedAt: Date | null, endedAt: Date | null, pausedDuration: number): number {
   const end = endedAt || new Date();
@@ -144,6 +164,7 @@ router.post("/sessions", requireAuth, requireTenant, CASHIER_UP, async (req, res
     }).returning();
     await db.update(assetsTable).set({ status: "busy" }).where(eq(assetsTable.id, assetId));
     await writeAuditLog({ user: req.user, action: "start_session", entityType: "session", entityId: session.id, newValue: { assetId } });
+    await writeSessionLog({ tenantId: req.user!.tenantId!, sessionId: session.id, action: "started", previousStatus: null, newStatus: "active", performedByUserId: req.user!.id });
     res.status(201).json(await formatSession(session));
   } catch {
     res.status(500).json({ error: "Failed to start session" });
@@ -161,6 +182,7 @@ router.post("/sessions/:sessionId/pause", requireAuth, requireTenant, CASHIER_UP
     const [updated] = await db.update(sessionsTable).set({ status: "paused", pausedAt: new Date() })
       .where(eq(sessionsTable.id, id)).returning();
     await writeAuditLog({ user: req.user, action: "pause_session", entityType: "session", entityId: id });
+    await writeSessionLog({ tenantId: req.user!.tenantId!, sessionId: id, action: "paused", previousStatus: "active", newStatus: "paused", performedByUserId: req.user!.id });
     res.json(await formatSession(updated));
   } catch {
     res.status(500).json({ error: "Failed to pause session" });
@@ -182,6 +204,7 @@ router.post("/sessions/:sessionId/resume", requireAuth, requireTenant, CASHIER_U
       pausedDurationMinutes: String(prevPaused + pausedMinutes),
     }).where(eq(sessionsTable.id, id)).returning();
     await writeAuditLog({ user: req.user, action: "resume_session", entityType: "session", entityId: id });
+    await writeSessionLog({ tenantId: req.user!.tenantId!, sessionId: id, action: "resumed", previousStatus: "paused", newStatus: "active", performedByUserId: req.user!.id });
     res.json(await formatSession(updated));
   } catch {
     res.status(500).json({ error: "Failed to resume session" });
@@ -239,6 +262,7 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
     }).where(eq(sessionsTable.id, id)).returning();
     await db.update(assetsTable).set({ status: "available" }).where(eq(assetsTable.id, s.assetId));
     await writeAuditLog({ user: req.user, action: "end_session", entityType: "session", entityId: id, newValue: { totalMinutes: Math.round(totalMinutes * 100) / 100, totalCost: roundedCost } });
+    await writeSessionLog({ tenantId: req.user!.tenantId!, sessionId: id, action: "ended", previousStatus: s.status, newStatus: "ended", performedByUserId: req.user!.id });
     res.json(await formatSession(updated));
   } catch {
     res.status(500).json({ error: "Failed to end session" });
@@ -259,6 +283,7 @@ router.post("/sessions/:sessionId/cancel", requireAuth, requireTenant, MGMT, asy
       .where(eq(sessionsTable.id, id)).returning();
     await db.update(assetsTable).set({ status: "available" }).where(eq(assetsTable.id, s.assetId));
     await writeAuditLog({ user: req.user, action: "cancel_session", entityType: "session", entityId: id, newValue: { reason } });
+    await writeSessionLog({ tenantId: req.user!.tenantId!, sessionId: id, action: "cancelled", previousStatus: s.status, newStatus: "cancelled", performedByUserId: req.user!.id, note: reason });
     res.json(await formatSession(updated));
   } catch {
     res.status(500).json({ error: "Failed to cancel session" });
