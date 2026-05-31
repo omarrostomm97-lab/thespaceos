@@ -36,6 +36,8 @@ tags:
     description: Audit logs
   - name: qr
     description: QR ordering
+  - name: recipes
+    description: Recipe management
 
 paths:
   /healthz:
@@ -1229,6 +1231,86 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuditLogList"
 
+  # ── RECIPES ──────────────────────────────────────────────
+  /recipes:
+    get:
+      operationId: listProductsWithRecipes
+      tags: [recipes]
+      summary: List products with recipe status
+      responses:
+        "200":
+          description: Products with recipe info
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductWithRecipe"
+
+  /recipes/{productId}:
+    get:
+      operationId: getProductRecipe
+      tags: [recipes]
+      summary: Get recipe items for a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Recipe items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecipeItem"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateProductRecipe
+      tags: [recipes]
+      summary: Replace all recipe items for a product (MGMT only)
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RecipeInput"
+      responses:
+        "200":
+          description: Updated recipe items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecipeItem"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -2059,6 +2141,63 @@ components:
           type: integer
         revenue:
           type: number
+
+    # ── RECIPE SCHEMAS ──
+    ProductWithRecipe:
+      type: object
+      required: [id, name, price, hasRecipe, recipeItemCount]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        categoryId:
+          type: ["integer", "null"]
+        price:
+          type: number
+        isAvailable:
+          type: boolean
+        hasRecipe:
+          type: boolean
+        recipeItemCount:
+          type: integer
+
+    RecipeItem:
+      type: object
+      required: [id, productId, inventoryItemId, quantityUsed]
+      properties:
+        id:
+          type: integer
+        productId:
+          type: integer
+        inventoryItemId:
+          type: integer
+        inventoryItemName:
+          type: ["string", "null"]
+        inventoryItemUnit:
+          type: ["string", "null"]
+        quantityUsed:
+          type: number
+
+    RecipeItemInput:
+      type: object
+      required: [inventoryItemId, quantityUsed]
+      properties:
+        inventoryItemId:
+          type: integer
+        quantityUsed:
+          type: number
+
+    RecipeInput:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecipeItemInput"
 
     # ── AUDIT SCHEMAS ──
     AuditLog:

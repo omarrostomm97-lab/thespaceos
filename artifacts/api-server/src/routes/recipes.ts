@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { productsTable, recipeItemsTable, inventoryItemsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -47,7 +47,13 @@ router.get("/recipes/:productId", requireAuth, requireTenant, async (req, res) =
       inventoryItemUnit: inventoryItemsTable.unit,
       quantityUsed: recipeItemsTable.quantityUsed,
     }).from(recipeItemsTable)
-      .leftJoin(inventoryItemsTable, eq(recipeItemsTable.inventoryItemId, inventoryItemsTable.id))
+      .leftJoin(
+        inventoryItemsTable,
+        and(
+          eq(recipeItemsTable.inventoryItemId, inventoryItemsTable.id),
+          eq(inventoryItemsTable.tenantId, tenantId)
+        )
+      )
       .where(and(eq(recipeItemsTable.productId, productId), eq(recipeItemsTable.tenantId, tenantId)));
     res.json(items.map(i => ({
       ...i,
@@ -71,6 +77,20 @@ router.put("/recipes/:productId", requireAuth, requireTenant, MGMT, async (req, 
       .where(and(eq(productsTable.id, productId), eq(productsTable.tenantId, tenantId))).limit(1);
     if (!product) { res.status(404).json({ error: "Product not found" }); return; }
 
+    // Validate all inventoryItemIds belong to this tenant (tenant isolation)
+    if (items.length > 0) {
+      const requestedIds = items.map(i => i.inventoryItemId);
+      const validItems = await db.select({ id: inventoryItemsTable.id })
+        .from(inventoryItemsTable)
+        .where(and(inArray(inventoryItemsTable.id, requestedIds), eq(inventoryItemsTable.tenantId, tenantId)));
+      const validIds = new Set(validItems.map(v => v.id));
+      const invalidId = requestedIds.find(id => !validIds.has(id));
+      if (invalidId !== undefined) {
+        res.status(400).json({ error: `Inventory item ${invalidId} not found in this tenant` });
+        return;
+      }
+    }
+
     // Delete existing recipe items
     await db.delete(recipeItemsTable)
       .where(and(eq(recipeItemsTable.productId, productId), eq(recipeItemsTable.tenantId, tenantId)));
@@ -89,7 +109,7 @@ router.put("/recipes/:productId", requireAuth, requireTenant, MGMT, async (req, 
 
     await writeAuditLog({ user: req.user, action: "update_recipe", entityType: "product", entityId: productId, newValue: { itemCount: items.length } });
 
-    // Return updated recipe
+    // Return updated recipe with tenant-scoped join
     const updated = await db.select({
       id: recipeItemsTable.id,
       productId: recipeItemsTable.productId,
@@ -98,7 +118,13 @@ router.put("/recipes/:productId", requireAuth, requireTenant, MGMT, async (req, 
       inventoryItemUnit: inventoryItemsTable.unit,
       quantityUsed: recipeItemsTable.quantityUsed,
     }).from(recipeItemsTable)
-      .leftJoin(inventoryItemsTable, eq(recipeItemsTable.inventoryItemId, inventoryItemsTable.id))
+      .leftJoin(
+        inventoryItemsTable,
+        and(
+          eq(recipeItemsTable.inventoryItemId, inventoryItemsTable.id),
+          eq(inventoryItemsTable.tenantId, tenantId)
+        )
+      )
       .where(and(eq(recipeItemsTable.productId, productId), eq(recipeItemsTable.tenantId, tenantId)));
     res.json(updated.map(i => ({ ...i, quantityUsed: parseFloat(i.quantityUsed as string) })));
   } catch {
