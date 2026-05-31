@@ -1,0 +1,1 @@
+- [HeroUI v3 Migration](heroui-v3-migration.md) — no HeroUIProvider, CSS-class dark mode, compound components, keep Radix UI for Dialog/Select/AlertDialog

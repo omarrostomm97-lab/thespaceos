@@ -1,44 +1,48 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useLogin } from "@workspace/api-client-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Gamepad2 } from "lucide-react";
 import { defaultRedirect, UserRole } from "@/lib/permissions";
-
-const loginSchema = z.object({
-  email: z.string().email("البريد الإلكتروني غير صالح"),
-  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
-});
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { login: setAuth } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [error, setError] = useState<string | null>(null);
-
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
 
   const loginMutation = useLogin();
 
-  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+  const validate = (): { email?: string; password?: string } => {
+    const errs: { email?: string; password?: string } = {};
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errs.email = "البريد الإلكتروني غير صالح";
+    }
+    if (!password || password.length < 6) {
+      errs.password = "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+    }
+    return errs;
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+    setErrors({});
     setError(null);
     try {
-      const response = await loginMutation.mutateAsync({ data: values });
+      const response = await loginMutation.mutateAsync({ data: { email, password } });
       setAuth(response.token, response.user, response.refreshToken ?? undefined);
       setLocation(defaultRedirect(response.user.role as UserRole));
     } catch (err: any) {
-      setError(err?.data?.error || "حدث خطأ أثناء تسجيل الدخول");
+      setError(err?.data?.error || err?.response?.data?.error || "حدث خطأ أثناء تسجيل الدخول");
     }
   };
 
@@ -53,64 +57,49 @@ export default function Login() {
           <p className="text-muted-foreground">تسجيل الدخول للوحة التحكم</p>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {error && (
-              <div className="p-3 text-sm text-destructive-foreground bg-destructive/90 rounded-md text-center font-medium">
-                {error}
-              </div>
-            )}
-            
-            <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>البريد الإلكتروني</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="admin@gaminglounge.com" 
-                        {...field} 
-                        className="h-12 text-lg text-left" 
-                        dir="ltr"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        <form onSubmit={onSubmit} className="space-y-6">
+          {error && (
+            <div className="p-3 text-sm text-destructive-foreground bg-destructive/90 rounded-md text-center font-medium">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">البريد الإلكتروني</label>
+              <Input
+                type="email"
+                placeholder="admin@gaminglounge.com"
+                value={email}
+                onChange={(e) => setEmail((e.target as HTMLInputElement).value)}
+                className="h-12 text-lg text-left"
+                dir="ltr"
               />
-              
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>كلمة المرور</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="••••••••" 
-                        {...field} 
-                        className="h-12 text-lg text-left"
-                        dir="ltr"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 
-            <Button 
-              type="submit" 
-              className="w-full h-14 text-xl font-bold shadow-lg shadow-primary/20" 
-              disabled={loginMutation.isPending}
-            >
-              {loginMutation.isPending ? "جاري الدخول..." : "دخول"}
-            </Button>
-          </form>
-        </Form>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-foreground">كلمة المرور</label>
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword((e.target as HTMLInputElement).value)}
+                className="h-12 text-lg text-left"
+                dir="ltr"
+              />
+              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full h-14 text-xl font-bold shadow-lg shadow-primary/20"
+            disabled={loginMutation.isPending}
+          >
+            {loginMutation.isPending ? "جاري الدخول..." : "دخول"}
+          </Button>
+        </form>
       </div>
     </div>
   );
