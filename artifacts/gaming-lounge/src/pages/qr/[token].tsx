@@ -1,4 +1,5 @@
 import { useGetQrMenu, usePlaceQrOrder } from "@workspace/api-client-react";
+import { getProductEmoji } from "@/lib/product-emoji";
 import { useParams } from "wouter";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -165,9 +166,19 @@ export default function QrMenu() {
               return (
                 <Card key={product.id} className="overflow-hidden">
                   <CardContent className="p-4 flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-lg leading-tight mb-1">{product.nameAr || product.name}</h3>
-                      <p className="text-primary font-bold">{product.price} ج.م</p>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-3xl leading-none select-none shrink-0">
+                        {getProductEmoji(
+                          product.nameAr ?? "",
+                          product.name ?? "",
+                          (product as any).categoryNameAr ?? "",
+                          (product as any).categoryName ?? ""
+                        )}
+                      </span>
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-lg leading-tight mb-1">{product.nameAr || product.name}</h3>
+                        <p className="text-primary font-bold">{product.price} ج.م</p>
+                      </div>
                     </div>
                     
                     {qty > 0 ? (

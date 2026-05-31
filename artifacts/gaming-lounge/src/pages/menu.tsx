@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Settings, UtensilsCrossed } from "lucide-react";
+import { getProductEmoji } from "@/lib/product-emoji";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang } from "@/hooks/use-language";
 
@@ -226,10 +227,20 @@ export default function Menu() {
                 >
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base leading-tight truncate">{product.nameAr || product.name}</h3>
-                        {product.nameAr && <p className="text-xs text-muted-foreground truncate">{product.name}</p>}
-                        <p className="text-xs text-muted-foreground mt-0.5">{product.categoryNameAr || product.categoryName || "—"}</p>
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <span className="text-3xl leading-none select-none shrink-0 mt-0.5">
+                          {getProductEmoji(
+                            product.nameAr ?? "",
+                            product.name ?? "",
+                            product.categoryNameAr ?? "",
+                            product.categoryName ?? ""
+                          )}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-base leading-tight truncate">{product.nameAr || product.name}</h3>
+                          {product.nameAr && <p className="text-xs text-muted-foreground truncate">{product.name}</p>}
+                          <p className="text-xs text-muted-foreground mt-0.5">{product.categoryNameAr || product.categoryName || "—"}</p>
+                        </div>
                       </div>
                       <Badge variant="outline" className="font-bold text-sm bg-secondary shrink-0 ms-2">{product.price} ج.م</Badge>
                     </div>

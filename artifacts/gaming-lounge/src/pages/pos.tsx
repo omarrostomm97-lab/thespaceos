@@ -6,6 +6,7 @@ import {
   getListOrdersQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
+import { getProductEmoji } from "@/lib/product-emoji";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, X, Banknote, CreditCard, Smartphone, Gamepad2, Check, Receipt } from "lucide-react";
@@ -168,13 +169,21 @@ export default function Pos() {
               <Button
                 key={product.id}
                 variant="outline"
-                className="h-24 md:h-32 flex flex-col items-center justify-center gap-1.5 p-2 whitespace-normal bg-card hover:bg-secondary border-2 border-transparent hover:border-primary transition-all"
+                className="h-28 md:h-36 flex flex-col items-center justify-center gap-1 p-2 whitespace-normal bg-card hover:bg-secondary border-2 border-transparent hover:border-primary transition-all"
                 onClick={() => addToCart(product)}
               >
-                <span className="font-bold text-sm md:text-lg text-center leading-tight line-clamp-2">
+                <span className="text-3xl md:text-4xl leading-none select-none">
+                  {getProductEmoji(
+                    product.nameAr ?? "",
+                    product.name ?? "",
+                    (product as any).categoryNameAr ?? "",
+                    (product as any).categoryName ?? ""
+                  )}
+                </span>
+                <span className="font-bold text-xs md:text-sm text-center leading-tight line-clamp-2 px-1">
                   {product.nameAr || product.name}
                 </span>
-                <span className="text-primary font-bold text-base md:text-xl">
+                <span className="text-primary font-bold text-sm md:text-base">
                   {product.price} ج.م
                 </span>
               </Button>
