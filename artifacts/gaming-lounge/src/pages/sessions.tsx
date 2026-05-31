@@ -277,9 +277,16 @@ export default function Sessions() {
                   </div>
                   <ul className="space-y-1">
                     {checkout.undeliveredOrders.map((o, i) => (
-                      <li key={i} className="flex justify-between text-muted-foreground">
-                        <span>{UNDELIVERED_STATUS_LABELS[o.status] ?? o.status}</span>
-                        <span className="font-semibold text-foreground">{o.totalAmount.toFixed(2)} ج.م</span>
+                      <li key={(o as any).id ?? i} className="flex justify-between items-start gap-2 text-muted-foreground">
+                        <span>
+                          <span className="font-medium">{UNDELIVERED_STATUS_LABELS[o.status] ?? o.status}</span>
+                          {(o as any).items?.length > 0 && (
+                            <span className="block text-xs">
+                              {(o as any).items.map((item: any) => `${item.quantity}× ${item.productNameAr || item.productName}`).join("، ")}
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-semibold text-foreground shrink-0">{o.totalAmount.toFixed(2)} ج.م</span>
                       </li>
                     ))}
                   </ul>

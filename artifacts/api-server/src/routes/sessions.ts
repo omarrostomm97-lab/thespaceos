@@ -103,9 +103,17 @@ router.get("/sessions/active", requireAuth, requireTenant, async (req, res) => {
         .filter(o => o.status === "delivered")
         .reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
       const ordersCost = Math.round(deliveredCost * 100) / 100;
-      const undeliveredOrders = allOrders
-        .filter(o => ["pending", "preparing", "ready"].includes(o.status as string))
-        .map(o => ({ id: o.id, status: o.status, totalAmount: parseFloat(o.totalAmount as string) }));
+      const undeliveredRaw = allOrders.filter(o => ["pending", "preparing", "ready"].includes(o.status as string));
+      const undeliveredOrders = await Promise.all(undeliveredRaw.map(async o => {
+        const items = await db.select({
+          productName: productsTable.name,
+          productNameAr: productsTable.nameAr,
+          quantity: orderItemsTable.quantity,
+        }).from(orderItemsTable)
+          .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
+          .where(eq(orderItemsTable.orderId, o.id));
+        return { id: o.id, status: o.status, totalAmount: parseFloat(o.totalAmount as string), items };
+      }));
       const totalCost = Math.round((currentCost + ordersCost) * 100) / 100;
       return { ...base, currentMinutes: Math.round(currentMinutes), currentCost, ordersCost, totalCost, undeliveredOrders };
     }));

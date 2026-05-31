@@ -84,7 +84,23 @@ export default function SessionDetail() {
     );
   }, [session?.orders]);
 
-  const totalCost = gamingCost + ordersCost;
+  /* ── Grand total: frozen persisted value for ended sessions to prevent drift ── */
+  const totalCost = useMemo(() => {
+    if (!session) return 0;
+    if (session.status === "ended" || session.status === "cancelled") {
+      return session.totalCost ?? 0;
+    }
+    return gamingCost + ordersCost;
+  }, [session, gamingCost, ordersCost]);
+
+  /* ── Gaming display cost: derived from frozen total for ended; live otherwise ── */
+  const displayGamingCost = useMemo(() => {
+    if (!session) return 0;
+    if (session.status === "ended" || session.status === "cancelled") {
+      return Math.max(0, totalCost - ordersCost);
+    }
+    return gamingCost;
+  }, [session, totalCost, gamingCost, ordersCost]);
 
   const handleCancel = async () => {
     try {
@@ -188,7 +204,7 @@ export default function SessionDetail() {
               {/* Breakdown */}
               {(ordersCost > 0 || isActive) && (
                 <div className="flex justify-center gap-6 mt-3 text-xs text-muted-foreground">
-                  <span>{t("gaming_cost")}: <span className="font-semibold text-foreground">{gamingCost.toFixed(2)}</span></span>
+                  <span>{t("gaming_cost")}: <span className="font-semibold text-foreground">{displayGamingCost.toFixed(2)}</span></span>
                   <span>{t("orders_cost")}: <span className="font-semibold text-foreground">{ordersCost.toFixed(2)}</span></span>
                 </div>
               )}
