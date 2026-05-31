@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "OjA38A4f__We1hH6nPuqb"
+uri = "file://GAMING_LOUNGE_OS_PLAN.md"
+type = "text"
+title = "Gaming Lounge OS — Full System Reference"
