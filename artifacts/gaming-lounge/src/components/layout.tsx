@@ -6,11 +6,12 @@ import { useTheme } from "@/hooks/use-theme";
 import {
   LayoutDashboard, Monitor, Gamepad2, ShoppingCart, UtensilsCrossed,
   Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut,
-  TrendingUp, BookOpen, ChefHat, HelpCircle, Sun, Moon, Languages,
+  TrendingUp, BookOpen, ChefHat, HelpCircle, Sun, Moon, Languages, Menu, X,
 } from "lucide-react";
 import { ROUTE_ALLOWED_ROLES, UserRole } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
+import { useState, useEffect } from "react";
 
 interface NavItem {
   nameKey: TranslationKey;
@@ -52,6 +53,9 @@ export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const { t, lang, toggleLang, dir } = useLang();
   const { theme, toggleTheme } = useTheme();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => { setSidebarOpen(false); }, [location]);
 
   const role = user?.role as UserRole | undefined;
   const visibleNav = navigation.filter(item => {
@@ -67,17 +71,41 @@ export function Layout({ children }: LayoutProps) {
 
   const roleKey = ROLE_KEY_MAP[user?.role ?? ""] as TranslationKey | undefined;
 
+  const hiddenTranslate = dir === "rtl" ? "max-md:translate-x-full" : "max-md:-translate-x-full";
+
   return (
     <div className="flex h-screen bg-background" dir={dir}>
 
+      {/* ─── Mobile backdrop ─────────────────────────────── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* ─── Sidebar ─────────────────────────────────────── */}
       <aside
-        className="w-64 flex flex-col shrink-0 relative overflow-hidden"
+        className={cn(
+          "fixed md:relative inset-y-0 z-50 w-64 flex flex-col shrink-0 overflow-hidden",
+          "transition-transform duration-300 ease-in-out",
+          dir === "rtl" ? "right-0" : "left-0",
+          !sidebarOpen && hiddenTranslate,
+        )}
         style={{
           background: "hsl(var(--sidebar))",
           borderInlineStart: "1px solid hsl(var(--sidebar-border))",
         }}
       >
+        {/* Mobile close button */}
+        <button
+          className="absolute top-4 end-4 p-1.5 rounded-lg md:hidden z-10 opacity-70 hover:opacity-100"
+          style={{ color: "var(--sb-text-active)" }}
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Close menu"
+        >
+          <X className="h-4 w-4" />
+        </button>
         {/* Top ambient glow */}
         <div
           className="absolute top-0 inset-x-0 h-48 pointer-events-none"
@@ -331,6 +359,35 @@ export function Layout({ children }: LayoutProps) {
 
       {/* ─── Main Content ─────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* Mobile top bar */}
+        <div
+          className="md:hidden flex items-center h-14 px-4 shrink-0 border-b"
+          style={{ background: "hsl(var(--sidebar))", borderColor: "hsl(var(--sidebar-border))" }}
+        >
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-2 rounded-lg opacity-80 hover:opacity-100 transition-opacity"
+            style={{ color: "var(--sb-text-active)" }}
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 mx-auto">
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)", boxShadow: "0 0 10px rgba(0,111,238,0.35)" }}
+            >
+              <Gamepad2 className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-sm font-bold" style={{ color: "var(--sb-text-active)" }}>
+              {t("brand_name")}
+            </span>
+          </div>
+          {/* spacer matching hamburger width */}
+          <div className="w-9" />
+        </div>
+
         <div className="flex-1 overflow-y-auto">{children}</div>
       </main>
     </div>

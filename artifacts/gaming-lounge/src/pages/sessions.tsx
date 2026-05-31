@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Gamepad2, Clock, Pause, Play, SquareSquare, Receipt, Banknote, CreditCard, Smartphone, AlertTriangle } from "lucide-react";
+import { Gamepad2, Clock, Pause, Play, SquareSquare, Receipt, Banknote, CreditCard, Smartphone, AlertTriangle, ShoppingBag } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -141,15 +141,15 @@ export default function Sessions() {
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-5 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">{t("sessions_title")}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">{t("sessions_title")}</h2>
           <p className="text-muted-foreground mt-1">{t("sessions_subtitle")}</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {sessions?.length === 0 ? (
           <div className="col-span-full py-12 text-center text-muted-foreground rounded-xl card-base">
             <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -182,6 +182,20 @@ export default function Sessions() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Pending kitchen orders badge */}
+                    {((session as any).undeliveredOrders?.length ?? 0) > 0 && (
+                      <div className="flex items-center gap-1.5 bg-destructive/10 border border-destructive/20 rounded-full px-2.5 py-1 shrink-0">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-destructive" />
+                        </span>
+                        <ShoppingBag className="h-3 w-3 text-destructive" />
+                        <span className="text-xs font-bold text-destructive">
+                          {(session as any).undeliveredOrders.length}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </CardHeader>
 
