@@ -153,7 +153,7 @@
   --destructive-border:     hsl(var(--destructive));
 }
 
-/* Dark class mirrors :root since we're always dark */
+/* ─── DARK theme (explicit class) ────────────────────── */
 .dark {
   --button-outline: rgba(255,255,255, .08);
   --badge-outline:  rgba(255,255,255, .06);
@@ -204,6 +204,107 @@
   --chart-3:            38 92% 50%;
   --chart-4:            0 84% 60%;
   --chart-5:            270 70% 60%;
+
+  /* ── Dark sidebar effect tokens ── */
+  --sb-top-glow:       radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,111,238,0.12) 0%, transparent 70%);
+  --sb-glass-bg:       rgba(255,255,255,0.05);
+  --sb-glass-border:   rgba(255,255,255,0.08);
+  --sb-glass-shine:    rgba(255,255,255,0.12);
+  --sb-avatar-bg:      hsl(0 0% 8%);
+  --sb-avatar-ring-border: hsl(0 0% 3%);
+  --sb-nav-hover:      rgba(255,255,255,0.04);
+  --sb-bottom-divider: rgba(255,255,255,0.06);
+  --sb-text-inactive:  rgba(255,255,255,0.35);
+  --sb-text-hover:     rgba(255,255,255,0.65);
+  --sb-text-active:    #ffffff;
+  --sb-icon-inactive:  rgba(255,255,255,0.30);
+
+  /* ── Dark card tokens ── */
+  --asset-card-from:   hsl(0 0% 11%);
+  --asset-card-to:     hsl(0 0% 8%);
+  --asset-card-border: hsl(0 0% 15%);
+  --asset-card-shine:  rgba(255,255,255,0.05);
+  --asset-card-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 1px 0 rgba(255,255,255,0.05) inset;
+  --asset-card-hover-shadow-base: 0 16px 48px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.06) inset;
+}
+
+/* ─── LIGHT theme ─────────────────────────────────────── */
+.light {
+  --button-outline: rgba(0,0,0, .07);
+  --badge-outline:  rgba(0,0,0, .05);
+  --opaque-button-border-intensity: 12;
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .06);
+
+  --background:         0 0% 97%;
+  --foreground:         0 0% 9%;
+  --border:             0 0% 87%;
+  --input:              0 0% 89%;
+  --ring:               211 100% 47%;
+
+  --card:               0 0% 100%;
+  --card-foreground:    0 0% 9%;
+  --card-border:        0 0% 89%;
+
+  --popover:            0 0% 100%;
+  --popover-foreground: 0 0% 9%;
+  --popover-border:     0 0% 87%;
+
+  --sidebar:            0 0% 98%;
+  --sidebar-foreground: 0 0% 12%;
+  --sidebar-border:     0 0% 88%;
+  --sidebar-primary:    211 100% 47%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent:     0 0% 93%;
+  --sidebar-accent-foreground: 0 0% 12%;
+  --sidebar-ring:       211 100% 47%;
+
+  --primary:            211 100% 47%;
+  --primary-foreground: 0 0% 100%;
+  --secondary:          0 0% 93%;
+  --secondary-foreground: 0 0% 12%;
+  --muted:              0 0% 93%;
+  --muted-foreground:   0 0% 46%;
+  --accent:             211 100% 47%;
+  --accent-foreground:  0 0% 100%;
+  --destructive:        0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --success:            142 64% 38%;
+  --success-foreground: 0 0% 100%;
+  --warning:            38 85% 44%;
+  --warning-foreground: 0 0% 100%;
+
+  --chart-1:            211 100% 47%;
+  --chart-2:            142 64% 38%;
+  --chart-3:            38 85% 44%;
+  --chart-4:            0 72% 51%;
+  --chart-5:            270 60% 55%;
+
+  --shadow-card:       0 1px 4px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-glow:       0 0 20px rgba(0, 111, 238, 0.1);
+
+  /* ── Light sidebar effect tokens ── */
+  --sb-top-glow:       radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,111,238,0.06) 0%, transparent 70%);
+  --sb-glass-bg:       rgba(0,0,0,0.03);
+  --sb-glass-border:   rgba(0,0,0,0.07);
+  --sb-glass-shine:    rgba(255,255,255,0.7);
+  --sb-avatar-bg:      hsl(0 0% 93%);
+  --sb-avatar-ring-border: hsl(0 0% 98%);
+  --sb-nav-hover:      rgba(0,0,0,0.04);
+  --sb-bottom-divider: rgba(0,0,0,0.07);
+  --sb-text-inactive:  rgba(0,0,0,0.40);
+  --sb-text-hover:     rgba(0,0,0,0.75);
+  --sb-text-active:    hsl(0 0% 9%);
+  --sb-icon-inactive:  rgba(0,0,0,0.30);
+
+  /* ── Light card tokens ── */
+  --asset-card-from:   hsl(0 0% 100%);
+  --asset-card-to:     hsl(0 0% 98%);
+  --asset-card-border: hsl(0 0% 88%);
+  --asset-card-shine:  rgba(0,0,0,0.02);
+  --asset-card-shadow: 0 2px 12px rgba(0,0,0,0.07), 0 1px 0 rgba(255,255,255,0.9) inset;
+  --asset-card-hover-shadow-base: 0 8px 28px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,1) inset;
 }
 
 @layer base {

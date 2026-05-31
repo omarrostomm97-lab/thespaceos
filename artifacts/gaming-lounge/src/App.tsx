@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider } from "@heroui/react";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { ThemeProvider } from "@/hooks/use-theme";
+import { LanguageProvider, useLang } from "@/hooks/use-language";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Layout } from "@/components/layout";
 import NotFound from "@/pages/not-found";
@@ -72,7 +74,6 @@ function Router() {
       <Route path="/admin/users">
         <ProtectedPage path="/admin/users"><AdminUsers /></ProtectedPage>
       </Route>
-
       <Route path="/dashboard">
         <ProtectedPage path="/dashboard"><Dashboard /></ProtectedPage>
       </Route>
@@ -127,17 +128,29 @@ function Router() {
   );
 }
 
+function AppWithI18n() {
+  const { lang } = useLang();
+  const heroUILocale = lang === "ar" ? "ar-AE" : "en-US";
+  return (
+    <I18nProvider locale={heroUILocale}>
+      <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
+      </WouterRouter>
+    </I18nProvider>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <I18nProvider locale="ar-AE">
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <AuthProvider>
-            <Router />
-            <Toaster />
-          </AuthProvider>
-        </WouterRouter>
-      </I18nProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AppWithI18n />
+        </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
