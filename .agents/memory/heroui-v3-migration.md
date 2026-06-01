@@ -25,6 +25,15 @@ types don't declare that property. Instead, wrap: `const Foo = ({ children, ...p
 AlertDialog: `isDismissable={false}` on `ModalBackdrop`.
 Structure: `ModalRoot > ModalBackdrop > ModalContainer > ModalDialog > content + ModalCloseTrigger`
 
+### ModalBackdrop is transparent by default — ALWAYS keep the CSS fix
+`.modal__backdrop` has `fixed inset-0 z-50` but zero background. Only the `--opaque`/`--blur`
+modifier classes apply `bg-backdrop` → `var(--color-backdrop)`, which requires HeroUIProvider.
+**Fix already in `index.css`:**
+```css
+.modal__backdrop, .alert-dialog__backdrop { background-color: rgba(0,0,0,0.65); }
+```
+Do NOT remove this — every dialog/modal will show a fully transparent backdrop without it.
+
 ## Select Pattern
 `SelectRoot` uses `selectedKey`/`onSelectionChange`. Map from shadcn: `value → selectedKey`,
 `onValueChange → v => String(v)`. Items: `SelectPopover > ListBox > ListBoxItem id={value}`.

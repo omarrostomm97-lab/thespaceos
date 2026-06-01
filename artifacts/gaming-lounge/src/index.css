@@ -446,4 +446,14 @@
   .border.active-elevate-2:not(.no-active-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* ── HeroUI modal backdrop fix ─────────────────────────
+     ModalBackdrop renders .modal__backdrop with no background
+     by default (the --opaque / --blur modifier classes need
+     --color-backdrop set by HeroUIProvider, which we don't use).
+     This ensures every dialog/modal has a proper dim overlay. */
+  .modal__backdrop,
+  .alert-dialog__backdrop {
+    background-color: rgba(0, 0, 0, 0.65);
+  }
 }
