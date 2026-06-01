@@ -1,11 +1,15 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { sessionsTable, ordersTable, orderItemsTable, paymentsTable, assetsTable, shiftsTable, inventoryItemsTable, usersTable, productsTable, productCategoriesTable } from "@workspace/db";
-import { eq, and, inArray, gte, ne, sql } from "drizzle-orm";
+import {
+  sessionsTable, ordersTable, orderItemsTable, paymentsTable, assetsTable,
+  shiftsTable, inventoryItemsTable, usersTable, productsTable, productCategoriesTable,
+} from "@workspace/db";
+import { eq, and, inArray, gte, ne, sql, isNull, isNotNull } from "drizzle-orm";
 import { requireAuth, requireTenant } from "../lib/auth";
 
 const router = Router();
 
+/* ─── Summary ───────────────────────────────────────────────── */
 router.get("/dashboard/summary", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
@@ -22,10 +26,20 @@ router.get("/dashboard/summary", requireAuth, requireTenant, async (req, res) =>
       db.select().from(shiftsTable).where(and(eq(shiftsTable.tenantId, tenantId), eq(shiftsTable.status, "closed"), gte(shiftsTable.closedAt, today))),
     ]);
 
-    // Revenue today from verified payments
+    // Today's verified payments
     const todayPayments = await db.select().from(paymentsTable)
       .where(and(eq(paymentsTable.tenantId, tenantId), eq(paymentsTable.status, "verified"), gte(paymentsTable.createdAt, today)));
     const revenueToday = todayPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
+
+    // Gaming revenue today (session checkouts)
+    const gamingToday = todayPayments
+      .filter(p => p.sessionId !== null)
+      .reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
+
+    // Buffet revenue today (standalone orders)
+    const buffetToday = todayPayments
+      .filter(p => p.sessionId === null)
+      .reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
 
     const lowStockAlerts = inventoryItems.filter(i => {
       const stock = parseFloat(i.currentStock as string);
@@ -43,6 +57,8 @@ router.get("/dashboard/summary", requireAuth, requireTenant, async (req, res) =>
       occupiedAssets: allAssets.filter(a => a.status === "busy").length,
       totalAssets: allAssets.length,
       revenueToday: Math.round(revenueToday * 100) / 100,
+      gamingRevenueToday: Math.round(gamingToday * 100) / 100,
+      buffetRevenueToday: Math.round(buffetToday * 100) / 100,
       pendingOrders: pendingOrders.length,
       preparingOrders: preparingOrders.length,
       lowStockAlerts,
@@ -55,29 +71,45 @@ router.get("/dashboard/summary", requireAuth, requireTenant, async (req, res) =>
   }
 });
 
+/* ─── Revenue ────────────────────────────────────────────────── */
 router.get("/dashboard/revenue", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const { period = "today" } = req.query;
+    const { period = "today", source = "all", method = "all" } = req.query as Record<string, string>;
+
     const now = new Date();
     let from: Date;
     let days = 1;
-    if (period === "today") { from = new Date(); from.setHours(0,0,0,0); days = 1; }
-    else if (period === "week") { from = new Date(now); from.setHours(0,0,0,0); from.setDate(from.getDate() - 6); days = 7; }
-    else { from = new Date(now); from.setHours(0,0,0,0); from.setDate(from.getDate() - 29); days = 30; }
+    if (period === "today") { from = new Date(); from.setHours(0, 0, 0, 0); days = 1; }
+    else if (period === "week") { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - 6); days = 7; }
+    else { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - 29); days = 30; }
 
-    const payments = await db.select().from(paymentsTable)
-      .where(and(eq(paymentsTable.tenantId, tenantId), eq(paymentsTable.status, "verified"), gte(paymentsTable.createdAt, from)));
+    // Build filter conditions
+    const conditions: any[] = [
+      eq(paymentsTable.tenantId, tenantId),
+      eq(paymentsTable.status, "verified"),
+      gte(paymentsTable.createdAt, from),
+    ];
+    if (source === "gaming") conditions.push(isNotNull(paymentsTable.sessionId));
+    else if (source === "buffet") conditions.push(isNull(paymentsTable.sessionId));
+    if (method !== "all") conditions.push(eq(paymentsTable.method, method));
+
+    const payments = await db.select().from(paymentsTable).where(and(...conditions));
 
     let cash = 0, instapay = 0, visa = 0;
+    let sessionRevenue = 0, orderRevenue = 0;
+
     payments.forEach(p => {
       const amt = parseFloat(p.amount as string);
       if (p.method === "cash") cash += amt;
       else if (p.method === "instapay") instapay += amt;
       else if (p.method === "visa") visa += amt;
+
+      if (p.sessionId !== null) sessionRevenue += amt;
+      else orderRevenue += amt;
     });
 
-    // Build daily breakdown map
+    // Build daily breakdown
     const dailyMap: Record<string, number> = {};
     for (let i = 0; i < days; i++) {
       const d = new Date(now);
@@ -94,12 +126,19 @@ router.get("/dashboard/revenue", requireAuth, requireTenant, async (req, res) =>
       total: Math.round(total * 100) / 100,
     }));
 
+    const total = cash + instapay + visa;
     res.json({
-      total: Math.round((cash + instapay + visa) * 100) / 100,
-      sessionRevenue: Math.round((cash + instapay + visa) * 100) / 100,
-      orderRevenue: 0,
-      period: period as string,
-      paymentMethodBreakdown: { cash: Math.round(cash*100)/100, instapay: Math.round(instapay*100)/100, visa: Math.round(visa*100)/100 },
+      total: Math.round(total * 100) / 100,
+      sessionRevenue: Math.round(sessionRevenue * 100) / 100,
+      orderRevenue: Math.round(orderRevenue * 100) / 100,
+      period,
+      source,
+      method,
+      paymentMethodBreakdown: {
+        cash: Math.round(cash * 100) / 100,
+        instapay: Math.round(instapay * 100) / 100,
+        visa: Math.round(visa * 100) / 100,
+      },
       dailyBreakdown,
     });
   } catch {
@@ -107,6 +146,7 @@ router.get("/dashboard/revenue", requireAuth, requireTenant, async (req, res) =>
   }
 });
 
+/* ─── Employee Performance ───────────────────────────────────── */
 router.get("/dashboard/employee-performance", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
@@ -130,6 +170,7 @@ router.get("/dashboard/employee-performance", requireAuth, requireTenant, async 
   }
 });
 
+/* ─── Breakdown ──────────────────────────────────────────────── */
 const ASSET_TYPE_AR: Record<string, string> = {
   ps: "بلايستيشن",
   billiard: "بلياردو",
@@ -141,110 +182,117 @@ const ASSET_TYPE_AR: Record<string, string> = {
 router.get("/dashboard/breakdown", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const { period = "today" } = req.query;
+    const { period = "today", source = "all" } = req.query as Record<string, string>;
+
     const now = new Date();
     let from: Date;
     if (period === "today") { from = new Date(); from.setHours(0, 0, 0, 0); }
     else if (period === "week") { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - 6); }
     else { from = new Date(now); from.setHours(0, 0, 0, 0); from.setDate(from.getDate() - 29); }
 
-    // Gaming: ended sessions in period, grouped by asset type
-    const gamingRows = await db
-      .select({
-        type: assetsTable.type,
-        total: sql<string>`coalesce(sum(${sessionsTable.totalCost}), 0)`,
-        sessions: sql<string>`count(${sessionsTable.id})`,
-      })
-      .from(sessionsTable)
-      .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
-      .where(and(
-        eq(sessionsTable.tenantId, tenantId),
-        eq(sessionsTable.status, "ended"),
-        gte(sessionsTable.endedAt, from),
-      ))
-      .groupBy(assetsTable.type);
+    let gamingByType: any[] = [];
+    let gamingTotal = 0;
 
-    const gamingByType = gamingRows
-      .map(r => ({
-        type: r.type,
-        typeAr: ASSET_TYPE_AR[r.type] ?? r.type,
-        total: Math.round(parseFloat(r.total) * 100) / 100,
-        sessions: parseInt(r.sessions, 10),
-      }))
-      .sort((a, b) => b.total - a.total);
+    if (source !== "buffet") {
+      const gamingRows = await db
+        .select({
+          type: assetsTable.type,
+          assetName: assetsTable.name,
+          assetNameAr: assetsTable.nameAr,
+          total: sql<string>`coalesce(sum(${sessionsTable.totalCost}), 0)`,
+          sessions: sql<string>`count(${sessionsTable.id})`,
+        })
+        .from(sessionsTable)
+        .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
+        .where(and(
+          eq(sessionsTable.tenantId, tenantId),
+          eq(sessionsTable.status, "ended"),
+          gte(sessionsTable.endedAt, from),
+        ))
+        .groupBy(assetsTable.type, assetsTable.name, assetsTable.nameAr);
 
-    const gamingTotal = gamingByType.reduce((s, r) => s + r.total, 0);
+      gamingByType = gamingRows
+        .map(r => ({
+          type: r.type,
+          typeAr: ASSET_TYPE_AR[r.type] ?? r.type,
+          total: Math.round(parseFloat(r.total) * 100) / 100,
+          sessions: parseInt(r.sessions, 10),
+        }))
+        .sort((a, b) => b.total - a.total);
 
-    // Buffet: order_items for non-cancelled orders in period, grouped by category + product
-    const buffetRows = await db
-      .select({
-        categoryId: productCategoriesTable.id,
-        categoryName: productCategoriesTable.name,
-        categoryNameAr: productCategoriesTable.nameAr,
-        productId: productsTable.id,
-        productName: productsTable.name,
-        productNameAr: productsTable.nameAr,
-        quantity: sql<string>`sum(${orderItemsTable.quantity})`,
-        total: sql<string>`coalesce(sum(${orderItemsTable.totalPrice}), 0)`,
-      })
-      .from(orderItemsTable)
-      .innerJoin(ordersTable, eq(orderItemsTable.orderId, ordersTable.id))
-      .innerJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
-      .leftJoin(productCategoriesTable, eq(productsTable.categoryId, productCategoriesTable.id))
-      .where(and(
-        eq(ordersTable.tenantId, tenantId),
-        ne(ordersTable.status, "cancelled"),
-        gte(ordersTable.createdAt, from),
-      ))
-      .groupBy(
-        productCategoriesTable.id,
-        productCategoriesTable.name,
-        productCategoriesTable.nameAr,
-        productsTable.id,
-        productsTable.name,
-        productsTable.nameAr,
-      );
-
-    // Aggregate buffet rows into categories
-    const categoryMap = new Map<string, {
-      categoryId: number | null;
-      categoryName: string;
-      categoryNameAr: string | null;
-      total: number;
-      products: { productId: number; name: string; nameAr: string | null; quantity: number; total: number }[];
-    }>();
-
-    for (const r of buffetRows) {
-      const key = r.categoryId !== null ? String(r.categoryId) : "__none__";
-      if (!categoryMap.has(key)) {
-        categoryMap.set(key, {
-          categoryId: r.categoryId ?? null,
-          categoryName: r.categoryName ?? "غير مصنف",
-          categoryNameAr: r.categoryNameAr ?? null,
-          total: 0,
-          products: [],
-        });
-      }
-      const cat = categoryMap.get(key)!;
-      const rowTotal = Math.round(parseFloat(r.total) * 100) / 100;
-      cat.total = Math.round((cat.total + rowTotal) * 100) / 100;
-      cat.products.push({
-        productId: r.productId,
-        name: r.productName,
-        nameAr: r.productNameAr ?? null,
-        quantity: parseInt(r.quantity, 10),
-        total: rowTotal,
-      });
+      gamingTotal = gamingByType.reduce((s, r) => s + r.total, 0);
     }
 
-    const byCategory = Array.from(categoryMap.values())
-      .map(c => ({ ...c, products: c.products.sort((a, b) => b.total - a.total) }))
-      .sort((a, b) => b.total - a.total);
+    let byCategory: any[] = [];
+    let buffetTotal = 0;
 
-    const buffetTotal = byCategory.reduce((s, c) => s + c.total, 0);
+    if (source !== "gaming") {
+      const buffetRows = await db
+        .select({
+          categoryId: productCategoriesTable.id,
+          categoryName: productCategoriesTable.name,
+          categoryNameAr: productCategoriesTable.nameAr,
+          productId: productsTable.id,
+          productName: productsTable.name,
+          productNameAr: productsTable.nameAr,
+          quantity: sql<string>`sum(${orderItemsTable.quantity})`,
+          total: sql<string>`coalesce(sum(${orderItemsTable.totalPrice}), 0)`,
+        })
+        .from(orderItemsTable)
+        .innerJoin(ordersTable, eq(orderItemsTable.orderId, ordersTable.id))
+        .innerJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
+        .leftJoin(productCategoriesTable, eq(productsTable.categoryId, productCategoriesTable.id))
+        .where(and(
+          eq(ordersTable.tenantId, tenantId),
+          ne(ordersTable.status, "cancelled"),
+          gte(ordersTable.createdAt, from),
+        ))
+        .groupBy(
+          productCategoriesTable.id, productCategoriesTable.name, productCategoriesTable.nameAr,
+          productsTable.id, productsTable.name, productsTable.nameAr,
+        );
+
+      const categoryMap = new Map<string, {
+        categoryId: number | null;
+        categoryName: string;
+        categoryNameAr: string | null;
+        total: number;
+        products: { productId: number; name: string; nameAr: string | null; quantity: number; total: number }[];
+      }>();
+
+      for (const r of buffetRows) {
+        const key = r.categoryId !== null ? String(r.categoryId) : "__none__";
+        if (!categoryMap.has(key)) {
+          categoryMap.set(key, {
+            categoryId: r.categoryId ?? null,
+            categoryName: r.categoryName ?? "غير مصنف",
+            categoryNameAr: r.categoryNameAr ?? null,
+            total: 0,
+            products: [],
+          });
+        }
+        const cat = categoryMap.get(key)!;
+        const rowTotal = Math.round(parseFloat(r.total) * 100) / 100;
+        cat.total = Math.round((cat.total + rowTotal) * 100) / 100;
+        cat.products.push({
+          productId: r.productId,
+          name: r.productName,
+          nameAr: r.productNameAr ?? null,
+          quantity: parseInt(r.quantity, 10),
+          total: rowTotal,
+        });
+      }
+
+      byCategory = Array.from(categoryMap.values())
+        .map(c => ({ ...c, products: c.products.sort((a, b) => b.total - a.total) }))
+        .sort((a, b) => b.total - a.total);
+
+      buffetTotal = byCategory.reduce((s, c) => s + c.total, 0);
+    }
 
     res.json({
-      period: period as string,
+      period,
+      source,
       gaming: { total: Math.round(gamingTotal * 100) / 100, byType: gamingByType },
       buffet: { total: Math.round(buffetTotal * 100) / 100, byCategory },
       grandTotal: Math.round((gamingTotal + buffetTotal) * 100) / 100,
