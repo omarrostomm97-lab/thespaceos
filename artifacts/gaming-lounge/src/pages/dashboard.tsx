@@ -289,7 +289,7 @@ function MobileBottomNav({ tab, setTab, lang, pendingOrders }: {
     { id: "details"  as Tab, labelAr: "التفصيل",   labelEn: "Details", Icon: List },
   ];
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-card/95 backdrop-blur-xl border-t border-border"
+    <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-card border-t border-border"
          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div className="flex items-center justify-around pt-1 pb-2">
         {tabs.map(({ id, labelAr, labelEn, Icon }) => {
@@ -484,7 +484,7 @@ export default function Dashboard() {
 
   /* ─── Mobile header ─────────────────────────────────── */
   const MobileTopBar = (
-    <div className="md:hidden sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-3">
+    <div className="md:hidden sticky top-0 z-20 bg-background border-b border-border px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Greeting */}
         <div className="flex items-center gap-2.5 min-w-0">
@@ -558,7 +558,7 @@ export default function Dashboard() {
 
   /* ─── Desktop header ─────────────────────────────────── */
   const DesktopHeader = (
-    <div className="hidden md:block sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border">
+    <div className="hidden md:block sticky top-0 z-20 bg-background border-b border-border">
       <div className="px-8 py-4">
         {/* Row 1 */}
         <div className="flex items-center justify-between mb-4">
@@ -748,7 +748,7 @@ export default function Dashboard() {
       <div className="grid gap-3 md:gap-4 md:grid-cols-3">
         {/* Revenue bar chart */}
         <HoverCard className="md:col-span-2">
-          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6">
+          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 overflow-hidden">
             <div className="flex items-start justify-between mb-3 md:mb-5">
               <div>
                 <h3 className="text-sm md:text-base font-semibold">{t("sales_performance")}</h3>
@@ -788,7 +788,7 @@ export default function Dashboard() {
 
         {/* Payment methods + session/order split */}
         <HoverCard>
-          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 flex flex-col gap-3">
+          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 flex flex-col gap-3 overflow-hidden">
             <div className="flex items-center gap-2">
               <Receipt className="h-4 w-4 text-primary" />
               <h3 className="text-sm md:text-base font-semibold">{t("payment_sources")}</h3>
@@ -844,7 +844,7 @@ export default function Dashboard() {
       <div className="grid gap-3 md:gap-4 md:grid-cols-7">
         {/* Sessions */}
         <HoverCard className="md:col-span-4">
-          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6">
+          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 overflow-hidden">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
                 <Activity className="h-4 w-4 text-primary" />
@@ -992,7 +992,7 @@ export default function Dashboard() {
 
       {/* Revenue chart */}
       <HoverCard>
-        <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6">
+        <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 overflow-hidden">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"توزيع الإيرادات اليومية":"Daily Revenue"}</h3>
@@ -1018,7 +1018,7 @@ export default function Dashboard() {
 
       {/* Payment breakdown */}
       <HoverCard>
-        <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6">
+        <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 overflow-hidden">
           <h3 className="text-sm md:text-base font-semibold mb-4">{lang==="ar"?"توزيع طرق الدفع":"Payment Methods"}</h3>
           {totalPayments === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">{t("no_data")}</p>
@@ -1184,7 +1184,7 @@ export default function Dashboard() {
 
   /* ─── Render ──────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background w-full max-w-full overflow-x-hidden">
       {MobileTopBar}
       {DesktopHeader}
 
