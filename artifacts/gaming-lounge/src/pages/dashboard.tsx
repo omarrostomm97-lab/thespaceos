@@ -558,25 +558,70 @@ export default function Dashboard() {
 
   /* ─── Desktop header ─────────────────────────────────── */
   const DesktopHeader = (
-    <div className="hidden md:block sticky top-0 z-20 bg-background border-b border-border">
-      <div className="px-8 py-4">
-        {/* Row 1 */}
+    <div className="hidden md:block sticky top-0 z-30"
+      style={{
+        background: "hsl(var(--background))",
+        borderBottom: "1px solid hsl(var(--border))",
+        boxShadow: "0 4px 32px rgba(0,0,0,0.22), 0 1px 0 hsl(var(--border))",
+      }}>
+      {/* Premium accent line at very top */}
+      <div className="absolute top-0 inset-x-0 h-[2px] pointer-events-none"
+        style={{ background: "linear-gradient(90deg, transparent 0%, #006FEE 40%, #338ef7 60%, transparent 100%)" }} />
+
+      <div className="px-8 pt-5 pb-0">
+        {/* Row 1: Greeting + live badges + actions */}
         <div className="flex items-center justify-between mb-4">
           <FadeIn>
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0">
+              <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
+                style={{
+                  background: "linear-gradient(135deg, rgba(0,111,238,0.2) 0%, rgba(51,142,247,0.12) 100%)",
+                  border: "1px solid rgba(0,111,238,0.25)",
+                  boxShadow: "0 0 20px rgba(0,111,238,0.2), inset 0 1px 0 rgba(255,255,255,0.08)",
+                }}>
                 <LayoutDashboard className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold leading-tight">
+                <h1 className="text-xl font-bold leading-tight">
                   {greeting}{userName ? `، ${userName}` : ""}
                 </h1>
-                <p className="text-sm text-muted-foreground">{t("dashboard_subtitle")}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-muted-foreground">{t("dashboard_subtitle")}</p>
+                  {summary?.openShift && (
+                    <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ background: "rgba(23,201,100,0.1)", color: "#17c964", border: "1px solid rgba(23,201,100,0.2)" }}>
+                      <span className="w-1 h-1 rounded-full bg-emerald-500 live-dot" />
+                      {summary.activeSessions ?? 0} {lang === "ar" ? "جلسة نشطة" : "active sessions"}
+                    </span>
+                  )}
+                  {(summary?.pendingOrders ?? 0) > 0 && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                      style={{ background: "rgba(245,165,36,0.1)", color: "#f5a524", border: "1px solid rgba(245,165,36,0.2)" }}>
+                      {summary!.pendingOrders} {lang === "ar" ? "طلب معلق" : "pending"}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           </FadeIn>
+
           <FadeIn delay={0.05}>
             <div className="flex items-center gap-2">
+              {/* Live revenue badge — only when shift open */}
+              {summary?.openShift && (
+                <div className="flex items-center gap-2.5 px-4 py-2 rounded-xl"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(0,111,238,0.08) 0%, rgba(0,111,238,0.04) 100%)",
+                    border: "1px solid rgba(0,111,238,0.18)",
+                  }}>
+                  <Receipt className="h-3.5 w-3.5 text-primary opacity-70" />
+                  <span className="text-sm font-bold text-primary tabular"
+                    style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                    {heroRevenue.toFixed(2)}
+                  </span>
+                  <span className="text-xs text-primary/50 font-medium">ج.م</span>
+                </div>
+              )}
               <button className="relative w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors" aria-label="notifications">
                 <Bell className="h-4 w-4" />
                 {(summary?.pendingOrders ?? 0) > 0 && <span className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full bg-primary" />}
@@ -587,12 +632,17 @@ export default function Dashboard() {
               {!summary?.openShift ? (
                 <Link href="/shifts">
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                    className="flex items-center gap-2 bg-primary text-white text-sm font-medium px-4 py-2 rounded-xl cursor-pointer">
+                    className="flex items-center gap-2 text-white text-sm font-semibold px-4 py-2 rounded-xl cursor-pointer"
+                    style={{
+                      background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
+                      boxShadow: "0 0 20px rgba(0,111,238,0.4), 0 2px 8px rgba(0,0,0,0.2)",
+                    }}>
                     <Plus className="h-4 w-4" />{t("open_shift")}
                   </motion.div>
                 </Link>
               ) : (
-                <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-sm font-medium px-4 py-2 rounded-xl">
+                <div className="flex items-center gap-2 text-emerald-500 text-sm font-medium px-4 py-2 rounded-xl"
+                  style={{ background: "rgba(23,201,100,0.08)", border: "1px solid rgba(23,201,100,0.2)" }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{t("shift_open")}
                 </div>
               )}
@@ -602,18 +652,19 @@ export default function Dashboard() {
 
         {/* Shift warning */}
         {!summary?.openShift && (
-          <div className="flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 px-4 py-2.5 rounded-xl mb-4 text-sm">
+          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl mb-4 text-sm"
+            style={{ background: "rgba(245,165,36,0.08)", border: "1px solid rgba(245,165,36,0.2)", color: "#f5a524" }}>
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <span className="font-medium">{t("no_shift_warning")}</span>
           </div>
         )}
 
         {/* Row 2: Tabs + Period */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-0.5">
             {(["overview","sales","details"] as Tab[]).map(id => (
               <button key={id} onClick={() => setTab(id)}
-                className={`relative px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   tab === id ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}>
                 {tab === id && (
@@ -626,7 +677,8 @@ export default function Dashboard() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-0.5 bg-muted/40 border border-border rounded-lg p-0.5">
+          <div className="flex items-center gap-0.5 rounded-lg p-0.5"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid hsl(var(--border))" }}>
             {(["today","week","month"] as Period[]).map(p => (
               <button key={p} onClick={() => setPeriod(p)}
                 className={`relative px-3 py-1 text-xs font-medium rounded-md transition-colors ${
@@ -643,7 +695,8 @@ export default function Dashboard() {
         </div>
 
         {/* Row 3: Filters */}
-        <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-4 py-3 mt-2 flex-wrap"
+          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
             <Filter className="h-3.5 w-3.5" />
             <span className="font-medium">{lang === "ar" ? "تصفية:" : "Filter:"}</span>
@@ -1184,7 +1237,7 @@ export default function Dashboard() {
 
   /* ─── Render ──────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-background w-full max-w-full" style={{ overflowX: "clip" }}>
+    <div className="min-h-screen bg-background w-full max-w-full">
       {MobileTopBar}
       {DesktopHeader}
 
