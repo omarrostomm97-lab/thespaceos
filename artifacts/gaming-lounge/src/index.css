@@ -447,13 +447,12 @@
     inset: -1px;
   }
 
-  /* ── HeroUI modal backdrop fix ─────────────────────────
-     ModalBackdrop renders .modal__backdrop with no background
-     by default (the --opaque / --blur modifier classes need
-     --color-backdrop set by HeroUIProvider, which we don't use).
-     This ensures every dialog/modal has a proper dim overlay. */
-  .modal__backdrop,
-  .alert-dialog__backdrop {
-    background-color: rgba(0, 0, 0, 0.65);
-  }
+}
+
+/* ── HeroUI modal backdrop fix (unlayered — wins over all @layer rules) ──
+   .modal__backdrop has fixed inset-0 but NO background by default.
+   Must be outside @layer so it beats any layered HeroUI/Tailwind CSS. */
+.modal__backdrop,
+.alert-dialog__backdrop {
+  background-color: rgba(0, 0, 0, 0.65) !important;
 }
