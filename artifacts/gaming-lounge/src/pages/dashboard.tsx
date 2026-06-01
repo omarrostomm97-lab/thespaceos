@@ -844,7 +844,7 @@ export default function Dashboard() {
       <div className="grid gap-3 md:gap-4 md:grid-cols-7">
         {/* Sessions */}
         <HoverCard className="md:col-span-4">
-          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 overflow-hidden">
+          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
                 <Activity className="h-4 w-4 text-primary" />
@@ -871,12 +871,12 @@ export default function Dashboard() {
             ) : (
               /* Mobile: horizontal scroll; Desktop: vertical list */
               <>
-                <div className="flex gap-2.5 overflow-x-auto pb-1 md:hidden scrollbar-hide snap-x snap-mandatory">
+                <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 md:hidden scrollbar-hide snap-x snap-mandatory">
                   {activeSessions?.map((session, i) => (
                     <motion.div key={session.id}
                       initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className="shrink-0 w-[155px] bg-secondary/60 rounded-2xl p-3.5 snap-start border border-border/60">
+                      className="shrink-0 w-[calc(50%-6px)] min-w-[148px] bg-secondary/60 rounded-2xl p-3.5 snap-start border border-border/60">
                       <div className="flex items-center justify-between mb-2">
                         <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
                           <Gamepad2 className="h-3.5 w-3.5 text-primary" />
