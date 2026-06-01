@@ -395,7 +395,7 @@ function MobileHeroCard({
 /* ─── Skeleton ───────────────────────────────────────── */
 function DashboardSkeleton() {
   return (
-    <div className="p-4 md:p-8 space-y-4 md:space-y-8 animate-pulse pb-28 md:pb-8">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8 animate-pulse" style={{ paddingBottom: "calc(7rem + env(safe-area-inset-bottom, 0px))" }}>
       <div className="space-y-2 hidden md:block">
         <div className="h-8 w-72 rounded-xl bg-muted" />
         <div className="h-4 w-48 rounded-lg bg-muted" />
@@ -1184,7 +1184,7 @@ export default function Dashboard() {
 
   /* ─── Render ──────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-background w-full max-w-full overflow-x-hidden">
+    <div className="min-h-screen bg-background w-full max-w-full" style={{ overflowX: "clip" }}>
       {MobileTopBar}
       {DesktopHeader}
 
@@ -1202,7 +1202,7 @@ export default function Dashboard() {
       <MobileBottomNav tab={tab} setTab={setTab} lang={lang} pendingOrders={summary?.pendingOrders ?? 0} />
 
       {/* Main content */}
-      <div className="p-4 md:p-8 pb-28 md:pb-8">
+      <div className="p-4 md:p-8" style={{ paddingBottom: "calc(7rem + env(safe-area-inset-bottom, 0px))" }}>
         <AnimatePresence mode="wait">
           {tab === "overview" && (
             <motion.div key="overview" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
