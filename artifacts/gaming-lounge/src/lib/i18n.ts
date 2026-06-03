@@ -264,6 +264,12 @@ const translations = {
     qa_kitchen: "شاشة المطبخ",
     qa_orders: "الطلبات",
 
+    /* ── Shift gate ── */
+    shift_gate_title: "وردية مغلقة",
+    shift_gate_body: "يجب فتح وردية قبل البدء في أي عمليات — تواصل مع المدير أو افتح وردية جديدة",
+    shift_gate_open_btn: "فتح الوردية الآن",
+    no_open_shift_toast: "افتح وردية أولاً",
+
     /* ── Theme / Lang ── */
     switch_to_light: "الوضع الفاتح",
     switch_to_dark: "الوضع الداكن",
@@ -532,6 +538,12 @@ const translations = {
     qa_devices: "Rooms",
     qa_kitchen: "Kitchen Display",
     qa_orders: "Orders",
+
+    /* ── Shift gate ── */
+    shift_gate_title: "Shift Closed",
+    shift_gate_body: "A shift must be open before you can start operations — contact a manager or open a new shift",
+    shift_gate_open_btn: "Open Shift Now",
+    no_open_shift_toast: "Open a shift first",
 
     /* ── Theme / Lang ── */
     switch_to_light: "Light Mode",

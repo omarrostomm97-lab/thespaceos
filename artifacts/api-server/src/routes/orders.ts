@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { ordersTable, orderItemsTable, productsTable, usersTable, assetsTable, sessionsTable, inventoryItemsTable, inventoryMovementsTable, recipeItemsTable, orderAssignmentsTable, paymentsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
-import { requireAuth, requireTenant, requireRole } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole, requireOpenShift } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
 const router = Router();
@@ -134,8 +134,8 @@ export async function createOrderWithItems(
   return order;
 }
 
-// POST /orders — POS order creation (cashier and above); also creates a payment record
-router.post("/orders", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
+// POST /orders — POS order creation (cashier and above); also creates a payment record; requires open shift for cashiers
+router.post("/orders", requireAuth, requireTenant, CASHIER_UP, requireOpenShift, async (req, res) => {
   try {
     const { sessionId, assetId, items, customerName, paymentMethod } = req.body;
     if (!items?.length) { res.status(400).json({ error: "items required" }); return; }

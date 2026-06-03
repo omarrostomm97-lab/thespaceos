@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { db } from "@workspace/db";
-import { usersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { usersTable, shiftsTable } from "@workspace/db";
+import { eq, and } from "drizzle-orm";
 
 function getJwtSecret(): string {
   // JWT_SECRET is the preferred secret (set via Replit Secrets manager, never hardcoded).
@@ -90,4 +90,33 @@ export function requireTenant(req: Request, res: Response, next: NextFunction): 
     return;
   }
   next();
+}
+
+const SHIFT_EXEMPT_ROLES = ["platform_owner", "owner", "manager"];
+
+export async function requireOpenShift(req: Request, res: Response, next: NextFunction): Promise<void> {
+  if (!req.user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  if (SHIFT_EXEMPT_ROLES.includes(req.user.role)) {
+    next();
+    return;
+  }
+  try {
+    const [openShift] = await db.select({ id: shiftsTable.id })
+      .from(shiftsTable)
+      .where(and(
+        eq(shiftsTable.tenantId, req.user.tenantId!),
+        eq(shiftsTable.status, "open")
+      ))
+      .limit(1);
+    if (!openShift) {
+      res.status(403).json({ error: "no_open_shift" });
+      return;
+    }
+    next();
+  } catch {
+    res.status(500).json({ error: "Failed to check shift status" });
+  }
 }

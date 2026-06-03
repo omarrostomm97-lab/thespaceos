@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { db } from "@workspace/db";
 import { paymentsTable, sessionsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, requireTenant, requireRole } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole, requireOpenShift } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
 const router = Router();
@@ -32,7 +32,7 @@ router.get("/payments", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
-router.post("/payments", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
+router.post("/payments", requireAuth, requireTenant, CASHIER_UP, requireOpenShift, async (req, res) => {
   try {
     const { sessionId, method, amount, transactionReference } = req.body;
     if (!method || amount === undefined) {

@@ -18,6 +18,7 @@ import { Gamepad2, Clock, Pause, Play, SquareSquare, Receipt, Banknote, CreditCa
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { ShiftGate } from "@/components/shift-gate";
 import { useLang } from "@/hooks/use-language";
 
 type PaymentMethod = "cash" | "instapay" | "visa";
@@ -141,6 +142,7 @@ export default function Sessions() {
   }
 
   return (
+    <ShiftGate>
     <div className="p-4 md:p-8 space-y-5 md:space-y-6">
       <div className="flex items-center justify-between">
         <div>
@@ -382,5 +384,6 @@ export default function Sessions() {
         </DialogContent>
       </Dialog>
     </div>
+    </ShiftGate>
   );
 }

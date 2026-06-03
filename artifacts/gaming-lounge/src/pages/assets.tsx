@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import type { TranslationKey } from "@/lib/i18n";
+import { ShiftGate } from "@/components/shift-gate";
 
 const MGMT_ROLES = ["platform_owner", "owner", "manager"];
 
@@ -57,6 +58,7 @@ function getAssetIcon(type: string, className = "h-7 w-7") {
 interface AssetCardProps {
   asset: Asset;
   isMgmt: boolean;
+  canStart: boolean;
   onEdit: (a: Asset) => void;
   onQr: (a: Asset) => void;
   onStart: (id: number) => void;
@@ -65,7 +67,7 @@ interface AssetCardProps {
   lang: string;
 }
 
-function AssetCard({ asset, isMgmt, onEdit, onQr, onStart, starting, t, lang }: AssetCardProps) {
+function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t, lang }: AssetCardProps) {
   const isAvailable = asset.status === "available";
 
   const glowColor  = isAvailable ? "rgba(0, 111, 238, 0.25)" : "rgba(245, 165, 36, 0.25)";
@@ -196,7 +198,7 @@ function AssetCard({ asset, isMgmt, onEdit, onQr, onStart, starting, t, lang }: 
         </div>
 
         {/* CTA button */}
-        {isAvailable ? (
+        {isAvailable && canStart ? (
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
@@ -212,6 +214,18 @@ function AssetCard({ asset, isMgmt, onEdit, onQr, onStart, starting, t, lang }: 
             <Zap className="h-4 w-4" />
             {t("start_session")}
           </motion.button>
+        ) : isAvailable && !canStart ? (
+          <div
+            className="w-full h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+            style={{
+              background: "rgba(100,116,139,0.08)",
+              border: "1px solid rgba(100,116,139,0.2)",
+              color: "#64748b",
+            }}
+          >
+            <Zap className="h-4 w-4 opacity-40" />
+            {t("start_session")}
+          </div>
         ) : (
           <Link href="/sessions" className="block">
             <motion.div
@@ -248,6 +262,8 @@ export default function Assets() {
   const { user } = useAuth();
   const { t, dir, lang } = useLang();
   const isMgmt = MGMT_ROLES.includes(user?.role ?? "");
+
+  const canStart = !["owner", "platform_owner"].includes(user?.role ?? "");
 
   const { data: assets, isLoading } = useListAssets();
   const startSession = useStartSession();
@@ -309,8 +325,14 @@ export default function Assets() {
       queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey() });
       queryClient.invalidateQueries({ queryKey: getListActiveSessionsQueryKey() });
       setLocation(`/sessions/${session.id}`);
-    } catch {
-      toast.error(t("session_error"));
+    } catch (err: any) {
+      if (err?.response?.data?.error === "no_open_shift") {
+        toast.error(t("no_open_shift_toast"), {
+          action: { label: t("shift_gate_open_btn"), onClick: () => setLocation("/shifts") },
+        });
+      } else {
+        toast.error(t("session_error"));
+      }
     }
   };
 
@@ -364,6 +386,7 @@ export default function Assets() {
   }
 
   return (
+    <ShiftGate>
     <>
       {/* Print target */}
       <div className="hidden print:flex flex-col items-center p-10" dir="rtl">
@@ -456,6 +479,7 @@ export default function Assets() {
                 <AssetCard
                   asset={asset}
                   isMgmt={isMgmt}
+                  canStart={canStart}
                   onEdit={openEdit}
                   onQr={openQr}
                   onStart={handleStartSession}
@@ -562,5 +586,6 @@ export default function Assets() {
         </Dialog>
       </div>
     </>
+    </ShiftGate>
   );
 }

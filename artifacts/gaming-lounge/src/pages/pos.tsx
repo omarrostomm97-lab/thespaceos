@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, X, Banknote, CreditCard, Smartphone, Gamepad2, Check, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { ShiftGate } from "@/components/shift-gate";
 
 interface CartItem {
   product: any;
@@ -96,8 +97,12 @@ export default function Pos() {
       }
       clearCart();
       queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() });
-    } catch {
-      toast.error("حدث خطأ أثناء تأكيد الطلب");
+    } catch (err: any) {
+      if (err?.response?.data?.error === "no_open_shift") {
+        toast.error("افتح وردية أولاً");
+      } else {
+        toast.error("حدث خطأ أثناء تأكيد الطلب");
+      }
     }
   };
 
@@ -116,8 +121,12 @@ export default function Pos() {
       clearCart();
       queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() });
       queryClient.invalidateQueries({ queryKey: getListActiveSessionsQueryKey() });
-    } catch {
-      toast.error("حدث خطأ أثناء إرسال الطلب للغرفة");
+    } catch (err: any) {
+      if (err?.response?.data?.error === "no_open_shift") {
+        toast.error("افتح وردية أولاً");
+      } else {
+        toast.error("حدث خطأ أثناء إرسال الطلب للغرفة");
+      }
     }
   };
 
@@ -135,6 +144,7 @@ export default function Pos() {
   }
 
   return (
+    <ShiftGate>
     <div className="flex flex-col md:flex-row h-[calc(100dvh-3.5rem)] md:h-[calc(100vh-4rem)] bg-background">
 
       {/* ── Products Grid ── */}
@@ -373,5 +383,6 @@ export default function Pos() {
         </div>
       </div>
     </div>
+    </ShiftGate>
   );
 }

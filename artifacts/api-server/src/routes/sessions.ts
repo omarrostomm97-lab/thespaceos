@@ -2,13 +2,14 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { sessionsTable, sessionLogsTable, assetsTable, usersTable, paymentsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
-import { requireAuth, requireTenant, requireRole } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole, requireOpenShift } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
 const router = Router();
 
 const CASHIER_UP = requireRole("platform_owner", "owner", "manager", "cashier");
 const MGMT = requireRole("platform_owner", "owner", "manager");
+const CAN_START_SESSION = requireRole("platform_owner", "manager", "cashier");
 
 async function writeSessionLog(params: {
   tenantId: number;
@@ -182,8 +183,8 @@ router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) 
   }
 });
 
-// Start session: cashier and above
-router.post("/sessions", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
+// Start session: cashier and manager only — owner role is excluded; requires open shift for cashiers
+router.post("/sessions", requireAuth, requireTenant, CAN_START_SESSION, requireOpenShift, async (req, res) => {
   try {
     const { assetId, notes } = req.body;
     if (!assetId) { res.status(400).json({ error: "assetId required" }); return; }
