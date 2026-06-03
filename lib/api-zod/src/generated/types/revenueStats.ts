@@ -5,6 +5,7 @@
  * Gaming Lounge OS API
  * OpenAPI spec version: 0.1.0
  */
+import type { RevenueStatsDailyBreakdownItem } from './revenueStatsDailyBreakdownItem';
 import type { RevenueStatsPaymentMethodBreakdown } from './revenueStatsPaymentMethodBreakdown';
 
 export interface RevenueStats {
@@ -13,4 +14,5 @@ export interface RevenueStats {
   orderRevenue: number;
   period: string;
   paymentMethodBreakdown?: RevenueStatsPaymentMethodBreakdown;
+  dailyBreakdown?: RevenueStatsDailyBreakdownItem[];
 }

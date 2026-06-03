@@ -452,6 +452,15 @@ export const GetSessionResponse = zod.object({
   "verifiedByUserName": zod.string().nullish(),
   "verifiedAt": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date()
+})).optional(),
+  "sessionLogs": zod.array(zod.object({
+  "id": zod.number(),
+  "action": zod.string(),
+  "previousStatus": zod.string().nullish(),
+  "newStatus": zod.string().nullish(),
+  "note": zod.string().nullish(),
+  "performedByUserId": zod.number().nullish(),
+  "createdAt": zod.coerce.date()
 })).optional()
 })
 
@@ -841,7 +850,8 @@ export const CreateOrderBody = zod.object({
   "quantity": zod.number(),
   "notes": zod.string().optional()
 })),
-  "customerName": zod.string().optional()
+  "customerName": zod.string().optional(),
+  "paymentMethod": zod.enum(['cash', 'instapay', 'visa']).optional()
 })
 
 
@@ -1332,7 +1342,11 @@ export const GetRevenueStatsResponse = zod.object({
   "cash": zod.number().optional(),
   "instapay": zod.number().optional(),
   "visa": zod.number().optional()
-}).optional()
+}).optional(),
+  "dailyBreakdown": zod.array(zod.object({
+  "date": zod.string(),
+  "total": zod.number()
+})).optional()
 })
 
 
@@ -1484,7 +1498,9 @@ export const UpdateProductRecipeResponse = zod.array(UpdateProductRecipeResponse
  * @summary List bookings for tenant
  */
 export const ListBookingsQueryParams = zod.object({
-  "status": zod.coerce.string().optional()
+  "status": zod.coerce.string().optional(),
+  "from": zod.date().optional(),
+  "to": zod.date().optional()
 })
 
 export const ListBookingsResponseItem = zod.object({

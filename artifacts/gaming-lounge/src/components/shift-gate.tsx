@@ -11,7 +11,7 @@ export function ShiftGate({ children }: { children: React.ReactNode }) {
 
   const isCashier = user?.role === "cashier";
 
-  const { data: currentShift, isLoading } = useGetCurrentShift(undefined, {
+  const { data: currentShift, isLoading } = useGetCurrentShift({
     query: {
       queryKey: getGetCurrentShiftQueryKey(),
       enabled: isCashier,

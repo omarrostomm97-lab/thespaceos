@@ -697,9 +697,9 @@ export default function Dashboard() {
             <Filter className="h-3.5 w-3.5" />
             <span className="font-medium">{lang === "ar" ? "تصفية:" : "Filter:"}</span>
           </div>
-          <PillGroup options={SOURCE_OPTIONS} value={source} onChange={setSource}
+          <PillGroup options={SOURCE_OPTIONS} value={source} onChange={v => setSource(v as Source)}
             label={lang === "ar" ? "المصدر" : "Source"} />
-          <PillGroup options={METHOD_OPTIONS} value={method} onChange={setMethod}
+          <PillGroup options={METHOD_OPTIONS} value={method} onChange={v => setMethod(v as PayMethod)}
             label={lang === "ar" ? "طريقة الدفع" : "Payment"} />
           {hasFilters && (
             <button onClick={() => { setSource("all"); setMethod("all"); }}

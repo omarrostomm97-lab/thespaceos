@@ -6,8 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ListBookingsParams = {
-status?: string;
-from?: Date;
-to?: Date;
+export type RevenueStatsDailyBreakdownItem = {
+  date: string;
+  total: number;
 };

@@ -55,15 +55,26 @@ async function enrichBooking(
 
 router.get("/bookings", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, from, to } = req.query as Record<string, string | undefined>;
+
+    const conditions = [eq(bookingsTable.tenantId, req.user!.tenantId!)];
+    if (from) {
+      const fromDate = new Date(from);
+      if (!isNaN(fromDate.getTime())) conditions.push(gte(bookingsTable.startsAt, fromDate));
+    }
+    if (to) {
+      const toDate = new Date(to);
+      if (!isNaN(toDate.getTime())) conditions.push(lte(bookingsTable.endsAt, toDate));
+    }
+
     const rows = await db
       .select()
       .from(bookingsTable)
-      .where(eq(bookingsTable.tenantId, req.user!.tenantId!))
+      .where(and(...conditions))
       .orderBy(bookingsTable.startsAt);
 
     const now = new Date();
-    const statusFilter = status ? (status as string).split(",") : null;
+    const statusFilter = status ? status.split(",") : null;
     const filtered = statusFilter
       ? rows.filter(b => statusFilter.includes(computeStatus(b, now)))
       : rows;

@@ -323,6 +323,20 @@ export interface SessionWithBilling {
   currentCost: number;
 }
 
+export interface SessionLog {
+  id: number;
+  action: string;
+  /** @nullable */
+  previousStatus?: string | null;
+  /** @nullable */
+  newStatus?: string | null;
+  /** @nullable */
+  note?: string | null;
+  /** @nullable */
+  performedByUserId?: number | null;
+  createdAt: string;
+}
+
 export type SessionDetailStatus = typeof SessionDetailStatus[keyof typeof SessionDetailStatus];
 
 
@@ -461,6 +475,7 @@ export interface SessionDetail {
   cancelReason?: string | null;
   orders: Order[];
   payments?: Payment[];
+  sessionLogs?: SessionLog[];
 }
 
 export interface SessionInput {
@@ -542,11 +557,21 @@ export interface QrOrderInput {
   items: OrderItemInput[];
 }
 
+export type OrderInputPaymentMethod = typeof OrderInputPaymentMethod[keyof typeof OrderInputPaymentMethod];
+
+
+export const OrderInputPaymentMethod = {
+  cash: 'cash',
+  instapay: 'instapay',
+  visa: 'visa',
+} as const;
+
 export interface OrderInput {
   sessionId?: number;
   assetId?: number;
   items: OrderItemInput[];
   customerName?: string;
+  paymentMethod?: OrderInputPaymentMethod;
 }
 
 export type OrderStatusUpdateStatus = typeof OrderStatusUpdateStatus[keyof typeof OrderStatusUpdateStatus];
@@ -756,12 +781,18 @@ export type RevenueStatsPaymentMethodBreakdown = {
   visa?: number;
 };
 
+export type RevenueStatsDailyBreakdownItem = {
+  date: string;
+  total: number;
+};
+
 export interface RevenueStats {
   total: number;
   sessionRevenue: number;
   orderRevenue: number;
   period: string;
   paymentMethodBreakdown?: RevenueStatsPaymentMethodBreakdown;
+  dailyBreakdown?: RevenueStatsDailyBreakdownItem[];
 }
 
 export interface EmployeePerformance {
@@ -956,5 +987,7 @@ limit?: number;
 
 export type ListBookingsParams = {
 status?: string;
+from?: string;
+to?: string;
 };
 

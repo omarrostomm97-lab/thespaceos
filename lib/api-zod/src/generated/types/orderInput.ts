@@ -5,6 +5,7 @@
  * Gaming Lounge OS API
  * OpenAPI spec version: 0.1.0
  */
+import type { OrderInputPaymentMethod } from './orderInputPaymentMethod';
 import type { OrderItemInput } from './orderItemInput';
 
 export interface OrderInput {
@@ -12,4 +13,5 @@ export interface OrderInput {
   assetId?: number;
   items: OrderItemInput[];
   customerName?: string;
+  paymentMethod?: OrderInputPaymentMethod;
 }

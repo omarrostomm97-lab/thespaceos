@@ -8,6 +8,7 @@
 import type { Order } from './order';
 import type { Payment } from './payment';
 import type { SessionDetailStatus } from './sessionDetailStatus';
+import type { SessionLog } from './sessionLog';
 
 export interface SessionDetail {
   id: number;
@@ -33,4 +34,5 @@ export interface SessionDetail {
   cancelReason?: string | null;
   orders: Order[];
   payments?: Payment[];
+  sessionLogs?: SessionLog[];
 }

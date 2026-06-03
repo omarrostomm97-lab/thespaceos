@@ -88,9 +88,9 @@ export default function Pos() {
     try {
       await createOrder.mutateAsync({
         data: {
-          paymentMethod,
+          paymentMethod: paymentMethod as string,
           items: cart.map(item => ({ productId: item.product.id, quantity: item.quantity }))
-        }
+        } as Parameters<typeof createOrder.mutateAsync>[0]['data']
       });
       if (paymentMethod === "cash") {
         toast.success("تم تأكيد الطلب واستلام النقدية");

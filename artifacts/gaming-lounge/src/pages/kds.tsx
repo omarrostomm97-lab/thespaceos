@@ -40,13 +40,15 @@ export default function Kds() {
 
   useEffect(() => {
     const count = pendingOrders.length;
+    let cleanup: (() => void) | undefined;
     if (prevPendingCount.current !== null && count > prevPendingCount.current) {
       playKitchenChime();
       setAlerting(true);
       const timer = setTimeout(() => setAlerting(false), 3000);
-      return () => clearTimeout(timer);
+      cleanup = () => clearTimeout(timer);
     }
     prevPendingCount.current = count;
+    return cleanup;
   }, [pendingOrders.length]);
 
   const handleUpdateStatus = async (orderId: number, status: 'preparing' | 'ready') => {

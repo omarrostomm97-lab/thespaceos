@@ -1425,6 +1425,18 @@ paths:
           required: false
           schema:
             type: string
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
       responses:
         "200":
           description: Bookings list
@@ -1851,6 +1863,26 @@ components:
         currentCost:
           type: number
 
+    SessionLog:
+      type: object
+      required: [id, action, createdAt]
+      properties:
+        id:
+          type: integer
+        action:
+          type: string
+        previousStatus:
+          type: ["string", "null"]
+        newStatus:
+          type: ["string", "null"]
+        note:
+          type: ["string", "null"]
+        performedByUserId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
     SessionDetail:
       type: object
       required: [id, assetId, status, startedAt, orders]
@@ -1893,6 +1925,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Payment"
+        sessionLogs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionLog"
 
     SessionInput:
       type: object
@@ -2124,6 +2160,9 @@ components:
             $ref: "#/components/schemas/OrderItemInput"
         customerName:
           type: string
+        paymentMethod:
+          type: string
+          enum: [cash, instapay, visa]
 
     OrderStatusUpdate:
       type: object
@@ -2430,6 +2469,16 @@ components:
               type: number
             visa:
               type: number
+        dailyBreakdown:
+          type: array
+          items:
+            type: object
+            required: [date, total]
+            properties:
+              date:
+                type: string
+              total:
+                type: number
 
     EmployeePerformance:
       type: object

@@ -10,7 +10,7 @@ import { format } from "date-fns";
 
 export default function Shifts() {
   const queryClient = useQueryClient();
-  const { data: currentShift, isLoading: isLoadingCurrent, isError: isCurrentShiftError } = useGetCurrentShift(undefined, {
+  const { data: currentShift, isLoading: isLoadingCurrent, isError: isCurrentShiftError } = useGetCurrentShift({
     query: { queryKey: getGetCurrentShiftQueryKey(), refetchInterval: 15000 }
   });
   const { data: shifts, isLoading: isLoadingList } = useListShifts();
