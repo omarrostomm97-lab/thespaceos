@@ -13,8 +13,8 @@ export const ROLE_DEFAULTS: Record<UserRole, string> = {
 };
 
 export const ROUTE_ALLOWED_ROLES: Record<string, UserRole[]> = {
-  "/dashboard":   ["platform_owner", "owner", "manager", "cashier"],
-  "/assets":      ALL_MGMT,
+  "/dashboard":   ALL_MGMT,
+  "/assets":      [...ALL_MGMT, "cashier"],
   "/sessions":    ALL_STAFF,
   "/sessions/:id": ALL_STAFF,
   "/pos":         ALL_STAFF,
