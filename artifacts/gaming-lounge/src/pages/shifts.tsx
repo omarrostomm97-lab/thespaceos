@@ -10,7 +10,7 @@ import { format } from "date-fns";
 
 export default function Shifts() {
   const queryClient = useQueryClient();
-  const { data: currentShift, isLoading: isLoadingCurrent } = useGetCurrentShift();
+  const { data: currentShift, isLoading: isLoadingCurrent, isError: isCurrentShiftError } = useGetCurrentShift();
   const { data: shifts, isLoading: isLoadingList } = useListShifts();
   
   const openShift = useOpenShift();
@@ -45,7 +45,7 @@ export default function Shifts() {
     }
   };
 
-  if (isLoadingCurrent || isLoadingList) {
+  if ((isLoadingCurrent && !isCurrentShiftError) || isLoadingList) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />

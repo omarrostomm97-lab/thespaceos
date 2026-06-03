@@ -40,7 +40,7 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
     const [shift] = await db.select().from(shiftsTable)
       .where(and(eq(shiftsTable.tenantId, req.user!.tenantId!), eq(shiftsTable.status, "open")))
       .limit(1);
-    if (!shift) { res.status(404).json({ error: "No open shift" }); return; }
+    if (!shift) { res.json(null); return; }
     const [user] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, shift.userId)).limit(1);
     res.json(fmtShift(shift, user?.name));
   } catch {
