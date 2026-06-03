@@ -7,8 +7,6 @@ import {
   useGetDashboardBreakdown,
   getGetDashboardSummaryQueryKey,
   getListActiveSessionsQueryKey,
-  getGetRevenueStatsQueryKey,
-  getGetDashboardBreakdownQueryKey,
 } from "@workspace/api-client-react";
 import {
   Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart,
@@ -327,10 +325,10 @@ function MobileBottomNav({ tab, setTab, lang, pendingOrders }: {
 
 /* ─── Mobile Hero Revenue Card ───────────────────────── */
 function MobileHeroCard({
-  total, gamingRevenue, buffetRevenue, source, openShift, lang,
+  total, gamingRevenue, buffetRevenue, source, openShift, lang, periodLabel,
 }: {
   total: number; gamingRevenue: number; buffetRevenue: number;
-  source: Source; openShift: boolean; lang: "ar"|"en";
+  source: Source; openShift: boolean; lang: "ar"|"en"; periodLabel: string;
 }) {
   const animated = useCountUp(total, 1000);
   return (
@@ -358,7 +356,7 @@ function MobileHeroCard({
         <p className="text-[11px] text-white/65 uppercase tracking-wider font-medium mb-1">
           {source === "gaming" ? (lang === "ar" ? "إيرادات الألعاب" : "Gaming Revenue")
            : source === "buffet" ? (lang === "ar" ? "إيرادات البوفيه" : "Buffet Revenue")
-           : (lang === "ar" ? "إجمالي إيرادات اليوم" : "Today's Total Revenue")}
+           : (lang === "ar" ? `إجمالي الإيرادات · ${periodLabel}` : `Total Revenue · ${periodLabel}`)}
         </p>
         <div className="flex items-end gap-2 mb-4">
           <span className="text-[44px] font-bold text-white leading-none tabular"
@@ -433,10 +431,10 @@ export default function Dashboard() {
     query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 10000 },
   });
   const { data: revenueStats, isLoading: isLoadingRevenue } = useGetRevenueStats(revenueParams, {
-    query: { queryKey: getGetRevenueStatsQueryKey(revenueParams) },
+    query: { queryKey: ["/api/dashboard/revenue", period, source, method] },
   });
   const { data: breakdown, isLoading: isLoadingBreakdown } = useGetDashboardBreakdown(breakdownParams, {
-    query: { queryKey: getGetDashboardBreakdownQueryKey(breakdownParams) },
+    query: { queryKey: ["/api/dashboard/breakdown", period, source] },
   });
 
   if (isLoadingSummary || isLoadingSessions) return <DashboardSkeleton />;
@@ -722,12 +720,13 @@ export default function Dashboard() {
       {/* Mobile hero card */}
       <div className="md:hidden">
         <MobileHeroCard
-          total={heroRevenue}
-          gamingRevenue={(summary as any)?.gamingRevenueToday ?? 0}
-          buffetRevenue={(summary as any)?.buffetRevenueToday ?? 0}
+          total={revenueStats?.total ?? 0}
+          gamingRevenue={revenueStats?.sessionRevenue ?? 0}
+          buffetRevenue={revenueStats?.orderRevenue ?? 0}
           source={source}
           openShift={summary?.openShift ?? false}
           lang={lang}
+          periodLabel={PERIOD_LABELS[period]}
         />
       </div>
 
@@ -745,9 +744,9 @@ export default function Dashboard() {
               : source === "buffet" ? (lang === "ar" ? "إيرادات البوفيه" : "Buffet Rev.")
               : t("kpi_revenue_today")
             }
-            value={heroRevenue}
+            value={revenueStats?.total ?? 0}
             isFloat
-            subtitle={lang === "ar" ? "اليوم" : "Today"}
+            subtitle={PERIOD_LABELS[period]}
             icon={Receipt} iconClass="bg-emerald-500/15 text-emerald-500"
             compact={isMobile} />
         </StaggerItem>
@@ -801,7 +800,7 @@ export default function Dashboard() {
       <div className="grid gap-3 md:gap-4 md:grid-cols-3">
         {/* Revenue bar chart */}
         <HoverCard className="md:col-span-2">
-          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 overflow-hidden">
+          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6">
             <div className="flex items-start justify-between mb-3 md:mb-5">
               <div>
                 <h3 className="text-sm md:text-base font-semibold">{t("sales_performance")}</h3>
@@ -841,7 +840,7 @@ export default function Dashboard() {
 
         {/* Payment methods + session/order split */}
         <HoverCard>
-          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 flex flex-col gap-3 overflow-hidden">
+          <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 flex flex-col gap-3">
             <div className="flex items-center gap-2">
               <Receipt className="h-4 w-4 text-primary" />
               <h3 className="text-sm md:text-base font-semibold">{t("payment_sources")}</h3>
