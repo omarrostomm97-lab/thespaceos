@@ -1,6 +1,6 @@
 # Gaming Lounge OS — Full System Reference
 
-> Last updated: May 30, 2026  
+> Last updated: June 3, 2026  
 > Stack: React + Vite (frontend) · Express + Drizzle ORM (backend) · PostgreSQL (database)  
 > Auth: JWT (access token) + Refresh token · Multi-tenant SaaS · Arabic-first RTL UI
 
@@ -85,6 +85,21 @@
 | generatedByUserId | integer FK | |
 | createdAt | timestamp | |
 | revokedAt | timestamp nullable | |
+
+### `bookings`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | serial PK | |
+| tenantId | integer FK | |
+| assetId | integer FK | |
+| customerName | text nullable | |
+| startsAt | timestamp | |
+| endsAt | timestamp | |
+| notes | text nullable | |
+| status | text | upcoming / cancelled (active/completed are **computed** at read-time, not stored) |
+| createdAt | timestamp | |
+
+> ⚠️ Booking status `active` and `completed` are derived at read-time via `computeStatus(booking, now)` — never filter the DB by these values. Only `"upcoming"` and `"cancelled"` are stored.
 
 ### `products`
 | Column | Type | Notes |
@@ -247,8 +262,8 @@
 | status | text | open / closed |
 | openingCash | numeric | |
 | expectedCash | numeric nullable | calculated on close |
-| actualCash | numeric nullable | entered by cashier |
-| difference | numeric nullable | actual - expected |
+| actualCash | numeric nullable | entered by cashier on close |
+| difference | numeric nullable | actual − expected |
 | differenceExplanation | text nullable | |
 | openedAt | timestamp | |
 | closedAt | timestamp nullable | |
@@ -283,7 +298,8 @@
 
 ## 2. Backend API Routes
 
-All routes are prefixed with `/api`. Most require `requireAuth` + `requireTenant` middleware.
+All routes are prefixed with `/api`. Most require `requireAuth` + `requireTenant` middleware.  
+API server runs on **port 8080** and is compiled to a dist bundle — **must be rebuilt + restarted after any backend change**.
 
 **Role hierarchy (highest → lowest):**  
 `platform_owner` → `owner` → `manager` → `cashier` → `buffet_worker`
@@ -292,135 +308,161 @@ All routes are prefixed with `/api`. Most require `requireAuth` + `requireTenant
 - `MGMT` = platform_owner, owner, manager
 - `CASHIER_UP` = + cashier
 - `STAFF` = + buffet_worker (all roles)
+- `requireOpenShift` — blocks non-MGMT roles if no shift is currently open
 
 ### Auth (`/api/auth`)
 
-| Method | Path | Auth Required | Description | Status |
-|--------|------|--------------|-------------|--------|
-| POST | `/auth/login` | No | Email + password → JWT + refreshToken | ✅ Working |
-| POST | `/auth/logout` | Yes | Invalidate session | ✅ Working |
-| GET | `/auth/me` | Yes | Return current user profile | ✅ Working |
-| POST | `/auth/refresh` | No | Refresh expired access token | ✅ Working |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/auth/login` | No | Email + password → JWT + refreshToken |
+| POST | `/auth/logout` | Yes | Invalidate session |
+| GET | `/auth/me` | Yes | Return current user profile |
+| POST | `/auth/refresh` | No | Refresh expired access token |
 
 ### Tenants (`/api/tenants`) — platform_owner only
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/tenants` | platform_owner | List all tenants | ✅ Working |
-| POST | `/tenants` | platform_owner | Create new tenant | ✅ Working |
-| GET | `/tenants/:tenantId` | platform_owner | Get tenant details | ✅ Working |
-| PATCH | `/tenants/:tenantId` | platform_owner | Update tenant config | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/tenants` | platform_owner | List all tenants |
+| POST | `/tenants` | platform_owner | Create new tenant |
+| GET | `/tenants/:tenantId` | platform_owner | Get tenant details |
+| PATCH | `/tenants/:tenantId` | platform_owner | Update tenant config |
 
 ### Users (`/api/users`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/users` | Auth | List users (tenant-scoped) | ✅ Working |
-| POST | `/users` | MGMT | Create new user | ✅ Working |
-| GET | `/users/:userId` | Auth | Get user profile | ✅ Working |
-| PATCH | `/users/:userId` | MGMT | Update user | ✅ Working |
-| POST | `/users/:userId/deactivate` | MGMT | Deactivate user | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/users` | Auth | List users (tenant-scoped) |
+| POST | `/users` | MGMT | Create new user |
+| GET | `/users/:userId` | Auth | Get user profile |
+| PATCH | `/users/:userId` | MGMT | Update user |
+| POST | `/users/:userId/deactivate` | MGMT | Deactivate user |
 
 ### Assets (`/api/assets`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/assets` | Auth, Tenant | List all assets | ✅ Working |
-| POST | `/assets` | MGMT | Create asset | ✅ Working |
-| GET | `/assets/:assetId` | Auth, Tenant | Get asset details | ✅ Working |
-| PATCH | `/assets/:assetId` | MGMT | Update asset | ✅ Working |
-| POST | `/assets/:assetId/qr` | MGMT | Generate / revoke QR token | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/assets` | Auth, Tenant | List all assets |
+| POST | `/assets` | MGMT | Create asset |
+| GET | `/assets/:assetId` | Auth, Tenant | Get asset details |
+| PATCH | `/assets/:assetId` | MGMT | Update asset |
+| POST | `/assets/:assetId/qr` | MGMT | Generate / revoke QR token |
+
+### Bookings (`/api/bookings`)
+
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/bookings` | CASHIER_UP | List bookings — supports `?status=upcoming,active` and `?from=`/`?to=` date filters |
+| POST | `/bookings` | MGMT | Create booking (validates asset ownership + overlap) |
+| GET | `/bookings/upcoming-soon` | CASHIER_UP | Bookings starting within the next 30 min (for cashier alert banner) |
+| POST | `/bookings/:id/cancel` | MGMT | Cancel a booking |
+
+> ⚠️ `/bookings/upcoming-soon` must stay declared **before** `/bookings/:id` in the route file to avoid Express swallowing it as a parameterized match.
 
 ### Sessions (`/api/sessions`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/sessions` | Auth, Tenant | List all sessions | ✅ Working |
-| GET | `/sessions/active` | Auth, Tenant | Active + paused sessions only | ✅ Working |
-| GET | `/sessions/:sessionId` | Auth, Tenant | Session detail with orders + billing | ✅ Working |
-| POST | `/sessions` | CASHIER_UP | Start a new session | ✅ Working |
-| POST | `/sessions/:sessionId/pause` | CASHIER_UP | Pause active session | ✅ Working |
-| POST | `/sessions/:sessionId/resume` | CASHIER_UP | Resume paused session | ✅ Working |
-| POST | `/sessions/:sessionId/end` | CASHIER_UP | End session, calculate final bill | ✅ Working |
-| POST | `/sessions/:sessionId/cancel` | MGMT | Cancel session | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/sessions` | Auth, Tenant | List all sessions |
+| GET | `/sessions/active` | Auth, Tenant | Active + paused sessions only |
+| GET | `/sessions/:sessionId` | Auth, Tenant | Session detail with orders, billing, and session logs |
+| POST | `/sessions` | CASHIER_UP + requireOpenShift | Start a new session (blocked if asset is actively booked or no open shift for cashiers) |
+| POST | `/sessions/:sessionId/pause` | CASHIER_UP | Pause active session |
+| POST | `/sessions/:sessionId/resume` | CASHIER_UP | Resume paused session |
+| POST | `/sessions/:sessionId/end` | CASHIER_UP | End session, calculate final bill |
+| POST | `/sessions/:sessionId/cancel` | MGMT | Cancel session |
 
 ### Orders (`/api/orders`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/orders` | Auth, Tenant | List all orders | ✅ Working |
-| GET | `/orders/kds` | Auth, Tenant | KDS view — pending/preparing only | ✅ Working |
-| GET | `/orders/:orderId` | Auth, Tenant | Order details | ✅ Working |
-| POST | `/orders` | CASHIER_UP | Create POS order (+ payment record) | ✅ Working |
-| PATCH | `/orders/:orderId/status` | STAFF | Update order status | ✅ Working |
-| PATCH | `/orders/:orderId/assign` | CASHIER_UP | Assign order to staff | ✅ Working |
-| POST | `/orders/:orderId/cancel` | CASHIER_UP | Cancel order | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/orders` | Auth, Tenant | List all orders |
+| GET | `/orders/kds` | Auth, Tenant | KDS view — pending/preparing only |
+| GET | `/orders/:orderId` | Auth, Tenant | Order details |
+| POST | `/orders` | CASHIER_UP | Create POS order (+ payment record) |
+| PATCH | `/orders/:orderId/status` | STAFF | Update order status |
+| PATCH | `/orders/:orderId/assign` | CASHIER_UP | Assign order to staff |
+| POST | `/orders/:orderId/cancel` | CASHIER_UP | Cancel order |
 
 ### QR Ordering (`/api/qr`) — public, no auth
 
-| Method | Path | Auth | Description | Status |
-|--------|------|------|-------------|--------|
-| GET | `/qr/:token/menu` | None | Get menu for QR-scanned asset | ✅ Working |
-| POST | `/qr/:token/order` | None | Place order from QR scan | ✅ Working |
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/qr/:token/menu` | Get menu for QR-scanned asset |
+| POST | `/qr/:token/order` | Place order from QR scan |
 
 ### Payments (`/api/payments`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/payments` | Auth, Tenant | List payments | ✅ Working |
-| POST | `/payments` | CASHIER_UP | Record new payment | ✅ Working |
-| POST | `/payments/:paymentId/verify` | CASHIER_UP | Verify InstaPay / Visa payment | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/payments` | Auth, Tenant | List payments |
+| POST | `/payments` | CASHIER_UP | Record new payment |
+| POST | `/payments/:paymentId/verify` | CASHIER_UP | Verify InstaPay / Visa payment |
 
 ### Products & Categories (`/api/products`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/products` | Auth, Tenant | List all products | ✅ Working |
-| POST | `/products` | Auth, Tenant | Create product | ✅ Working |
-| GET | `/products/:productId` | Auth, Tenant | Get product | ✅ Working |
-| PATCH | `/products/:productId` | Auth, Tenant | Update product | ✅ Working |
-| GET | `/product-categories` | Auth, Tenant | List categories | ✅ Working |
-| POST | `/product-categories` | Auth, Tenant | Create category | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/products` | Auth, Tenant | List all products |
+| POST | `/products` | Auth, Tenant | Create product |
+| GET | `/products/:productId` | Auth, Tenant | Get product |
+| PATCH | `/products/:productId` | Auth, Tenant | Update product |
+| DELETE | `/products/:productId` | MGMT | Delete product |
+| GET | `/product-categories` | Auth, Tenant | List categories |
+| POST | `/product-categories` | Auth, Tenant | Create category |
+| PATCH | `/product-categories/:categoryId` | MGMT | Update category |
+| DELETE | `/product-categories/:categoryId` | MGMT | Delete category |
 
 ### Inventory (`/api/inventory`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/inventory` | Auth, Tenant | List inventory items | ✅ Working |
-| POST | `/inventory` | MGMT | Create inventory item | ✅ Working |
-| PATCH | `/inventory/:itemId` | MGMT | Update inventory item | ✅ Working |
-| GET | `/inventory/movements` | Auth, Tenant | Movement history | ✅ Working |
-| POST | `/inventory/movements` | Auth, Tenant | Record stock movement | ✅ Working |
-| GET | `/inventory/alerts` | Auth, Tenant | Low-stock alerts | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/inventory` | Auth, Tenant | List inventory items |
+| POST | `/inventory` | MGMT | Create inventory item |
+| PATCH | `/inventory/:itemId` | MGMT | Update inventory item |
+| DELETE | `/inventory/:itemId` | MGMT | Delete inventory item |
+| GET | `/inventory/movements` | Auth, Tenant | Movement history |
+| POST | `/inventory/movements` | Auth, Tenant | Record stock movement |
+| GET | `/inventory/alerts` | Auth, Tenant | Low-stock alerts |
+
+### Recipes (`/api/recipes`)
+
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/recipes` | Auth, Tenant | List recipes with items |
+| POST | `/recipes` | MGMT | Create recipe |
+| PATCH | `/recipes/:recipeId` | MGMT | Update recipe |
+| DELETE | `/recipes/:recipeId` | MGMT | Delete recipe |
 
 ### Shifts (`/api/shifts`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/shifts` | Auth, Tenant | List shift history | ✅ Working |
-| GET | `/shifts/current` | Auth, Tenant | Current open shift | ✅ Working |
-| POST | `/shifts` | CASHIER_UP | Open a shift | ✅ Working |
-| POST | `/shifts/:shiftId/close` | MGMT | Close shift + cash reconciliation | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/shifts` | Auth, Tenant | List shift history |
+| GET | `/shifts/current` | Auth, Tenant | Current open shift |
+| POST | `/shifts` | CASHIER_UP | Open a shift with opening cash amount |
+| POST | `/shifts/:shiftId/close` | CASHIER_UP | Close shift + cash reconciliation (calculates expected vs actual) |
 
 ### Dashboard (`/api/dashboard`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/dashboard/summary` | Auth, Tenant | Today's KPI tiles | ✅ Working |
-| GET | `/dashboard/revenue` | Auth, Tenant | Revenue over time | ✅ Working |
-| GET | `/dashboard/employee-performance` | Auth, Tenant | Per-employee order/session stats | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/dashboard/summary` | Auth, Tenant | Today's KPI tiles (revenue, sessions, orders) |
+| GET | `/dashboard/revenue` | Auth, Tenant | Revenue over time |
+| GET | `/dashboard/breakdown` | Auth, Tenant | Revenue breakdown by category (sessions, buffet, etc.) |
+| GET | `/dashboard/employee-performance` | Auth, Tenant | Per-employee order/session stats |
 
 ### Audit Logs (`/api/audit-logs`)
 
-| Method | Path | Roles | Description | Status |
-|--------|------|-------|-------------|--------|
-| GET | `/audit-logs` | Auth, Tenant | Paginated audit trail | ✅ Working |
+| Method | Path | Roles | Description |
+|--------|------|-------|-------------|
+| GET | `/audit-logs` | Auth, Tenant | Paginated audit trail |
 
 ### Health
 
-| Method | Path | Description | Status |
-|--------|------|-------------|--------|
-| GET | `/healthz` | Service liveness check | ✅ Working |
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/healthz` | Service liveness check |
 
 ---
 
@@ -428,46 +470,50 @@ All routes are prefixed with `/api`. Most require `requireAuth` + `requireTenant
 
 All pages use Arabic RTL UI. Auth is handled via JWT stored in `localStorage`. Protected routes redirect to `/login` if unauthenticated.
 
-| Route | File | Description | Status |
-|-------|------|-------------|--------|
-| `/login` | `auth/login.tsx` | Email + password login form | ✅ Working |
-| `/` | `dashboard.tsx` | Real-time KPI tiles + active sessions list, auto-refreshes every 10s | ✅ Working |
-| `/sessions` | `sessions.tsx` | Active/paused sessions with pause/resume/end actions, 8s refresh | ✅ Working |
-| `/sessions/:id` | `sessions/[id].tsx` | Session detail: billing, orders placed, payments, cancel button | ✅ Working |
-| `/assets` | `assets.tsx` | Device list with QR generation and status management | ✅ Working |
-| `/pos` | `pos.tsx` | POS terminal: category filter, cart, 3 payment method buttons (Cash/InstaPay/Visa) | ✅ Working |
-| `/orders` | `orders.tsx` | Full order list with status tabs, 10s auto-refresh, deliver button | ✅ Working |
-| `/kds` | `kds.tsx` | Kitchen Display: pending/preparing orders, 5s refresh, mark preparing/ready | ✅ Working |
-| `/qr/:token` | `qr/[token].tsx` | Public QR menu — customers browse and place orders from their table | ✅ Working |
-| `/payments` | `payments.tsx` | Payment list with verify button for InstaPay/Visa | ✅ Working |
-| `/menu` | `menu.tsx` | Product + category CRUD with Arabic names | ✅ Working |
-| `/inventory` | `inventory.tsx` | Stock levels, low-stock alerts, movement log, add/adjust stock | ✅ Working |
-| `/shifts` | `shifts.tsx` | Open/close shifts, opening/closing cash entry, history table | ✅ Working |
-| `/users` | `users.tsx` | General user list | ✅ Working |
-| `/admin/users` | `admin/users.tsx` | Full user management: create, role assign, deactivate | ✅ Working |
-| `/admin/tenants` | `admin/tenants.tsx` | Platform-level tenant management (platform_owner only) | ✅ Working |
-| `/audit` | `audit.tsx` | Audit log viewer | ✅ Working |
-| `/settings` | `settings.tsx` | Tenant settings (name, language, etc.) | ✅ Working |
-| `/unauthorized` | `unauthorized.tsx` | 403 page | ✅ Working |
-| `*` | `not-found.tsx` | 404 page | ✅ Working |
+| Route | File | Roles | Description |
+|-------|------|-------|-------------|
+| `/login` | `auth/login.tsx` | Public | Email + password login form |
+| `/` | `dashboard.tsx` | All | KPI tiles, active sessions, revenue charts, 10s refresh |
+| `/sessions` | `sessions.tsx` | All | Active/paused sessions with pause/resume/end actions, 8s refresh |
+| `/sessions/:id` | `sessions/[id].tsx` | All | Session detail: billing, orders, payments, session log timeline |
+| `/assets` | `assets.tsx` | All | Device grid — start session, booking badges, QR generation, edit; **ShiftGate blocks cashiers without an open shift** |
+| `/bookings` | `bookings.tsx` | MGMT (owner+) | Create/view/cancel room bookings with date/asset picker |
+| `/pos` | `pos.tsx` | CASHIER_UP | POS terminal: category filter, cart, Cash/InstaPay/Visa payment buttons |
+| `/orders` | `orders.tsx` | All | Full order list with status tabs, 10s auto-refresh, deliver button |
+| `/kds` | `kds.tsx` | All | Kitchen Display: pending/preparing orders, 5s refresh, mark preparing/ready |
+| `/qr/:token` | `qr/[token].tsx` | Public | Customer QR menu — browse and place orders without auth |
+| `/payments` | `payments.tsx` | CASHIER_UP | Payment list with verify button for InstaPay/Visa |
+| `/menu` | `menu.tsx` | MGMT | Product + category CRUD with Arabic names |
+| `/inventory` | `inventory.tsx` | MGMT | Stock levels, low-stock alerts, movement log, add/adjust stock |
+| `/recipes` | `recipes.tsx` | MGMT | Recipe management — ingredients per product, drives inventory deduction |
+| `/shifts` | `shifts.tsx` | CASHIER_UP | Open/close shifts, opening/closing cash entry, shift history; **cashiers can close their own shifts** |
+| `/performance` | `performance.tsx` | MGMT | Employee performance analytics |
+| `/users` | `users.tsx` | All | General user list |
+| `/admin/users` | `admin/users.tsx` | MGMT | Full user management: create, role assign, deactivate |
+| `/admin/tenants` | `admin/tenants.tsx` | platform_owner | Platform-level tenant management |
+| `/audit` | `audit.tsx` | MGMT | Audit log viewer |
+| `/settings` | `settings.tsx` | MGMT | Tenant settings (name, language, etc.) |
+| `/unauthorized` | `unauthorized.tsx` | — | 403 page |
+| `*` | `not-found.tsx` | — | 404 page |
 
 ### Shared Components
 
-| Component | Purpose | Status |
-|-----------|---------|--------|
-| `AuthProvider` / `useAuth` | JWT auth context, auto-logout on 401, stores token in localStorage | ✅ Working |
-| `ProtectedRoute` | Wraps routes — redirects unauthenticated users to `/login` | ✅ Working |
-| `Layout` | Sidebar nav with role-based menu items, logout, Arabic RTL | ✅ Working |
-| `api-client-react` lib | Orval-generated React Query hooks for every endpoint | ✅ Working |
+| Component | Purpose |
+|-----------|---------|
+| `AuthProvider` / `useAuth` | JWT auth context, auto-logout on 401, stores token in localStorage |
+| `ProtectedRoute` | Wraps routes — redirects unauthenticated users to `/login` |
+| `Layout` | Sidebar nav with role-based menu items, booking alert banner (30-min window), logout, Arabic RTL |
+| `ShiftGate` | Wraps cashier pages — shows "open a shift first" screen when no active shift |
+| `api-client-react` lib | Orval-generated React Query hooks for every endpoint |
 
 ---
 
 ## 4. What Is Working
 
 ### Core Platform
-- ✅ Multi-tenant isolation — every DB query is scoped by `tenantId`; cross-tenant FK inputs validated before insert
+- ✅ Multi-tenant isolation — every DB query scoped by `tenantId`; cross-tenant FK inputs validated before insert
 - ✅ JWT authentication with refresh token flow
-- ✅ Role-based access control on every route (5 roles: platform_owner, owner, manager, cashier, buffet_worker)
+- ✅ Role-based access control on every route (5 roles)
 - ✅ Full Arabic RTL UI throughout the frontend
 - ✅ Seed data: 1 tenant, 5 demo users, 8 assets, 6 products, 3 categories
 
@@ -475,7 +521,18 @@ All pages use Arabic RTL UI. Auth is handled via JWT stored in `localStorage`. P
 - ✅ Start, pause (with time tracking), resume, end, cancel
 - ✅ Automatic billing calculation (minutes × price per hour)
 - ✅ Asset status updated in real time (available ↔ busy)
-- ✅ Session detail page shows all related orders and payments
+- ✅ Session detail page shows all related orders, payments, and session log timeline
+- ✅ Session start blocked when asset has an active booking (`asset_booked` error)
+- ✅ Session start requires open shift for cashiers (`requireOpenShift` middleware)
+
+### Room Bookings
+- ✅ Create bookings with asset, customer name, start/end time, and notes
+- ✅ Conflict detection — overlapping bookings on the same asset are rejected
+- ✅ Booking status computed at read-time: upcoming / active / completed / cancelled
+- ✅ Asset cards show booking badge (next booking time, "Reserved" indicator during active window)
+- ✅ Cashier/manager alert banner in layout — fires 30 min before any booking starts
+- ✅ Cancel bookings (MGMT)
+- ✅ Date-range filter on booking list (`?from=` / `?to=`)
 
 ### Orders & KDS
 - ✅ POS order creation with product catalog and cart
@@ -491,23 +548,27 @@ All pages use Arabic RTL UI. Auth is handled via JWT stored in `localStorage`. P
 - ✅ Manual verification flow for digital payments
 - ✅ Payments linked to sessions or standalone (POS)
 
-### Inventory
+### Inventory & Recipes
 - ✅ Stock items with units and minimum level thresholds
 - ✅ Manual stock movements (in / out / adjust)
-- ✅ Auto-deduction when order delivered (requires recipe_items to be configured)
+- ✅ Auto-deduction when order delivered (requires recipe items to be configured)
 - ✅ Low-stock alerts endpoint
+- ✅ Recipe management UI — define which inventory items each product consumes
 
 ### Shifts
-- ✅ Open shift with opening cash amount
-- ✅ Close shift with actual cash count
+- ✅ Open shift with opening cash amount (CASHIER_UP)
+- ✅ Close shift with actual cash count (CASHIER_UP — cashiers can close their own shifts)
 - ✅ Automatic difference calculation (actual vs expected)
+- ✅ Shift gate — cashiers blocked from starting sessions without an open shift
 - ✅ Full shift history
 
-### Admin
+### Admin & Reporting
 - ✅ User management with role assignment and deactivation
 - ✅ Tenant management for platform_owner
-- ✅ Audit log on key actions (login, order create, session end, payment verify)
+- ✅ Audit log on key actions (login, order create, session end, payment verify, shift open/close)
 - ✅ Asset QR code generation and revocation
+- ✅ Employee performance analytics page
+- ✅ Dashboard KPI tiles + revenue breakdown by category
 
 ---
 
@@ -517,23 +578,22 @@ All pages use Arabic RTL UI. Auth is handled via JWT stored in `localStorage`. P
 
 | Feature | Detail | Effort |
 |---------|--------|--------|
-| **RBAC tightening on products/categories** | `POST/PATCH /products` and `/product-categories` are only `requireAuth` — should restrict mutations to MGMT (owner/manager), cashiers should be read-only | Small |
+| **RBAC tightening on products** | `POST/PATCH /products` and `/product-categories` are only `requireAuth` — should restrict creates to MGMT; cashiers should be read-only | Small |
 | **Audit coverage gaps** | Many mutation endpoints (assets, inventory, users PATCH, payments record) don't write to `audit_logs`. Goal: every mutating action logged with old + new value snapshot | Medium |
-| **Refresh token usage in frontend** | `useRefreshToken` hook exists in the client but `AuthProvider` doesn't call it — expired tokens just log the user out instead of auto-refreshing silently | Small |
+| **Refresh token auto-use in frontend** | `useRefreshToken` hook exists but `AuthProvider` doesn't call it — expired tokens log the user out instead of auto-refreshing silently | Small |
 | **shift_cash_logs not used** | Table exists but no route records mid-shift cash in/out entries (e.g., cash drops, petty cash) | Small |
-| **session_logs not written** | Table exists in DB but `session_logs` are never inserted when session status changes | Small |
-| **Recipe management UI** | `recipes` and `recipe_items` tables exist and drive inventory deduction, but there is no UI page to view or edit recipes (what ingredients each product uses) | Medium |
 | **Product image upload** | Products have no image field — menu cards show text only | Medium |
 
-### Medium Priority — Reporting & Analytics
+### Medium Priority — Reporting & UX
 
 | Feature | Detail | Effort |
 |---------|--------|--------|
-| **Revenue charts on dashboard** | `/dashboard/revenue` endpoint exists but the dashboard page only shows KPI number tiles, no chart | Medium |
-| **Date-range revenue reports** | No way to filter/export revenue or orders by custom date range | Medium |
-| **Employee performance page** | `/dashboard/employee-performance` endpoint exists but no frontend page consumes it | Small |
-| **Shift cash log page** | No UI to record mid-shift cash movements or view `shift_cash_logs` | Small |
+| **Revenue charts on dashboard** | `/dashboard/revenue` and `/dashboard/breakdown` endpoints exist but the frontend dashboard page shows only KPI number tiles — no chart rendering yet | Medium |
+| **Date-range revenue reports** | No way to filter/export revenue or orders by custom date range from the UI | Medium |
+| **Shift cash log UI** | No UI to record mid-shift cash movements or view `shift_cash_logs` | Small |
 | **Payments by session summary** | Session detail shows payments but there's no aggregate "end of night" payment report | Medium |
+| **Booking alert window alignment** | Backend checks 30-min window; OpenAPI summary says 60 min; banner copy says "starting soon / within the hour" — pick one and align all three | Tiny |
+| **Booking status i18n** | `booking_status_active` translation key is missing; active bookings may render a fallback key | Tiny |
 
 ### Lower Priority — Operations & UX
 
@@ -547,14 +607,13 @@ All pages use Arabic RTL UI. Auth is handled via JWT stored in `localStorage`. P
 | **Pagination on list endpoints** | Inventory movements, audit logs, orders, payments all do in-memory slicing — needs SQL-level LIMIT/OFFSET for large tenants | Medium |
 | **Role-scoped dashboard** | Cashier and buffet_worker see the full owner dashboard — should show a simplified view relevant to their role | Medium |
 | **Password reset / forgot password** | No password reset flow exists | Medium |
-| **Two-factor / IP-pinning** | No 2FA support — relevant for owner/manager accounts | Large |
 | **Mobile-responsive layout** | Frontend is desktop-optimized; sidebar and tables are not fully mobile-friendly | Medium |
 
 ### Not Started — Future SaaS Features
 
 | Feature | Detail |
 |---------|--------|
-| **Subscription billing** | No Stripe/payment gateway integration for charging tenants |
+| **Subscription billing** | No payment gateway integration for charging tenants |
 | **Multi-branch under one owner** | Owner can only have one tenant (one branch) — no multi-branch hierarchy |
 | **Customer loyalty / membership** | No customer accounts, points, or membership tiers |
 | **Custom pricing tiers** | Pricing is flat per-hour; no peak/off-peak rates or package deals |
@@ -562,6 +621,7 @@ All pages use Arabic RTL UI. Auth is handled via JWT stored in `localStorage`. P
 | **Notifications** | No email/SMS/push notifications for low stock, session overruns, payment failures |
 | **Table/floor map** | No visual layout of assets (drag-and-drop floor plan) |
 | **API rate limiting** | No rate limiting on public endpoints (`/qr/...`) |
+| **Kiosk app features** | Expo kiosk app exists but feature parity with the web app is incomplete |
 
 ---
 
@@ -589,9 +649,12 @@ pnpm --filter @workspace/db run push
 # Seed demo data
 pnpm --filter @workspace/db run seed
 
-# Start API server (port 8080)
+# Start API server (port 8080) — compiles first, then runs
 pnpm --filter @workspace/api-server run dev
 
 # Start frontend (reads PORT env var)
 pnpm --filter @workspace/gaming-lounge run dev
+
+# Regenerate API hooks + Zod schemas after editing openapi.yaml
+pnpm --filter @workspace/api-spec run codegen
 ```
