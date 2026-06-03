@@ -161,13 +161,18 @@ router.get("/assets/:assetId/history", requireAuth, requireTenant, MGMT, async (
       };
     });
 
-    // Orders: collect those linked to this asset's sessions (by sessionId)
-    // PLUS direct orders (no session) for this asset within the date range.
+    // Orders for this asset within the date range (by createdAt).
+    // Includes:
+    //  - orders linked to a session of this asset (sessionId match) created in range
+    //  - direct orders (no session) for this asset created in range
+    // Both are bounded by createdAt between fromDate and toDate.
     const sessionLinkedOrders = sessionIds.length > 0
       ? await db.select().from(ordersTable)
           .where(and(
             eq(ordersTable.tenantId, tenantId),
             inArray(ordersTable.sessionId, sessionIds),
+            gte(ordersTable.createdAt, fromDate),
+            lte(ordersTable.createdAt, toDate),
           ))
           .orderBy(ordersTable.createdAt)
       : [];
@@ -182,7 +187,7 @@ router.get("/assets/:assetId/history", requireAuth, requireTenant, MGMT, async (
       ))
       .orderBy(ordersTable.createdAt);
 
-    // Merge and deduplicate by id, then sort chronologically
+    // Deduplicate by id and sort chronologically
     const orderMap = new Map<number, typeof ordersTable.$inferSelect>();
     for (const o of [...sessionLinkedOrders, ...directOrders]) orderMap.set(o.id, o);
     const orders = [...orderMap.values()].sort(
