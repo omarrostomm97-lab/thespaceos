@@ -10,6 +10,7 @@ import { getProductEmoji } from "@/lib/product-emoji";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, X, Banknote, CreditCard, Smartphone, Gamepad2, Check, Receipt } from "lucide-react";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShiftGate } from "@/components/shift-gate";
@@ -30,6 +31,7 @@ const PAYMENT_METHODS: { id: PaymentMethod; label: string; sublabel: string; ico
 
 export default function Pos() {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderMode, setOrderMode] = useState<OrderMode>("direct");
@@ -99,7 +101,9 @@ export default function Pos() {
       queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() });
     } catch (err: any) {
       if (err?.response?.data?.error === "no_open_shift") {
-        toast.error("افتح وردية أولاً");
+        toast.error("افتح وردية أولاً", {
+          action: { label: "فتح الوردية", onClick: () => setLocation("/shifts") },
+        });
       } else {
         toast.error("حدث خطأ أثناء تأكيد الطلب");
       }
@@ -123,7 +127,9 @@ export default function Pos() {
       queryClient.invalidateQueries({ queryKey: getListActiveSessionsQueryKey() });
     } catch (err: any) {
       if (err?.response?.data?.error === "no_open_shift") {
-        toast.error("افتح وردية أولاً");
+        toast.error("افتح وردية أولاً", {
+          action: { label: "فتح الوردية", onClick: () => setLocation("/shifts") },
+        });
       } else {
         toast.error("حدث خطأ أثناء إرسال الطلب للغرفة");
       }

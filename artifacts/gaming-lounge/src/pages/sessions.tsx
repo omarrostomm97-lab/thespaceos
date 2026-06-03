@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Gamepad2, Clock, Pause, Play, SquareSquare, Receipt, Banknote, CreditCard, Smartphone, AlertTriangle, ShoppingBag } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ShiftGate } from "@/components/shift-gate";
 import { useLang } from "@/hooks/use-language";
 
@@ -41,6 +41,7 @@ interface CheckoutState {
 export default function Sessions() {
   const { t, dir } = useLang();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
 
   const { data: sessions, isLoading } = useListActiveSessions({
     query: { queryKey: getListActiveSessionsQueryKey(), refetchInterval: 8000 }
@@ -116,7 +117,13 @@ export default function Sessions() {
       queryClient.invalidateQueries({ queryKey: getListActiveSessionsQueryKey() });
       queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey() });
     } catch (err: any) {
-      toast.error(err?.response?.data?.error || err?.message || t("error_generic"));
+      if (err?.response?.data?.error === "no_open_shift") {
+        toast.error(t("no_open_shift_toast"), {
+          action: { label: t("shift_gate_open_btn"), onClick: () => setLocation("/shifts") },
+        });
+      } else {
+        toast.error(err?.response?.data?.error || err?.message || t("error_generic"));
+      }
     } finally {
       setIsProcessing(false);
     }

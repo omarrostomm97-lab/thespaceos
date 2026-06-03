@@ -9,7 +9,7 @@ const router = Router();
 
 const CASHIER_UP = requireRole("platform_owner", "owner", "manager", "cashier");
 const MGMT = requireRole("platform_owner", "owner", "manager");
-const CAN_START_SESSION = requireRole("platform_owner", "manager", "cashier");
+const CAN_START_SESSION = requireRole("manager", "cashier");
 
 async function writeSessionLog(params: {
   tenantId: number;
