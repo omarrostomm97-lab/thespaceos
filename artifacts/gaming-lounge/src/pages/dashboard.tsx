@@ -994,7 +994,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-2 gap-2.5">
             {[
               { href:"/pos",    Icon:Monitor,      label: lang==="ar"?"نقطة البيع":"POS",     cls:"bg-primary/10 border-primary/25 text-primary hover:bg-primary/15" },
-              { href:"/assets", Icon:Gamepad2,     label: lang==="ar"?"الأجهزة":"Devices",   cls:"bg-secondary border-border hover:bg-secondary/70" },
+              { href:"/assets", Icon:Gamepad2,     label: lang==="ar"?"الغرف":"Rooms",   cls:"bg-secondary border-border hover:bg-secondary/70" },
               { href:"/kds",    Icon:ChefHat,      label: lang==="ar"?"المطبخ":"Kitchen",    cls:"bg-secondary border-border hover:bg-secondary/70" },
               { href:"/orders", Icon:ShoppingCart, label: lang==="ar"?"الطلبات":"Orders",    cls:"bg-secondary border-border hover:bg-secondary/70" },
             ].map(({ href, Icon, label, cls }) => (
