@@ -48,9 +48,8 @@ export interface User {
 
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   user: User;
-  /** @nullable */
-  refreshToken?: string | null;
 }
 
 export type TenantLanguage = typeof TenantLanguage[keyof typeof TenantLanguage];
@@ -397,21 +396,6 @@ export interface Payment {
   createdAt: string;
 }
 
-export interface SessionLog {
-  id: number;
-  action: string;
-  /** @nullable */
-  previousStatus?: string | null;
-  /** @nullable */
-  newStatus?: string | null;
-  /** @nullable */
-  note?: string | null;
-  performedByUserId: number;
-  /** @nullable */
-  performedByName?: string | null;
-  createdAt: string;
-}
-
 export interface SessionDetail {
   id: number;
   assetId: number;
@@ -436,7 +420,6 @@ export interface SessionDetail {
   cancelReason?: string | null;
   orders: Order[];
   payments?: Payment[];
-  sessionLogs?: SessionLog[];
 }
 
 export interface SessionInput {
@@ -523,7 +506,6 @@ export interface OrderInput {
   assetId?: number;
   items: OrderItemInput[];
   customerName?: string;
-  paymentMethod?: PaymentInputMethod;
 }
 
 export type OrderStatusUpdateStatus = typeof OrderStatusUpdateStatus[keyof typeof OrderStatusUpdateStatus];
@@ -601,6 +583,44 @@ export interface ShiftInput {
 export interface ShiftCloseInput {
   actualCash: number;
   differenceExplanation?: string;
+}
+
+export type BookingStatus = typeof BookingStatus[keyof typeof BookingStatus];
+
+
+export const BookingStatus = {
+  upcoming: 'upcoming',
+  active: 'active',
+  cancelled: 'cancelled',
+  completed: 'completed',
+} as const;
+
+export interface Booking {
+  id: number;
+  assetId: number;
+  /** @nullable */
+  assetName?: string | null;
+  /** @nullable */
+  assetNameAr?: string | null;
+  bookedByUserId: number;
+  /** @nullable */
+  bookedByName?: string | null;
+  /** @nullable */
+  customerName?: string | null;
+  startsAt: string;
+  endsAt: string;
+  status: BookingStatus;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface BookingInput {
+  assetId: number;
+  customerName?: string;
+  startsAt: string;
+  endsAt: string;
+  notes?: string;
 }
 
 export interface InventoryItem {
@@ -695,19 +715,21 @@ export type RevenueStatsPaymentMethodBreakdown = {
   visa?: number;
 };
 
-export interface RevenueStatsDailyBreakdownItem {
-  date: string;
-  total: number;
-}
-
 export interface RevenueStats {
   total: number;
   sessionRevenue: number;
   orderRevenue: number;
   period: string;
   paymentMethodBreakdown?: RevenueStatsPaymentMethodBreakdown;
-  /** Daily revenue series, one entry per day for the requested period */
-  dailyBreakdown?: RevenueStatsDailyBreakdownItem[];
+}
+
+export interface EmployeePerformance {
+  userId: number;
+  userName: string;
+  role?: string;
+  ordersHandled: number;
+  sessionsStarted: number;
+  revenue?: number;
 }
 
 export interface ProductWithRecipe {
@@ -743,15 +765,6 @@ export interface RecipeInput {
   items: RecipeItemInput[];
 }
 
-export interface EmployeePerformance {
-  userId: number;
-  userName: string;
-  role?: string;
-  ordersHandled: number;
-  sessionsStarted: number;
-  revenue?: number;
-}
-
 export interface AuditLog {
   id: number;
   /** @nullable */
@@ -777,6 +790,10 @@ export interface AuditLogList {
   page: number;
   limit: number;
 }
+
+export type RefreshTokenBody = {
+  refreshToken: string;
+};
 
 export type ListSessionsParams = {
 status?: ListSessionsStatus;
@@ -873,43 +890,7 @@ page?: number;
 limit?: number;
 };
 
-export interface DashboardBreakdownGamingType {
-  type: string;
-  typeAr: string;
-  total: number;
-  sessions: number;
-}
-
-export interface DashboardBreakdownBuffetProduct {
-  productId: number;
-  name: string;
-  nameAr?: string | null;
-  quantity: number;
-  total: number;
-}
-
-export interface DashboardBreakdownBuffetCategory {
-  categoryId: number | null;
-  categoryName: string;
-  categoryNameAr?: string | null;
-  total: number;
-  products: DashboardBreakdownBuffetProduct[];
-}
-
-export interface DashboardBreakdown {
-  period: string;
-  gaming: {
-    total: number;
-    byType: DashboardBreakdownGamingType[];
-  };
-  buffet: {
-    total: number;
-    byCategory: DashboardBreakdownBuffetCategory[];
-  };
-  grandTotal: number;
-}
-
-export type GetDashboardBreakdownParams = {
-  period?: 'today' | 'week' | 'month';
+export type ListBookingsParams = {
+status?: string;
 };
 

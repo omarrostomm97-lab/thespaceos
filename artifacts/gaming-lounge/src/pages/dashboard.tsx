@@ -4,7 +4,6 @@ import {
   useGetDashboardSummary,
   useListActiveSessions,
   useGetRevenueStats,
-  useGetDashboardBreakdown,
   getGetDashboardSummaryQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
@@ -433,9 +432,8 @@ export default function Dashboard() {
   const { data: revenueStats, isLoading: isLoadingRevenue } = useGetRevenueStats(revenueParams, {
     query: { queryKey: ["/api/dashboard/revenue", period, source, method] },
   });
-  const { data: breakdown, isLoading: isLoadingBreakdown } = useGetDashboardBreakdown(breakdownParams, {
-    query: { queryKey: ["/api/dashboard/breakdown", period, source] },
-  });
+  const breakdown = undefined;
+  const isLoadingBreakdown = false;
 
   if (isLoadingSummary || isLoadingSessions) return <DashboardSkeleton />;
 

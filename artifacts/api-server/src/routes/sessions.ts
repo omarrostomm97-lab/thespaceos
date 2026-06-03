@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { sessionsTable, sessionLogsTable, assetsTable, usersTable, paymentsTable, ordersTable, orderItemsTable, productsTable } from "@workspace/db";
-import { eq, and, inArray } from "drizzle-orm";
+import { sessionsTable, sessionLogsTable, assetsTable, usersTable, paymentsTable, ordersTable, orderItemsTable, productsTable, bookingsTable } from "@workspace/db";
+import { eq, and, inArray, lte, gt } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole, requireOpenShift } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -193,6 +193,23 @@ router.post("/sessions", requireAuth, requireTenant, CAN_START_SESSION, requireO
       .limit(1);
     if (!asset) { res.status(404).json({ error: "Asset not found" }); return; }
     if (asset.status === "busy") { res.status(400).json({ error: "Asset is busy" }); return; }
+
+    const now = new Date();
+    const [activeBooking] = await db
+      .select({ id: bookingsTable.id, endsAt: bookingsTable.endsAt })
+      .from(bookingsTable)
+      .where(and(
+        eq(bookingsTable.assetId, assetId),
+        eq(bookingsTable.tenantId, req.user!.tenantId!),
+        eq(bookingsTable.status, "upcoming"),
+        lte(bookingsTable.startsAt, now),
+        gt(bookingsTable.endsAt, now),
+      ))
+      .limit(1);
+    if (activeBooking) {
+      res.status(409).json({ error: "asset_booked", endsAt: activeBooking.endsAt });
+      return;
+    }
 
     const [session] = await db.insert(sessionsTable).values({
       tenantId: req.user!.tenantId!,

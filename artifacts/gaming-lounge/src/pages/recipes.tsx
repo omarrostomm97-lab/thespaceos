@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getProductsWithRecipes,
-  getGetProductsWithRecipesQueryKey,
+  listProductsWithRecipes,
+  getListProductsWithRecipesQueryKey,
   getProductRecipe,
   getGetProductRecipeQueryKey,
   updateProductRecipe,
@@ -25,8 +25,8 @@ export default function Recipes() {
   const [isDirty, setIsDirty] = useState(false);
 
   const { data: products, isLoading: isLoadingProducts } = useQuery({
-    queryKey: getGetProductsWithRecipesQueryKey(),
-    queryFn: () => getProductsWithRecipes(),
+    queryKey: getListProductsWithRecipesQueryKey(),
+    queryFn: () => listProductsWithRecipes(),
   });
 
   const { data: recipeItems, isLoading: isLoadingRecipe } = useQuery({
@@ -58,7 +58,7 @@ export default function Recipes() {
           .filter(i => i.quantityUsed > 0),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: getGetProductsWithRecipesQueryKey() });
+      queryClient.invalidateQueries({ queryKey: getListProductsWithRecipesQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetProductRecipeQueryKey(selectedProductId ?? 0) });
       setIsDirty(false);
       toast.success("تم حفظ الوصفة بنجاح");

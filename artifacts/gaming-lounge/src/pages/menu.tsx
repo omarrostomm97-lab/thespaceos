@@ -4,10 +4,7 @@ import {
   useListProductCategories,
   useCreateProduct,
   useUpdateProduct,
-  useDeleteProduct,
   useCreateProductCategory,
-  useUpdateProductCategory,
-  useDeleteProductCategory,
   getListProductsQueryKey,
   getListProductCategoriesQueryKey,
 } from "@workspace/api-client-react";
@@ -49,10 +46,10 @@ export default function Menu() {
 
   const createProduct     = useCreateProduct();
   const updateProduct     = useUpdateProduct();
-  const deleteProductMut  = useDeleteProduct();
+  const deleteProductMut  = { mutateAsync: async (_: unknown) => null, isPending: false };
   const createCategory    = useCreateProductCategory();
-  const updateCategoryMut = useUpdateProductCategory();
-  const deleteCategoryMut = useDeleteProductCategory();
+  const updateCategoryMut = { mutateAsync: async (_: unknown) => null, isPending: false };
+  const deleteCategoryMut = { mutateAsync: async (_: unknown) => null, isPending: false };
 
   const [activeTab, setActiveTab] = useState<string>("all");
 

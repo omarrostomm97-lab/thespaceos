@@ -5,10 +5,8 @@
  * Gaming Lounge OS API
  * OpenAPI spec version: 0.1.0
  */
-import type { User } from './user';
+import type { RecipeItemInput } from './recipeItemInput';
 
-export interface AuthResponse {
-  token: string;
-  refreshToken?: string;
-  user: User;
+export interface RecipeInput {
+  items: RecipeItemInput[];
 }

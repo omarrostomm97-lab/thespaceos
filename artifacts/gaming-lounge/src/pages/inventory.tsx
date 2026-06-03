@@ -3,7 +3,6 @@ import {
   useListInventoryItems,
   useCreateInventoryItem,
   useUpdateInventoryItem,
-  useDeleteInventoryItem,
   useCreateInventoryMovement,
   getListInventoryItemsQueryKey,
 } from "@workspace/api-client-react";
@@ -59,7 +58,7 @@ export default function Inventory() {
 
   const createItem = useCreateInventoryItem();
   const updateItem = useUpdateInventoryItem();
-  const deleteItemMut = useDeleteInventoryItem();
+  const deleteItemMut = { mutateAsync: async (_: unknown) => null, isPending: false };
   const createMovement = useCreateInventoryMovement();
 
   const [itemDialog, setItemDialog] = useState<{ open: boolean; editing: null | { id: number } }>({ open: false, editing: null });

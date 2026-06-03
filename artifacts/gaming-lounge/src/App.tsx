@@ -31,6 +31,7 @@ import AdminTenants from "@/pages/admin/tenants";
 import AdminUsers from "@/pages/admin/users";
 import Performance from "@/pages/performance";
 import Recipes from "@/pages/recipes";
+import Bookings from "@/pages/bookings";
 import { UserRole, ROUTE_ALLOWED_ROLES, defaultRedirect } from "@/lib/permissions";
 
 const queryClient = new QueryClient();
@@ -113,6 +114,9 @@ function Router() {
       </Route>
       <Route path="/recipes">
         <ProtectedPage path="/recipes"><Recipes /></ProtectedPage>
+      </Route>
+      <Route path="/bookings">
+        <ProtectedPage path="/bookings"><Bookings /></ProtectedPage>
       </Route>
       <Route path="/performance">
         <ProtectedPage path="/performance"><Performance /></ProtectedPage>

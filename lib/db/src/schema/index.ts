@@ -14,3 +14,4 @@ export * from "./shift_cash_logs";
 export * from "./inventory";
 export * from "./recipes";
 export * from "./audit_logs";
+export * from "./bookings";

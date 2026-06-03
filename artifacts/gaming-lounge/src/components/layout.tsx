@@ -7,7 +7,9 @@ import {
   LayoutDashboard, Monitor, Gamepad2, ShoppingCart, UtensilsCrossed,
   Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut,
   TrendingUp, BookOpen, ChefHat, HelpCircle, Sun, Moon, Languages, Menu, X,
+  CalendarCheck, Bell,
 } from "lucide-react";
+import { useBookingAlerts } from "@/hooks/use-booking-alerts";
 import { ROUTE_ALLOWED_ROLES, UserRole } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n";
@@ -32,6 +34,7 @@ const navigation: NavItem[] = [
   { nameKey: "nav_shifts",      href: "/shifts",      icon: Clock,           routeKey: "/shifts" },
   { nameKey: "nav_payments",    href: "/payments",    icon: ReceiptText,     routeKey: "/payments" },
   { nameKey: "nav_recipes",     href: "/recipes",     icon: BookOpen,        routeKey: "/recipes" },
+  { nameKey: "nav_bookings",    href: "/bookings",    icon: CalendarCheck,   routeKey: "/bookings" },
   { nameKey: "nav_performance", href: "/performance", icon: TrendingUp,      routeKey: "/performance" },
   { nameKey: "nav_users",       href: "/users",       icon: Users,           routeKey: "/users" },
   { nameKey: "nav_audit",       href: "/audit",       icon: ShieldAlert,     routeKey: "/audit" },
@@ -48,12 +51,16 @@ const ROLE_KEY_MAP: Record<string, TranslationKey> = {
 
 interface LayoutProps { children: React.ReactNode }
 
+const fmtHHMM = (dt: string | Date) =>
+  new Date(dt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false });
+
 export function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();
   const [location] = useLocation();
   const { t, lang, toggleLang, dir } = useLang();
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { alerts, dismiss } = useBookingAlerts();
 
   useEffect(() => { setSidebarOpen(false); }, [location]);
 
@@ -387,6 +394,44 @@ export function Layout({ children }: LayoutProps) {
           {/* spacer matching hamburger width */}
           <div className="w-9" />
         </div>
+
+        {/* ── Booking alerts banner (cashier / manager) ── */}
+        {alerts.length > 0 && role && ["cashier", "manager"].includes(role) && (
+          <div className="shrink-0 space-y-1.5 px-4 pt-3">
+            {alerts.map(b => (
+              <div
+                key={b.id}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                style={{
+                  background: "rgba(245,165,36,0.1)",
+                  border: "1px solid rgba(245,165,36,0.25)",
+                }}
+              >
+                <Bell className="h-4 w-4 shrink-0" style={{ color: "#f5a524" }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold" style={{ color: "#f5a524" }}>
+                    {t("booking_alert_title")}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {lang === "ar"
+                      ? (b.assetNameAr || b.assetName || "")
+                      : (b.assetName || b.assetNameAr || "")}
+                    {" — "}
+                    {fmtHHMM(b.startsAt)}
+                  </p>
+                </div>
+                <button
+                  onClick={() => dismiss(b.id)}
+                  className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-opacity hover:opacity-70"
+                  style={{ color: "#f5a524" }}
+                  aria-label="Dismiss"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto">{children}</div>
       </main>

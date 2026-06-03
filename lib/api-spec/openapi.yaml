@@ -38,6 +38,8 @@ tags:
     description: QR ordering
   - name: recipes
     description: Recipe management
+  - name: bookings
+    description: Room bookings and reservations
 
 paths:
   /healthz:
@@ -1311,6 +1313,91 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  # ── BOOKINGS ──────────────────────────────────────────
+  /bookings:
+    get:
+      operationId: listBookings
+      tags: [bookings]
+      summary: List bookings for tenant
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bookings list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+    post:
+      operationId: createBooking
+      tags: [bookings]
+      summary: Create a new booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookingInput"
+      responses:
+        "201":
+          description: Booking created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "409":
+          description: Booking conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bookings/upcoming-soon:
+    get:
+      operationId: getUpcomingSoonBookings
+      tags: [bookings]
+      summary: Bookings starting within the next 60 minutes
+      responses:
+        "200":
+          description: Upcoming soon bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Booking"
+
+  /bookings/{bookingId}/cancel:
+    post:
+      operationId: cancelBooking
+      tags: [bookings]
+      summary: Cancel a booking
+      parameters:
+        - name: bookingId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Booking cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Booking"
+        "404":
+          description: Booking not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -1982,6 +2069,57 @@ components:
         actualCash:
           type: number
         differenceExplanation:
+          type: string
+
+    # ── BOOKING SCHEMAS ──
+    Booking:
+      type: object
+      required: [id, assetId, bookedByUserId, startsAt, endsAt, status, createdAt]
+      properties:
+        id:
+          type: integer
+        assetId:
+          type: integer
+        assetName:
+          type: ["string", "null"]
+        assetNameAr:
+          type: ["string", "null"]
+        bookedByUserId:
+          type: integer
+        bookedByName:
+          type: ["string", "null"]
+        customerName:
+          type: ["string", "null"]
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [upcoming, active, cancelled, completed]
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+
+    BookingInput:
+      type: object
+      required: [assetId, startsAt, endsAt]
+      properties:
+        assetId:
+          type: integer
+        customerName:
+          type: string
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+        notes:
           type: string
 
     # ── INVENTORY SCHEMAS ──

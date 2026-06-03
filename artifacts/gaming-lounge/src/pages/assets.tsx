@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   useListAssets,
+  useListBookings,
   useStartSession,
   useCreateAsset,
   useUpdateAsset,
@@ -9,7 +10,7 @@ import {
   getListAssetsQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
-import type { Asset } from "@workspace/api-client-react";
+import type { Asset, Booking } from "@workspace/api-client-react";
 import { useLang } from "@/hooks/use-language";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Gamepad2, Tv, Trophy, Play, Plus, Pencil, Wind, Target,
-  QrCode, Printer, RefreshCw, Zap, History,
+  QrCode, Printer, RefreshCw, Zap, History, CalendarX,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -65,10 +66,22 @@ interface AssetCardProps {
   starting: boolean;
   t: (key: TranslationKey) => string;
   lang: string;
+  nextBooking?: Booking | null;
 }
 
-function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t, lang }: AssetCardProps) {
+function fmtHHMM(dt: string | Date) {
+  return new Date(dt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+
+function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t, lang, nextBooking }: AssetCardProps) {
   const isAvailable = asset.status === "available";
+  const now = new Date();
+  const isCurrentlyBooked =
+    !!nextBooking &&
+    new Date(nextBooking.startsAt) <= now &&
+    new Date(nextBooking.endsAt) > now;
+  const hasUpcomingBooking =
+    !!nextBooking && !isCurrentlyBooked && new Date(nextBooking.startsAt) > now;
 
   const glowColor  = isAvailable ? "rgba(0, 111, 238, 0.25)" : "rgba(245, 165, 36, 0.25)";
   const accentColor = isAvailable ? "#006FEE" : "#f5a524";
@@ -147,6 +160,26 @@ function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t
               {isAvailable ? t("status_available") : t("status_busy")}
             </div>
 
+            {/* Booking chip */}
+            {isCurrentlyBooked && (
+              <div
+                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold"
+                style={{ background: "rgba(243,18,96,0.1)", border: "1px solid rgba(243,18,96,0.2)", color: "#f31260" }}
+              >
+                <CalendarX className="h-2.5 w-2.5" />
+                {t("booking_reserved_until")} {fmtHHMM(nextBooking!.endsAt)}
+              </div>
+            )}
+            {hasUpcomingBooking && (
+              <div
+                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold"
+                style={{ background: "rgba(245,165,36,0.1)", border: "1px solid rgba(245,165,36,0.2)", color: "#f5a524" }}
+              >
+                <CalendarX className="h-2.5 w-2.5" />
+                {fmtHHMM(nextBooking!.startsAt)}
+              </div>
+            )}
+
             {/* Icon buttons */}
             <div className="flex items-center gap-1">
               <button
@@ -198,7 +231,15 @@ function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t
         </div>
 
         {/* CTA button */}
-        {isAvailable && canStart ? (
+        {isAvailable && isCurrentlyBooked ? (
+          <div
+            className="w-full h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+            style={{ background: "rgba(243,18,96,0.08)", border: "1px solid rgba(243,18,96,0.18)", color: "#f31260" }}
+          >
+            <CalendarX className="h-4 w-4" />
+            {t("booking_reserved_until")} {fmtHHMM(nextBooking!.endsAt)}
+          </div>
+        ) : isAvailable && canStart ? (
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
@@ -266,6 +307,19 @@ export default function Assets() {
   const canStart = !["owner", "platform_owner"].includes(user?.role ?? "");
 
   const { data: assets, isLoading } = useListAssets();
+  const { data: upcomingBookings = [] } = useListBookings({ status: "upcoming" });
+
+  const bookingByAsset = useMemo(() => {
+    const map = new Map<number, Booking>();
+    for (const b of upcomingBookings) {
+      const existing = map.get(b.assetId);
+      if (!existing || new Date(b.startsAt) < new Date(existing.startsAt)) {
+        map.set(b.assetId, b);
+      }
+    }
+    return map;
+  }, [upcomingBookings]);
+
   const startSession = useStartSession();
   const createAsset  = useCreateAsset();
   const updateAsset  = useUpdateAsset();
@@ -486,6 +540,7 @@ export default function Assets() {
                   starting={startSession.isPending}
                   t={t}
                   lang={lang}
+                  nextBooking={bookingByAsset.get(asset.id) ?? null}
                 />
               </motion.div>
             ))}

@@ -26,6 +26,7 @@ export const ROUTE_ALLOWED_ROLES: Record<string, UserRole[]> = {
   "/shifts":      ALL_STAFF,
   "/payments":    ALL_STAFF,
   "/recipes":     ALL_MGMT,
+  "/bookings":    ALL_MGMT,
   "/performance": ALL_MGMT,
   "/users":       ALL_MGMT,
   "/audit":       ALL_MGMT,

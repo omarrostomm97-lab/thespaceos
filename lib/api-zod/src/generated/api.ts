@@ -26,6 +26,7 @@ export const LoginBody = zod.object({
 
 export const LoginResponse = zod.object({
   "token": zod.string(),
+  "refreshToken": zod.string().optional(),
   "user": zod.object({
   "id": zod.number(),
   "email": zod.string(),
@@ -59,6 +60,29 @@ export const GetMeResponse = zod.object({
   "tenantId": zod.number().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Refresh access token using refresh token
+ */
+export const RefreshTokenBody = zod.object({
+  "refreshToken": zod.string()
+})
+
+export const RefreshTokenResponse = zod.object({
+  "token": zod.string(),
+  "refreshToken": zod.string().optional(),
+  "user": zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
+  "tenantId": zod.number().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
 })
 
 
@@ -1298,6 +1322,144 @@ export const ListAuditLogsResponse = zod.object({
   "total": zod.number(),
   "page": zod.number(),
   "limit": zod.number()
+})
+
+
+/**
+ * @summary List products with recipe status
+ */
+export const ListProductsWithRecipesResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "categoryId": zod.number().nullish(),
+  "price": zod.number(),
+  "isAvailable": zod.boolean().optional(),
+  "hasRecipe": zod.boolean(),
+  "recipeItemCount": zod.number()
+})
+export const ListProductsWithRecipesResponse = zod.array(ListProductsWithRecipesResponseItem)
+
+
+/**
+ * @summary Get recipe items for a product
+ */
+export const GetProductRecipeParams = zod.object({
+  "productId": zod.coerce.number()
+})
+
+export const GetProductRecipeResponseItem = zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "inventoryItemId": zod.number(),
+  "inventoryItemName": zod.string().nullish(),
+  "inventoryItemUnit": zod.string().nullish(),
+  "quantityUsed": zod.number()
+})
+export const GetProductRecipeResponse = zod.array(GetProductRecipeResponseItem)
+
+
+/**
+ * @summary Replace all recipe items for a product (MGMT only)
+ */
+export const UpdateProductRecipeParams = zod.object({
+  "productId": zod.coerce.number()
+})
+
+export const UpdateProductRecipeBody = zod.object({
+  "items": zod.array(zod.object({
+  "inventoryItemId": zod.number(),
+  "quantityUsed": zod.number()
+}))
+})
+
+export const UpdateProductRecipeResponseItem = zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "inventoryItemId": zod.number(),
+  "inventoryItemName": zod.string().nullish(),
+  "inventoryItemUnit": zod.string().nullish(),
+  "quantityUsed": zod.number()
+})
+export const UpdateProductRecipeResponse = zod.array(UpdateProductRecipeResponseItem)
+
+
+/**
+ * @summary List bookings for tenant
+ */
+export const ListBookingsQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
+})
+
+export const ListBookingsResponseItem = zod.object({
+  "id": zod.number(),
+  "assetId": zod.number(),
+  "assetName": zod.string().nullish(),
+  "assetNameAr": zod.string().nullish(),
+  "bookedByUserId": zod.number(),
+  "bookedByName": zod.string().nullish(),
+  "customerName": zod.string().nullish(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "status": zod.enum(['upcoming', 'active', 'cancelled', 'completed']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const ListBookingsResponse = zod.array(ListBookingsResponseItem)
+
+
+/**
+ * @summary Create a new booking
+ */
+export const CreateBookingBody = zod.object({
+  "assetId": zod.number(),
+  "customerName": zod.string().optional(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Bookings starting within the next 60 minutes
+ */
+export const GetUpcomingSoonBookingsResponseItem = zod.object({
+  "id": zod.number(),
+  "assetId": zod.number(),
+  "assetName": zod.string().nullish(),
+  "assetNameAr": zod.string().nullish(),
+  "bookedByUserId": zod.number(),
+  "bookedByName": zod.string().nullish(),
+  "customerName": zod.string().nullish(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "status": zod.enum(['upcoming', 'active', 'cancelled', 'completed']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const GetUpcomingSoonBookingsResponse = zod.array(GetUpcomingSoonBookingsResponseItem)
+
+
+/**
+ * @summary Cancel a booking
+ */
+export const CancelBookingParams = zod.object({
+  "bookingId": zod.coerce.number()
+})
+
+export const CancelBookingResponse = zod.object({
+  "id": zod.number(),
+  "assetId": zod.number(),
+  "assetName": zod.string().nullish(),
+  "assetNameAr": zod.string().nullish(),
+  "bookedByUserId": zod.number(),
+  "bookedByName": zod.string().nullish(),
+  "customerName": zod.string().nullish(),
+  "startsAt": zod.coerce.date(),
+  "endsAt": zod.coerce.date(),
+  "status": zod.enum(['upcoming', 'active', 'cancelled', 'completed']),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
 })
 
 
