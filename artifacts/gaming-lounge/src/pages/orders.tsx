@@ -2,7 +2,7 @@ import { useListOrders, getListOrdersQueryKey, useUpdateOrderStatus } from "@wor
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Check, Clock } from "lucide-react";
+import { ShoppingCart, Check, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -77,8 +77,12 @@ export default function Orders() {
               <CardContent className="p-0">
                 <div className="flex flex-col md:flex-row">
                   <div className="bg-secondary/30 p-6 flex flex-col justify-center items-center md:w-48 border-e border-border/50">
+                    <div className="text-sm text-muted-foreground mb-1 flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {format(new Date(order.createdAt), "dd/MM/yyyy")}
+                    </div>
                     <div className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
+                      <Clock className="h-3.5 w-3.5" />
                       {format(new Date(order.createdAt), "HH:mm")}
                     </div>
                     <div className="font-bold text-xl mb-3 text-center">

@@ -42,7 +42,21 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
       .limit(1);
     if (!shift) { res.json(null); return; }
     const [user] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, shift.userId)).limit(1);
-    res.json(fmtShift(shift, user?.name));
+    // Compute live expected cash: opening cash + ALL verified cash payments from every service
+    // (sessions/gaming, buffet orders, babyfoot, etc.) since the shift opened
+    const cashPayments = await db.select({ amount: paymentsTable.amount })
+      .from(paymentsTable)
+      .where(and(
+        eq(paymentsTable.tenantId, req.user!.tenantId!),
+        eq(paymentsTable.method, "cash"),
+        eq(paymentsTable.status, "verified"),
+        gte(paymentsTable.createdAt, shift.openedAt)
+      ));
+    const cashTotal = cashPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
+    const liveExpectedCash = parseFloat(shift.openingCash as string) + cashTotal;
+    const formatted = fmtShift(shift, user?.name);
+    formatted.expectedCash = liveExpectedCash;
+    res.json(formatted);
   } catch {
     res.status(500).json({ error: "Failed to get current shift" });
   }

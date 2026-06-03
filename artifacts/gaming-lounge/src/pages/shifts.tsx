@@ -10,7 +10,9 @@ import { format } from "date-fns";
 
 export default function Shifts() {
   const queryClient = useQueryClient();
-  const { data: currentShift, isLoading: isLoadingCurrent, isError: isCurrentShiftError } = useGetCurrentShift();
+  const { data: currentShift, isLoading: isLoadingCurrent, isError: isCurrentShiftError } = useGetCurrentShift(undefined, {
+    query: { queryKey: getGetCurrentShiftQueryKey(), refetchInterval: 15000 }
+  });
   const { data: shifts, isLoading: isLoadingList } = useListShifts();
   
   const openShift = useOpenShift();
@@ -115,9 +117,18 @@ export default function Shifts() {
                     <span className="text-muted-foreground">النقدية الافتتاحية</span>
                     <span className="font-mono">{currentShift.openingCash.toFixed(2)} ج.م</span>
                   </div>
+                  <div className="flex justify-between items-center text-sm pt-2 border-t border-primary/20">
+                    <span className="text-muted-foreground">إجمالي النقدية (كل الخدمات)</span>
+                    <span className="font-mono text-primary">
+                      {((currentShift.expectedCash ?? 0) - currentShift.openingCash).toFixed(2)} ج.م
+                    </span>
+                  </div>
                   <div className="flex justify-between items-center text-lg font-bold pt-2 border-t border-primary/20">
-                    <span className="text-primary">النقدية المتوقعة بالدرج</span>
-                    <span className="font-mono text-emerald-500">{currentShift.expectedCash?.toFixed(2) || "0.00"} ج.م</span>
+                    <div>
+                      <span className="text-primary">النقدية المتوقعة بالدرج</span>
+                      <p className="text-xs font-normal text-muted-foreground mt-0.5">افتتاحية + جلسات + بوفيه + كل الخدمات</p>
+                    </div>
+                    <span className="font-mono text-emerald-500">{(currentShift.expectedCash ?? 0).toFixed(2)} ج.م</span>
                   </div>
                 </div>
 
