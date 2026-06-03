@@ -30,12 +30,12 @@ async function enrichBooking(
   const [asset] = await db
     .select({ name: assetsTable.name, nameAr: assetsTable.nameAr })
     .from(assetsTable)
-    .where(eq(assetsTable.id, b.assetId))
+    .where(and(eq(assetsTable.id, b.assetId), eq(assetsTable.tenantId, b.tenantId)))
     .limit(1);
   const [user] = await db
     .select({ name: usersTable.name })
     .from(usersTable)
-    .where(eq(usersTable.id, b.bookedByUserId))
+    .where(and(eq(usersTable.id, b.bookedByUserId), eq(usersTable.tenantId, b.tenantId)))
     .limit(1);
   return {
     id: b.id,
@@ -95,6 +95,16 @@ router.post("/bookings", requireAuth, requireTenant, MGMT, async (req, res) => {
       return;
     }
 
+    const [ownedAsset] = await db
+      .select({ id: assetsTable.id })
+      .from(assetsTable)
+      .where(and(eq(assetsTable.id, assetId), eq(assetsTable.tenantId, req.user!.tenantId!)))
+      .limit(1);
+    if (!ownedAsset) {
+      res.status(404).json({ error: "Asset not found" });
+      return;
+    }
+
     const [conflict] = await db
       .select({ id: bookingsTable.id })
       .from(bookingsTable)
@@ -140,7 +150,7 @@ router.post("/bookings", requireAuth, requireTenant, MGMT, async (req, res) => {
 router.get("/bookings/upcoming-soon", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const now     = new Date();
-    const in60min = new Date(now.getTime() + 60 * 60 * 1000);
+    const in30min = new Date(now.getTime() + 30 * 60 * 1000);
 
     const rows = await db
       .select()
@@ -149,7 +159,7 @@ router.get("/bookings/upcoming-soon", requireAuth, requireTenant, CASHIER_UP, as
         eq(bookingsTable.tenantId, req.user!.tenantId!),
         eq(bookingsTable.status, "upcoming"),
         gte(bookingsTable.startsAt, now),
-        lte(bookingsTable.startsAt, in60min),
+        lte(bookingsTable.startsAt, in30min),
       ))
       .orderBy(bookingsTable.startsAt);
 
