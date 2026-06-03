@@ -320,6 +320,10 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
     const grandTotal = Math.round((roundedGamingCost + deliveredOrdersCost) * 100) / 100;
 
     // Payment gating: verified payments must cover gaming cost + delivered orders cost.
+    // A 5 EGP timing tolerance is allowed to prevent race conditions between the moment
+    // the cashier opens checkout (snapshotting the total) and when endSession is called
+    // (~90 seconds at the highest rate of 200 EGP/hr before tolerance is exceeded).
+    const PAYMENT_TOLERANCE = 5.00;
     if (grandTotal > 0) {
       const existingPayments = await db.select().from(paymentsTable)
         .where(and(
@@ -328,7 +332,7 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
           eq(paymentsTable.status, "verified")
         ));
       const verifiedTotal = existingPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
-      if (verifiedTotal < grandTotal) {
+      if (verifiedTotal < grandTotal - PAYMENT_TOLERANCE) {
         res.status(402).json({
           error: "Payment required before ending session. Create and verify a payment first.",
           totalCost: grandTotal,

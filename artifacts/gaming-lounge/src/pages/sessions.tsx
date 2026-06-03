@@ -110,7 +110,19 @@ export default function Sessions() {
         data: { sessionId: checkout.sessionId, method: paymentMethod, amount },
       });
       await verifyPayment.mutateAsync({ paymentId: payment.id, data: {} });
-      await endSession.mutateAsync({ sessionId: checkout.sessionId });
+
+      try {
+        await endSession.mutateAsync({ sessionId: checkout.sessionId });
+      } catch (endErr: any) {
+        // 402 can fire due to a timing race: the session accrued a few extra cents
+        // between checkout open and this call. Payment is already verified — retry
+        // once rather than creating a duplicate payment.
+        if (endErr?.response?.status === 402) {
+          await endSession.mutateAsync({ sessionId: checkout.sessionId });
+        } else {
+          throw endErr;
+        }
+      }
 
       toast.success(t("session_ended_ok"));
       setCheckout(null);

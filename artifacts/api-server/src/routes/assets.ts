@@ -156,7 +156,11 @@ router.get("/assets/:assetId/history", requireAuth, requireTenant, MGMT, async (
         totalCost: s.totalCost ? parseFloat(s.totalCost as string) : null,
         notes: s.notes,
         cancelReason: s.cancelReason,
-        totalCollected: Math.round(sp.reduce((sum, p) => sum + p.amount, 0) * 100) / 100,
+        // Use the session's stored totalCost as the canonical billed amount.
+        // Summing payments can inflate the figure if duplicate payments were created.
+        totalCollected: s.totalCost
+          ? Math.round(parseFloat(s.totalCost as string) * 100) / 100
+          : Math.round(sp.reduce((sum, p) => sum + p.amount, 0) * 100) / 100,
         paymentMethod: sp[0]?.method ?? null,
       };
     });
