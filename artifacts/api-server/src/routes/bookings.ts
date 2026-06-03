@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { bookingsTable, assetsTable, usersTable } from "@workspace/db";
-import { eq, and, gte, lte, lt, gt } from "drizzle-orm";
+import { eq, and, gte, lte, lt, gt, ne } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -10,7 +10,23 @@ const router = Router();
 const MGMT       = requireRole("platform_owner", "owner", "manager");
 const CASHIER_UP = requireRole("platform_owner", "owner", "manager", "cashier");
 
-async function enrichBooking(b: typeof bookingsTable.$inferSelect) {
+function computeStatus(
+  b: typeof bookingsTable.$inferSelect,
+  now: Date,
+): "upcoming" | "active" | "completed" | "cancelled" {
+  if (b.status === "cancelled") return "cancelled";
+  if (b.status === "completed") return "completed";
+  const endsAt   = new Date(b.endsAt);
+  const startsAt = new Date(b.startsAt);
+  if (now >= endsAt)   return "completed";
+  if (now >= startsAt) return "active";
+  return "upcoming";
+}
+
+async function enrichBooking(
+  b: typeof bookingsTable.$inferSelect,
+  now = new Date(),
+) {
   const [asset] = await db
     .select({ name: assetsTable.name, nameAr: assetsTable.nameAr })
     .from(assetsTable)
@@ -31,7 +47,7 @@ async function enrichBooking(b: typeof bookingsTable.$inferSelect) {
     customerName: b.customerName,
     startsAt: b.startsAt,
     endsAt: b.endsAt,
-    status: b.status,
+    status: computeStatus(b, now),
     notes: b.notes,
     createdAt: b.createdAt,
   };
@@ -46,11 +62,13 @@ router.get("/bookings", requireAuth, requireTenant, CASHIER_UP, async (req, res)
       .where(eq(bookingsTable.tenantId, req.user!.tenantId!))
       .orderBy(bookingsTable.startsAt);
 
-    const filtered = status
-      ? rows.filter(b => (status as string).split(",").includes(b.status))
+    const now = new Date();
+    const statusFilter = status ? (status as string).split(",") : null;
+    const filtered = statusFilter
+      ? rows.filter(b => statusFilter.includes(computeStatus(b, now)))
       : rows;
 
-    const result = await Promise.all(filtered.reverse().map(enrichBooking));
+    const result = await Promise.all(filtered.reverse().map(b => enrichBooking(b, now)));
     res.json(result);
   } catch {
     res.status(500).json({ error: "Failed to list bookings" });
@@ -83,7 +101,7 @@ router.post("/bookings", requireAuth, requireTenant, MGMT, async (req, res) => {
       .where(and(
         eq(bookingsTable.assetId, assetId),
         eq(bookingsTable.tenantId, req.user!.tenantId!),
-        eq(bookingsTable.status, "upcoming"),
+        ne(bookingsTable.status, "cancelled"),
         lt(bookingsTable.startsAt, endDate),
         gt(bookingsTable.endsAt, startDate),
       ))
@@ -135,7 +153,7 @@ router.get("/bookings/upcoming-soon", requireAuth, requireTenant, CASHIER_UP, as
       ))
       .orderBy(bookingsTable.startsAt);
 
-    const result = await Promise.all(rows.map(enrichBooking));
+    const result = await Promise.all(rows.map(b => enrichBooking(b)));
     res.json(result);
   } catch {
     res.status(500).json({ error: "Failed to get upcoming bookings" });

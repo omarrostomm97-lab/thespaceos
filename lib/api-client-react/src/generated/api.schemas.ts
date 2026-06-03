@@ -17,6 +17,47 @@ export interface MessageResponse {
   message: string;
 }
 
+export type BreakdownResponseGamingByTypeItem = {
+  type: string;
+  typeAr: string;
+  total: number;
+  sessions: number;
+};
+
+export type BreakdownResponseGaming = {
+  total: number;
+  byType: BreakdownResponseGamingByTypeItem[];
+};
+
+export type BreakdownResponseBuffetByCategoryItemProductsItem = {
+  productId?: number;
+  name?: string;
+  nameAr?: string | null;
+  quantity?: number;
+  total?: number;
+};
+
+export type BreakdownResponseBuffetByCategoryItem = {
+  categoryId?: number | null;
+  categoryName?: string;
+  categoryNameAr?: string | null;
+  total?: number;
+  products?: BreakdownResponseBuffetByCategoryItemProductsItem[];
+};
+
+export type BreakdownResponseBuffet = {
+  total: number;
+  byCategory: BreakdownResponseBuffetByCategoryItem[];
+};
+
+export interface BreakdownResponse {
+  period: string;
+  source: string;
+  grandTotal: number;
+  gaming: BreakdownResponseGaming;
+  buffet: BreakdownResponseBuffet;
+}
+
 export interface LoginInput {
   email: string;
   password: string;
@@ -879,6 +920,29 @@ export const GetRevenueStatsPeriod = {
   today: 'today',
   week: 'week',
   month: 'month',
+} as const;
+
+export type GetDashboardBreakdownParams = {
+period?: GetDashboardBreakdownPeriod;
+source?: GetDashboardBreakdownSource;
+};
+
+export type GetDashboardBreakdownPeriod = typeof GetDashboardBreakdownPeriod[keyof typeof GetDashboardBreakdownPeriod];
+
+
+export const GetDashboardBreakdownPeriod = {
+  today: 'today',
+  week: 'week',
+  month: 'month',
+} as const;
+
+export type GetDashboardBreakdownSource = typeof GetDashboardBreakdownSource[keyof typeof GetDashboardBreakdownSource];
+
+
+export const GetDashboardBreakdownSource = {
+  all: 'all',
+  gaming: 'gaming',
+  buffet: 'buffet',
 } as const;
 
 export type ListAuditLogsParams = {

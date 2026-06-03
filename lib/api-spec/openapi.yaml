@@ -643,6 +643,23 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
 
   /product-categories:
     get:
@@ -675,6 +692,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProductCategory"
+
+  /product-categories/{categoryId}:
+    patch:
+      operationId: updateProductCategory
+      tags: [products]
+      summary: Update a product category
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCategoryInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductCategory"
+    delete:
+      operationId: deleteProductCategory
+      tags: [products]
+      summary: Delete a product category
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
 
   # ── QR MENU ──────────────────────────────────────────
   /qr/{token}/menu:
@@ -1063,6 +1122,23 @@ paths:
                 $ref: "#/components/schemas/InventoryItem"
 
   /inventory/{itemId}:
+    delete:
+      operationId: deleteInventoryItem
+      tags: [inventory]
+      summary: Delete an inventory item
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
     patch:
       operationId: updateInventoryItem
       tags: [inventory]
@@ -1176,6 +1252,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RevenueStats"
+
+  /dashboard/breakdown:
+    get:
+      operationId: getDashboardBreakdown
+      tags: [dashboard]
+      summary: Get revenue breakdown by asset type and category
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month]
+        - name: source
+          in: query
+          schema:
+            type: string
+            enum: [all, gaming, buffet]
+      responses:
+        "200":
+          description: Breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BreakdownResponse"
 
   /dashboard/employee-performance:
     get:
@@ -1423,6 +1523,74 @@ components:
           type: string
       required:
         - message
+
+    BreakdownResponse:
+      type: object
+      required: [period, source, gaming, buffet, grandTotal]
+      properties:
+        period:
+          type: string
+        source:
+          type: string
+        grandTotal:
+          type: number
+        gaming:
+          type: object
+          required: [total, byType]
+          properties:
+            total:
+              type: number
+            byType:
+              type: array
+              items:
+                type: object
+                required: [type, typeAr, total, sessions]
+                properties:
+                  type:
+                    type: string
+                  typeAr:
+                    type: string
+                  total:
+                    type: number
+                  sessions:
+                    type: integer
+        buffet:
+          type: object
+          required: [total, byCategory]
+          properties:
+            total:
+              type: number
+            byCategory:
+              type: array
+              items:
+                type: object
+                properties:
+                  categoryId:
+                    type: integer
+                    nullable: true
+                  categoryName:
+                    type: string
+                  categoryNameAr:
+                    type: string
+                    nullable: true
+                  total:
+                    type: number
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        productId:
+                          type: integer
+                        name:
+                          type: string
+                        nameAr:
+                          type: string
+                          nullable: true
+                        quantity:
+                          type: integer
+                        total:
+                          type: number
 
     # ── AUTH SCHEMAS ──
     LoginInput:

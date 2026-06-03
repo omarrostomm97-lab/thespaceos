@@ -27,10 +27,12 @@ import type {
   AuthResponse,
   Booking,
   BookingInput,
+  BreakdownResponse,
   CancelInput,
   DashboardSummary,
   EmployeePerformance,
   ErrorResponse,
+  GetDashboardBreakdownParams,
   GetRevenueStatsParams,
   HealthStatus,
   InventoryItem,
@@ -2386,6 +2388,76 @@ export const useUpdateProduct = <TError = ErrorType<unknown>,
       return useMutation(getUpdateProductMutationOptions(options));
     }
 
+export const getDeleteProductUrl = (productId: number,) => {
+
+
+
+
+  return `/api/products/${productId}`
+}
+
+/**
+ * @summary Delete a product
+ */
+export const deleteProduct = async (productId: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteProductUrl(productId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteProductMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProduct>>, TError,{productId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteProduct>>, TError,{productId: number}, TContext> => {
+
+const mutationKey = ['deleteProduct'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteProduct>>, {productId: number}> = (props) => {
+          const {productId} = props ?? {};
+
+          return  deleteProduct(productId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteProductMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProduct>>>
+
+    export type DeleteProductMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a product
+ */
+export const useDeleteProduct = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProduct>>, TError,{productId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteProduct>>,
+        TError,
+        {productId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteProductMutationOptions(options));
+    }
+
 export const getListProductCategoriesUrl = () => {
 
 
@@ -2532,6 +2604,148 @@ export const useCreateProductCategory = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCreateProductCategoryMutationOptions(options));
+    }
+
+export const getUpdateProductCategoryUrl = (categoryId: number,) => {
+
+
+
+
+  return `/api/product-categories/${categoryId}`
+}
+
+/**
+ * @summary Update a product category
+ */
+export const updateProductCategory = async (categoryId: number,
+    productCategoryInput: ProductCategoryInput, options?: RequestInit): Promise<ProductCategory> => {
+
+  return customFetch<ProductCategory>(getUpdateProductCategoryUrl(categoryId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      productCategoryInput,)
+  }
+);}
+
+
+
+
+export const getUpdateProductCategoryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{categoryId: number;data: BodyType<ProductCategoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{categoryId: number;data: BodyType<ProductCategoryInput>}, TContext> => {
+
+const mutationKey = ['updateProductCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateProductCategory>>, {categoryId: number;data: BodyType<ProductCategoryInput>}> = (props) => {
+          const {categoryId,data} = props ?? {};
+
+          return  updateProductCategory(categoryId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateProductCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateProductCategory>>>
+    export type UpdateProductCategoryMutationBody = BodyType<ProductCategoryInput>
+    export type UpdateProductCategoryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a product category
+ */
+export const useUpdateProductCategory = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateProductCategory>>, TError,{categoryId: number;data: BodyType<ProductCategoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateProductCategory>>,
+        TError,
+        {categoryId: number;data: BodyType<ProductCategoryInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateProductCategoryMutationOptions(options));
+    }
+
+export const getDeleteProductCategoryUrl = (categoryId: number,) => {
+
+
+
+
+  return `/api/product-categories/${categoryId}`
+}
+
+/**
+ * @summary Delete a product category
+ */
+export const deleteProductCategory = async (categoryId: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteProductCategoryUrl(categoryId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteProductCategoryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductCategory>>, TError,{categoryId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteProductCategory>>, TError,{categoryId: number}, TContext> => {
+
+const mutationKey = ['deleteProductCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteProductCategory>>, {categoryId: number}> = (props) => {
+          const {categoryId} = props ?? {};
+
+          return  deleteProductCategory(categoryId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteProductCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProductCategory>>>
+
+    export type DeleteProductCategoryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a product category
+ */
+export const useDeleteProductCategory = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteProductCategory>>, TError,{categoryId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteProductCategory>>,
+        TError,
+        {categoryId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteProductCategoryMutationOptions(options));
     }
 
 export const getGetQrMenuUrl = (token: string,) => {
@@ -3880,6 +4094,76 @@ export const useCreateInventoryItem = <TError = ErrorType<unknown>,
       return useMutation(getCreateInventoryItemMutationOptions(options));
     }
 
+export const getDeleteInventoryItemUrl = (itemId: number,) => {
+
+
+
+
+  return `/api/inventory/${itemId}`
+}
+
+/**
+ * @summary Delete an inventory item
+ */
+export const deleteInventoryItem = async (itemId: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteInventoryItemUrl(itemId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteInventoryItemMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInventoryItem>>, TError,{itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteInventoryItem>>, TError,{itemId: number}, TContext> => {
+
+const mutationKey = ['deleteInventoryItem'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteInventoryItem>>, {itemId: number}> = (props) => {
+          const {itemId} = props ?? {};
+
+          return  deleteInventoryItem(itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteInventoryItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteInventoryItem>>>
+
+    export type DeleteInventoryItemMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an inventory item
+ */
+export const useDeleteInventoryItem = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteInventoryItem>>, TError,{itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteInventoryItem>>,
+        TError,
+        {itemId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteInventoryItemMutationOptions(options));
+    }
+
 export const getUpdateInventoryItemUrl = (itemId: number,) => {
 
 
@@ -4333,6 +4617,90 @@ export function useGetRevenueStats<TData = Awaited<ReturnType<typeof getRevenueS
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetRevenueStatsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDashboardBreakdownUrl = (params?: GetDashboardBreakdownParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/dashboard/breakdown?${stringifiedParams}` : `/api/dashboard/breakdown`
+}
+
+/**
+ * @summary Get revenue breakdown by asset type and category
+ */
+export const getDashboardBreakdown = async (params?: GetDashboardBreakdownParams, options?: RequestInit): Promise<BreakdownResponse> => {
+
+  return customFetch<BreakdownResponse>(getGetDashboardBreakdownUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardBreakdownQueryKey = (params?: GetDashboardBreakdownParams,) => {
+    return [
+    `/api/dashboard/breakdown`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDashboardBreakdownQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardBreakdown>>, TError = ErrorType<unknown>>(params?: GetDashboardBreakdownParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardBreakdown>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardBreakdownQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardBreakdown>>> = ({ signal }) => getDashboardBreakdown(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardBreakdown>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDashboardBreakdownQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardBreakdown>>>
+export type GetDashboardBreakdownQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get revenue breakdown by asset type and category
+ */
+
+export function useGetDashboardBreakdown<TData = Awaited<ReturnType<typeof getDashboardBreakdown>>, TError = ErrorType<unknown>>(
+ params?: GetDashboardBreakdownParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardBreakdown>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDashboardBreakdownQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -651,6 +651,18 @@ export const UpdateProductResponse = zod.object({
 
 
 /**
+ * @summary Delete a product
+ */
+export const DeleteProductParams = zod.object({
+  "productId": zod.coerce.number()
+})
+
+export const DeleteProductResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary List product categories
  */
 export const ListProductCategoriesResponseItem = zod.object({
@@ -668,6 +680,38 @@ export const ListProductCategoriesResponse = zod.array(ListProductCategoriesResp
 export const CreateProductCategoryBody = zod.object({
   "name": zod.string(),
   "nameAr": zod.string().optional()
+})
+
+
+/**
+ * @summary Update a product category
+ */
+export const UpdateProductCategoryParams = zod.object({
+  "categoryId": zod.coerce.number()
+})
+
+export const UpdateProductCategoryBody = zod.object({
+  "name": zod.string(),
+  "nameAr": zod.string().optional()
+})
+
+export const UpdateProductCategoryResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a product category
+ */
+export const DeleteProductCategoryParams = zod.object({
+  "categoryId": zod.coerce.number()
+})
+
+export const DeleteProductCategoryResponse = zod.object({
+  "message": zod.string()
 })
 
 
@@ -1167,6 +1211,18 @@ export const CreateInventoryItemBody = zod.object({
 
 
 /**
+ * @summary Delete an inventory item
+ */
+export const DeleteInventoryItemParams = zod.object({
+  "itemId": zod.coerce.number()
+})
+
+export const DeleteInventoryItemResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
  * @summary Update inventory item
  */
 export const UpdateInventoryItemParams = zod.object({
@@ -1277,6 +1333,46 @@ export const GetRevenueStatsResponse = zod.object({
   "instapay": zod.number().optional(),
   "visa": zod.number().optional()
 }).optional()
+})
+
+
+/**
+ * @summary Get revenue breakdown by asset type and category
+ */
+export const GetDashboardBreakdownQueryParams = zod.object({
+  "period": zod.enum(['today', 'week', 'month']).optional(),
+  "source": zod.enum(['all', 'gaming', 'buffet']).optional()
+})
+
+export const GetDashboardBreakdownResponse = zod.object({
+  "period": zod.string(),
+  "source": zod.string(),
+  "grandTotal": zod.number(),
+  "gaming": zod.object({
+  "total": zod.number(),
+  "byType": zod.array(zod.object({
+  "type": zod.string(),
+  "typeAr": zod.string(),
+  "total": zod.number(),
+  "sessions": zod.number()
+}))
+}),
+  "buffet": zod.object({
+  "total": zod.number(),
+  "byCategory": zod.array(zod.object({
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().optional(),
+  "categoryNameAr": zod.string().nullish(),
+  "total": zod.number().optional(),
+  "products": zod.array(zod.object({
+  "productId": zod.number().optional(),
+  "name": zod.string().optional(),
+  "nameAr": zod.string().nullish(),
+  "quantity": zod.number().optional(),
+  "total": zod.number().optional()
+})).optional()
+}))
+})
 })
 
 

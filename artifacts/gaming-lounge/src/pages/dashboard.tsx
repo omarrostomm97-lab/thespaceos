@@ -4,6 +4,7 @@ import {
   useGetDashboardSummary,
   useListActiveSessions,
   useGetRevenueStats,
+  useGetDashboardBreakdown,
   getGetDashboardSummaryQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
@@ -432,8 +433,7 @@ export default function Dashboard() {
   const { data: revenueStats, isLoading: isLoadingRevenue } = useGetRevenueStats(revenueParams, {
     query: { queryKey: ["/api/dashboard/revenue", period, source, method] },
   });
-  const breakdown = undefined;
-  const isLoadingBreakdown = false;
+  const { data: breakdown, isLoading: isLoadingBreakdown } = useGetDashboardBreakdown(breakdownParams);
 
   if (isLoadingSummary || isLoadingSessions) return <DashboardSkeleton />;
 
@@ -1188,19 +1188,19 @@ export default function Dashboard() {
                               <span className="text-sm font-bold text-orange-500">{cat.categoryNameAr||cat.categoryName}</span>
                               {breakdown!.buffet.total > 0 && (
                                 <span className="text-[10px] bg-orange-500/10 text-orange-500 px-1.5 py-0.5 rounded-full">
-                                  {Math.round((cat.total/breakdown!.buffet.total)*100)}%
+                                  {Math.round(((cat.total ?? 0)/breakdown!.buffet.total)*100)}%
                                 </span>
                               )}
                             </div>
-                            <span className="text-sm font-bold text-orange-500">{cat.total.toFixed(2)} ج.م</span>
+                            <span className="text-sm font-bold text-orange-500">{(cat.total ?? 0).toFixed(2)} ج.م</span>
                           </div>
                           <div className="space-y-1.5 ps-3 border-s-2 border-orange-500/20">
-                            {cat.products.map(p => (
+                            {(cat.products ?? []).map(p => (
                               <div key={p.productId} className="flex items-center justify-between text-xs">
                                 <span className="text-muted-foreground truncate">
                                   {p.nameAr||p.name}<span className="ms-1 opacity-50">×{p.quantity}</span>
                                 </span>
-                                <span className="font-medium ms-2 whitespace-nowrap">{p.total.toFixed(2)} ج.م</span>
+                                <span className="font-medium ms-2 whitespace-nowrap">{(p.total ?? 0).toFixed(2)} ج.م</span>
                               </div>
                             ))}
                           </div>

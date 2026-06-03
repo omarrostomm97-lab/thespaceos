@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { sessionsTable, sessionLogsTable, assetsTable, usersTable, paymentsTable, ordersTable, orderItemsTable, productsTable, bookingsTable } from "@workspace/db";
-import { eq, and, inArray, lte, gt } from "drizzle-orm";
+import { eq, and, inArray, lte, gt, ne } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole, requireOpenShift } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -196,18 +196,35 @@ router.post("/sessions", requireAuth, requireTenant, CAN_START_SESSION, requireO
 
     const now = new Date();
     const [activeBooking] = await db
-      .select({ id: bookingsTable.id, endsAt: bookingsTable.endsAt })
+      .select({
+        id:           bookingsTable.id,
+        assetId:      bookingsTable.assetId,
+        startsAt:     bookingsTable.startsAt,
+        endsAt:       bookingsTable.endsAt,
+        customerName: bookingsTable.customerName,
+        status:       bookingsTable.status,
+      })
       .from(bookingsTable)
       .where(and(
         eq(bookingsTable.assetId, assetId),
         eq(bookingsTable.tenantId, req.user!.tenantId!),
-        eq(bookingsTable.status, "upcoming"),
+        ne(bookingsTable.status, "cancelled"),
         lte(bookingsTable.startsAt, now),
         gt(bookingsTable.endsAt, now),
       ))
       .limit(1);
     if (activeBooking) {
-      res.status(409).json({ error: "asset_booked", endsAt: activeBooking.endsAt });
+      res.status(409).json({
+        error: "asset_booked",
+        booking: {
+          id:           activeBooking.id,
+          assetId:      activeBooking.assetId,
+          startsAt:     activeBooking.startsAt,
+          endsAt:       activeBooking.endsAt,
+          customerName: activeBooking.customerName,
+          status:       "active",
+        },
+      });
       return;
     }
 
