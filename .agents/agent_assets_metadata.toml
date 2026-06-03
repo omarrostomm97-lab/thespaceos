@@ -1,5 +1,10 @@
 uploads = []
-generated = []
+
+[[generated]]
+id = "oWeBXk2oNeWzysFyfK7Hn"
+uri = "file://artifacts/kiosk-app/assets/images/icon.png"
+type = "image"
+title = "generated_image"
 
 [[outputs]]
 id = "OjA38A4f__We1hH6nPuqb"

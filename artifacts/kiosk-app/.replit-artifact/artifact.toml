@@ -1,0 +1,27 @@
+kind = "mobile"
+previewPath = "/kiosk-app/"
+title = "Gaming Lounge Kiosk"
+version = "1.0.0"
+id = "artifacts/kiosk-app"
+router = "expo-domain"
+
+[[integratedSkills]]
+name = "expo"
+version = "1.0.0"
+
+[[services]]
+ensurePreviewReachable = "/status"
+name = "expo"
+paths = [ "/kiosk-app/" ]
+localPort = 20610
+
+[services.development]
+run = "pnpm --filter @workspace/kiosk-app run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/kiosk-app", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/kiosk-app", "run", "serve" ]
+
+[services.env]
+PORT = "20610"
+BASE_PATH = "/kiosk-app/"
