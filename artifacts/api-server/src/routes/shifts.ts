@@ -84,8 +84,7 @@ router.post("/shifts", requireAuth, requireTenant, CASHIER_UP, async (req, res) 
   }
 });
 
-// Close shift: manager and above (reconciliation is a management action)
-router.post("/shifts/:shiftId/close", requireAuth, requireTenant, MGMT, async (req, res) => {
+router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const id = parseInt(req.params.shiftId as string);
     const { actualCash, differenceExplanation } = req.body;
