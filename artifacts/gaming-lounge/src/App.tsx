@@ -12,6 +12,7 @@ import NotFound from "@/pages/not-found";
 import Login from "@/pages/auth/login";
 import Dashboard from "@/pages/dashboard";
 import Assets from "@/pages/assets";
+import AssetHistory from "@/pages/asset-history";
 import Sessions from "@/pages/sessions";
 import SessionDetail from "@/pages/sessions/[id]";
 import Pos from "@/pages/pos";
@@ -76,6 +77,9 @@ function Router() {
       </Route>
       <Route path="/dashboard">
         <ProtectedPage path="/dashboard"><Dashboard /></ProtectedPage>
+      </Route>
+      <Route path="/assets/:id/history">
+        <ProtectedPage path="/assets/:id/history"><AssetHistory /></ProtectedPage>
       </Route>
       <Route path="/assets">
         <ProtectedPage path="/assets"><Assets /></ProtectedPage>

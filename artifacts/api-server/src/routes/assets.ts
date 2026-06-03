@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@workspace/db";
-import { assetsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { assetsTable, sessionsTable, ordersTable, orderItemsTable, productsTable, paymentsTable } from "@workspace/db";
+import { eq, and, gte, lte, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -99,6 +99,118 @@ router.post("/assets/:assetId/qr", requireAuth, requireTenant, async (req, res) 
     res.json({ token, assetId: id, qrDataUrl: null });
   } catch {
     res.status(500).json({ error: "Failed to generate QR" });
+  }
+});
+
+router.get("/assets/:assetId/history", requireAuth, requireTenant, MGMT, async (req, res) => {
+  try {
+    const assetId = parseInt(req.params.assetId as string);
+    const tenantId = req.user!.tenantId!;
+
+    const [asset] = await db.select().from(assetsTable)
+      .where(and(eq(assetsTable.id, assetId), eq(assetsTable.tenantId, tenantId)))
+      .limit(1);
+    if (!asset) { res.status(404).json({ error: "Asset not found" }); return; }
+
+    const now = new Date();
+    const defaultFrom = new Date(now); defaultFrom.setHours(0, 0, 0, 0);
+    const defaultTo   = new Date(now); defaultTo.setHours(23, 59, 59, 999);
+    const fromDate = req.query.from ? new Date(req.query.from as string) : defaultFrom;
+    const toDate   = req.query.to   ? new Date(req.query.to   as string) : defaultTo;
+
+    const sessions = await db.select().from(sessionsTable)
+      .where(and(
+        eq(sessionsTable.tenantId, tenantId),
+        eq(sessionsTable.assetId, assetId),
+        gte(sessionsTable.startedAt, fromDate),
+        lte(sessionsTable.startedAt, toDate),
+      ))
+      .orderBy(sessionsTable.startedAt);
+
+    const sessionIds = sessions.map(s => s.id);
+    const payments = sessionIds.length > 0
+      ? await db.select().from(paymentsTable)
+          .where(and(
+            eq(paymentsTable.tenantId, tenantId),
+            inArray(paymentsTable.sessionId, sessionIds),
+            eq(paymentsTable.status, "verified"),
+          ))
+      : [];
+
+    const paymentsBySession = new Map<number, { method: string; amount: number }[]>();
+    for (const p of payments) {
+      if (p.sessionId != null) {
+        if (!paymentsBySession.has(p.sessionId)) paymentsBySession.set(p.sessionId, []);
+        paymentsBySession.get(p.sessionId)!.push({ method: p.method, amount: parseFloat(p.amount as string) });
+      }
+    }
+
+    const formattedSessions = [...sessions].reverse().map(s => {
+      const sp = paymentsBySession.get(s.id) ?? [];
+      return {
+        id: s.id,
+        status: s.status,
+        startedAt: s.startedAt,
+        endedAt: s.endedAt,
+        totalMinutes: s.totalMinutes ? parseFloat(s.totalMinutes as string) : null,
+        totalCost: s.totalCost ? parseFloat(s.totalCost as string) : null,
+        notes: s.notes,
+        cancelReason: s.cancelReason,
+        totalCollected: Math.round(sp.reduce((sum, p) => sum + p.amount, 0) * 100) / 100,
+        paymentMethod: sp[0]?.method ?? null,
+      };
+    });
+
+    const orders = await db.select().from(ordersTable)
+      .where(and(
+        eq(ordersTable.tenantId, tenantId),
+        eq(ordersTable.assetId, assetId),
+        gte(ordersTable.createdAt, fromDate),
+        lte(ordersTable.createdAt, toDate),
+      ))
+      .orderBy(ordersTable.createdAt);
+
+    const orderIds = orders.map(o => o.id);
+    const allItems = orderIds.length > 0
+      ? await db.select({
+          orderId: orderItemsTable.orderId,
+          productName: productsTable.name,
+          productNameAr: productsTable.nameAr,
+          quantity: orderItemsTable.quantity,
+          totalPrice: orderItemsTable.totalPrice,
+        }).from(orderItemsTable)
+          .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
+          .where(inArray(orderItemsTable.orderId, orderIds))
+      : [];
+
+    const itemsByOrder = new Map<number, typeof allItems>();
+    for (const i of allItems) {
+      if (!itemsByOrder.has(i.orderId)) itemsByOrder.set(i.orderId, []);
+      itemsByOrder.get(i.orderId)!.push(i);
+    }
+
+    const formattedOrders = [...orders].reverse().map(o => ({
+      id: o.id,
+      source: o.source,
+      status: o.status,
+      sessionId: o.sessionId,
+      createdAt: o.createdAt,
+      totalAmount: parseFloat(o.totalAmount as string),
+      items: (itemsByOrder.get(o.id) ?? []).map(i => ({
+        productName: i.productName,
+        productNameAr: i.productNameAr,
+        quantity: i.quantity,
+        totalPrice: parseFloat(i.totalPrice as string),
+      })),
+    }));
+
+    res.json({
+      asset: { ...asset, pricePerHour: parseFloat(asset.pricePerHour as string) },
+      sessions: formattedSessions,
+      orders: formattedOrders,
+    });
+  } catch {
+    res.status(500).json({ error: "Failed to get asset history" });
   }
 });
 

@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Gamepad2, Tv, Trophy, Play, Plus, Pencil, Wind, Target,
-  QrCode, Printer, RefreshCw, Zap,
+  QrCode, Printer, RefreshCw, Zap, History,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -162,6 +162,16 @@ function AssetCard({ asset, isMgmt, onEdit, onQr, onStart, starting, t, lang }: 
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </button>
+              )}
+              {isMgmt && (
+                <Link href={`/assets/${asset.id}/history`}>
+                  <button
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all duration-150"
+                    title={lang === "ar" ? "السجل" : "History"}
+                  >
+                    <History className="h-3.5 w-3.5" />
+                  </button>
+                </Link>
               )}
             </div>
           </div>
