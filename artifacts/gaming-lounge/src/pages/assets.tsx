@@ -307,7 +307,7 @@ export default function Assets() {
   const canStart = !["owner", "platform_owner"].includes(user?.role ?? "");
 
   const { data: assets, isLoading } = useListAssets();
-  const { data: upcomingBookings = [] } = useListBookings({ status: "upcoming" });
+  const { data: upcomingBookings = [] } = useListBookings({ status: "upcoming,active" });
 
   const bookingByAsset = useMemo(() => {
     const map = new Map<number, Booking>();

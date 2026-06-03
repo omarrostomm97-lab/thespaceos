@@ -170,7 +170,10 @@ router.post("/bookings/:id/cancel", requireAuth, requireTenant, MGMT, async (req
       .limit(1);
 
     if (!booking) { res.status(404).json({ error: "Booking not found" }); return; }
-    if (booking.status === "cancelled") { res.status(400).json({ error: "Already cancelled" }); return; }
+    const effectiveStatus = computeStatus(booking, new Date());
+    if (effectiveStatus === "cancelled")  { res.status(400).json({ error: "Already cancelled" }); return; }
+    if (effectiveStatus === "completed")  { res.status(400).json({ error: "Booking already completed" }); return; }
+    if (effectiveStatus === "active")     { res.status(400).json({ error: "Cannot cancel an in-progress booking" }); return; }
 
     const [updated] = await db
       .update(bookingsTable)
