@@ -2,7 +2,7 @@ import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@workspace/db";
 import { assetsTable, sessionsTable, ordersTable, orderItemsTable, productsTable, paymentsTable } from "@workspace/db";
-import { eq, and, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, inArray, isNull, or } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -161,14 +161,33 @@ router.get("/assets/:assetId/history", requireAuth, requireTenant, MGMT, async (
       };
     });
 
-    const orders = await db.select().from(ordersTable)
+    // Orders: collect those linked to this asset's sessions (by sessionId)
+    // PLUS direct orders (no session) for this asset within the date range.
+    const sessionLinkedOrders = sessionIds.length > 0
+      ? await db.select().from(ordersTable)
+          .where(and(
+            eq(ordersTable.tenantId, tenantId),
+            inArray(ordersTable.sessionId, sessionIds),
+          ))
+          .orderBy(ordersTable.createdAt)
+      : [];
+
+    const directOrders = await db.select().from(ordersTable)
       .where(and(
         eq(ordersTable.tenantId, tenantId),
         eq(ordersTable.assetId, assetId),
+        isNull(ordersTable.sessionId),
         gte(ordersTable.createdAt, fromDate),
         lte(ordersTable.createdAt, toDate),
       ))
       .orderBy(ordersTable.createdAt);
+
+    // Merge and deduplicate by id, then sort chronologically
+    const orderMap = new Map<number, typeof ordersTable.$inferSelect>();
+    for (const o of [...sessionLinkedOrders, ...directOrders]) orderMap.set(o.id, o);
+    const orders = [...orderMap.values()].sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
 
     const orderIds = orders.map(o => o.id);
     const allItems = orderIds.length > 0

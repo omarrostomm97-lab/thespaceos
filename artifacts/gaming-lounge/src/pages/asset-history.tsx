@@ -4,11 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   ArrowRight, ArrowLeft, Clock, ShoppingCart, History,
-  Banknote, CreditCard, Smartphone,
+  Banknote, CreditCard, Smartphone, CalendarRange,
 } from "lucide-react";
 import { useLang } from "@/hooks/use-language";
+import type { TranslationKey } from "@/lib/i18n";
 
-type Preset = "today" | "week" | "month";
+type Preset = "today" | "week" | "month" | "custom";
 
 interface HistorySession {
   id: number;
@@ -44,13 +45,17 @@ interface HistoryData {
   orders: HistoryOrder[];
 }
 
-function getDateRange(preset: Preset) {
+function makeDateRange(preset: Preset, customFrom: string, customTo: string) {
   const now = new Date();
   const end = new Date(now); end.setHours(23, 59, 59, 999);
   const from = new Date(now); from.setHours(0, 0, 0, 0);
-  if (preset === "week")  from.setDate(from.getDate() - 6);
-  if (preset === "month") from.setDate(from.getDate() - 29);
-  return { from, to: end };
+
+  if (preset === "today")  return { from, to: end };
+  if (preset === "week")   { from.setDate(from.getDate() - 6); return { from, to: end }; }
+  if (preset === "month")  { from.setDate(from.getDate() - 29); return { from, to: end }; }
+  const f = new Date(`${customFrom}T00:00:00`);
+  const t = new Date(`${customTo}T23:59:59`);
+  return { from: isNaN(f.getTime()) ? from : f, to: isNaN(t.getTime()) ? end : t };
 }
 
 function formatDuration(minutes: number | null): string {
@@ -68,23 +73,37 @@ const SESSION_STATUS_COLORS: Record<string, string> = {
 };
 
 const METHOD_ICON: Record<string, React.ReactNode> = {
-  cash:      <Banknote className="h-3.5 w-3.5" />,
-  instapay:  <Smartphone className="h-3.5 w-3.5" />,
-  visa:      <CreditCard className="h-3.5 w-3.5" />,
+  cash:     <Banknote className="h-3.5 w-3.5" />,
+  instapay: <Smartphone className="h-3.5 w-3.5" />,
+  visa:     <CreditCard className="h-3.5 w-3.5" />,
 };
+
+const TYPE_KEY_MAP: Record<string, TranslationKey> = {
+  ps:         "type_ps",
+  billiard:   "type_billiard",
+  air_hockey: "type_air_hockey",
+  babyfoot:   "type_babyfoot",
+};
+
+const TODAY = format(new Date(), "yyyy-MM-dd");
 
 export default function AssetHistory() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const [preset, setPreset] = useState<Preset>("today");
-  const { lang } = useLang();
+  const [customFrom, setCustomFrom] = useState(TODAY);
+  const [customTo,   setCustomTo]   = useState(TODAY);
+  const { lang, t } = useLang();
   const isAr = lang === "ar";
   const dir = isAr ? "rtl" : "ltr";
 
-  const { from, to } = getDateRange(preset);
+  const { from, to } = makeDateRange(preset, customFrom, customTo);
+  const queryKey = preset === "custom"
+    ? ["/api/assets", id, "history", "custom", customFrom, customTo]
+    : ["/api/assets", id, "history", preset];
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["/api/assets", id, "history", preset],
+    queryKey,
     queryFn: async (): Promise<HistoryData> => {
       const token = typeof localStorage !== "undefined" ? localStorage.getItem("gl_token") : null;
       const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
@@ -95,12 +114,14 @@ export default function AssetHistory() {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
+    enabled: preset !== "custom" || (customFrom <= customTo),
   });
 
   const PRESET_LABELS: Record<Preset, string> = {
-    today: isAr ? "اليوم" : "Today",
-    week:  isAr ? "آخر ٧ أيام" : "Last 7 Days",
-    month: isAr ? "آخر ٣٠ يوم" : "Last 30 Days",
+    today:  isAr ? "اليوم"        : "Today",
+    week:   isAr ? "آخر ٧ أيام"  : "Last 7 Days",
+    month:  isAr ? "آخر ٣٠ يوم"  : "Last 30 Days",
+    custom: isAr ? "مخصص"         : "Custom",
   };
 
   const SESSION_STATUS_LABELS: Record<string, string> = {
@@ -120,18 +141,18 @@ export default function AssetHistory() {
   };
 
   const ORDER_STATUS_LABELS: Record<string, string> = {
-    pending:   isAr ? "جديد"            : "New",
-    preparing: isAr ? "جاري التحضير"    : "Preparing",
-    ready:     isAr ? "جاهز"            : "Ready",
-    delivered: isAr ? "تم التسليم"      : "Delivered",
-    closed:    isAr ? "مغلق"            : "Closed",
-    cancelled: isAr ? "ملغي"            : "Cancelled",
+    pending:   isAr ? "جديد"         : "New",
+    preparing: isAr ? "جاري التحضير" : "Preparing",
+    ready:     isAr ? "جاهز"         : "Ready",
+    delivered: isAr ? "تم التسليم"   : "Delivered",
+    closed:    isAr ? "مغلق"         : "Closed",
+    cancelled: isAr ? "ملغي"         : "Cancelled",
   };
 
   const METHOD_LABELS: Record<string, string> = {
-    cash:     isAr ? "كاش"       : "Cash",
-    instapay: isAr ? "انستاباي"  : "Instapay",
-    visa:     isAr ? "فيزا"      : "Visa",
+    cash:     isAr ? "كاش"      : "Cash",
+    instapay: isAr ? "انستاباي" : "Instapay",
+    visa:     isAr ? "فيزا"     : "Visa",
   };
 
   const BackIcon = isAr ? ArrowRight : ArrowLeft;
@@ -159,6 +180,7 @@ export default function AssetHistory() {
 
   const { asset, sessions, orders } = data;
   const assetDisplayName = isAr ? (asset.nameAr || asset.name) : (asset.name || asset.nameAr);
+  const assetTypeLabel   = t(TYPE_KEY_MAP[asset.type] ?? "type_other");
 
   const sessionRevTotal = sessions.reduce((s, x) => s + x.totalCollected, 0);
   const orderRevTotal   = orders.filter(o => !["cancelled"].includes(o.status)).reduce((s, x) => s + x.totalAmount, 0);
@@ -177,6 +199,8 @@ export default function AssetHistory() {
           <div className="flex items-center gap-2 flex-wrap">
             <History className="h-5 w-5 text-primary shrink-0" />
             <h2 className="text-2xl font-bold tracking-tight text-primary">{assetDisplayName}</h2>
+            <span className="text-sm text-muted-foreground">·</span>
+            <span className="text-sm text-muted-foreground">{assetTypeLabel}</span>
             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
               asset.status === "available"
                 ? "bg-emerald-500/10 text-emerald-500"
@@ -189,30 +213,61 @@ export default function AssetHistory() {
         </div>
       </div>
 
-      {/* ── Date Preset Filter ── */}
-      <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-secondary/30 w-fit">
-        {(["today", "week", "month"] as Preset[]).map(p => (
-          <button
-            key={p}
-            onClick={() => setPreset(p)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              preset === p
-                ? "bg-card text-foreground shadow-sm border border-border"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {PRESET_LABELS[p]}
-          </button>
-        ))}
+      {/* ── Date Filter ── */}
+      <div className="flex flex-col gap-3">
+        {/* Preset buttons */}
+        <div className="flex items-center gap-1 p-1 rounded-xl border border-border bg-secondary/30 w-fit">
+          {(["today", "week", "month", "custom"] as Preset[]).map(p => (
+            <button
+              key={p}
+              onClick={() => setPreset(p)}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                preset === p
+                  ? "bg-card text-foreground shadow-sm border border-border"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {p === "custom" && <CalendarRange className="h-3.5 w-3.5" />}
+              {PRESET_LABELS[p]}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom date inputs */}
+        {preset === "custom" && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">{isAr ? "من" : "From"}</label>
+              <input
+                type="date"
+                value={customFrom}
+                max={customTo}
+                onChange={e => setCustomFrom(e.target.value)}
+                className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-muted-foreground">{isAr ? "إلى" : "To"}</label>
+              <input
+                type="date"
+                value={customTo}
+                min={customFrom}
+                max={TODAY}
+                onChange={e => setCustomTo(e.target.value)}
+                className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── Summary KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: isAr ? "عدد الجلسات"  : "Sessions",      value: sessions.length,              unit: "" },
-          { label: isAr ? "إيراد الجلسات" : "Session Revenue", value: sessionRevTotal.toFixed(2), unit: " ج.م" },
-          { label: isAr ? "عدد الطلبات"  : "Orders",        value: orders.length,                unit: "" },
-          { label: isAr ? "إيراد الطلبات" : "Order Revenue",  value: orderRevTotal.toFixed(2),   unit: " ج.م" },
+          { label: isAr ? "عدد الجلسات"   : "Sessions",        value: sessions.length,              unit: "" },
+          { label: isAr ? "إيراد الجلسات" : "Session Revenue",  value: sessionRevTotal.toFixed(2),   unit: " ج.م" },
+          { label: isAr ? "عدد الطلبات"   : "Orders",          value: orders.length,                unit: "" },
+          { label: isAr ? "إيراد الطلبات" : "Order Revenue",    value: orderRevTotal.toFixed(2),     unit: " ج.م" },
         ].map(k => (
           <div key={k.label} className="rounded-xl card-base p-4">
             <p className="text-xs text-muted-foreground mb-1">{k.label}</p>
@@ -242,13 +297,13 @@ export default function AssetHistory() {
               <table className="w-full text-sm">
                 <thead className="bg-secondary/60 text-muted-foreground text-xs uppercase">
                   <tr>
-                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "البداية"        : "Start"}</th>
-                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "النهاية"        : "End"}</th>
-                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "المدة"          : "Duration"}</th>
-                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "المحصّل"        : "Collected"}</th>
-                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "طريقة الدفع"   : "Payment"}</th>
-                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "الحالة"         : "Status"}</th>
-                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "ملاحظات"        : "Notes"}</th>
+                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "البداية"      : "Start"}</th>
+                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "النهاية"      : "End"}</th>
+                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "المدة"        : "Duration"}</th>
+                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "المحصّل"      : "Collected"}</th>
+                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "طريقة الدفع" : "Payment"}</th>
+                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "الحالة"       : "Status"}</th>
+                    <th className={`px-4 py-3 ${isAr ? "text-right" : "text-left"}`}>{isAr ? "ملاحظات"      : "Notes"}</th>
                   </tr>
                 </thead>
                 <tbody>
