@@ -9,31 +9,24 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { WebView, WebViewNavigation } from "react-native-webview";
+import { WebView } from "react-native-webview";
 
 import { KIOSK_URL } from "@/constants/config";
 
 export default function KioskScreen() {
   const webViewRef = useRef<WebView>(null);
-  const [canGoBack, setCanGoBack] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (Platform.OS !== "android") return;
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
-      () => {
-        if (canGoBack && webViewRef.current) {
-          webViewRef.current.goBack();
-        }
-        return true;
-      },
+      () => true,
     );
     return () => backHandler.remove();
-  }, [canGoBack]);
+  }, []);
 
-  const handleNavigationStateChange = (nav: WebViewNavigation) => {
-    setCanGoBack(nav.canGoBack);
+  const handleNavigationStateChange = () => {
     setLoadError(false);
   };
 
@@ -85,10 +78,10 @@ export default function KioskScreen() {
         }}
         allowsFullscreenVideo
         mediaPlaybackRequiresUserAction={false}
-        userAgent="Gaming Lounge Kiosk/1.0 Android"
         mixedContentMode="always"
         allowsInlineMediaPlayback
         scalesPageToFit
+        androidHardwareAccelerationDisabled={false}
         testID="kiosk-webview"
       />
     </View>

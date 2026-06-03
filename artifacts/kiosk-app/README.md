@@ -24,8 +24,12 @@ By default the app opens the Replit dev URL. To point it at your production doma
 Replit handles iOS publishing via the **Publish** button. For an Android APK, you need Expo's cloud build service (**EAS Build**):
 
 1. Create a free account at [expo.dev](https://expo.dev).
-2. Follow the [EAS Build guide](https://docs.expo.dev/build/introduction/) to link your project and generate a standalone APK.
-3. The app is already configured for the `com.gaminglounge.kiosk` package ID.
+2. Link your project in the EAS dashboard, then run:
+   ```
+   eas build --platform android --profile preview
+   ```
+3. EAS builds the APK in the cloud and provides a download link — no local toolchain needed.
+4. The app is already configured for the `com.gaminglounge.kiosk` package ID.
 
 ## Kiosk hardening tips (after installing the APK)
 
