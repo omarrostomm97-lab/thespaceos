@@ -1,13 +1,17 @@
 import { useGetQrMenu, usePlaceQrOrder } from "@workspace/api-client-react";
 import { getProductEmoji } from "@/lib/product-emoji";
 import { useParams } from "wouter";
-import { useState, useMemo, useRef, useEffect } from "react";
-import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
+import { useState, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Gamepad2, ShoppingCart, Plus, Minus, X, Search,
-  ChevronLeft, CheckCircle2, Wifi, Clock, Zap,
+  ChevronLeft, CheckCircle2, Wifi, Clock, Lock,
 } from "lucide-react";
 import { toast } from "sonner";
+
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const LOGO_FULL = `${BASE}/glos-logo-full.png`;
+const LOGO_ICON = `${BASE}/gaming-lounge-os-logo.png`;
 
 /* ─── Types ────────────────────────────────────────── */
 interface CartItem { product: any; quantity: number }
@@ -78,6 +82,10 @@ export default function QrMenu() {
 
   const handleCheckout = async () => {
     if (!cart.length) return;
+    if (!activeSession) {
+      toast.error("No active session. Please start a session at the front desk first.");
+      return;
+    }
     try {
       const result = await placeOrder.mutateAsync({
         token: token || "",
@@ -91,8 +99,13 @@ export default function QrMenu() {
       setCustomerName("");
       setOrderId((result as any)?.id ?? null);
       setOrderSuccess(true);
-    } catch {
-      toast.error("Failed to place order. Please try again.");
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message;
+      if (msg?.includes("no_active_session") || msg?.includes("No active session")) {
+        toast.error("No active session — please visit the front desk to start your session.");
+      } else {
+        toast.error("Failed to place order. Please try again.");
+      }
     }
   };
 
@@ -143,6 +156,7 @@ export default function QrMenu() {
   }
 
   const { asset, activeSession } = menuData;
+  const canOrder = !!activeSession;
 
   /* ── Order success screen ── */
   if (orderSuccess) {
@@ -305,6 +319,23 @@ export default function QrMenu() {
         </div>
       </div>
 
+      {/* ── No-session banner ── */}
+      {!canOrder && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mx-4 mt-1 mb-2 flex items-center gap-3 bg-amber-500/10 border border-amber-500/25 rounded-2xl px-4 py-3"
+        >
+          <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center">
+            <Lock className="h-4 w-4 text-amber-400" />
+          </div>
+          <div>
+            <p className="text-amber-300 text-sm font-semibold leading-tight">Ordering Disabled</p>
+            <p className="text-amber-400/60 text-xs mt-0.5 leading-snug">No active session for this room. Visit the front desk to start your session.</p>
+          </div>
+        </motion.div>
+      )}
+
       {/* ── Category Rail ── */}
       <AnimatePresence>
         {!search && (
@@ -355,7 +386,7 @@ export default function QrMenu() {
       </AnimatePresence>
 
       {/* ── Product List ── */}
-      <main className="px-4 py-5 pb-36 space-y-6">
+      <main className="px-4 py-5 pb-40 space-y-6">
         {search ? (
           <div>
             <p className="text-xs text-gray-600 uppercase tracking-widest mb-4 px-1">
@@ -365,7 +396,7 @@ export default function QrMenu() {
               {filtered.length === 0
                 ? <EmptyState />
                 : filtered.map((p, i) => (
-                  <ProductCard key={p.id} product={p} qty={getQty(p.id)} onUpdate={updateCart} index={i} />
+                  <ProductCard key={p.id} product={p} qty={getQty(p.id)} onUpdate={updateCart} index={i} canOrder={canOrder} />
                 ))}
             </div>
           </div>
@@ -385,13 +416,12 @@ export default function QrMenu() {
                   </div>
                   <div className="space-y-3">
                     {catProds.map((p, i) => (
-                      <ProductCard key={p.id} product={p} qty={getQty(p.id)} onUpdate={updateCart} index={i} />
+                      <ProductCard key={p.id} product={p} qty={getQty(p.id)} onUpdate={updateCart} index={i} canOrder={canOrder} />
                     ))}
                   </div>
                 </section>
               );
             })}
-            {/* Uncategorised */}
             {(() => {
               const uncat = availableProducts.filter(p => !p.categoryId);
               if (!uncat.length) return null;
@@ -402,7 +432,7 @@ export default function QrMenu() {
                     <div className="flex-1 h-px bg-[#7c3aed]/15" />
                   </div>
                   <div className="space-y-3">
-                    {uncat.map((p, i) => <ProductCard key={p.id} product={p} qty={getQty(p.id)} onUpdate={updateCart} index={i} />)}
+                    {uncat.map((p, i) => <ProductCard key={p.id} product={p} qty={getQty(p.id)} onUpdate={updateCart} index={i} canOrder={canOrder} />)}
                   </div>
                 </section>
               );
@@ -412,56 +442,74 @@ export default function QrMenu() {
           <div className="space-y-3">
             {filtered.length === 0
               ? <EmptyState />
-              : filtered.map((p, i) => <ProductCard key={p.id} product={p} qty={getQty(p.id)} onUpdate={updateCart} index={i} />)}
+              : filtered.map((p, i) => <ProductCard key={p.id} product={p} qty={getQty(p.id)} onUpdate={updateCart} index={i} canOrder={canOrder} />)}
           </div>
         )}
+
+        {/* ── Powered By footer ── */}
+        <div className="flex flex-col items-center gap-3 pt-6 pb-2">
+          <div className="h-px w-24 bg-white/[0.06]" />
+          <p className="text-[10px] text-gray-700 uppercase tracking-[0.18em]">Powered by</p>
+          <img src={LOGO_FULL} alt="Gaming Lounge OS" className="h-14 w-auto object-contain opacity-80 rounded-xl" />
+        </div>
       </main>
 
       {/* ── Floating Cart Button ── */}
       <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-gradient-to-t from-[#08080f] via-[#08080f]/95 to-transparent pointer-events-none">
-        <AnimatePresence mode="wait">
-          {cartCount > 0 ? (
-            <motion.button
-              key="cart-btn"
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 40, opacity: 0 }}
-              transition={gentleSpring}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setCartOpen(true)}
-              className="pointer-events-auto w-full h-[58px] rounded-2xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-[15px] flex items-center justify-between px-5 shadow-2xl shadow-[#7c3aed]/40 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <ShoppingCart className="h-5 w-5" />
-                  <motion.div
-                    key={cartCount}
-                    initial={{ scale: 1.6 }}
-                    animate={{ scale: 1 }}
-                    transition={spring}
-                    className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-white text-[#7c3aed] text-[10px] font-black flex items-center justify-center"
-                  >
-                    {cartCount}
-                  </motion.div>
+        {!canOrder ? (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="pointer-events-auto flex items-center gap-3 bg-amber-500/10 border border-amber-500/25 rounded-2xl px-4 py-3"
+          >
+            <Lock className="h-4 w-4 text-amber-400 shrink-0" />
+            <p className="text-amber-300 text-sm font-medium">Start a session at the front desk to order</p>
+          </motion.div>
+        ) : (
+          <AnimatePresence mode="wait">
+            {cartCount > 0 ? (
+              <motion.button
+                key="cart-btn"
+                initial={{ y: 40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 40, opacity: 0 }}
+                transition={gentleSpring}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setCartOpen(true)}
+                className="pointer-events-auto w-full h-[58px] rounded-2xl bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold text-[15px] flex items-center justify-between px-5 shadow-2xl shadow-[#7c3aed]/40 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <ShoppingCart className="h-5 w-5" />
+                    <motion.div
+                      key={cartCount}
+                      initial={{ scale: 1.6 }}
+                      animate={{ scale: 1 }}
+                      transition={spring}
+                      className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-white text-[#7c3aed] text-[10px] font-black flex items-center justify-center"
+                    >
+                      {cartCount}
+                    </motion.div>
+                  </div>
+                  View Order
                 </div>
-                View Order
-              </div>
-              <div className="bg-white/20 rounded-xl px-3 py-1.5 text-sm font-bold">
-                {cartTotal.toFixed(0)} EGP
-              </div>
-            </motion.button>
-          ) : (
-            <motion.div
-              key="hint"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="pointer-events-none text-center text-xs text-gray-700 tracking-wide py-2"
-            >
-              Tap + to add items · Staff will bring your order
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <div className="bg-white/20 rounded-xl px-3 py-1.5 text-sm font-bold">
+                  {cartTotal.toFixed(0)} EGP
+                </div>
+              </motion.button>
+            ) : (
+              <motion.div
+                key="hint"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="pointer-events-none text-center text-xs text-gray-700 tracking-wide py-2"
+              >
+                Tap + to add items · Staff will bring your order
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
 
       {/* ── Cart Bottom Sheet ── */}
@@ -486,8 +534,8 @@ export default function QrMenu() {
 /* ══════════════════════════════════════════════════════
    Product Card
 ══════════════════════════════════════════════════════ */
-function ProductCard({ product, qty, onUpdate, index }: {
-  product: any; qty: number; onUpdate: (p: any, d: number) => void; index: number;
+function ProductCard({ product, qty, onUpdate, index, canOrder }: {
+  product: any; qty: number; onUpdate: (p: any, d: number) => void; index: number; canOrder: boolean;
 }) {
   const emoji = getProductEmoji(product.nameAr ?? "", product.name ?? "", "", "");
 
@@ -535,58 +583,60 @@ function ProductCard({ product, qty, onUpdate, index }: {
         </div>
       </div>
 
-      {/* Add / Stepper */}
-      <div className="shrink-0">
-        <AnimatePresence mode="wait" initial={false}>
-          {qty > 0 ? (
-            <motion.div
-              key="stepper"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.85 }}
-              transition={spring}
-              className="flex items-center gap-1 bg-white/[0.06] rounded-2xl p-1"
-            >
-              <motion.button
-                whileTap={{ scale: 0.85 }}
-                onClick={() => onUpdate(product, -1)}
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                {qty === 1 ? <X className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
-              </motion.button>
-              <motion.span
-                key={qty}
-                initial={{ scale: 1.4 }}
-                animate={{ scale: 1 }}
+      {/* Add / Stepper — hidden when no active session */}
+      {canOrder && (
+        <div className="shrink-0">
+          <AnimatePresence mode="wait" initial={false}>
+            {qty > 0 ? (
+              <motion.div
+                key="stepper"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
                 transition={spring}
-                className="w-6 text-center font-bold text-[15px] text-white tabular-nums"
+                className="flex items-center gap-1 bg-white/[0.06] rounded-2xl p-1"
               >
-                {qty}
-              </motion.span>
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => onUpdate(product, -1)}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                >
+                  {qty === 1 ? <X className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
+                </motion.button>
+                <motion.span
+                  key={qty}
+                  initial={{ scale: 1.4 }}
+                  animate={{ scale: 1 }}
+                  transition={spring}
+                  className="w-6 text-center font-bold text-[15px] text-white tabular-nums"
+                >
+                  {qty}
+                </motion.span>
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => onUpdate(product, 1)}
+                  className="w-9 h-9 rounded-xl bg-[#7c3aed] flex items-center justify-center text-white hover:bg-[#6d28d9] transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                </motion.button>
+              </motion.div>
+            ) : (
               <motion.button
-                whileTap={{ scale: 0.85 }}
+                key="add"
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                transition={spring}
+                whileTap={{ scale: 0.88 }}
                 onClick={() => onUpdate(product, 1)}
-                className="w-9 h-9 rounded-xl bg-[#7c3aed] flex items-center justify-center text-white hover:bg-[#6d28d9] transition-colors"
+                className="w-10 h-10 rounded-xl bg-[#7c3aed]/15 border border-[#7c3aed]/30 flex items-center justify-center text-[#7c3aed] hover:bg-[#7c3aed] hover:text-white hover:border-[#7c3aed] transition-all duration-200"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-5 w-5" />
               </motion.button>
-            </motion.div>
-          ) : (
-            <motion.button
-              key="add"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.85 }}
-              transition={spring}
-              whileTap={{ scale: 0.88 }}
-              onClick={() => onUpdate(product, 1)}
-              className="w-10 h-10 rounded-xl bg-[#7c3aed]/15 border border-[#7c3aed]/30 flex items-center justify-center text-[#7c3aed] hover:bg-[#7c3aed] hover:text-white hover:border-[#7c3aed] transition-all duration-200"
-            >
-              <Plus className="h-5 w-5" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
     </motion.div>
   );
 }

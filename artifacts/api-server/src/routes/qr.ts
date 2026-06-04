@@ -64,6 +64,11 @@ router.post("/qr/:token/order", async (req, res) => {
         inArray(sessionsTable.status, ["active", "paused"])
       )).limit(1);
 
+    if (!activeSession) {
+      res.status(403).json({ error: "no_active_session", message: "No active session for this room. Please start a session at the front desk before ordering." });
+      return;
+    }
+
     const order = await createOrderWithItems(asset.tenantId, {
       sessionId: activeSession?.id,
       assetId: asset.id,

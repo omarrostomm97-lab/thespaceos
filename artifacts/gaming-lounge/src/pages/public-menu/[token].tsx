@@ -4,6 +4,9 @@ import { useState, useMemo } from "react";
 import { getProductEmoji } from "@/lib/product-emoji";
 import { Gamepad2, Search, X, ChevronRight } from "lucide-react";
 
+const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const LOGO_FULL = `${BASE}/glos-logo-full.png`;
+
 export default function PublicMenuPage() {
   const { token } = useParams<{ token: string }>();
   const { data, isLoading, isError } = useGetPublicMenu(token || "");
@@ -194,10 +197,15 @@ export default function PublicMenuPage() {
       </main>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/5 px-4 py-3">
-        <p className="text-center text-xs text-gray-700 tracking-wide">
-          Display only · Ask staff to place your order
-        </p>
+      <footer className="fixed bottom-0 left-0 right-0 bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/5 px-4 py-2.5">
+        <div className="flex items-center justify-center gap-3">
+          <p className="text-xs text-gray-700 tracking-wide">Display only · Ask staff to order</p>
+          <div className="h-3 w-px bg-white/10" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-gray-700 uppercase tracking-[0.15em]">Powered by</span>
+            <img src={LOGO_FULL} alt="Gaming Lounge OS" className="h-5 w-auto object-contain opacity-60 rounded" />
+          </div>
+        </div>
       </footer>
     </div>
   );
