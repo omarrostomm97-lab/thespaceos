@@ -229,6 +229,28 @@ export default function PrintQrPage() {
             </p>
           </div>
 
+          {/* ── Powered by footer ── */}
+          <div style={{
+            marginTop: 28,
+            paddingTop: 16,
+            borderTop: "1px solid rgba(255,255,255,0.07)",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}>
+            <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10, letterSpacing: "0.08em" }}>
+              POWERED BY
+            </span>
+            <img
+              src={`${import.meta.env.BASE_URL}gaming-lounge-os-logo.png`}
+              alt="Gaming Lounge OS"
+              style={{ width: 22, height: 22, borderRadius: 5, objectFit: "cover" }}
+            />
+            <span style={{
+              color: "rgba(255,255,255,0.55)", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
+            }}>
+              GAMING LOUNGE OS
+            </span>
+          </div>
+
         </div>
       </div>
     </>

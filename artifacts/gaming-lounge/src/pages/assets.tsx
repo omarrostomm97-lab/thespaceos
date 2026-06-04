@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Gamepad2, Tv, Trophy, Play, Plus, Pencil, Wind, Target,
-  QrCode, Printer, RefreshCw, Zap, History, CalendarX,
+  QrCode, Printer, RefreshCw, Zap, History, CalendarX, FileDown,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -475,22 +475,45 @@ export default function Assets() {
             </div>
           </div>
 
-          {isMgmt && (
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              onClick={openAdd}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-              style={{
-                background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
-                boxShadow: "0 4px 16px rgba(0,111,238,0.3), 0 1px 0 rgba(255,255,255,0.12) inset",
-              }}
-            >
-              <Plus className="h-4 w-4" />
-              {t("add_device")}
-            </motion.button>
-          )}
+          <div className="flex items-center gap-2">
+            {["platform_owner", "owner"].includes(user?.role ?? "") && assets && assets.length > 0 && (
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                onClick={() => {
+                  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+                  const params = new URLSearchParams({ venue: venueName });
+                  window.open(`${window.location.origin}${base}/print-all-qr?${params}`, "_blank");
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                style={{
+                  background: "rgba(124,58,237,0.12)",
+                  border: "1px solid rgba(124,58,237,0.3)",
+                  color: "#a78bfa",
+                }}
+              >
+                <FileDown className="h-4 w-4" />
+                Export All QR
+              </motion.button>
+            )}
+            {isMgmt && (
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                onClick={openAdd}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                style={{
+                  background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
+                  boxShadow: "0 4px 16px rgba(0,111,238,0.3), 0 1px 0 rgba(255,255,255,0.12) inset",
+                }}
+              >
+                <Plus className="h-4 w-4" />
+                {t("add_device")}
+              </motion.button>
+            )}
+          </div>
         </div>
 
         {/* ── Empty state ── */}
