@@ -105,7 +105,10 @@ export default function Menu() {
       toast.success(t("product_deleted_ok"));
       setDeleteProductConfirm(null);
       refresh();
-    } catch { toast.error(t("error_generic")); }
+    } catch (err: any) {
+      const code = err?.data?.error;
+      toast.error(code === "product_in_use" ? t("product_delete_in_use") : t("error_generic"));
+    }
   };
 
   const toggleAvailability = async (productId: number, current: boolean) => {
@@ -145,7 +148,10 @@ export default function Menu() {
       setDeleteCategoryConfirm(null);
       if (activeTab === String(deleteCategoryConfirm.id)) setActiveTab("all");
       refresh();
-    } catch { toast.error(t("category_delete_error")); }
+    } catch (err: any) {
+      const code = err?.data?.error;
+      toast.error(code === "category_has_products" ? t("category_delete_has_products") : t("category_delete_error"));
+    }
   };
 
   const visibleProducts = products?.filter(p => activeTab === "all" || p.categoryId?.toString() === activeTab) ?? [];

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { productsTable, productCategoriesTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { productsTable, productCategoriesTable, orderItemsTable, recipesTable } from "@workspace/db";
+import { eq, and, count } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 
 import { writeAuditLog } from "../lib/audit";
@@ -136,6 +136,12 @@ router.patch("/product-categories/:categoryId", requireAuth, requireTenant, MGMT
 router.delete("/product-categories/:categoryId", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const id = parseInt(req.params.categoryId as string);
+    const [{ total }] = await db.select({ total: count() }).from(productsTable)
+      .where(and(eq(productsTable.categoryId, id), eq(productsTable.tenantId, req.user!.tenantId!)));
+    if (total > 0) {
+      res.status(409).json({ error: "category_has_products" });
+      return;
+    }
     const [deleted] = await db.delete(productCategoriesTable)
       .where(and(eq(productCategoriesTable.id, id), eq(productCategoriesTable.tenantId, req.user!.tenantId!)))
       .returning();
@@ -150,6 +156,18 @@ router.delete("/product-categories/:categoryId", requireAuth, requireTenant, MGM
 router.delete("/products/:productId", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const id = parseInt(req.params.productId as string);
+    const [{ orderCount }] = await db.select({ orderCount: count() }).from(orderItemsTable)
+      .where(eq(orderItemsTable.productId, id));
+    if (orderCount > 0) {
+      res.status(409).json({ error: "product_in_use" });
+      return;
+    }
+    const [{ recipeCount }] = await db.select({ recipeCount: count() }).from(recipesTable)
+      .where(eq(recipesTable.productId, id));
+    if (recipeCount > 0) {
+      res.status(409).json({ error: "product_in_use" });
+      return;
+    }
     const [deleted] = await db.delete(productsTable)
       .where(and(eq(productsTable.id, id), eq(productsTable.tenantId, req.user!.tenantId!)))
       .returning();
