@@ -2,7 +2,7 @@ import { useGetQrMenu, usePlaceQrOrder } from "@workspace/api-client-react";
 import { getProductEmoji } from "@/lib/product-emoji";
 import { useParams } from "wouter";
 import { useState, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import {
   Gamepad2, ShoppingCart, Plus, Minus, X, Search,
   ChevronLeft, CheckCircle2, Wifi, Clock, Lock,
