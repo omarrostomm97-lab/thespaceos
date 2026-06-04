@@ -456,3 +456,16 @@
 .alert-dialog__backdrop {
   background-color: rgba(0, 0, 0, 0.65) !important;
 }
+
+/* ── Opaque dialog/popover panels ──
+   HeroUI v3 often injects a translucent or glass bg on dialog and popover
+   containers. Override them all to use a solid surface so text is readable. */
+.modal__dialog,
+.alert-dialog__dialog,
+[data-slot="dialog"],
+[role="dialog"],
+[role="alertdialog"] {
+  background-color: hsl(var(--background)) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
