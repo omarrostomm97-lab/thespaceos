@@ -1344,10 +1344,10 @@ export default function Dashboard() {
                         return (
                           <tr key={room.assetId} className="border-b border-border/40 last:border-0 hover:bg-secondary/20 transition-colors">
                             <td className="py-3">
-                              <div className="flex items-center gap-2.5">
+                              <Link href={`/assets/${room.assetId}/history`} className="flex items-center gap-2.5 group">
                                 <span className="text-lg">{ASSET_ICON_MAP[room.assetType]??"🕹️"}</span>
                                 <div>
-                                  <p className="font-medium text-sm leading-tight">{name}</p>
+                                  <p className="font-medium text-sm leading-tight group-hover:text-primary transition-colors">{name}</p>
                                   <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
                                     room.assetStatus === "available"
                                       ? "bg-emerald-500/10 text-emerald-500"
@@ -1358,7 +1358,7 @@ export default function Dashboard() {
                                       : (lang==="ar"?"مشغول":"Busy")}
                                   </span>
                                 </div>
-                              </div>
+                              </Link>
                             </td>
                             <td className="py-3 text-end tabular-nums text-muted-foreground">
                               {room.sessionCount}

@@ -150,43 +150,52 @@ router.get("/dashboard/revenue", requireAuth, requireTenant, async (req, res) =>
     });
     const dailyBreakdown = Object.entries(dailyMap).map(([date, total]) => ({ date, total: r2(total) }));
 
-    // Gaming time revenue from ended sessions in period
-    const sessionRows = await db
-      .select({ totalMinutes: sessionsTable.totalMinutes, pricePerHour: assetsTable.pricePerHour })
-      .from(sessionsTable)
-      .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
-      .where(and(
-        eq(sessionsTable.tenantId, tenantId),
-        eq(sessionsTable.status, "ended"),
-        gte(sessionsTable.endedAt, from),
-      ));
-    const sessionRevenue = sessionRows.reduce((sum, r) => {
-      const mins = parseFloat((r.totalMinutes as string) ?? "0");
-      const rate = parseFloat((r.pricePerHour as string) ?? "0");
-      return sum + (mins / 60) * rate;
-    }, 0);
+    // Gaming time revenue — only when source is not buffet-only
+    let sessionRevenue = 0;
+    if (source !== "buffet") {
+      const sessionRows = await db
+        .select({ totalMinutes: sessionsTable.totalMinutes, pricePerHour: assetsTable.pricePerHour })
+        .from(sessionsTable)
+        .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
+        .where(and(
+          eq(sessionsTable.tenantId, tenantId),
+          eq(sessionsTable.status, "ended"),
+          gte(sessionsTable.endedAt, from),
+        ));
+      sessionRevenue = sessionRows.reduce((sum, r) => {
+        const mins = parseFloat((r.totalMinutes as string) ?? "0");
+        const rate = parseFloat((r.pricePerHour as string) ?? "0");
+        return sum + (mins / 60) * rate;
+      }, 0);
+    }
 
-    // Room orders revenue (session-linked delivered orders)
-    const roomOrderRows = await db.select({ totalAmount: ordersTable.totalAmount })
-      .from(ordersTable)
-      .where(and(
-        eq(ordersTable.tenantId, tenantId),
-        isNotNull(ordersTable.sessionId),
-        inArray(ordersTable.status, ["delivered", "closed"]),
-        gte(ordersTable.createdAt, from),
-      ));
-    const roomOrderRevenue = roomOrderRows.reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+    // Room orders revenue — only when source is not buffet-only
+    let roomOrderRevenue = 0;
+    if (source !== "buffet") {
+      const roomOrderRows = await db.select({ totalAmount: ordersTable.totalAmount })
+        .from(ordersTable)
+        .where(and(
+          eq(ordersTable.tenantId, tenantId),
+          isNotNull(ordersTable.sessionId),
+          inArray(ordersTable.status, ["delivered", "closed"]),
+          gte(ordersTable.createdAt, from),
+        ));
+      roomOrderRevenue = roomOrderRows.reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+    }
 
-    // POS / buffet revenue (standalone orders, no session)
-    const posRows = await db.select({ totalAmount: ordersTable.totalAmount })
-      .from(ordersTable)
-      .where(and(
-        eq(ordersTable.tenantId, tenantId),
-        isNull(ordersTable.sessionId),
-        inArray(ordersTable.status, ["delivered", "closed"]),
-        gte(ordersTable.createdAt, from),
-      ));
-    const orderRevenue = posRows.reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+    // POS / buffet revenue — only when source is not gaming-only
+    let orderRevenue = 0;
+    if (source !== "gaming") {
+      const posRows = await db.select({ totalAmount: ordersTable.totalAmount })
+        .from(ordersTable)
+        .where(and(
+          eq(ordersTable.tenantId, tenantId),
+          isNull(ordersTable.sessionId),
+          inArray(ordersTable.status, ["delivered", "closed"]),
+          gte(ordersTable.createdAt, from),
+        ));
+      orderRevenue = posRows.reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+    }
 
     const total = cash + instapay + visa;
     res.json({
@@ -301,7 +310,7 @@ router.get("/dashboard/breakdown", requireAuth, requireTenant, async (req, res) 
         .where(and(
           eq(ordersTable.tenantId, tenantId),
           isNotNull(ordersTable.sessionId),
-          ne(ordersTable.status, "cancelled"),
+          inArray(ordersTable.status, ["delivered", "closed"]),
           gte(ordersTable.createdAt, from),
         ))
         .groupBy(
@@ -336,7 +345,7 @@ router.get("/dashboard/breakdown", requireAuth, requireTenant, async (req, res) 
         .where(and(
           eq(ordersTable.tenantId, tenantId),
           isNull(ordersTable.sessionId),
-          ne(ordersTable.status, "cancelled"),
+          inArray(ordersTable.status, ["delivered", "closed"]),
           gte(ordersTable.createdAt, from),
         ))
         .groupBy(
