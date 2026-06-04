@@ -22,6 +22,7 @@ async function buildOrderResponse(o: typeof ordersTable.$inferSelect) {
     notes: orderItemsTable.notes,
     status: orderItemsTable.status,
     returnReason: orderItemsTable.returnReason,
+    returnQuantity: orderItemsTable.returnQuantity,
     returnedAt: orderItemsTable.returnedAt,
     returnedByUserId: orderItemsTable.returnedByUserId,
   }).from(orderItemsTable)
@@ -359,7 +360,7 @@ router.post("/orders/:orderId/items/:itemId/request-return", requireAuth, requir
   try {
     const orderId = parseInt(req.params.orderId);
     const itemId = parseInt(req.params.itemId);
-    const { reason } = req.body;
+    const { reason, quantity } = req.body;
     if (!reason?.trim()) { res.status(400).json({ error: "reason required" }); return; }
 
     const [order] = await db.select().from(ordersTable)
@@ -374,8 +375,13 @@ router.post("/orders/:orderId/items/:itemId/request-return", requireAuth, requir
     if (!item) { res.status(404).json({ error: "Item not found" }); return; }
     if (item.status !== "active") { res.status(400).json({ error: "Item is not in active status" }); return; }
 
+    const returnQty = quantity ? parseInt(String(quantity)) : item.quantity;
+    if (returnQty < 1 || returnQty > item.quantity) {
+      res.status(400).json({ error: `Return quantity must be between 1 and ${item.quantity}` }); return;
+    }
+
     await db.update(orderItemsTable)
-      .set({ status: "return_requested", returnReason: reason, returnedByUserId: req.user!.id })
+      .set({ status: "return_requested", returnReason: reason, returnedByUserId: req.user!.id, returnQuantity: returnQty })
       .where(eq(orderItemsTable.id, itemId));
 
     await writeAuditLog({ user: req.user, action: "request_item_return", entityType: "order", entityId: orderId, newValue: { itemId, reason } });
@@ -406,8 +412,9 @@ router.post("/orders/:orderId/items/:itemId/approve-return", requireAuth, requir
       .set({ status: "returned", returnedAt: new Date() })
       .where(eq(orderItemsTable.id, itemId));
 
-    // Deduct the returned item's totalPrice from order total
-    const itemTotal = parseFloat(item.totalPrice as string);
+    // Deduct only the returned quantity (partial returns use returnQuantity × unitPrice)
+    const returnQty = item.returnQuantity ?? item.quantity;
+    const itemTotal = parseFloat(item.unitPrice as string) * returnQty;
     const newTotal = Math.max(0, parseFloat(order.totalAmount as string) - itemTotal);
     const [updated] = await db.update(ordersTable)
       .set({ totalAmount: String(Math.round(newTotal * 100) / 100) })
@@ -420,8 +427,9 @@ router.post("/orders/:orderId/items/:itemId/approve-return", requireAuth, requir
         eq(recipeItemsTable.productId, item.productId),
         eq(recipeItemsTable.tenantId, req.user!.tenantId!)
       ));
+    const restoreItemQty = item.returnQuantity ?? item.quantity;
     for (const recipe of recipeItems) {
-      const restoreQty = parseFloat(recipe.quantityUsed as string) * item.quantity;
+      const restoreQty = parseFloat(recipe.quantityUsed as string) * restoreItemQty;
       const [invItem] = await db.select().from(inventoryItemsTable)
         .where(and(
           eq(inventoryItemsTable.id, recipe.inventoryItemId),

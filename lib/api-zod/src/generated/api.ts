@@ -1197,6 +1197,7 @@ export const ListReturnRequestsResponseItem = zod.object({
   "requestedByName": zod.string().nullable(),
   "orderedAt": zod.coerce.date(),
   "itemStatus": zod.string(),
+  "returnQuantity": zod.number().nullish().describe('Quantity approved for return — null means full item quantity'),
   "returnedAt": zod.coerce.date().nullish()
 })
 export const ListReturnRequestsResponse = zod.array(ListReturnRequestsResponseItem)
@@ -1210,8 +1211,12 @@ export const RequestItemReturnParams = zod.object({
   "itemId": zod.coerce.number()
 })
 
+
+
+
 export const RequestItemReturnBody = zod.object({
-  "reason": zod.string()
+  "reason": zod.string(),
+  "quantity": zod.number().min(1).optional().describe('Quantity to return — defaults to the full item quantity if omitted')
 })
 
 export const RequestItemReturnResponse = zod.object({

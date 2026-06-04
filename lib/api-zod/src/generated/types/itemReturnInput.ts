@@ -8,4 +8,9 @@
 
 export interface ItemReturnInput {
   reason: string;
+  /**
+     * Quantity to return — defaults to the full item quantity if omitted
+     * @minimum 1
+     */
+  quantity?: number;
 }

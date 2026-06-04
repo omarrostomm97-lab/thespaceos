@@ -44,8 +44,9 @@ export default function SessionDetail() {
   const cancelSession = useCancelSession();
   const requestReturn = useRequestItemReturn();
 
-  const [returnDialog, setReturnDialog] = useState<{ orderId: number; itemId: number; productName: string } | null>(null);
+  const [returnDialog, setReturnDialog] = useState<{ orderId: number; itemId: number; productName: string; maxQty: number } | null>(null);
   const [returnReason, setReturnReason] = useState("");
+  const [returnQty, setReturnQty] = useState(1);
 
   /* ── Real-time clock ── */
   const [now, setNow] = useState(() => new Date());
@@ -124,11 +125,12 @@ export default function SessionDetail() {
     if (!returnDialog) return;
     if (!returnReason.trim()) { toast.error(t("return_reason_required")); return; }
     try {
-      await requestReturn.mutateAsync({ orderId: returnDialog.orderId, itemId: returnDialog.itemId, data: { reason: returnReason.trim() } });
+      await requestReturn.mutateAsync({ orderId: returnDialog.orderId, itemId: returnDialog.itemId, data: { reason: returnReason.trim(), quantity: returnQty } });
       toast.success(t("return_request_ok"));
       queryClient.invalidateQueries({ queryKey: getGetSessionQueryKey(sessionId) });
       setReturnDialog(null);
       setReturnReason("");
+      setReturnQty(1);
     } catch {
       toast.error(t("return_request_error"));
     }
@@ -415,12 +417,18 @@ export default function SessionDetail() {
                         {order.items.map((item: any) => {
                           const productName = lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr);
                           const canRequest = isDelivered && item.status === "active";
+                          const returnLabel = item.returnQuantity && item.returnQuantity < item.quantity
+                            ? `${item.returnQuantity}/${item.quantity}`
+                            : null;
                           return (
                             <div key={item.id} className="flex items-center justify-between px-4 py-2.5 gap-3">
-                              <div className="flex items-center gap-2 min-w-0">
+                              <div className="flex items-center gap-2 min-w-0 flex-wrap">
                                 <span className="text-sm text-muted-foreground shrink-0">{item.quantity}×</span>
                                 <span className="text-sm font-medium truncate">{productName}</span>
                                 {itemStatusBadge(item.status)}
+                                {returnLabel && item.status === "return_requested" && (
+                                  <span className="text-[10px] text-muted-foreground">({returnLabel})</span>
+                                )}
                                 {item.returnReason && item.status !== "active" && (
                                   <span className="text-xs text-muted-foreground truncate hidden md:block">
                                     — {item.returnReason}
@@ -435,8 +443,9 @@ export default function SessionDetail() {
                                     variant="outline"
                                     className="h-7 px-2 text-xs border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
                                     onClick={() => {
-                                      setReturnDialog({ orderId: order.id, itemId: item.id, productName });
+                                      setReturnDialog({ orderId: order.id, itemId: item.id, productName, maxQty: item.quantity });
                                       setReturnReason("");
+                                      setReturnQty(1);
                                     }}
                                   >
                                     <RotateCcw className="h-3 w-3 me-1" />
@@ -459,7 +468,7 @@ export default function SessionDetail() {
       </div>
 
       {/* Return Request Dialog */}
-      <Dialog open={!!returnDialog} onOpenChange={open => { if (!open) { setReturnDialog(null); setReturnReason(""); } }}>
+      <Dialog open={!!returnDialog} onOpenChange={open => { if (!open) { setReturnDialog(null); setReturnReason(""); setReturnQty(1); } }}>
         <DialogContent dir={dir}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -469,8 +478,40 @@ export default function SessionDetail() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             {returnDialog && (
-              <p className="text-sm text-muted-foreground">{returnDialog.productName}</p>
+              <p className="text-sm font-medium">{returnDialog.productName}</p>
             )}
+
+            {/* Quantity selector — only shown when order item has qty > 1 */}
+            {returnDialog && returnDialog.maxQty > 1 && (
+              <div className="space-y-1.5">
+                <p className="text-xs text-muted-foreground font-medium">
+                  {lang === "ar" ? "الكمية المُرجعة" : "Quantity to return"}
+                  <span className="text-muted-foreground/50 ms-1">
+                    ({lang === "ar" ? `من ${returnDialog.maxQty}` : `of ${returnDialog.maxQty}`})
+                  </span>
+                </p>
+                <div className="flex items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => setReturnQty(q => Math.max(1, q - 1))}
+                    disabled={returnQty <= 1}
+                  >−</Button>
+                  <span className="w-8 text-center font-bold tabular-nums">{returnQty}</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => setReturnQty(q => Math.min(returnDialog.maxQty, q + 1))}
+                    disabled={returnQty >= returnDialog.maxQty}
+                  >+</Button>
+                </div>
+              </div>
+            )}
+
             <p className="text-sm text-muted-foreground">{t("return_confirm_body")}</p>
             <Textarea
               placeholder={t("return_reason_placeholder")}
@@ -482,7 +523,7 @@ export default function SessionDetail() {
             />
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setReturnDialog(null); setReturnReason(""); }}>
+            <Button variant="outline" onClick={() => { setReturnDialog(null); setReturnReason(""); setReturnQty(1); }}>
               {t("cancel")}
             </Button>
             <Button

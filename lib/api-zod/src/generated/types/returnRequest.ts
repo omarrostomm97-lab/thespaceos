@@ -26,6 +26,11 @@ export interface ReturnRequest {
   requestedByName: string | null;
   orderedAt: Date;
   itemStatus: string;
+  /**
+     * Quantity approved for return — null means full item quantity
+     * @nullable
+     */
+  returnQuantity?: number | null;
   /** @nullable */
   returnedAt?: Date | null;
 }

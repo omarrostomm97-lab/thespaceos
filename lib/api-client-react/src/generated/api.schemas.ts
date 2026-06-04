@@ -643,6 +643,11 @@ export interface QrOrderInput {
 
 export interface ItemReturnInput {
   reason: string;
+  /**
+     * Quantity to return — defaults to the full item quantity if omitted
+     * @minimum 1
+     */
+  quantity?: number;
 }
 
 export interface ReturnRequest {
@@ -665,6 +670,11 @@ export interface ReturnRequest {
   requestedByName: string | null;
   orderedAt: string;
   itemStatus: string;
+  /**
+     * Quantity approved for return — null means full item quantity
+     * @nullable
+     */
+  returnQuantity?: number | null;
   /** @nullable */
   returnedAt?: string | null;
 }

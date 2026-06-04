@@ -2920,6 +2920,10 @@ components:
       properties:
         reason:
           type: string
+        quantity:
+          type: integer
+          minimum: 1
+          description: "Quantity to return — defaults to the full item quantity if omitted"
 
     ReturnRequest:
       type: object
@@ -2954,6 +2958,9 @@ components:
           format: date-time
         itemStatus:
           type: string
+        returnQuantity:
+          type: ["integer", "null"]
+          description: "Quantity approved for return — null means full item quantity"
         returnedAt:
           type: ["string", "null"]
           format: date-time
