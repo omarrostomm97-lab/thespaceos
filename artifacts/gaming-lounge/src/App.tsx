@@ -35,6 +35,7 @@ import AdminUsers from "@/pages/admin/users";
 import Performance from "@/pages/performance";
 import Recipes from "@/pages/recipes";
 import Bookings from "@/pages/bookings";
+import OrderReturns from "@/pages/orders/returns";
 import FinanceIndex from "@/pages/finance/index";
 import FinanceExpenses from "@/pages/finance/expenses";
 import FinanceMoneyIn from "@/pages/finance/money-in";
@@ -110,6 +111,9 @@ function Router() {
       </Route>
       <Route path="/kds">
         <ProtectedPage path="/kds"><Kds /></ProtectedPage>
+      </Route>
+      <Route path="/orders/returns">
+        <ProtectedPage path="/orders/returns"><OrderReturns /></ProtectedPage>
       </Route>
       <Route path="/orders">
         <ProtectedPage path="/orders"><Orders /></ProtectedPage>

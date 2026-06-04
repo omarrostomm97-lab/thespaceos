@@ -66,6 +66,7 @@ import type {
   InventoryItemUpdate,
   InventoryMovement,
   InventoryMovementInput,
+  ItemReturnInput,
   ListAuditLogsParams,
   ListBookingsParams,
   ListFinanceCategoriesParams,
@@ -98,6 +99,7 @@ import type {
   RecipeInput,
   RecipeItem,
   RefreshTokenBody,
+  ReturnRequest,
   RevenueStats,
   Session,
   SessionDetail,
@@ -3745,6 +3747,301 @@ export const useCancelOrder = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getCancelOrderMutationOptions(options));
+    }
+
+export const getListReturnRequestsUrl = () => {
+
+
+
+
+  return `/api/orders/return-requests`
+}
+
+/**
+ * @summary List all pending item return requests (owner/manager)
+ */
+export const listReturnRequests = async ( options?: RequestInit): Promise<ReturnRequest[]> => {
+
+  return customFetch<ReturnRequest[]>(getListReturnRequestsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReturnRequestsQueryKey = () => {
+    return [
+    `/api/orders/return-requests`
+    ] as const;
+    }
+
+
+export const getListReturnRequestsQueryOptions = <TData = Awaited<ReturnType<typeof listReturnRequests>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReturnRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReturnRequestsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReturnRequests>>> = ({ signal }) => listReturnRequests({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReturnRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListReturnRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof listReturnRequests>>>
+export type ListReturnRequestsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all pending item return requests (owner/manager)
+ */
+
+export function useListReturnRequests<TData = Awaited<ReturnType<typeof listReturnRequests>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReturnRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListReturnRequestsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRequestItemReturnUrl = (orderId: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/orders/${orderId}/items/${itemId}/request-return`
+}
+
+/**
+ * @summary Cashier requests return of a delivered order item
+ */
+export const requestItemReturn = async (orderId: number,
+    itemId: number,
+    itemReturnInput: ItemReturnInput, options?: RequestInit): Promise<Order> => {
+
+  return customFetch<Order>(getRequestItemReturnUrl(orderId,itemId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      itemReturnInput,)
+  }
+);}
+
+
+
+
+export const getRequestItemReturnMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestItemReturn>>, TError,{orderId: number;itemId: number;data: BodyType<ItemReturnInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestItemReturn>>, TError,{orderId: number;itemId: number;data: BodyType<ItemReturnInput>}, TContext> => {
+
+const mutationKey = ['requestItemReturn'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestItemReturn>>, {orderId: number;itemId: number;data: BodyType<ItemReturnInput>}> = (props) => {
+          const {orderId,itemId,data} = props ?? {};
+
+          return  requestItemReturn(orderId,itemId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestItemReturnMutationResult = NonNullable<Awaited<ReturnType<typeof requestItemReturn>>>
+    export type RequestItemReturnMutationBody = BodyType<ItemReturnInput>
+    export type RequestItemReturnMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Cashier requests return of a delivered order item
+ */
+export const useRequestItemReturn = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestItemReturn>>, TError,{orderId: number;itemId: number;data: BodyType<ItemReturnInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestItemReturn>>,
+        TError,
+        {orderId: number;itemId: number;data: BodyType<ItemReturnInput>},
+        TContext
+      > => {
+      return useMutation(getRequestItemReturnMutationOptions(options));
+    }
+
+export const getApproveItemReturnUrl = (orderId: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/orders/${orderId}/items/${itemId}/approve-return`
+}
+
+/**
+ * @summary Owner/manager approves an item return request
+ */
+export const approveItemReturn = async (orderId: number,
+    itemId: number, options?: RequestInit): Promise<Order> => {
+
+  return customFetch<Order>(getApproveItemReturnUrl(orderId,itemId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getApproveItemReturnMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveItemReturn>>, TError,{orderId: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof approveItemReturn>>, TError,{orderId: number;itemId: number}, TContext> => {
+
+const mutationKey = ['approveItemReturn'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof approveItemReturn>>, {orderId: number;itemId: number}> = (props) => {
+          const {orderId,itemId} = props ?? {};
+
+          return  approveItemReturn(orderId,itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApproveItemReturnMutationResult = NonNullable<Awaited<ReturnType<typeof approveItemReturn>>>
+
+    export type ApproveItemReturnMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Owner/manager approves an item return request
+ */
+export const useApproveItemReturn = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof approveItemReturn>>, TError,{orderId: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof approveItemReturn>>,
+        TError,
+        {orderId: number;itemId: number},
+        TContext
+      > => {
+      return useMutation(getApproveItemReturnMutationOptions(options));
+    }
+
+export const getRejectItemReturnUrl = (orderId: number,
+    itemId: number,) => {
+
+
+
+
+  return `/api/orders/${orderId}/items/${itemId}/reject-return`
+}
+
+/**
+ * @summary Owner/manager rejects an item return request
+ */
+export const rejectItemReturn = async (orderId: number,
+    itemId: number, options?: RequestInit): Promise<Order> => {
+
+  return customFetch<Order>(getRejectItemReturnUrl(orderId,itemId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRejectItemReturnMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectItemReturn>>, TError,{orderId: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rejectItemReturn>>, TError,{orderId: number;itemId: number}, TContext> => {
+
+const mutationKey = ['rejectItemReturn'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rejectItemReturn>>, {orderId: number;itemId: number}> = (props) => {
+          const {orderId,itemId} = props ?? {};
+
+          return  rejectItemReturn(orderId,itemId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RejectItemReturnMutationResult = NonNullable<Awaited<ReturnType<typeof rejectItemReturn>>>
+
+    export type RejectItemReturnMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Owner/manager rejects an item return request
+ */
+export const useRejectItemReturn = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rejectItemReturn>>, TError,{orderId: number;itemId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof rejectItemReturn>>,
+        TError,
+        {orderId: number;itemId: number},
+        TContext
+      > => {
+      return useMutation(getRejectItemReturnMutationOptions(options));
     }
 
 export const getListPaymentsUrl = (params?: ListPaymentsParams,) => {

@@ -1044,6 +1044,99 @@ paths:
               schema:
                 $ref: "#/components/schemas/Order"
 
+  /orders/return-requests:
+    get:
+      operationId: listReturnRequests
+      tags: [orders]
+      summary: List all pending item return requests (owner/manager)
+      responses:
+        "200":
+          description: Pending return requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReturnRequest"
+
+  /orders/{orderId}/items/{itemId}/request-return:
+    post:
+      operationId: requestItemReturn
+      tags: [orders]
+      summary: Cashier requests return of a delivered order item
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemReturnInput"
+      responses:
+        "200":
+          description: Return request submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}/items/{itemId}/approve-return:
+    post:
+      operationId: approveItemReturn
+      tags: [orders]
+      summary: Owner/manager approves an item return request
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Return approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{orderId}/items/{itemId}/reject-return:
+    post:
+      operationId: rejectItemReturn
+      tags: [orders]
+      summary: Owner/manager rejects an item return request
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Return rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
   # ── PAYMENTS ──────────────────────────────────────────
   /payments:
     get:
@@ -2812,10 +2905,49 @@ components:
         notes:
           type: string
 
+    ItemReturnInput:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    ReturnRequest:
+      type: object
+      required: [itemId, orderId, productName, quantity, totalPrice, returnReason, requestedByName, orderedAt]
+      properties:
+        itemId:
+          type: integer
+        orderId:
+          type: integer
+        sessionId:
+          type: ["integer", "null"]
+        assetName:
+          type: ["string", "null"]
+        assetNameAr:
+          type: ["string", "null"]
+        productName:
+          type: string
+        productNameAr:
+          type: ["string", "null"]
+        quantity:
+          type: integer
+        unitPrice:
+          type: number
+        totalPrice:
+          type: number
+        returnReason:
+          type: string
+        requestedByName:
+          type: ["string", "null"]
+        orderedAt:
+          type: string
+          format: date-time
+
     # ── ORDER SCHEMAS ──
     OrderItem:
       type: object
-      required: [id, productId, productName, quantity, unitPrice, totalPrice]
+      required: [id, productId, productName, quantity, unitPrice, totalPrice, status]
       properties:
         id:
           type: integer
@@ -2833,6 +2965,16 @@ components:
           type: number
         notes:
           type: ["string", "null"]
+        status:
+          type: string
+          enum: [active, return_requested, returned, return_rejected]
+        returnReason:
+          type: ["string", "null"]
+        returnedAt:
+          type: ["string", "null"]
+          format: date-time
+        returnedByUserId:
+          type: ["integer", "null"]
 
     Order:
       type: object

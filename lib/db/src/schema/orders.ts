@@ -33,6 +33,10 @@ export const orderItemsTable = pgTable("order_items", {
   unitPrice: numeric("unit_price", { precision: 10, scale: 2 }).notNull(),
   totalPrice: numeric("total_price", { precision: 10, scale: 2 }).notNull(),
   notes: text("notes"),
+  status: text("status").notNull().default("active"),
+  returnReason: text("return_reason"),
+  returnedAt: timestamp("returned_at"),
+  returnedByUserId: integer("returned_by_user_id").references(() => usersTable.id),
 });
 
 export const insertOrderSchema = createInsertSchema(ordersTable).omit({ id: true, createdAt: true });

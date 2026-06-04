@@ -20,6 +20,10 @@ async function buildOrderResponse(o: typeof ordersTable.$inferSelect) {
     unitPrice: orderItemsTable.unitPrice,
     totalPrice: orderItemsTable.totalPrice,
     notes: orderItemsTable.notes,
+    status: orderItemsTable.status,
+    returnReason: orderItemsTable.returnReason,
+    returnedAt: orderItemsTable.returnedAt,
+    returnedByUserId: orderItemsTable.returnedByUserId,
   }).from(orderItemsTable)
     .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
     .where(eq(orderItemsTable.orderId, o.id));
@@ -66,6 +70,69 @@ router.get("/orders", requireAuth, requireTenant, async (req, res) => {
     res.json(formatted);
   } catch {
     res.status(500).json({ error: "Failed to list orders" });
+  }
+});
+
+// GET /orders/return-requests — list all pending return requests (owner/manager)
+// NOTE: must be registered BEFORE /orders/:orderId to avoid Express matching "return-requests" as orderId
+const MGMT = requireRole("platform_owner", "owner", "manager");
+
+router.get("/orders/return-requests", requireAuth, requireTenant, MGMT, async (req, res) => {
+  try {
+    const pendingItems = await db.select({
+      itemId: orderItemsTable.id,
+      orderId: orderItemsTable.orderId,
+      productId: orderItemsTable.productId,
+      productName: productsTable.name,
+      productNameAr: productsTable.nameAr,
+      quantity: orderItemsTable.quantity,
+      unitPrice: orderItemsTable.unitPrice,
+      totalPrice: orderItemsTable.totalPrice,
+      returnReason: orderItemsTable.returnReason,
+      requestedByUserId: orderItemsTable.returnedByUserId,
+      sessionId: ordersTable.sessionId,
+      assetId: ordersTable.assetId,
+      orderedAt: ordersTable.createdAt,
+    }).from(orderItemsTable)
+      .innerJoin(ordersTable, and(
+        eq(orderItemsTable.orderId, ordersTable.id),
+        eq(ordersTable.tenantId, req.user!.tenantId!)
+      ))
+      .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
+      .where(eq(orderItemsTable.status, "return_requested"));
+
+    const result = await Promise.all(pendingItems.map(async item => {
+      let assetName = null, assetNameAr = null;
+      if (item.assetId) {
+        const [a] = await db.select({ name: assetsTable.name, nameAr: assetsTable.nameAr })
+          .from(assetsTable).where(eq(assetsTable.id, item.assetId)).limit(1);
+        assetName = a?.name ?? null; assetNameAr = a?.nameAr ?? null;
+      }
+      let requestedByName = null;
+      if (item.requestedByUserId) {
+        const [u] = await db.select({ name: usersTable.name })
+          .from(usersTable).where(eq(usersTable.id, item.requestedByUserId)).limit(1);
+        requestedByName = u?.name ?? null;
+      }
+      return {
+        itemId: item.itemId,
+        orderId: item.orderId,
+        sessionId: item.sessionId,
+        assetName, assetNameAr,
+        productName: item.productName ?? "",
+        productNameAr: item.productNameAr ?? null,
+        quantity: item.quantity,
+        unitPrice: parseFloat(item.unitPrice as string),
+        totalPrice: parseFloat(item.totalPrice as string),
+        returnReason: item.returnReason ?? "",
+        requestedByName,
+        orderedAt: item.orderedAt,
+      };
+    }));
+
+    res.json(result);
+  } catch {
+    res.status(500).json({ error: "Failed to list return requests" });
   }
 });
 
@@ -273,6 +340,133 @@ router.post("/orders/:orderId/cancel", requireAuth, requireTenant, CASHIER_UP, a
     res.json(await buildOrderResponse(updated));
   } catch {
     res.status(500).json({ error: "Failed to cancel order" });
+  }
+});
+
+// POST /orders/:orderId/items/:itemId/request-return — cashier submits return request
+router.post("/orders/:orderId/items/:itemId/request-return", requireAuth, requireTenant, CASHIER_UP, requireOpenShift, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.orderId);
+    const itemId = parseInt(req.params.itemId);
+    const { reason } = req.body;
+    if (!reason?.trim()) { res.status(400).json({ error: "reason required" }); return; }
+
+    const [order] = await db.select().from(ordersTable)
+      .where(and(eq(ordersTable.id, orderId), eq(ordersTable.tenantId, req.user!.tenantId!)))
+      .limit(1);
+    if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+    if (order.status !== "delivered") { res.status(400).json({ error: "Can only request return for delivered orders" }); return; }
+
+    const [item] = await db.select().from(orderItemsTable)
+      .where(and(eq(orderItemsTable.id, itemId), eq(orderItemsTable.orderId, orderId)))
+      .limit(1);
+    if (!item) { res.status(404).json({ error: "Item not found" }); return; }
+    if (item.status !== "active") { res.status(400).json({ error: "Item is not in active status" }); return; }
+
+    await db.update(orderItemsTable)
+      .set({ status: "return_requested", returnReason: reason, returnedByUserId: req.user!.id })
+      .where(eq(orderItemsTable.id, itemId));
+
+    await writeAuditLog({ user: req.user, action: "request_item_return", entityType: "order", entityId: orderId, newValue: { itemId, reason } });
+    res.json(await buildOrderResponse(order));
+  } catch {
+    res.status(500).json({ error: "Failed to request return" });
+  }
+});
+
+// POST /orders/:orderId/items/:itemId/approve-return — owner/manager approves, restores inventory + updates total
+router.post("/orders/:orderId/items/:itemId/approve-return", requireAuth, requireTenant, MGMT, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.orderId);
+    const itemId = parseInt(req.params.itemId);
+
+    const [order] = await db.select().from(ordersTable)
+      .where(and(eq(ordersTable.id, orderId), eq(ordersTable.tenantId, req.user!.tenantId!)))
+      .limit(1);
+    if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+
+    const [item] = await db.select().from(orderItemsTable)
+      .where(and(eq(orderItemsTable.id, itemId), eq(orderItemsTable.orderId, orderId)))
+      .limit(1);
+    if (!item) { res.status(404).json({ error: "Item not found" }); return; }
+    if (item.status !== "return_requested") { res.status(400).json({ error: "Item is not pending return" }); return; }
+
+    await db.update(orderItemsTable)
+      .set({ status: "returned", returnedAt: new Date() })
+      .where(eq(orderItemsTable.id, itemId));
+
+    // Deduct the returned item's totalPrice from order total
+    const itemTotal = parseFloat(item.totalPrice as string);
+    const newTotal = Math.max(0, parseFloat(order.totalAmount as string) - itemTotal);
+    const [updated] = await db.update(ordersTable)
+      .set({ totalAmount: String(Math.round(newTotal * 100) / 100) })
+      .where(eq(ordersTable.id, orderId))
+      .returning();
+
+    // Restore inventory: reverse the recipe-based deduction
+    const recipeItems = await db.select().from(recipeItemsTable)
+      .where(and(
+        eq(recipeItemsTable.productId, item.productId),
+        eq(recipeItemsTable.tenantId, req.user!.tenantId!)
+      ));
+    for (const recipe of recipeItems) {
+      const restoreQty = parseFloat(recipe.quantityUsed as string) * item.quantity;
+      const [invItem] = await db.select().from(inventoryItemsTable)
+        .where(and(
+          eq(inventoryItemsTable.id, recipe.inventoryItemId),
+          eq(inventoryItemsTable.tenantId, req.user!.tenantId!)
+        )).limit(1);
+      if (invItem) {
+        const newStock = parseFloat(invItem.currentStock as string) + restoreQty;
+        await db.update(inventoryItemsTable)
+          .set({ currentStock: String(newStock) })
+          .where(and(
+            eq(inventoryItemsTable.id, recipe.inventoryItemId),
+            eq(inventoryItemsTable.tenantId, req.user!.tenantId!)
+          ));
+        await db.insert(inventoryMovementsTable).values({
+          tenantId: req.user!.tenantId!,
+          inventoryItemId: recipe.inventoryItemId,
+          type: "return",
+          quantity: String(restoreQty),
+          reason: `Return approved for order #${orderId}, item #${itemId}`,
+          createdByUserId: req.user!.id,
+        });
+      }
+    }
+
+    await writeAuditLog({ user: req.user, action: "approve_item_return", entityType: "order", entityId: orderId, newValue: { itemId, newTotal } });
+    res.json(await buildOrderResponse(updated));
+  } catch {
+    res.status(500).json({ error: "Failed to approve return" });
+  }
+});
+
+// POST /orders/:orderId/items/:itemId/reject-return — owner/manager rejects
+router.post("/orders/:orderId/items/:itemId/reject-return", requireAuth, requireTenant, MGMT, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.orderId);
+    const itemId = parseInt(req.params.itemId);
+
+    const [order] = await db.select().from(ordersTable)
+      .where(and(eq(ordersTable.id, orderId), eq(ordersTable.tenantId, req.user!.tenantId!)))
+      .limit(1);
+    if (!order) { res.status(404).json({ error: "Order not found" }); return; }
+
+    const [item] = await db.select().from(orderItemsTable)
+      .where(and(eq(orderItemsTable.id, itemId), eq(orderItemsTable.orderId, orderId)))
+      .limit(1);
+    if (!item) { res.status(404).json({ error: "Item not found" }); return; }
+    if (item.status !== "return_requested") { res.status(400).json({ error: "Item is not pending return" }); return; }
+
+    await db.update(orderItemsTable)
+      .set({ status: "return_rejected" })
+      .where(eq(orderItemsTable.id, itemId));
+
+    await writeAuditLog({ user: req.user, action: "reject_item_return", entityType: "order", entityId: orderId, newValue: { itemId } });
+    res.json(await buildOrderResponse(order));
+  } catch {
+    res.status(500).json({ error: "Failed to reject return" });
   }
 });
 

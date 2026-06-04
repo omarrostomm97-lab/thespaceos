@@ -469,7 +469,11 @@ export const GetSessionResponse = zod.object({
   "quantity": zod.number(),
   "unitPrice": zod.number(),
   "totalPrice": zod.number(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
 })),
   "createdAt": zod.coerce.date(),
   "preparingAt": zod.coerce.date().nullish(),
@@ -915,7 +919,11 @@ export const ListOrdersResponseItem = zod.object({
   "quantity": zod.number(),
   "unitPrice": zod.number(),
   "totalPrice": zod.number(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
 })),
   "createdAt": zod.coerce.date(),
   "preparingAt": zod.coerce.date().nullish(),
@@ -967,7 +975,11 @@ export const ListKdsOrdersResponseItem = zod.object({
   "quantity": zod.number(),
   "unitPrice": zod.number(),
   "totalPrice": zod.number(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
 })),
   "createdAt": zod.coerce.date(),
   "preparingAt": zod.coerce.date().nullish(),
@@ -1007,7 +1019,11 @@ export const GetOrderResponse = zod.object({
   "quantity": zod.number(),
   "unitPrice": zod.number(),
   "totalPrice": zod.number(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
 })),
   "createdAt": zod.coerce.date(),
   "preparingAt": zod.coerce.date().nullish(),
@@ -1050,7 +1066,11 @@ export const UpdateOrderStatusResponse = zod.object({
   "quantity": zod.number(),
   "unitPrice": zod.number(),
   "totalPrice": zod.number(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
 })),
   "createdAt": zod.coerce.date(),
   "preparingAt": zod.coerce.date().nullish(),
@@ -1093,7 +1113,11 @@ export const AssignOrderResponse = zod.object({
   "quantity": zod.number(),
   "unitPrice": zod.number(),
   "totalPrice": zod.number(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
 })),
   "createdAt": zod.coerce.date(),
   "preparingAt": zod.coerce.date().nullish(),
@@ -1136,7 +1160,168 @@ export const CancelOrderResponse = zod.object({
   "quantity": zod.number(),
   "unitPrice": zod.number(),
   "totalPrice": zod.number(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
+})),
+  "createdAt": zod.coerce.date(),
+  "preparingAt": zod.coerce.date().nullish(),
+  "readyAt": zod.coerce.date().nullish(),
+  "deliveredAt": zod.coerce.date().nullish()
+})
+
+
+/**
+ * @summary List all pending item return requests (owner/manager)
+ */
+export const ListReturnRequestsResponseItem = zod.object({
+  "itemId": zod.number(),
+  "orderId": zod.number(),
+  "sessionId": zod.number().nullish(),
+  "assetName": zod.string().nullish(),
+  "assetNameAr": zod.string().nullish(),
+  "productName": zod.string(),
+  "productNameAr": zod.string().nullish(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number().optional(),
+  "totalPrice": zod.number(),
+  "returnReason": zod.string(),
+  "requestedByName": zod.string().nullable(),
+  "orderedAt": zod.coerce.date()
+})
+export const ListReturnRequestsResponse = zod.array(ListReturnRequestsResponseItem)
+
+
+/**
+ * @summary Cashier requests return of a delivered order item
+ */
+export const RequestItemReturnParams = zod.object({
+  "orderId": zod.coerce.number(),
+  "itemId": zod.coerce.number()
+})
+
+export const RequestItemReturnBody = zod.object({
+  "reason": zod.string()
+})
+
+export const RequestItemReturnResponse = zod.object({
+  "id": zod.number(),
+  "source": zod.enum(['qr', 'pos']),
+  "status": zod.enum(['pending', 'preparing', 'ready', 'delivered', 'closed', 'cancelled']),
+  "sessionId": zod.number().nullish(),
+  "assetId": zod.number().nullish(),
+  "assetName": zod.string().nullish(),
+  "assetNameAr": zod.string().nullish(),
+  "createdByUserId": zod.number().nullish(),
+  "createdByUserName": zod.string().nullish(),
+  "assignedToUserId": zod.number().nullish(),
+  "assignedToUserName": zod.string().nullish(),
+  "customerName": zod.string().nullish(),
+  "totalAmount": zod.number(),
+  "cancelReason": zod.string().nullish(),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "productName": zod.string(),
+  "productNameAr": zod.string().nullish(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number(),
+  "totalPrice": zod.number(),
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
+})),
+  "createdAt": zod.coerce.date(),
+  "preparingAt": zod.coerce.date().nullish(),
+  "readyAt": zod.coerce.date().nullish(),
+  "deliveredAt": zod.coerce.date().nullish()
+})
+
+
+/**
+ * @summary Owner/manager approves an item return request
+ */
+export const ApproveItemReturnParams = zod.object({
+  "orderId": zod.coerce.number(),
+  "itemId": zod.coerce.number()
+})
+
+export const ApproveItemReturnResponse = zod.object({
+  "id": zod.number(),
+  "source": zod.enum(['qr', 'pos']),
+  "status": zod.enum(['pending', 'preparing', 'ready', 'delivered', 'closed', 'cancelled']),
+  "sessionId": zod.number().nullish(),
+  "assetId": zod.number().nullish(),
+  "assetName": zod.string().nullish(),
+  "assetNameAr": zod.string().nullish(),
+  "createdByUserId": zod.number().nullish(),
+  "createdByUserName": zod.string().nullish(),
+  "assignedToUserId": zod.number().nullish(),
+  "assignedToUserName": zod.string().nullish(),
+  "customerName": zod.string().nullish(),
+  "totalAmount": zod.number(),
+  "cancelReason": zod.string().nullish(),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "productName": zod.string(),
+  "productNameAr": zod.string().nullish(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number(),
+  "totalPrice": zod.number(),
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
+})),
+  "createdAt": zod.coerce.date(),
+  "preparingAt": zod.coerce.date().nullish(),
+  "readyAt": zod.coerce.date().nullish(),
+  "deliveredAt": zod.coerce.date().nullish()
+})
+
+
+/**
+ * @summary Owner/manager rejects an item return request
+ */
+export const RejectItemReturnParams = zod.object({
+  "orderId": zod.coerce.number(),
+  "itemId": zod.coerce.number()
+})
+
+export const RejectItemReturnResponse = zod.object({
+  "id": zod.number(),
+  "source": zod.enum(['qr', 'pos']),
+  "status": zod.enum(['pending', 'preparing', 'ready', 'delivered', 'closed', 'cancelled']),
+  "sessionId": zod.number().nullish(),
+  "assetId": zod.number().nullish(),
+  "assetName": zod.string().nullish(),
+  "assetNameAr": zod.string().nullish(),
+  "createdByUserId": zod.number().nullish(),
+  "createdByUserName": zod.string().nullish(),
+  "assignedToUserId": zod.number().nullish(),
+  "assignedToUserName": zod.string().nullish(),
+  "customerName": zod.string().nullish(),
+  "totalAmount": zod.number(),
+  "cancelReason": zod.string().nullish(),
+  "items": zod.array(zod.object({
+  "id": zod.number(),
+  "productId": zod.number(),
+  "productName": zod.string(),
+  "productNameAr": zod.string().nullish(),
+  "quantity": zod.number(),
+  "unitPrice": zod.number(),
+  "totalPrice": zod.number(),
+  "notes": zod.string().nullish(),
+  "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
+  "returnReason": zod.string().nullish(),
+  "returnedAt": zod.coerce.date().nullish(),
+  "returnedByUserId": zod.number().nullish()
 })),
   "createdAt": zod.coerce.date(),
   "preparingAt": zod.coerce.date().nullish(),

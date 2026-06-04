@@ -5,6 +5,7 @@
  * Gaming Lounge OS API
  * OpenAPI spec version: 0.1.0
  */
+import type { OrderItemStatus } from './orderItemStatus';
 
 export interface OrderItem {
   id: number;
@@ -17,4 +18,11 @@ export interface OrderItem {
   totalPrice: number;
   /** @nullable */
   notes?: string | null;
+  status: OrderItemStatus;
+  /** @nullable */
+  returnReason?: string | null;
+  /** @nullable */
+  returnedAt?: Date | null;
+  /** @nullable */
+  returnedByUserId?: number | null;
 }

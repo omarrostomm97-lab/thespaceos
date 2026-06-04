@@ -8,8 +8,9 @@ import {
   Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut,
   TrendingUp, BookOpen, ChefHat, HelpCircle, Sun, Moon, Languages, Menu, X,
   CalendarCheck, Bell, ArrowRight, Wallet, TrendingDown, PiggyBank, BarChart3,
-  Landmark, Boxes, DollarSign,
+  Landmark, Boxes, DollarSign, RotateCcw,
 } from "lucide-react";
+import { useListReturnRequests } from "@workspace/api-client-react";
 import { useBookingAlerts } from "@/hooks/use-booking-alerts";
 import { ROUTE_ALLOWED_ROLES, UserRole } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
@@ -30,6 +31,7 @@ const navigation: NavItem[] = [
   { nameKey: "nav_pos",         href: "/pos",         icon: Monitor,         routeKey: "/pos" },
   { nameKey: "nav_kds",         href: "/kds",         icon: ChefHat,         routeKey: "/kds" },
   { nameKey: "nav_orders",      href: "/orders",      icon: ShoppingCart,    routeKey: "/orders" },
+  { nameKey: "nav_returns",     href: "/orders/returns", icon: RotateCcw,    routeKey: "/orders/returns" },
   { nameKey: "nav_menu",        href: "/menu",        icon: UtensilsCrossed, routeKey: "/menu" },
   { nameKey: "nav_inventory",   href: "/inventory",   icon: Package,         routeKey: "/inventory" },
   { nameKey: "nav_shifts",      href: "/shifts",      icon: Clock,           routeKey: "/shifts" },
@@ -68,6 +70,8 @@ interface LayoutProps { children: React.ReactNode }
 const fmtHHMM = (dt: string | Date) =>
   new Date(dt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 
+const MGMT_ROLES = new Set(["platform_owner", "owner", "manager"]);
+
 export function Layout({ children }: LayoutProps) {
   const { user, logout, isImpersonating, impersonatedTenant, exitImpersonation } = useAuth();
   const [location] = useLocation();
@@ -75,6 +79,12 @@ export function Layout({ children }: LayoutProps) {
   const { theme, toggleTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { alerts, dismiss } = useBookingAlerts();
+
+  const isMgmt = user?.role && MGMT_ROLES.has(user.role);
+  const { data: returnRequests } = useListReturnRequests({
+    query: { enabled: !!isMgmt, refetchInterval: 30000, staleTime: 15000 }
+  });
+  const pendingReturnsCount = returnRequests?.length ?? 0;
 
   useEffect(() => { setSidebarOpen(false); }, [location]);
 
@@ -282,6 +292,14 @@ export function Layout({ children }: LayoutProps) {
                   >
                     {t(item.nameKey)}
                   </span>
+                  {item.routeKey === "/orders/returns" && pendingReturnsCount > 0 && (
+                    <span
+                      className="ms-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
+                      style={{ background: "#f5a524", color: "#000" }}
+                    >
+                      {pendingReturnsCount}
+                    </span>
+                  )}
                 </motion.div>
               </Link>
             );

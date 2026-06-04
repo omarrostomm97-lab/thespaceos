@@ -399,6 +399,16 @@ export const OrderStatus = {
   cancelled: 'cancelled',
 } as const;
 
+export type OrderItemStatus = typeof OrderItemStatus[keyof typeof OrderItemStatus];
+
+
+export const OrderItemStatus = {
+  active: 'active',
+  return_requested: 'return_requested',
+  returned: 'returned',
+  return_rejected: 'return_rejected',
+} as const;
+
 export interface OrderItem {
   id: number;
   productId: number;
@@ -410,6 +420,13 @@ export interface OrderItem {
   totalPrice: number;
   /** @nullable */
   notes?: string | null;
+  status: OrderItemStatus;
+  /** @nullable */
+  returnReason?: string | null;
+  /** @nullable */
+  returnedAt?: string | null;
+  /** @nullable */
+  returnedByUserId?: number | null;
 }
 
 export interface Order {
@@ -622,6 +639,31 @@ export interface OrderItemInput {
 export interface QrOrderInput {
   customerName?: string;
   items: OrderItemInput[];
+}
+
+export interface ItemReturnInput {
+  reason: string;
+}
+
+export interface ReturnRequest {
+  itemId: number;
+  orderId: number;
+  /** @nullable */
+  sessionId?: number | null;
+  /** @nullable */
+  assetName?: string | null;
+  /** @nullable */
+  assetNameAr?: string | null;
+  productName: string;
+  /** @nullable */
+  productNameAr?: string | null;
+  quantity: number;
+  unitPrice?: number;
+  totalPrice: number;
+  returnReason: string;
+  /** @nullable */
+  requestedByName: string | null;
+  orderedAt: string;
 }
 
 export type OrderInputPaymentMethod = typeof OrderInputPaymentMethod[keyof typeof OrderInputPaymentMethod];

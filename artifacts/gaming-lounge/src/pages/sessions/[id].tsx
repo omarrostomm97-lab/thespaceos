@@ -1,14 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
-import { useGetSession, useCancelSession, getGetSessionQueryKey } from "@workspace/api-client-react";
+import { useGetSession, useCancelSession, useRequestItemReturn, getGetSessionQueryKey } from "@workspace/api-client-react";
 import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, ArrowLeft, Clock, Gamepad2, Receipt, AlertCircle, AlertTriangle, ShoppingCart, History } from "lucide-react";
+import { ArrowRight, ArrowLeft, Clock, Gamepad2, Receipt, AlertCircle, AlertTriangle, ShoppingCart, History, RotateCcw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useLang } from "@/hooks/use-language";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/hooks/use-auth";
 
 const ACTION_COLORS: Record<string, string> = {
   started:   "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
@@ -20,6 +23,7 @@ const ACTION_COLORS: Record<string, string> = {
 
 export default function SessionDetail() {
   const { t, dir, lang } = useLang();
+  const { user } = useAuth();
   const params = useParams();
   const sessionId = params.id ? parseInt(params.id) : 0;
   const [, setLocation] = useLocation();
@@ -38,6 +42,10 @@ export default function SessionDetail() {
   });
 
   const cancelSession = useCancelSession();
+  const requestReturn = useRequestItemReturn();
+
+  const [returnDialog, setReturnDialog] = useState<{ orderId: number; itemId: number; productName: string } | null>(null);
+  const [returnReason, setReturnReason] = useState("");
 
   /* ── Real-time clock ── */
   const [now, setNow] = useState(() => new Date());
@@ -112,6 +120,20 @@ export default function SessionDetail() {
     }
   };
 
+  const handleReturnRequest = async () => {
+    if (!returnDialog) return;
+    if (!returnReason.trim()) { toast.error(t("return_reason_required")); return; }
+    try {
+      await requestReturn.mutateAsync({ orderId: returnDialog.orderId, itemId: returnDialog.itemId, data: { reason: returnReason.trim() } });
+      toast.success(t("return_request_ok"));
+      queryClient.invalidateQueries({ queryKey: getGetSessionQueryKey(sessionId) });
+      setReturnDialog(null);
+      setReturnReason("");
+    } catch {
+      toast.error(t("return_request_error"));
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
@@ -126,10 +148,18 @@ export default function SessionDetail() {
 
   const BackIcon = lang === "ar" ? ArrowRight : ArrowLeft;
   const isActive = ["active", "paused"].includes(session.status);
+  const isCashier = user?.role === "cashier";
 
   const hoursDisplay = Math.floor(elapsedMinutes / 60);
   const minsDisplay  = Math.round(elapsedMinutes % 60);
   const timeLabel    = `${hoursDisplay}${lang === "ar" ? "س" : "h"} ${minsDisplay}${lang === "ar" ? "د" : "m"}`;
+
+  const itemStatusBadge = (status: string) => {
+    if (status === "return_requested") return <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px]">{t("return_pending_badge")}</Badge>;
+    if (status === "returned")         return <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px]">{t("return_approved_badge")}</Badge>;
+    if (status === "return_rejected")  return <Badge className="bg-destructive/20 text-destructive border border-destructive/30 text-[10px]">{t("return_rejected_badge")}</Badge>;
+    return null;
+  };
 
   return (
     <div className="p-8 space-y-6" dir={dir}>
@@ -312,30 +342,106 @@ export default function SessionDetail() {
               </div>
             ) : (
               <div className="space-y-4">
-                {session.orders.map((order: any) => (
-                  <div key={order.id} className="flex justify-between items-start border-b border-border/50 pb-4 last:border-0">
-                    <div>
-                      <div className="flex gap-2 items-center mb-2">
-                        <span className="font-bold">{t("order_label")} #{order.id}</span>
-                        <Badge variant={order.status === "delivered" || order.status === "closed" ? "outline" : "default"}>
-                          {order.status}
-                        </Badge>
+                {session.orders.map((order: any) => {
+                  const isDelivered = order.status === "delivered";
+                  return (
+                    <div key={order.id} className="border border-border/50 rounded-xl overflow-hidden">
+                      {/* Order header */}
+                      <div className="flex justify-between items-center px-4 py-3 bg-secondary/30">
+                        <div className="flex gap-2 items-center">
+                          <span className="font-bold text-sm">{t("order_label")} #{order.id}</span>
+                          <Badge variant={isDelivered || order.status === "closed" ? "outline" : "default"}>
+                            {order.status}
+                          </Badge>
+                        </div>
+                        <span className="font-bold text-emerald-500 text-sm">{order.totalAmount.toFixed(2)} ج.م</span>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {order.items.map((item: any) =>
-                          `${item.quantity}x ${lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr)}`
-                        ).join(lang === "ar" ? "، " : ", ")}
+
+                      {/* Items */}
+                      <div className="divide-y divide-border/30">
+                        {order.items.map((item: any) => {
+                          const productName = lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr);
+                          const canRequest = isDelivered && item.status === "active" && isCashier;
+                          return (
+                            <div key={item.id} className="flex items-center justify-between px-4 py-2.5 gap-3">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-sm text-muted-foreground shrink-0">{item.quantity}×</span>
+                                <span className="text-sm font-medium truncate">{productName}</span>
+                                {itemStatusBadge(item.status)}
+                                {item.returnReason && item.status !== "active" && (
+                                  <span className="text-xs text-muted-foreground truncate hidden md:block">
+                                    — {item.returnReason}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-sm text-muted-foreground">{parseFloat(item.totalPrice).toFixed(2)} ج.م</span>
+                                {canRequest && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-xs border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
+                                    onClick={() => {
+                                      setReturnDialog({ orderId: order.id, itemId: item.id, productName });
+                                      setReturnReason("");
+                                    }}
+                                  >
+                                    <RotateCcw className="h-3 w-3 me-1" />
+                                    {t("return_request_btn")}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                    <div className="font-bold text-emerald-500">{order.totalAmount.toFixed(2)} ج.م</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
         </Card>
 
       </div>
+
+      {/* Return Request Dialog */}
+      <Dialog open={!!returnDialog} onOpenChange={open => { if (!open) { setReturnDialog(null); setReturnReason(""); } }}>
+        <DialogContent dir={dir}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <RotateCcw className="h-4 w-4 text-amber-500" />
+              {t("return_confirm_title")}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {returnDialog && (
+              <p className="text-sm text-muted-foreground">{returnDialog.productName}</p>
+            )}
+            <p className="text-sm text-muted-foreground">{t("return_confirm_body")}</p>
+            <Textarea
+              placeholder={t("return_reason_placeholder")}
+              value={returnReason}
+              onChange={e => setReturnReason(e.target.value)}
+              className="resize-none"
+              rows={3}
+              dir={dir}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setReturnDialog(null); setReturnReason(""); }}>
+              {t("cancel")}
+            </Button>
+            <Button
+              className="bg-amber-500 hover:bg-amber-600 text-black"
+              onClick={handleReturnRequest}
+              disabled={requestReturn.isPending || !returnReason.trim()}
+            >
+              {requestReturn.isPending ? t("processing") : t("return_request_btn")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
