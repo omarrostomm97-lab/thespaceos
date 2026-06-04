@@ -1219,13 +1219,13 @@ export const ListReturnRequestsResponseItem = zod.object({
   "productName": zod.string(),
   "productNameAr": zod.string().nullish(),
   "quantity": zod.number(),
+  "returnQuantity": zod.number().nullish().describe('Quantity requested for return — null means full item quantity'),
   "unitPrice": zod.number().optional(),
   "totalPrice": zod.number(),
   "returnReason": zod.string(),
   "requestedByName": zod.string().nullable(),
   "orderedAt": zod.coerce.date(),
   "itemStatus": zod.string(),
-  "returnQuantity": zod.number().nullish().describe('Quantity approved for return — null means full item quantity'),
   "returnedAt": zod.coerce.date().nullish()
 })
 export const ListReturnRequestsResponse = zod.array(ListReturnRequestsResponseItem)

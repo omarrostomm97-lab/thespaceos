@@ -2945,6 +2945,9 @@ components:
           type: ["string", "null"]
         quantity:
           type: integer
+        returnQuantity:
+          type: ["integer", "null"]
+          description: "Quantity requested for return — null means full item quantity"
         unitPrice:
           type: number
         totalPrice:
@@ -2958,9 +2961,6 @@ components:
           format: date-time
         itemStatus:
           type: string
-        returnQuantity:
-          type: ["integer", "null"]
-          description: "Quantity approved for return — null means full item quantity"
         returnedAt:
           type: ["string", "null"]
           format: date-time

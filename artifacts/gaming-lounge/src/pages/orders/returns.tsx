@@ -174,8 +174,8 @@ export default function OrderReturns() {
                         </div>
                       </div>
                       <div className="text-end shrink-0">
-                        <p className="text-base font-bold text-emerald-500">{EGP(req.totalPrice)}</p>
-                        <p className="text-xs text-muted-foreground">{req.quantity}×</p>
+                        <p className="text-base font-bold text-emerald-500">{EGP((req.returnQuantity ?? req.quantity) * req.unitPrice)}</p>
+                        <p className="text-xs text-muted-foreground">{req.returnQuantity ?? req.quantity}×</p>
                       </div>
                     </div>
 

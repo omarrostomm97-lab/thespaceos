@@ -19,6 +19,11 @@ export interface ReturnRequest {
   /** @nullable */
   productNameAr?: string | null;
   quantity: number;
+  /**
+     * Quantity requested for return — null means full item quantity
+     * @nullable
+     */
+  returnQuantity?: number | null;
   unitPrice?: number;
   totalPrice: number;
   returnReason: string;
@@ -26,11 +31,6 @@ export interface ReturnRequest {
   requestedByName: string | null;
   orderedAt: Date;
   itemStatus: string;
-  /**
-     * Quantity approved for return — null means full item quantity
-     * @nullable
-     */
-  returnQuantity?: number | null;
   /** @nullable */
   returnedAt?: Date | null;
 }
