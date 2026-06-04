@@ -418,7 +418,7 @@ export default function SessionDetail() {
                           const productName = lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr);
                           const alreadyReturned = item.returnedQuantity ?? 0;
                           const remaining = item.quantity - alreadyReturned;
-                          const canRequest = isDelivered && item.status === "active" && remaining > 0;
+                          const canRequest = isDelivered && (item.status === "active" || item.status === "return_rejected") && remaining > 0;
                           const returnLabel = alreadyReturned > 0
                             ? `${alreadyReturned}/${item.quantity} ${lang === "ar" ? "مُرجع" : "returned"}`
                             : null;

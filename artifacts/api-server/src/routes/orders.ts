@@ -374,7 +374,7 @@ router.post("/orders/:orderId/items/:itemId/request-return", requireAuth, requir
       .where(and(eq(orderItemsTable.id, itemId), eq(orderItemsTable.orderId, orderId)))
       .limit(1);
     if (!item) { res.status(404).json({ error: "Item not found" }); return; }
-    if (item.status !== "active") { res.status(400).json({ error: "Item is not in active status" }); return; }
+    if (item.status !== "active" && item.status !== "return_rejected") { res.status(400).json({ error: "Item is not in active status" }); return; }
 
     const alreadyReturned = item.returnedQuantity ?? 0;
     const remaining = item.quantity - alreadyReturned;
