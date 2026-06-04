@@ -108,7 +108,7 @@ export default function Shifts() {
                   </div>
                   <div className="bg-background p-4 rounded-lg border border-border">
                     <p className="text-sm text-muted-foreground">وقت الفتح</p>
-                    <p className="font-bold text-lg font-mono">{format(new Date(currentShift.openedAt), "HH:mm")}</p>
+                    <p className="font-bold text-lg font-mono">{new Date(currentShift.openedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
                   </div>
                 </div>
 

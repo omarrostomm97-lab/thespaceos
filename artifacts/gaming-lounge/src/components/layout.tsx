@@ -52,7 +52,7 @@ const ROLE_KEY_MAP: Record<string, TranslationKey> = {
 interface LayoutProps { children: React.ReactNode }
 
 const fmtHHMM = (dt: string | Date) =>
-  new Date(dt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false });
+  new Date(dt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 
 export function Layout({ children }: LayoutProps) {
   const { user, logout } = useAuth();

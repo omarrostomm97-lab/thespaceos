@@ -31,7 +31,7 @@ const DURATIONS: { value: number; key: TranslationKey }[] = [
 ];
 
 function fmtTime(dt: string | Date) {
-  return new Date(dt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return new Date(dt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 }
 
 function fmtDate(dt: string | Date, lang: string) {

@@ -12,7 +12,7 @@ const LanguageContext = createContext<LanguageContextValue>({
   lang: "ar",
   dir: "rtl",
   toggleLang: () => {},
-  t: (key) => key,
+  t: getT("ar"),
 });
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {

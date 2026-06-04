@@ -310,10 +310,10 @@ export default function AssetHistory() {
                   {sessions.map(s => (
                     <tr key={s.id} className="border-t border-border hover:bg-secondary/20 transition-colors">
                       <td className="px-4 py-3 font-mono text-xs whitespace-nowrap">
-                        {format(new Date(s.startedAt), "dd/MM HH:mm")}
+                        {format(new Date(s.startedAt), "dd/MM")} {new Date(s.startedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs whitespace-nowrap">
-                        {s.endedAt ? format(new Date(s.endedAt), "dd/MM HH:mm") : "-"}
+                        {s.endedAt ? `${format(new Date(s.endedAt), "dd/MM")} ${new Date(s.endedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}` : "-"}
                       </td>
                       <td className="px-4 py-3 tabular-nums">
                         {formatDuration(s.totalMinutes)}
@@ -365,7 +365,7 @@ export default function AssetHistory() {
               <div key={o.id} className="rounded-xl card-base p-4 flex flex-col sm:flex-row gap-4">
                 <div className="sm:w-36 shrink-0">
                   <p className="text-xs text-muted-foreground">{format(new Date(o.createdAt), "dd/MM/yyyy")}</p>
-                  <p className="text-xs font-mono text-muted-foreground">{format(new Date(o.createdAt), "HH:mm")}</p>
+                  <p className="text-xs font-mono text-muted-foreground">{new Date(o.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
                   <p className="text-lg font-bold text-emerald-500 mt-1 tabular-nums">{o.totalAmount.toFixed(2)} ج.م</p>
                   <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded-full border ${ORDER_STATUS_COLORS[o.status] ?? "bg-muted text-muted-foreground border-border"}`}>

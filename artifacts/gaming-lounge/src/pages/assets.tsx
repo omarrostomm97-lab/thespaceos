@@ -70,7 +70,7 @@ interface AssetCardProps {
 }
 
 function fmtHHMM(dt: string | Date) {
-  return new Date(dt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false });
+  return new Date(dt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 }
 
 function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t, lang, nextBooking }: AssetCardProps) {

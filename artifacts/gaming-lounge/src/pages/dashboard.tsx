@@ -1158,7 +1158,7 @@ export default function Dashboard() {
     function fmtTime(iso: string | null | undefined) {
       if (!iso) return "—";
       const d = new Date(iso);
-      return d.toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" });
+      return d.toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
     }
     function fmtDate(iso: string) {
       const d = new Date(iso);

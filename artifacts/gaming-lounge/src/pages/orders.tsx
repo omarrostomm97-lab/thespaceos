@@ -83,7 +83,7 @@ export default function Orders() {
                     </div>
                     <div className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5" />
-                      {format(new Date(order.createdAt), "HH:mm")}
+                      {new Date(order.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}
                     </div>
                     <div className="font-bold text-xl mb-3 text-center">
                       {order.assetNameAr || order.assetName || t("direct_order")}
@@ -162,7 +162,7 @@ export default function Orders() {
                 {historyOrders.map(order => (
                   <tr key={order.id} className="border-b border-border hover:bg-secondary/30 transition-colors">
                     <td className="px-6 py-4 font-medium">#{order.id}</td>
-                    <td className="px-6 py-4">{format(new Date(order.createdAt), "dd/MM/yyyy HH:mm")}</td>
+                    <td className="px-6 py-4">{format(new Date(order.createdAt), "dd/MM/yyyy")} {new Date(order.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</td>
                     <td className="px-6 py-4">{order.source === "qr" ? "QR Menu" : "POS"}</td>
                     <td className="px-6 py-4">{order.assetNameAr || order.assetName || "-"}</td>
                     <td className="px-6 py-4 font-bold">{order.totalAmount.toFixed(2)} ج.م</td>

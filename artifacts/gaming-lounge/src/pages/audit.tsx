@@ -41,7 +41,7 @@ export default function Audit() {
             {logs.map(log => (
               <tr key={log.id} className="border-b border-border hover:bg-secondary/30">
                 <td className="px-6 py-4 font-mono text-muted-foreground text-xs" dir="ltr">
-                  {format(new Date(log.createdAt), "dd/MM/yyyy HH:mm:ss")}
+                  {format(new Date(log.createdAt), "dd/MM/yyyy")} {new Date(log.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}
                 </td>
                 <td className="px-6 py-4 font-bold">{log.userName || "نظام"}</td>
                 <td className="px-6 py-4">
