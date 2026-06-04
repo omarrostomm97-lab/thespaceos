@@ -414,7 +414,7 @@ export default function SessionDetail() {
                       <div className="divide-y divide-border/30">
                         {order.items.map((item: any) => {
                           const productName = lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr);
-                          const canRequest = isDelivered && item.status === "active" && isCashier;
+                          const canRequest = isDelivered && item.status === "active";
                           return (
                             <div key={item.id} className="flex items-center justify-between px-4 py-2.5 gap-3">
                               <div className="flex items-center gap-2 min-w-0">

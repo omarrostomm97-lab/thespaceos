@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { ordersTable, orderItemsTable, productsTable, usersTable, assetsTable, sessionsTable, inventoryItemsTable, inventoryMovementsTable, recipeItemsTable, orderAssignmentsTable, paymentsTable } from "@workspace/db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole, requireOpenShift } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
