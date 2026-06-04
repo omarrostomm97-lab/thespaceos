@@ -1323,6 +1323,55 @@ export interface FinanceShiftDifference {
   status: string;
 }
 
+export interface DiscountRequest {
+  id: number;
+  sessionId: number;
+  /** @nullable */
+  orderId?: number | null;
+  type: string;
+  discountKind: string;
+  discountValue: number;
+  /** @nullable */
+  billedMinutes?: number | null;
+  /** @nullable */
+  reason?: string | null;
+  status: string;
+  /** @nullable */
+  adminNote?: string | null;
+  requestedByUserId: number;
+  /** @nullable */
+  requestedByName?: string | null;
+  /** @nullable */
+  reviewedByUserId?: number | null;
+  /** @nullable */
+  reviewedAt?: string | null;
+  createdAt: string;
+  /** @nullable */
+  sessionAssetName?: string | null;
+  /** @nullable */
+  sessionAssetNameAr?: string | null;
+  /** @nullable */
+  originalGamingCost?: number | null;
+  /** @nullable */
+  originalOrderTotal?: number | null;
+  /** @nullable */
+  discountedAmount?: number | null;
+}
+
+export interface CreateDiscountRequestInput {
+  sessionId: number;
+  orderId?: number;
+  type: string;
+  discountKind: string;
+  discountValue: number;
+  billedMinutes?: number;
+  reason?: string;
+}
+
+export interface ReviewDiscountInput {
+  adminNote?: string;
+}
+
 export type RefreshTokenBody = {
   refreshToken: string;
 };
@@ -1344,6 +1393,10 @@ export const ListSessionsStatus = {
 
 export type ListProductsParams = {
 categoryId?: number;
+};
+
+export type ListDiscountRequestsParams = {
+status?: string;
 };
 
 export type ListOrdersParams = {

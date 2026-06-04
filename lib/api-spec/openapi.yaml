@@ -887,6 +887,115 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  # ── DISCOUNT REQUESTS ────────────────────────────────
+  /discounts:
+    get:
+      operationId: listDiscountRequests
+      tags: [discounts]
+      summary: List discount requests (admin only)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of discount requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiscountRequest"
+    post:
+      operationId: createDiscountRequest
+      tags: [discounts]
+      summary: Cashier submits a discount request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDiscountRequestInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountRequest"
+
+  /discounts/{requestId}/approve:
+    post:
+      operationId: approveDiscountRequest
+      tags: [discounts]
+      summary: Admin approves a discount request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewDiscountInput"
+      responses:
+        "200":
+          description: Approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountRequest"
+
+  /discounts/{requestId}/reject:
+    post:
+      operationId: rejectDiscountRequest
+      tags: [discounts]
+      summary: Admin rejects a discount request
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewDiscountInput"
+      responses:
+        "200":
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountRequest"
+
+  /discounts/session/{sessionId}:
+    get:
+      operationId: getSessionDiscounts
+      tags: [discounts]
+      summary: Get approved discount requests for a session (cashier preview)
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Discount requests for session
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiscountRequest"
+
   # ── ORDERS ──────────────────────────────────────────
   /orders:
     get:
@@ -4018,4 +4127,76 @@ components:
         differenceExplanation:
           type: ["string", "null"]
         status:
+          type: string
+
+    DiscountRequest:
+      type: object
+      required: [id, sessionId, type, discountKind, discountValue, status, requestedByUserId, createdAt]
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        orderId:
+          type: ["integer", "null"]
+        type:
+          type: string
+        discountKind:
+          type: string
+        discountValue:
+          type: number
+        billedMinutes:
+          type: ["number", "null"]
+        reason:
+          type: ["string", "null"]
+        status:
+          type: string
+        adminNote:
+          type: ["string", "null"]
+        requestedByUserId:
+          type: integer
+        requestedByName:
+          type: ["string", "null"]
+        reviewedByUserId:
+          type: ["integer", "null"]
+        reviewedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        sessionAssetName:
+          type: ["string", "null"]
+        sessionAssetNameAr:
+          type: ["string", "null"]
+        originalGamingCost:
+          type: ["number", "null"]
+        originalOrderTotal:
+          type: ["number", "null"]
+        discountedAmount:
+          type: ["number", "null"]
+
+    CreateDiscountRequestInput:
+      type: object
+      required: [sessionId, type, discountKind, discountValue]
+      properties:
+        sessionId:
+          type: integer
+        orderId:
+          type: integer
+        type:
+          type: string
+        discountKind:
+          type: string
+        discountValue:
+          type: number
+        billedMinutes:
+          type: number
+        reason:
+          type: string
+
+    ReviewDiscountInput:
+      type: object
+      properties:
+        adminNote:
           type: string

@@ -20,3 +20,4 @@ export * from "./finance-accounts";
 export * from "./finance-transactions";
 export * from "./finance-assets";
 export * from "./finance-asset-maintenance";
+export * from "./discount_requests";
