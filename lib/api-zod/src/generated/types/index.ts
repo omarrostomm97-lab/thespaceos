@@ -90,6 +90,8 @@ export * from './listOrdersStatus';
 export * from './listPaymentsParams';
 export * from './listPaymentsStatus';
 export * from './listProductsParams';
+export * from './listReturnRequestsParams';
+export * from './listReturnRequestsStatus';
 export * from './listSessionsParams';
 export * from './listSessionsStatus';
 export * from './loginInput';

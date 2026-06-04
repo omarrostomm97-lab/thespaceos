@@ -4,7 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, ArrowLeft, Clock, Gamepad2, Receipt, AlertCircle, AlertTriangle, ShoppingCart, History, RotateCcw } from "lucide-react";
+import { ArrowRight, ArrowLeft, Clock, Gamepad2, Receipt, AlertCircle, AlertTriangle, ShoppingCart, History, RotateCcw, CheckCircle, XCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -326,6 +326,59 @@ export default function SessionDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* Return History — managers/owners only */}
+        {!isCashier && (() => {
+          const returnedItems = (session.orders as any[] ?? []).flatMap((o: any) =>
+            ((o.items as any[]) ?? [])
+              .filter((i: any) => i.status === "returned" || i.status === "return_rejected")
+              .map((i: any) => ({ ...i, orderId: o.id }))
+          );
+          if (returnedItems.length === 0) return null;
+          return (
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <RotateCcw className="h-5 w-5 text-blue-500" />
+                  {lang === "ar" ? "سجل الإرجاعات" : "Return History"}
+                  <span className="text-sm font-normal text-muted-foreground ms-1">({returnedItems.length})</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {returnedItems.map((item: any) => {
+                    const productName = lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr);
+                    const isApproved = item.status === "returned";
+                    return (
+                      <div key={`${item.orderId}-${item.id}`} className="flex items-center gap-3 px-4 py-3 rounded-xl border border-border/50 bg-secondary/20">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${isApproved ? "bg-blue-500/10" : "bg-destructive/10"}`}>
+                          {isApproved
+                            ? <CheckCircle className="h-4 w-4 text-blue-500" />
+                            : <XCircle className="h-4 w-4 text-destructive" />
+                          }
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium">{item.quantity}× {productName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("order_label")} #{item.orderId}
+                            {item.returnReason ? ` · ${item.returnReason}` : ""}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          {isApproved
+                            ? <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px]">{t("return_approved_badge")}</Badge>
+                            : <Badge className="bg-destructive/20 text-destructive border border-destructive/30 text-[10px]">{t("return_rejected_badge")}</Badge>
+                          }
+                          <p className="text-xs text-muted-foreground">{parseFloat(item.totalPrice).toFixed(2)} ج.م</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Related orders */}
         <Card className="md:col-span-2">

@@ -75,6 +75,7 @@ import type {
   ListOrdersParams,
   ListPaymentsParams,
   ListProductsParams,
+  ListReturnRequestsParams,
   ListSessionsParams,
   LoginInput,
   MenuQrResponse,
@@ -3749,20 +3750,27 @@ export const useCancelOrder = <TError = ErrorType<unknown>,
       return useMutation(getCancelOrderMutationOptions(options));
     }
 
-export const getListReturnRequestsUrl = () => {
+export const getListReturnRequestsUrl = (params?: ListReturnRequestsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/orders/return-requests`
+  return stringifiedParams.length > 0 ? `/api/orders/return-requests?${stringifiedParams}` : `/api/orders/return-requests`
 }
 
 /**
- * @summary List all pending item return requests (owner/manager)
+ * @summary List item return requests (owner/manager) — filter by status
  */
-export const listReturnRequests = async ( options?: RequestInit): Promise<ReturnRequest[]> => {
+export const listReturnRequests = async (params?: ListReturnRequestsParams, options?: RequestInit): Promise<ReturnRequest[]> => {
 
-  return customFetch<ReturnRequest[]>(getListReturnRequestsUrl(),
+  return customFetch<ReturnRequest[]>(getListReturnRequestsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -3775,23 +3783,23 @@ export const listReturnRequests = async ( options?: RequestInit): Promise<Return
 
 
 
-export const getListReturnRequestsQueryKey = () => {
+export const getListReturnRequestsQueryKey = (params?: ListReturnRequestsParams,) => {
     return [
-    `/api/orders/return-requests`
+    `/api/orders/return-requests`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListReturnRequestsQueryOptions = <TData = Awaited<ReturnType<typeof listReturnRequests>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReturnRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getListReturnRequestsQueryOptions = <TData = Awaited<ReturnType<typeof listReturnRequests>>, TError = ErrorType<unknown>>(params?: ListReturnRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReturnRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListReturnRequestsQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getListReturnRequestsQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReturnRequests>>> = ({ signal }) => listReturnRequests({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReturnRequests>>> = ({ signal }) => listReturnRequests(params, { signal, ...requestOptions });
 
 
 
@@ -3805,15 +3813,15 @@ export type ListReturnRequestsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List all pending item return requests (owner/manager)
+ * @summary List item return requests (owner/manager) — filter by status
  */
 
 export function useListReturnRequests<TData = Awaited<ReturnType<typeof listReturnRequests>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReturnRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: ListReturnRequestsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReturnRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getListReturnRequestsQueryOptions(options)
+  const queryOptions = getListReturnRequestsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -79,6 +79,12 @@ const MGMT = requireRole("platform_owner", "owner", "manager");
 
 router.get("/orders/return-requests", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
+    const statusParam = (req.query.status as string) ?? "pending";
+    const statusFilter =
+      statusParam === "history" ? inArray(orderItemsTable.status, ["returned", "return_rejected"]) :
+      statusParam === "all"     ? inArray(orderItemsTable.status, ["return_requested", "returned", "return_rejected"]) :
+                                  eq(orderItemsTable.status, "return_requested");
+
     const pendingItems = await db.select({
       itemId: orderItemsTable.id,
       orderId: orderItemsTable.orderId,
@@ -93,13 +99,16 @@ router.get("/orders/return-requests", requireAuth, requireTenant, MGMT, async (r
       sessionId: ordersTable.sessionId,
       assetId: ordersTable.assetId,
       orderedAt: ordersTable.createdAt,
+      itemStatus: orderItemsTable.status,
+      returnedAt: orderItemsTable.returnedAt,
     }).from(orderItemsTable)
       .innerJoin(ordersTable, and(
         eq(orderItemsTable.orderId, ordersTable.id),
         eq(ordersTable.tenantId, req.user!.tenantId!)
       ))
       .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
-      .where(eq(orderItemsTable.status, "return_requested"));
+      .where(statusFilter)
+      .orderBy(desc(ordersTable.createdAt));
 
     const result = await Promise.all(pendingItems.map(async item => {
       let assetName = null, assetNameAr = null;
@@ -127,6 +136,8 @@ router.get("/orders/return-requests", requireAuth, requireTenant, MGMT, async (r
         returnReason: item.returnReason ?? "",
         requestedByName,
         orderedAt: item.orderedAt,
+        itemStatus: item.itemStatus,
+        returnedAt: item.returnedAt ?? null,
       };
     }));
 

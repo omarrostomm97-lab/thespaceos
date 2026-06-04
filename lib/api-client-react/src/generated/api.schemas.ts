@@ -664,6 +664,9 @@ export interface ReturnRequest {
   /** @nullable */
   requestedByName: string | null;
   orderedAt: string;
+  itemStatus: string;
+  /** @nullable */
+  returnedAt?: string | null;
 }
 
 export type OrderInputPaymentMethod = typeof OrderInputPaymentMethod[keyof typeof OrderInputPaymentMethod];
@@ -1350,6 +1353,22 @@ export type ListOrdersSource = typeof ListOrdersSource[keyof typeof ListOrdersSo
 export const ListOrdersSource = {
   qr: 'qr',
   pos: 'pos',
+} as const;
+
+export type ListReturnRequestsParams = {
+/**
+ * pending = return_requested only; history = returned + return_rejected; all = all
+ */
+status?: ListReturnRequestsStatus;
+};
+
+export type ListReturnRequestsStatus = typeof ListReturnRequestsStatus[keyof typeof ListReturnRequestsStatus];
+
+
+export const ListReturnRequestsStatus = {
+  pending: 'pending',
+  history: 'history',
+  all: 'all',
 } as const;
 
 export type ListPaymentsParams = {

@@ -1174,8 +1174,14 @@ export const CancelOrderResponse = zod.object({
 
 
 /**
- * @summary List all pending item return requests (owner/manager)
+ * @summary List item return requests (owner/manager) — filter by status
  */
+export const listReturnRequestsQueryStatusDefault = `pending`;
+
+export const ListReturnRequestsQueryParams = zod.object({
+  "status": zod.enum(['pending', 'history', 'all']).default(listReturnRequestsQueryStatusDefault).describe('pending = return_requested only; history = returned + return_rejected; all = all')
+})
+
 export const ListReturnRequestsResponseItem = zod.object({
   "itemId": zod.number(),
   "orderId": zod.number(),
@@ -1189,7 +1195,9 @@ export const ListReturnRequestsResponseItem = zod.object({
   "totalPrice": zod.number(),
   "returnReason": zod.string(),
   "requestedByName": zod.string().nullable(),
-  "orderedAt": zod.coerce.date()
+  "orderedAt": zod.coerce.date(),
+  "itemStatus": zod.string(),
+  "returnedAt": zod.coerce.date().nullish()
 })
 export const ListReturnRequestsResponse = zod.array(ListReturnRequestsResponseItem)
 

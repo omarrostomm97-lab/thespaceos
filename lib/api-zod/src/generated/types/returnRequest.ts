@@ -25,4 +25,7 @@ export interface ReturnRequest {
   /** @nullable */
   requestedByName: string | null;
   orderedAt: Date;
+  itemStatus: string;
+  /** @nullable */
+  returnedAt?: Date | null;
 }

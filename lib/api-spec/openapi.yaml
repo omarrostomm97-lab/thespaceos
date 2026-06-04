@@ -1048,10 +1048,19 @@ paths:
     get:
       operationId: listReturnRequests
       tags: [orders]
-      summary: List all pending item return requests (owner/manager)
+      summary: List item return requests (owner/manager) — filter by status
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, history, all]
+            default: pending
+          description: "pending = return_requested only; history = returned + return_rejected; all = all"
       responses:
         "200":
-          description: Pending return requests
+          description: Return requests
           content:
             application/json:
               schema:
@@ -2914,7 +2923,7 @@ components:
 
     ReturnRequest:
       type: object
-      required: [itemId, orderId, productName, quantity, totalPrice, returnReason, requestedByName, orderedAt]
+      required: [itemId, orderId, productName, quantity, totalPrice, returnReason, requestedByName, orderedAt, itemStatus]
       properties:
         itemId:
           type: integer
@@ -2942,6 +2951,11 @@ components:
           type: ["string", "null"]
         orderedAt:
           type: string
+          format: date-time
+        itemStatus:
+          type: string
+        returnedAt:
+          type: ["string", "null"]
           format: date-time
 
     # ── ORDER SCHEMAS ──
