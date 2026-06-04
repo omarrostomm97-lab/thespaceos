@@ -20,10 +20,12 @@ const formatUser = (u: typeof usersTable.$inferSelect) => ({
 });
 
 /**
- * Build the WHERE condition for a user mutation, scoping to tenant for non-platform-owners.
+ * Build the WHERE condition for a user mutation.
+ * Platform owner NOT impersonating → can target any user by id only.
+ * Anyone else (including platform owner while impersonating) → scoped to their tenantId.
  */
 function buildUserWhere(id: number, requestingUser: import("../lib/auth").AuthUser) {
-  if (requestingUser.role === "platform_owner") {
+  if (requestingUser.role === "platform_owner" && !requestingUser.isImpersonating) {
     return eq(usersTable.id, id);
   }
   return and(eq(usersTable.id, id), eq(usersTable.tenantId, requestingUser.tenantId!));
@@ -32,7 +34,8 @@ function buildUserWhere(id: number, requestingUser: import("../lib/auth").AuthUs
 router.get("/users", requireAuth, async (req, res) => {
   try {
     let query;
-    if (req.user!.role === "platform_owner") {
+    // Platform owner NOT impersonating a tenant → return all users across all tenants
+    if (req.user!.role === "platform_owner" && !req.user!.isImpersonating) {
       query = db.select().from(usersTable).orderBy(usersTable.createdAt);
     } else {
       query = db.select().from(usersTable)
@@ -59,7 +62,14 @@ router.post("/users", requireAuth, requireRole("platform_owner", "owner", "manag
       return;
     }
     const passwordHash = await bcrypt.hash(password, 10);
-    const tenantId = req.user!.role === "platform_owner" ? req.body.tenantId : req.user!.tenantId;
+    // When platform_owner is impersonating a tenant, scope new users to that tenant.
+    // When NOT impersonating, use the tenantId from the request body (may be null for platform-level users).
+    const tenantId =
+      req.user!.isImpersonating
+        ? req.user!.tenantId
+        : req.user!.role === "platform_owner"
+          ? (req.body.tenantId ?? null)
+          : req.user!.tenantId;
     const [user] = await db.insert(usersTable).values({ email, name, nameAr, role, passwordHash, tenantId }).returning();
     await writeAuditLog({ user: req.user, action: "create_user", entityType: "user", entityId: user.id, newValue: { email, name, role } });
     res.status(201).json(formatUser(user));
@@ -98,10 +108,7 @@ router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner
     if (role !== undefined) updates.role = role;
     if (password) updates.passwordHash = await bcrypt.hash(password, 10);
 
-    // Scope update to tenant for non-platform-owners
-    const where = req.user!.role === "platform_owner"
-      ? eq(usersTable.id, id)
-      : and(eq(usersTable.id, id), eq(usersTable.tenantId, req.user!.tenantId!));
+    const where = buildUserWhere(id, req.user!);
 
     const [user] = await db.update(usersTable).set(updates).where(where).returning();
     if (!user) { res.status(404).json({ error: "Not found" }); return; }
@@ -120,10 +127,7 @@ router.post("/users/:userId/deactivate", requireAuth, requireRole("platform_owne
       res.status(400).json({ error: "Cannot deactivate your own account" });
       return;
     }
-    // Scope deactivation to tenant for non-platform-owners
-    const where = req.user!.role === "platform_owner"
-      ? eq(usersTable.id, id)
-      : and(eq(usersTable.id, id), eq(usersTable.tenantId, req.user!.tenantId!));
+    const where = buildUserWhere(id, req.user!);
 
     const [user] = await db.update(usersTable).set({ isActive: false }).where(where).returning();
     if (!user) { res.status(404).json({ error: "Not found" }); return; }

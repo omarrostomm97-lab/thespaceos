@@ -58,17 +58,16 @@ export default function AdminUsers() {
         email: form.email,
         password: form.password,
         role: form.role as UserInputRole,
+        tenantId: isPlatformOwner && form.tenantId ? parseInt(form.tenantId) : undefined,
       };
-      if (isPlatformOwner && form.tenantId) {
-        (payload as unknown as Record<string, unknown>).tenantId = parseInt(form.tenantId);
-      }
       await createUser.mutateAsync({ data: payload });
       toast.success("تم إنشاء المستخدم بنجاح");
       setForm({ name: "", nameAr: "", email: "", password: "", role: "cashier", tenantId: "" });
       setShowForm(false);
       queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
-    } catch {
-      toast.error("حدث خطأ أثناء إنشاء المستخدم");
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message ?? "حدث خطأ أثناء إنشاء المستخدم";
+      toast.error(msg);
     }
   };
 
@@ -109,8 +108,9 @@ export default function AdminUsers() {
       toast.success("تم حفظ التعديلات");
       setEditState(null);
       queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
-    } catch {
-      toast.error("حدث خطأ أثناء حفظ التعديلات");
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message ?? "حدث خطأ أثناء حفظ التعديلات";
+      toast.error(msg);
     }
   };
 

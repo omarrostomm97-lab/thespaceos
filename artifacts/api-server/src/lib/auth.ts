@@ -22,6 +22,7 @@ export interface AuthUser {
   role: string;
   tenantId: number | null;
   isActive: boolean;
+  isImpersonating: boolean;
 }
 
 declare global {
@@ -67,6 +68,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       role: user.role,
       tenantId: impersonatedTenantId ?? user.tenantId,
       isActive: user.isActive,
+      isImpersonating: !!impersonatedTenantId,
     };
     next();
   } catch {

@@ -35,7 +35,7 @@ router.post("/auth/login", async (req, res) => {
     const token = signToken(user.id);
     const refreshToken = jwt.sign({ userId: user.id, type: "refresh" }, getJwtSecret(), { expiresIn: "30d" });
     await writeAuditLog({
-      user: { id: user.id, email: user.email, name: user.name, nameAr: user.nameAr, role: user.role, tenantId: user.tenantId, isActive: user.isActive },
+      user: { id: user.id, email: user.email, name: user.name, nameAr: user.nameAr, role: user.role, tenantId: user.tenantId, isActive: user.isActive, isImpersonating: false },
       action: "login",
       entityType: "user",
       entityId: user.id,

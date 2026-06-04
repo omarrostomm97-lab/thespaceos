@@ -103,7 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(newToken);
     setIsImpersonating(true);
     setImpersonatedTenant(tenantInfo);
-    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+    // Clear ALL cached queries so the new tenant's data is fetched fresh
+    queryClient.clear();
   };
 
   const exitImpersonation = () => {
@@ -116,7 +117,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("impersonated_tenant");
     setIsImpersonating(false);
     setImpersonatedTenant(null);
-    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+    // Clear ALL cached queries so we return to the platform-owner view with fresh data
+    queryClient.clear();
     setLocation("/admin/tenants");
   };
 
@@ -128,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setIsImpersonating(false);
     setImpersonatedTenant(null);
-    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+    queryClient.clear();
     setLocation("/login");
   };
 
