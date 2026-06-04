@@ -2991,6 +2991,13 @@ components:
           enum: [active, return_requested, returned, return_rejected]
         returnReason:
           type: ["string", "null"]
+        returnQuantity:
+          type: ["integer", "null"]
+          description: "Quantity currently pending return approval"
+        returnedQuantity:
+          type: integer
+          description: "Cumulative quantity already approved and returned"
+          default: 0
         returnedAt:
           type: ["string", "null"]
           format: date-time

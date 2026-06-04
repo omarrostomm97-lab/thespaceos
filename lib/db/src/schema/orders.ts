@@ -36,6 +36,7 @@ export const orderItemsTable = pgTable("order_items", {
   status: text("status").notNull().default("active"),
   returnReason: text("return_reason"),
   returnQuantity: integer("return_quantity"),
+  returnedQuantity: integer("returned_quantity").notNull().default(0),
   returnedAt: timestamp("returned_at"),
   returnedByUserId: integer("returned_by_user_id").references(() => usersTable.id),
 });

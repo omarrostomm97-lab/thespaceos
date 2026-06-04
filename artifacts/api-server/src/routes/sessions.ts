@@ -147,6 +147,7 @@ router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) 
         status: orderItemsTable.status,
         returnReason: orderItemsTable.returnReason,
         returnQuantity: orderItemsTable.returnQuantity,
+        returnedQuantity: orderItemsTable.returnedQuantity,
         returnedAt: orderItemsTable.returnedAt,
         returnedByUserId: orderItemsTable.returnedByUserId,
       }).from(orderItemsTable)

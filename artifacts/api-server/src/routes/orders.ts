@@ -23,6 +23,7 @@ async function buildOrderResponse(o: typeof ordersTable.$inferSelect) {
     status: orderItemsTable.status,
     returnReason: orderItemsTable.returnReason,
     returnQuantity: orderItemsTable.returnQuantity,
+    returnedQuantity: orderItemsTable.returnedQuantity,
     returnedAt: orderItemsTable.returnedAt,
     returnedByUserId: orderItemsTable.returnedByUserId,
   }).from(orderItemsTable)
@@ -375,9 +376,13 @@ router.post("/orders/:orderId/items/:itemId/request-return", requireAuth, requir
     if (!item) { res.status(404).json({ error: "Item not found" }); return; }
     if (item.status !== "active") { res.status(400).json({ error: "Item is not in active status" }); return; }
 
-    const returnQty = quantity ? parseInt(String(quantity)) : item.quantity;
-    if (returnQty < 1 || returnQty > item.quantity) {
-      res.status(400).json({ error: `Return quantity must be between 1 and ${item.quantity}` }); return;
+    const alreadyReturned = item.returnedQuantity ?? 0;
+    const remaining = item.quantity - alreadyReturned;
+    if (remaining <= 0) { res.status(400).json({ error: "All units of this item have already been returned" }); return; }
+
+    const returnQty = quantity ? parseInt(String(quantity)) : remaining;
+    if (returnQty < 1 || returnQty > remaining) {
+      res.status(400).json({ error: `Return quantity must be between 1 and ${remaining}` }); return;
     }
 
     await db.update(orderItemsTable)
@@ -408,12 +413,18 @@ router.post("/orders/:orderId/items/:itemId/approve-return", requireAuth, requir
     if (!item) { res.status(404).json({ error: "Item not found" }); return; }
     if (item.status !== "return_requested") { res.status(400).json({ error: "Item is not pending return" }); return; }
 
-    await db.update(orderItemsTable)
-      .set({ status: "returned", returnedAt: new Date() })
-      .where(eq(orderItemsTable.id, itemId));
-
-    // Deduct only the returned quantity (partial returns use returnQuantity × unitPrice)
     const returnQty = item.returnQuantity ?? item.quantity;
+    const newReturnedQuantity = (item.returnedQuantity ?? 0) + returnQty;
+    const fullyReturned = newReturnedQuantity >= item.quantity;
+
+    await db.update(orderItemsTable)
+      .set({
+        status: fullyReturned ? "returned" : "active",
+        returnedQuantity: newReturnedQuantity,
+        returnedAt: fullyReturned ? new Date() : null,
+        returnQuantity: null,
+      })
+      .where(eq(orderItemsTable.id, itemId));
     const itemTotal = parseFloat(item.unitPrice as string) * returnQty;
     const newTotal = Math.max(0, parseFloat(order.totalAmount as string) - itemTotal);
     const [updated] = await db.update(ordersTable)

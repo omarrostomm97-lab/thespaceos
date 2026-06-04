@@ -423,6 +423,13 @@ export interface OrderItem {
   status: OrderItemStatus;
   /** @nullable */
   returnReason?: string | null;
+  /**
+     * Quantity currently pending return approval
+     * @nullable
+     */
+  returnQuantity?: number | null;
+  /** Cumulative quantity already approved and returned */
+  returnedQuantity?: number;
   /** @nullable */
   returnedAt?: string | null;
   /** @nullable */

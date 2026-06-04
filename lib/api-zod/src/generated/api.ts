@@ -432,6 +432,8 @@ export const GetSessionParams = zod.object({
   "sessionId": zod.coerce.number()
 })
 
+export const getSessionResponseOrdersItemItemsItemReturnedQuantityDefault = 0;
+
 export const GetSessionResponse = zod.object({
   "id": zod.number(),
   "assetId": zod.number(),
@@ -472,6 +474,8 @@ export const GetSessionResponse = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(getSessionResponseOrdersItemItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -896,6 +900,8 @@ export const ListOrdersQueryParams = zod.object({
   "sessionId": zod.coerce.number().optional()
 })
 
+export const listOrdersResponseItemsItemReturnedQuantityDefault = 0;
+
 export const ListOrdersResponseItem = zod.object({
   "id": zod.number(),
   "source": zod.enum(['qr', 'pos']),
@@ -922,6 +928,8 @@ export const ListOrdersResponseItem = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(listOrdersResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -952,6 +960,8 @@ export const CreateOrderBody = zod.object({
 /**
  * @summary List orders for KDS (pending + preparing + ready)
  */
+export const listKdsOrdersResponseItemsItemReturnedQuantityDefault = 0;
+
 export const ListKdsOrdersResponseItem = zod.object({
   "id": zod.number(),
   "source": zod.enum(['qr', 'pos']),
@@ -978,6 +988,8 @@ export const ListKdsOrdersResponseItem = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(listKdsOrdersResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -995,6 +1007,8 @@ export const ListKdsOrdersResponse = zod.array(ListKdsOrdersResponseItem)
 export const GetOrderParams = zod.object({
   "orderId": zod.coerce.number()
 })
+
+export const getOrderResponseItemsItemReturnedQuantityDefault = 0;
 
 export const GetOrderResponse = zod.object({
   "id": zod.number(),
@@ -1022,6 +1036,8 @@ export const GetOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(getOrderResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -1042,6 +1058,8 @@ export const UpdateOrderStatusParams = zod.object({
 export const UpdateOrderStatusBody = zod.object({
   "status": zod.enum(['pending', 'preparing', 'ready', 'delivered', 'closed', 'cancelled'])
 })
+
+export const updateOrderStatusResponseItemsItemReturnedQuantityDefault = 0;
 
 export const UpdateOrderStatusResponse = zod.object({
   "id": zod.number(),
@@ -1069,6 +1087,8 @@ export const UpdateOrderStatusResponse = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(updateOrderStatusResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -1089,6 +1109,8 @@ export const AssignOrderParams = zod.object({
 export const AssignOrderBody = zod.object({
   "userId": zod.number()
 })
+
+export const assignOrderResponseItemsItemReturnedQuantityDefault = 0;
 
 export const AssignOrderResponse = zod.object({
   "id": zod.number(),
@@ -1116,6 +1138,8 @@ export const AssignOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(assignOrderResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -1136,6 +1160,8 @@ export const CancelOrderParams = zod.object({
 export const CancelOrderBody = zod.object({
   "reason": zod.string()
 })
+
+export const cancelOrderResponseItemsItemReturnedQuantityDefault = 0;
 
 export const CancelOrderResponse = zod.object({
   "id": zod.number(),
@@ -1163,6 +1189,8 @@ export const CancelOrderResponse = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(cancelOrderResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -1219,6 +1247,8 @@ export const RequestItemReturnBody = zod.object({
   "quantity": zod.number().min(1).optional().describe('Quantity to return — defaults to the full item quantity if omitted')
 })
 
+export const requestItemReturnResponseItemsItemReturnedQuantityDefault = 0;
+
 export const RequestItemReturnResponse = zod.object({
   "id": zod.number(),
   "source": zod.enum(['qr', 'pos']),
@@ -1245,6 +1275,8 @@ export const RequestItemReturnResponse = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(requestItemReturnResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -1262,6 +1294,8 @@ export const ApproveItemReturnParams = zod.object({
   "orderId": zod.coerce.number(),
   "itemId": zod.coerce.number()
 })
+
+export const approveItemReturnResponseItemsItemReturnedQuantityDefault = 0;
 
 export const ApproveItemReturnResponse = zod.object({
   "id": zod.number(),
@@ -1289,6 +1323,8 @@ export const ApproveItemReturnResponse = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(approveItemReturnResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),
@@ -1306,6 +1342,8 @@ export const RejectItemReturnParams = zod.object({
   "orderId": zod.coerce.number(),
   "itemId": zod.coerce.number()
 })
+
+export const rejectItemReturnResponseItemsItemReturnedQuantityDefault = 0;
 
 export const RejectItemReturnResponse = zod.object({
   "id": zod.number(),
@@ -1333,6 +1371,8 @@ export const RejectItemReturnResponse = zod.object({
   "notes": zod.string().nullish(),
   "status": zod.enum(['active', 'return_requested', 'returned', 'return_rejected']),
   "returnReason": zod.string().nullish(),
+  "returnQuantity": zod.number().nullish().describe('Quantity currently pending return approval'),
+  "returnedQuantity": zod.number().default(rejectItemReturnResponseItemsItemReturnedQuantityDefault).describe('Cumulative quantity already approved and returned'),
   "returnedAt": zod.coerce.date().nullish(),
   "returnedByUserId": zod.number().nullish()
 })),

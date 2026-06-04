@@ -416,9 +416,11 @@ export default function SessionDetail() {
                       <div className="divide-y divide-border/30">
                         {order.items.map((item: any) => {
                           const productName = lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr);
-                          const canRequest = isDelivered && item.status === "active";
-                          const returnLabel = item.returnQuantity && item.returnQuantity < item.quantity
-                            ? `${item.returnQuantity}/${item.quantity}`
+                          const alreadyReturned = item.returnedQuantity ?? 0;
+                          const remaining = item.quantity - alreadyReturned;
+                          const canRequest = isDelivered && item.status === "active" && remaining > 0;
+                          const returnLabel = alreadyReturned > 0
+                            ? `${alreadyReturned}/${item.quantity} ${lang === "ar" ? "مُرجع" : "returned"}`
                             : null;
                           return (
                             <div key={item.id} className="flex items-center justify-between px-4 py-2.5 gap-3">
@@ -426,8 +428,8 @@ export default function SessionDetail() {
                                 <span className="text-sm text-muted-foreground shrink-0">{item.quantity}×</span>
                                 <span className="text-sm font-medium truncate">{productName}</span>
                                 {itemStatusBadge(item.status)}
-                                {returnLabel && item.status === "return_requested" && (
-                                  <span className="text-[10px] text-muted-foreground">({returnLabel})</span>
+                                {returnLabel && (
+                                  <span className="text-[10px] text-amber-500/80">({returnLabel})</span>
                                 )}
                                 {item.returnReason && item.status !== "active" && (
                                   <span className="text-xs text-muted-foreground truncate hidden md:block">
@@ -443,7 +445,7 @@ export default function SessionDetail() {
                                     variant="outline"
                                     className="h-7 px-2 text-xs border-amber-500/40 text-amber-500 hover:bg-amber-500/10"
                                     onClick={() => {
-                                      setReturnDialog({ orderId: order.id, itemId: item.id, productName, maxQty: item.quantity });
+                                      setReturnDialog({ orderId: order.id, itemId: item.id, productName, maxQty: remaining });
                                       setReturnReason("");
                                       setReturnQty(1);
                                     }}
