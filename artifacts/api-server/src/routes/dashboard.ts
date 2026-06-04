@@ -41,21 +41,17 @@ router.get("/dashboard/summary", requireAuth, requireTenant, async (req, res) =>
       .where(and(eq(paymentsTable.tenantId, tenantId), eq(paymentsTable.status, "verified"), gte(paymentsTable.createdAt, today)));
     const revenueToday = todayPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
 
-    // Gaming time revenue today: sum(totalMinutes / 60 * pricePerHour) for ended sessions
-    const endedSessionRows = await db
-      .select({ totalMinutes: sessionsTable.totalMinutes, pricePerHour: assetsTable.pricePerHour })
-      .from(sessionsTable)
-      .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
+    // Session-linked verified payments today (ground truth for gaming revenue)
+    const sessionPaymentRows = await db
+      .select({ amount: paymentsTable.amount })
+      .from(paymentsTable)
       .where(and(
-        eq(sessionsTable.tenantId, tenantId),
-        eq(sessionsTable.status, "ended"),
-        gte(sessionsTable.endedAt, today),
+        eq(paymentsTable.tenantId, tenantId),
+        eq(paymentsTable.status, "verified"),
+        isNotNull(paymentsTable.sessionId),
+        gte(paymentsTable.createdAt, today),
       ));
-    const gamingRevenueToday = endedSessionRows.reduce((sum, r) => {
-      const mins = parseFloat((r.totalMinutes as string) ?? "0");
-      const rate = parseFloat((r.pricePerHour as string) ?? "0");
-      return sum + (mins / 60) * rate;
-    }, 0);
+    const sessionPaymentsToday = sessionPaymentRows.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
 
     // Room orders revenue today: delivered/closed orders linked to sessions
     const roomOrderRows = await db.select({ totalAmount: ordersTable.totalAmount })
@@ -67,6 +63,9 @@ router.get("/dashboard/summary", requireAuth, requireTenant, async (req, res) =>
         gte(ordersTable.createdAt, today),
       ));
     const roomOrdersToday = roomOrderRows.reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+
+    // Gaming revenue = session payments − room orders (removes double-count of order amounts bundled into session payment)
+    const gamingRevenueToday = Math.max(0, sessionPaymentsToday - roomOrdersToday);
 
     // Buffet / POS revenue today: orders with no session
     const posOrderRows = await db.select({ totalAmount: ordersTable.totalAmount })
@@ -150,25 +149,6 @@ router.get("/dashboard/revenue", requireAuth, requireTenant, async (req, res) =>
     });
     const dailyBreakdown = Object.entries(dailyMap).map(([date, total]) => ({ date, total: r2(total) }));
 
-    // Gaming time revenue — only when source is not buffet-only
-    let sessionRevenue = 0;
-    if (source !== "buffet") {
-      const sessionRows = await db
-        .select({ totalMinutes: sessionsTable.totalMinutes, pricePerHour: assetsTable.pricePerHour })
-        .from(sessionsTable)
-        .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
-        .where(and(
-          eq(sessionsTable.tenantId, tenantId),
-          eq(sessionsTable.status, "ended"),
-          gte(sessionsTable.endedAt, from),
-        ));
-      sessionRevenue = sessionRows.reduce((sum, r) => {
-        const mins = parseFloat((r.totalMinutes as string) ?? "0");
-        const rate = parseFloat((r.pricePerHour as string) ?? "0");
-        return sum + (mins / 60) * rate;
-      }, 0);
-    }
-
     // Room orders revenue — only when source is not buffet-only
     let roomOrderRevenue = 0;
     if (source !== "buffet") {
@@ -181,6 +161,24 @@ router.get("/dashboard/revenue", requireAuth, requireTenant, async (req, res) =>
           gte(ordersTable.createdAt, from),
         ));
       roomOrderRevenue = roomOrderRows.reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+    }
+
+    // Gaming revenue — session-linked verified payments minus room orders (ground truth, not formula)
+    let sessionRevenue = 0;
+    if (source !== "buffet") {
+      const sessionPayConds = [
+        eq(paymentsTable.tenantId, tenantId),
+        eq(paymentsTable.status, "verified"),
+        isNotNull(paymentsTable.sessionId),
+        gte(paymentsTable.createdAt, from),
+      ];
+      if (method !== "all") sessionPayConds.push(eq(paymentsTable.method, method));
+      const sessionPayRows = await db
+        .select({ amount: paymentsTable.amount })
+        .from(paymentsTable)
+        .where(and(...sessionPayConds));
+      const sessionPayTotal = sessionPayRows.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
+      sessionRevenue = Math.max(0, sessionPayTotal - roomOrderRevenue);
     }
 
     // POS / buffet revenue — only when source is not gaming-only
@@ -470,13 +468,8 @@ router.get("/dashboard/shifts", requireAuth, requireTenant, async (req, res) => 
 
       // Sessions started during this shift
       const sessionRows = await db
-        .select({
-          totalMinutes: sessionsTable.totalMinutes,
-          pricePerHour: assetsTable.pricePerHour,
-          status: sessionsTable.status,
-        })
+        .select({ id: sessionsTable.id })
         .from(sessionsTable)
-        .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
         .where(and(
           eq(sessionsTable.tenantId, tenantId),
           gte(sessionsTable.startedAt, shift.openedAt),
@@ -484,13 +477,6 @@ router.get("/dashboard/shifts", requireAuth, requireTenant, async (req, res) => 
         ));
 
       const sessionCount = sessionRows.length;
-      const gamingRevenue = sessionRows
-        .filter(r => r.status === "ended")
-        .reduce((sum, r) => {
-          const mins = parseFloat((r.totalMinutes as string) ?? "0");
-          const rate = parseFloat((r.pricePerHour as string) ?? "0");
-          return sum + (mins / 60) * rate;
-        }, 0);
 
       // Orders created during this shift
       const orderRows = await db
@@ -513,7 +499,7 @@ router.get("/dashboard/shifts", requireAuth, requireTenant, async (req, res) => 
 
       // Payments during this shift (ground-truth cash tracking)
       const payRows = await db
-        .select({ amount: paymentsTable.amount, method: paymentsTable.method })
+        .select({ amount: paymentsTable.amount, method: paymentsTable.method, sessionId: paymentsTable.sessionId })
         .from(paymentsTable)
         .where(and(
           eq(paymentsTable.tenantId, tenantId),
@@ -523,13 +509,17 @@ router.get("/dashboard/shifts", requireAuth, requireTenant, async (req, res) => 
         ));
 
       let cashPayments = 0, instapayPayments = 0, visaPayments = 0;
+      let sessionLinkedPayments = 0;
       payRows.forEach(p => {
         const amt = parseFloat(p.amount as string);
-        if (p.method === "cash")     cashPayments     += amt;
+        if (p.method === "cash")          cashPayments     += amt;
         else if (p.method === "instapay") instapayPayments += amt;
         else if (p.method === "visa")     visaPayments     += amt;
+        if (p.sessionId !== null) sessionLinkedPayments += amt;
       });
 
+      // Gaming revenue = session-linked payments − room orders (ground truth, avoids formula drift)
+      const gamingRevenue = Math.max(0, sessionLinkedPayments - roomOrderRevenue);
       const totalRevenue = r2(gamingRevenue + roomOrderRevenue + posRevenue);
       const durationMinutes = shift.closedAt
         ? Math.round((new Date(shift.closedAt).getTime() - new Date(shift.openedAt).getTime()) / 60000)
