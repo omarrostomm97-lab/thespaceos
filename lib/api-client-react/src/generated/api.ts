@@ -35,6 +35,7 @@ import type {
   ErrorResponse,
   GetDashboardBreakdownParams,
   GetDashboardRoomsParams,
+  GetDashboardShiftsParams,
   GetRevenueStatsParams,
   HealthStatus,
   InventoryItem,
@@ -78,6 +79,7 @@ import type {
   Shift,
   ShiftCloseInput,
   ShiftInput,
+  ShiftStat,
   Tenant,
   TenantInput,
   TenantUpdate,
@@ -4787,6 +4789,90 @@ export function useGetDashboardRooms<TData = Awaited<ReturnType<typeof getDashbo
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetDashboardRoomsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDashboardShiftsUrl = (params?: GetDashboardShiftsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/dashboard/shifts?${stringifiedParams}` : `/api/dashboard/shifts`
+}
+
+/**
+ * @summary Get per-shift analytics for the dashboard
+ */
+export const getDashboardShifts = async (params?: GetDashboardShiftsParams, options?: RequestInit): Promise<ShiftStat[]> => {
+
+  return customFetch<ShiftStat[]>(getGetDashboardShiftsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardShiftsQueryKey = (params?: GetDashboardShiftsParams,) => {
+    return [
+    `/api/dashboard/shifts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDashboardShiftsQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardShifts>>, TError = ErrorType<unknown>>(params?: GetDashboardShiftsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardShifts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardShiftsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardShifts>>> = ({ signal }) => getDashboardShifts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardShifts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDashboardShiftsQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardShifts>>>
+export type GetDashboardShiftsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get per-shift analytics for the dashboard
+ */
+
+export function useGetDashboardShifts<TData = Awaited<ReturnType<typeof getDashboardShifts>>, TError = ErrorType<unknown>>(
+ params?: GetDashboardShiftsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardShifts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDashboardShiftsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -6,6 +6,7 @@ import {
   useGetRevenueStats,
   useGetDashboardBreakdown,
   useGetDashboardRooms,
+  useGetDashboardShifts,
   getGetDashboardSummaryQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
@@ -13,7 +14,7 @@ import {
   Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart,
   Activity, Monitor, TrendingUp, Utensils, Bell, Plus,
   LayoutDashboard, ChefHat, Download, Banknote,
-  Smartphone, CreditCard, Filter, X, Check,
+  Smartphone, CreditCard, Filter, X, Check, Users,
   BarChart2, List,
 } from "lucide-react";
 import { Link } from "wouter";
@@ -29,7 +30,7 @@ import {
 type Period  = "today" | "week" | "month";
 type Source  = "all" | "gaming" | "buffet";
 type PayMethod = "all" | "cash" | "instapay" | "visa";
-type Tab = "overview" | "sales" | "details";
+type Tab = "overview" | "sales" | "details" | "shifts";
 
 /* ─── Count-up hook ──────────────────────────────────── */
 function useCountUp(target: number, duration = 900) {
@@ -283,9 +284,10 @@ function MobileBottomNav({ tab, setTab, lang, pendingOrders }: {
   tab: Tab; setTab: (t: Tab) => void; lang: "ar"|"en"; pendingOrders: number;
 }) {
   const tabs = [
-    { id: "overview" as Tab, labelAr: "الرئيسية", labelEn: "Home",   Icon: LayoutDashboard },
-    { id: "sales"    as Tab, labelAr: "المبيعات",  labelEn: "Sales",  Icon: BarChart2 },
+    { id: "overview" as Tab, labelAr: "الرئيسية", labelEn: "Home",    Icon: LayoutDashboard },
+    { id: "sales"    as Tab, labelAr: "المبيعات",  labelEn: "Sales",   Icon: BarChart2 },
     { id: "details"  as Tab, labelAr: "التفصيل",   labelEn: "Details", Icon: List },
+    { id: "shifts"   as Tab, labelAr: "الورديات",  labelEn: "Shifts",  Icon: Clock },
   ];
   return (
     <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-card border-t border-border"
@@ -440,6 +442,7 @@ export default function Dashboard() {
   });
   const { data: breakdown, isLoading: isLoadingBreakdown } = useGetDashboardBreakdown(breakdownParams);
   const { data: roomsData } = useGetDashboardRooms({ period } as any);
+  const { data: shiftsData, isLoading: isLoadingShifts } = useGetDashboardShifts({ period } as any);
 
   if (isLoadingSummary || isLoadingSessions) return <DashboardSkeleton />;
 
@@ -664,7 +667,7 @@ export default function Dashboard() {
         {/* Row 2: Tabs + Period */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-0.5">
-            {(["overview","sales","details"] as Tab[]).map(id => (
+            {(["overview","sales","details","shifts"] as Tab[]).map(id => (
               <button key={id} onClick={() => setTab(id)}
                 className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   tab === id ? "text-foreground" : "text-muted-foreground hover:text-foreground"
@@ -674,7 +677,10 @@ export default function Dashboard() {
                     transition={{ type: "spring", stiffness: 400, damping: 35 }} />
                 )}
                 <span className="relative z-10">
-                  {id === "overview" ? t("tab_overview") : id === "sales" ? t("tab_sales") : t("tab_details")}
+                  {id === "overview" ? t("tab_overview")
+                   : id === "sales"  ? t("tab_sales")
+                   : id === "details"? t("tab_details")
+                   : t("tab_shifts")}
                 </span>
               </button>
             ))}
@@ -1138,6 +1144,174 @@ export default function Dashboard() {
     </div>
   );
 
+  /* ─── Shifts tab ─────────────────────────────────────── */
+  const ShiftsContent = (() => {
+    const shifts = shiftsData ?? [];
+    const totalRevenue   = shifts.reduce((s, sh) => s + sh.totalRevenue, 0);
+    const totalSessions  = shifts.reduce((s, sh) => s + sh.sessionCount, 0);
+    const totalOrders    = shifts.reduce((s, sh) => s + sh.orderCount, 0);
+
+    function fmtDuration(mins: number) {
+      const h = Math.floor(mins / 60), m = mins % 60;
+      return h > 0 ? `${h}h ${m}m` : `${m}m`;
+    }
+    function fmtTime(iso: string | null | undefined) {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      return d.toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" });
+    }
+    function fmtDate(iso: string) {
+      const d = new Date(iso);
+      return d.toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "short" });
+    }
+
+    return (
+      <div className="space-y-4 md:space-y-6">
+        {/* Summary strip */}
+        <StaggerChildren className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4">
+          {[
+            { label: lang==="ar"?"عدد الورديات":"Shifts",         value: shifts.length,                  isFloat:false, color:"text-primary",     Icon:Clock },
+            { label: lang==="ar"?"إجمالي الإيرادات":"Revenue",    value: totalRevenue,                   isFloat:true,  color:"text-emerald-500", Icon:Receipt },
+            { label: lang==="ar"?"إجمالي الجلسات":"Sessions",     value: totalSessions,                  isFloat:false, color:"text-primary",     Icon:Gamepad2 },
+            { label: lang==="ar"?"إجمالي الطلبات":"Orders",       value: totalOrders,                    isFloat:false, color:"text-orange-500",  Icon:ShoppingCart },
+          ].map(stat => (
+            <StaggerItem key={stat.label}>
+              <HoverCard>
+                <div className="bg-card border border-card-border rounded-2xl p-4 flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${stat.color==="text-primary"?"bg-primary/15":stat.color==="text-emerald-500"?"bg-emerald-500/15":stat.color==="text-orange-500"?"bg-orange-500/15":"bg-primary/15"}`}>
+                    <stat.Icon className={`h-4 w-4 ${stat.color}`} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                    <p className={`text-xl font-bold tabular ${stat.color}`} style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
+                      {stat.isFloat ? (stat.value as number).toFixed(2) : stat.value}
+                      {stat.isFloat && <span className="text-sm opacity-60 ms-1">ج.م</span>}
+                    </p>
+                  </div>
+                </div>
+              </HoverCard>
+            </StaggerItem>
+          ))}
+        </StaggerChildren>
+
+        {/* Per-shift cards */}
+        {isLoadingShifts ? (
+          <div className="space-y-3">
+            {[1,2,3].map(i => <div key={i} className="h-44 rounded-2xl bg-muted animate-pulse" />)}
+          </div>
+        ) : shifts.length === 0 ? (
+          <div className="rounded-2xl border border-border bg-card p-16 text-center">
+            <Clock className="h-10 w-10 mx-auto mb-3 opacity-20" />
+            <p className="text-muted-foreground text-sm">{lang==="ar"?"لا توجد ورديات في هذه الفترة":"No shifts in this period"}</p>
+          </div>
+        ) : (
+          <div className="space-y-3 md:space-y-4">
+            {shifts.map(shift => {
+              const isOpen = shift.status === "open";
+              const diff = shift.difference ?? 0;
+              const hasDiff = diff !== 0 && shift.status === "closed";
+              return (
+                <HoverCard key={shift.id}>
+                  <div className={`bg-card rounded-2xl p-4 md:p-5 border ${isOpen ? "border-emerald-500/30" : "border-card-border"}`}>
+                    {/* Header row */}
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isOpen ? "bg-emerald-500/15" : "bg-secondary"}`}>
+                          <Clock className={`h-5 w-5 ${isOpen ? "text-emerald-500" : "text-muted-foreground"}`} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-sm">{shift.userName ?? (lang==="ar"?"كاشير":"Cashier")}</p>
+                            {isOpen && (
+                              <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-semibold">
+                                <span className="relative flex h-1.5 w-1.5">
+                                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 live-dot" />
+                                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                </span>
+                                {lang==="ar"?"مفتوحة":"Live"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {fmtDate(shift.openedAt as unknown as string)} · {fmtTime(shift.openedAt as unknown as string)} → {isOpen ? (lang==="ar"?"الآن":"Now") : fmtTime(shift.closedAt as unknown as string)}
+                            <span className="ms-2 text-primary/70">{fmtDuration(shift.durationMinutes)}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-end shrink-0">
+                        <p className="text-lg md:text-xl font-bold text-primary tabular" style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
+                          {shift.totalRevenue.toFixed(2)} <span className="text-sm opacity-60">ج.م</span>
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">{lang==="ar"?"إجمالي الإيرادات":"Total Revenue"}</p>
+                      </div>
+                    </div>
+
+                    {/* Revenue 3-bucket + session/order counts */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
+                      <div className="bg-emerald-500/8 rounded-xl px-3 py-2">
+                        <p className="text-[10px] text-emerald-600 font-medium mb-0.5">{lang==="ar"?"وقت الألعاب":"Gaming Time"}</p>
+                        <p className="text-sm font-bold text-emerald-500 tabular">{shift.gamingRevenue.toFixed(2)} ج.م</p>
+                      </div>
+                      <div className="bg-primary/8 rounded-xl px-3 py-2">
+                        <p className="text-[10px] text-primary font-medium mb-0.5">{lang==="ar"?"طلبات الغرف":"Room Orders"}</p>
+                        <p className="text-sm font-bold text-primary tabular">{shift.roomOrderRevenue.toFixed(2)} ج.م</p>
+                      </div>
+                      <div className="bg-orange-500/8 rounded-xl px-3 py-2">
+                        <p className="text-[10px] text-orange-500 font-medium mb-0.5">{lang==="ar"?"بوفيه/POS":"POS/Buffet"}</p>
+                        <p className="text-sm font-bold text-orange-500 tabular">{shift.posRevenue.toFixed(2)} ج.م</p>
+                      </div>
+                      <div className="bg-secondary rounded-xl px-3 py-2">
+                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{lang==="ar"?"الجلسات":"Sessions"}</p>
+                        <p className="text-sm font-bold tabular">{shift.sessionCount}</p>
+                      </div>
+                      <div className="bg-secondary rounded-xl px-3 py-2">
+                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{lang==="ar"?"الطلبات":"Orders"}</p>
+                        <p className="text-sm font-bold tabular">{shift.orderCount}</p>
+                      </div>
+                    </div>
+
+                    {/* Payment methods + cash reconciliation */}
+                    <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border/50 text-xs">
+                      {shift.cashPayments > 0 && (
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <Banknote className="h-3.5 w-3.5" />
+                          <span className="tabular">{shift.cashPayments.toFixed(2)} ج.م</span>
+                        </span>
+                      )}
+                      {shift.instapayPayments > 0 && (
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <Smartphone className="h-3.5 w-3.5" />
+                          <span className="tabular">{shift.instapayPayments.toFixed(2)} ج.م</span>
+                        </span>
+                      )}
+                      {shift.visaPayments > 0 && (
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <CreditCard className="h-3.5 w-3.5" />
+                          <span className="tabular">{shift.visaPayments.toFixed(2)} ج.م</span>
+                        </span>
+                      )}
+                      {hasDiff && (
+                        <span className={`ms-auto flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-[11px] ${diff > 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>
+                          <AlertTriangle className="h-3 w-3" />
+                          {diff > 0 ? "+" : ""}{diff.toFixed(2)} ج.م
+                        </span>
+                      )}
+                      {shift.status === "closed" && diff === 0 && (
+                        <span className="ms-auto flex items-center gap-1 text-emerald-500 text-[11px] font-semibold">
+                          <Check className="h-3 w-3" /> {lang==="ar"?"مطابق":"Balanced"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </HoverCard>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  })();
+
   /* ─── Details tab ────────────────────────────────────── */
   const ASSET_ICON_MAP: Record<string, string> = {
     ps:"🎮", billiard:"🎱", air_hockey:"🏒", babyfoot:"⚽", other:"🕹️",
@@ -1451,6 +1625,12 @@ export default function Dashboard() {
             <motion.div key="details" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
               exit={{ opacity:0, y:-6 }} transition={{ duration:0.18 }}>
               {DetailsContent}
+            </motion.div>
+          )}
+          {tab === "shifts" && (
+            <motion.div key="shifts" initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
+              exit={{ opacity:0, y:-6 }} transition={{ duration:0.18 }}>
+              {ShiftsContent}
             </motion.div>
           )}
         </AnimatePresence>

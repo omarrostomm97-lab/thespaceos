@@ -444,6 +444,129 @@ router.get("/dashboard/rooms", requireAuth, requireTenant, async (req, res) => {
   }
 });
 
+/* ─── Shifts Analytics ───────────────────────────────────────── */
+router.get("/dashboard/shifts", requireAuth, requireTenant, async (req, res) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { period = "week" } = req.query as Record<string, string>;
+    const { from } = parsePeriod(period, new Date());
+
+    // All shifts that opened within the period, or are currently open
+    const shifts = await db
+      .select()
+      .from(shiftsTable)
+      .where(and(eq(shiftsTable.tenantId, tenantId), gte(shiftsTable.openedAt, from)))
+      .orderBy(shiftsTable.openedAt);
+
+    // Batch load all users for this tenant so we don't N+1
+    const users = await db.select({ id: usersTable.id, name: usersTable.name })
+      .from(usersTable)
+      .where(eq(usersTable.tenantId, tenantId));
+    const userMap = new Map(users.map(u => [u.id, u.name]));
+
+    // For each shift, compute analytics using its time window
+    const result = await Promise.all(shifts.map(async shift => {
+      const shiftEnd = shift.closedAt ?? new Date(); // open shifts use now() as end
+
+      // Sessions started during this shift
+      const sessionRows = await db
+        .select({
+          totalMinutes: sessionsTable.totalMinutes,
+          pricePerHour: assetsTable.pricePerHour,
+          status: sessionsTable.status,
+        })
+        .from(sessionsTable)
+        .innerJoin(assetsTable, eq(sessionsTable.assetId, assetsTable.id))
+        .where(and(
+          eq(sessionsTable.tenantId, tenantId),
+          gte(sessionsTable.startedAt, shift.openedAt),
+          sql`${sessionsTable.startedAt} <= ${shiftEnd}`,
+        ));
+
+      const sessionCount = sessionRows.length;
+      const gamingRevenue = sessionRows
+        .filter(r => r.status === "ended")
+        .reduce((sum, r) => {
+          const mins = parseFloat((r.totalMinutes as string) ?? "0");
+          const rate = parseFloat((r.pricePerHour as string) ?? "0");
+          return sum + (mins / 60) * rate;
+        }, 0);
+
+      // Orders created during this shift
+      const orderRows = await db
+        .select({ totalAmount: ordersTable.totalAmount, sessionId: ordersTable.sessionId })
+        .from(ordersTable)
+        .where(and(
+          eq(ordersTable.tenantId, tenantId),
+          inArray(ordersTable.status, ["delivered", "closed"]),
+          gte(ordersTable.createdAt, shift.openedAt),
+          sql`${ordersTable.createdAt} <= ${shiftEnd}`,
+        ));
+
+      const orderCount = orderRows.length;
+      const roomOrderRevenue = orderRows
+        .filter(o => o.sessionId !== null)
+        .reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+      const posRevenue = orderRows
+        .filter(o => o.sessionId === null)
+        .reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
+
+      // Payments during this shift (ground-truth cash tracking)
+      const payRows = await db
+        .select({ amount: paymentsTable.amount, method: paymentsTable.method })
+        .from(paymentsTable)
+        .where(and(
+          eq(paymentsTable.tenantId, tenantId),
+          eq(paymentsTable.status, "verified"),
+          gte(paymentsTable.createdAt, shift.openedAt),
+          sql`${paymentsTable.createdAt} <= ${shiftEnd}`,
+        ));
+
+      let cashPayments = 0, instapayPayments = 0, visaPayments = 0;
+      payRows.forEach(p => {
+        const amt = parseFloat(p.amount as string);
+        if (p.method === "cash")     cashPayments     += amt;
+        else if (p.method === "instapay") instapayPayments += amt;
+        else if (p.method === "visa")     visaPayments     += amt;
+      });
+
+      const totalRevenue = r2(gamingRevenue + roomOrderRevenue + posRevenue);
+      const durationMinutes = shift.closedAt
+        ? Math.round((new Date(shift.closedAt).getTime() - new Date(shift.openedAt).getTime()) / 60000)
+        : Math.round((Date.now() - new Date(shift.openedAt).getTime()) / 60000);
+
+      return {
+        id:               shift.id,
+        userId:           shift.userId,
+        userName:         userMap.get(shift.userId) ?? null,
+        status:           shift.status,
+        openedAt:         shift.openedAt,
+        closedAt:         shift.closedAt ?? null,
+        durationMinutes,
+        openingCash:      parseFloat(shift.openingCash as string),
+        expectedCash:     shift.expectedCash ? parseFloat(shift.expectedCash as string) : null,
+        actualCash:       shift.actualCash   ? parseFloat(shift.actualCash   as string) : null,
+        difference:       shift.difference   ? parseFloat(shift.difference   as string) : null,
+        sessionCount,
+        orderCount,
+        gamingRevenue:    r2(gamingRevenue),
+        roomOrderRevenue: r2(roomOrderRevenue),
+        posRevenue:       r2(posRevenue),
+        totalRevenue,
+        cashPayments:     r2(cashPayments),
+        instapayPayments: r2(instapayPayments),
+        visaPayments:     r2(visaPayments),
+      };
+    }));
+
+    // Return newest first
+    res.json(result.reverse());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to get shift analytics" });
+  }
+});
+
 /* ─── Category map helper ─────────────────────────────────────── */
 function buildCategoryMap(rows: any[]) {
   const map = new Map<string, {

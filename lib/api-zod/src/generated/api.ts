@@ -1434,6 +1434,38 @@ export const GetDashboardRoomsResponse = zod.array(GetDashboardRoomsResponseItem
 
 
 /**
+ * @summary Get per-shift analytics for the dashboard
+ */
+export const GetDashboardShiftsQueryParams = zod.object({
+  "period": zod.enum(['today', 'week', 'month']).optional()
+})
+
+export const GetDashboardShiftsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "userName": zod.string().nullish(),
+  "status": zod.string(),
+  "openedAt": zod.coerce.date(),
+  "closedAt": zod.coerce.date().nullish(),
+  "durationMinutes": zod.number(),
+  "openingCash": zod.number(),
+  "expectedCash": zod.number().nullish(),
+  "actualCash": zod.number().nullish(),
+  "difference": zod.number().nullish(),
+  "sessionCount": zod.number(),
+  "orderCount": zod.number(),
+  "gamingRevenue": zod.number(),
+  "roomOrderRevenue": zod.number(),
+  "posRevenue": zod.number(),
+  "totalRevenue": zod.number(),
+  "cashPayments": zod.number(),
+  "instapayPayments": zod.number(),
+  "visaPayments": zod.number()
+})
+export const GetDashboardShiftsResponse = zod.array(GetDashboardShiftsResponseItem)
+
+
+/**
  * @summary Get employee performance stats
  */
 export const GetEmployeePerformanceResponseItem = zod.object({

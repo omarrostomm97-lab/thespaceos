@@ -1298,6 +1298,27 @@ paths:
                 items:
                   $ref: "#/components/schemas/DashboardRoomStat"
 
+  /dashboard/shifts:
+    get:
+      operationId: getDashboardShifts
+      tags: [dashboard]
+      summary: Get per-shift analytics for the dashboard
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month]
+      responses:
+        "200":
+          description: Shift analytics list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShiftStat"
+
   /dashboard/employee-performance:
     get:
       operationId: getEmployeePerformance
@@ -2571,6 +2592,53 @@ components:
         roomOrderRevenue:
           type: number
         totalRevenue:
+          type: number
+
+    ShiftStat:
+      type: object
+      required: [id, userId, status, openedAt, durationMinutes, openingCash, sessionCount, orderCount, gamingRevenue, roomOrderRevenue, posRevenue, totalRevenue, cashPayments, instapayPayments, visaPayments]
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: ["string", "null"]
+        status:
+          type: string
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: ["string", "null"]
+          format: date-time
+        durationMinutes:
+          type: integer
+        openingCash:
+          type: number
+        expectedCash:
+          type: ["number", "null"]
+        actualCash:
+          type: ["number", "null"]
+        difference:
+          type: ["number", "null"]
+        sessionCount:
+          type: integer
+        orderCount:
+          type: integer
+        gamingRevenue:
+          type: number
+        roomOrderRevenue:
+          type: number
+        posRevenue:
+          type: number
+        totalRevenue:
+          type: number
+        cashPayments:
+          type: number
+        instapayPayments:
+          type: number
+        visaPayments:
           type: number
 
     EmployeePerformance:

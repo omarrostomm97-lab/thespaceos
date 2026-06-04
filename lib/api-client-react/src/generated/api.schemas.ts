@@ -836,6 +836,34 @@ export interface DashboardRoomStat {
   totalRevenue: number;
 }
 
+export interface ShiftStat {
+  id: number;
+  userId: number;
+  /** @nullable */
+  userName?: string | null;
+  status: string;
+  openedAt: string;
+  /** @nullable */
+  closedAt?: string | null;
+  durationMinutes: number;
+  openingCash: number;
+  /** @nullable */
+  expectedCash?: number | null;
+  /** @nullable */
+  actualCash?: number | null;
+  /** @nullable */
+  difference?: number | null;
+  sessionCount: number;
+  orderCount: number;
+  gamingRevenue: number;
+  roomOrderRevenue: number;
+  posRevenue: number;
+  totalRevenue: number;
+  cashPayments: number;
+  instapayPayments: number;
+  visaPayments: number;
+}
+
 export interface EmployeePerformance {
   userId: number;
   userName: string;
@@ -1025,6 +1053,19 @@ export type GetDashboardRoomsPeriod = typeof GetDashboardRoomsPeriod[keyof typeo
 
 
 export const GetDashboardRoomsPeriod = {
+  today: 'today',
+  week: 'week',
+  month: 'month',
+} as const;
+
+export type GetDashboardShiftsParams = {
+period?: GetDashboardShiftsPeriod;
+};
+
+export type GetDashboardShiftsPeriod = typeof GetDashboardShiftsPeriod[keyof typeof GetDashboardShiftsPeriod];
+
+
+export const GetDashboardShiftsPeriod = {
   today: 'today',
   week: 'week',
   month: 'month',
