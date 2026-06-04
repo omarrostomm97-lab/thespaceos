@@ -1277,6 +1277,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/BreakdownResponse"
 
+  /dashboard/rooms:
+    get:
+      operationId: getDashboardRooms
+      tags: [dashboard]
+      summary: Get per-room revenue overview
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month]
+      responses:
+        "200":
+          description: Room stats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DashboardRoomStat"
+
   /dashboard/employee-performance:
     get:
       operationId: getEmployeePerformance
@@ -1538,7 +1559,7 @@ components:
 
     BreakdownResponse:
       type: object
-      required: [period, source, gaming, buffet, grandTotal]
+      required: [period, source, gaming, roomOrders, buffet, grandTotal]
       properties:
         period:
           type: string
@@ -1566,6 +1587,43 @@ components:
                     type: number
                   sessions:
                     type: integer
+        roomOrders:
+          type: object
+          required: [total, byCategory]
+          properties:
+            total:
+              type: number
+            byCategory:
+              type: array
+              items:
+                type: object
+                properties:
+                  categoryId:
+                    type: integer
+                    nullable: true
+                  categoryName:
+                    type: string
+                  categoryNameAr:
+                    type: string
+                    nullable: true
+                  total:
+                    type: number
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        productId:
+                          type: integer
+                        name:
+                          type: string
+                        nameAr:
+                          type: string
+                          nullable: true
+                        quantity:
+                          type: integer
+                        total:
+                          type: number
         buffet:
           type: object
           required: [total, byCategory]
@@ -2435,6 +2493,12 @@ components:
           type: integer
         revenueToday:
           type: number
+        gamingRevenueToday:
+          type: number
+        roomOrdersToday:
+          type: number
+        buffetRevenueToday:
+          type: number
         pendingOrders:
           type: integer
         preparingOrders:
@@ -2455,6 +2519,8 @@ components:
         total:
           type: number
         sessionRevenue:
+          type: number
+        roomOrderRevenue:
           type: number
         orderRevenue:
           type: number
@@ -2479,6 +2545,33 @@ components:
                 type: string
               total:
                 type: number
+
+    DashboardRoomStat:
+      type: object
+      required: [assetId, assetName, assetType, assetStatus, pricePerHour, sessionCount, totalMinutes, gamingRevenue, roomOrderRevenue, totalRevenue]
+      properties:
+        assetId:
+          type: integer
+        assetName:
+          type: string
+        assetNameAr:
+          type: ["string", "null"]
+        assetType:
+          type: string
+        assetStatus:
+          type: string
+        pricePerHour:
+          type: number
+        sessionCount:
+          type: integer
+        totalMinutes:
+          type: number
+        gamingRevenue:
+          type: number
+        roomOrderRevenue:
+          type: number
+        totalRevenue:
+          type: number
 
     EmployeePerformance:
       type: object

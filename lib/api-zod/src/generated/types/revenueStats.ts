@@ -11,6 +11,7 @@ import type { RevenueStatsPaymentMethodBreakdown } from './revenueStatsPaymentMe
 export interface RevenueStats {
   total: number;
   sessionRevenue: number;
+  roomOrderRevenue?: number;
   orderRevenue: number;
   period: string;
   paymentMethodBreakdown?: RevenueStatsPaymentMethodBreakdown;

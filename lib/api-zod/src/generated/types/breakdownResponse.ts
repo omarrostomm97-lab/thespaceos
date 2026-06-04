@@ -7,11 +7,13 @@
  */
 import type { BreakdownResponseBuffet } from './breakdownResponseBuffet';
 import type { BreakdownResponseGaming } from './breakdownResponseGaming';
+import type { BreakdownResponseRoomOrders } from './breakdownResponseRoomOrders';
 
 export interface BreakdownResponse {
   period: string;
   source: string;
   grandTotal: number;
   gaming: BreakdownResponseGaming;
+  roomOrders: BreakdownResponseRoomOrders;
   buffet: BreakdownResponseBuffet;
 }

@@ -1317,6 +1317,9 @@ export const GetDashboardSummaryResponse = zod.object({
   "occupiedAssets": zod.number(),
   "totalAssets": zod.number(),
   "revenueToday": zod.number(),
+  "gamingRevenueToday": zod.number().optional(),
+  "roomOrdersToday": zod.number().optional(),
+  "buffetRevenueToday": zod.number().optional(),
   "pendingOrders": zod.number(),
   "preparingOrders": zod.number(),
   "lowStockAlerts": zod.number(),
@@ -1336,6 +1339,7 @@ export const GetRevenueStatsQueryParams = zod.object({
 export const GetRevenueStatsResponse = zod.object({
   "total": zod.number(),
   "sessionRevenue": zod.number(),
+  "roomOrderRevenue": zod.number().optional(),
   "orderRevenue": zod.number(),
   "period": zod.string(),
   "paymentMethodBreakdown": zod.object({
@@ -1371,6 +1375,22 @@ export const GetDashboardBreakdownResponse = zod.object({
   "sessions": zod.number()
 }))
 }),
+  "roomOrders": zod.object({
+  "total": zod.number(),
+  "byCategory": zod.array(zod.object({
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().optional(),
+  "categoryNameAr": zod.string().nullish(),
+  "total": zod.number().optional(),
+  "products": zod.array(zod.object({
+  "productId": zod.number().optional(),
+  "name": zod.string().optional(),
+  "nameAr": zod.string().nullish(),
+  "quantity": zod.number().optional(),
+  "total": zod.number().optional()
+})).optional()
+}))
+}),
   "buffet": zod.object({
   "total": zod.number(),
   "byCategory": zod.array(zod.object({
@@ -1388,6 +1408,29 @@ export const GetDashboardBreakdownResponse = zod.object({
 }))
 })
 })
+
+
+/**
+ * @summary Get per-room revenue overview
+ */
+export const GetDashboardRoomsQueryParams = zod.object({
+  "period": zod.enum(['today', 'week', 'month']).optional()
+})
+
+export const GetDashboardRoomsResponseItem = zod.object({
+  "assetId": zod.number(),
+  "assetName": zod.string(),
+  "assetNameAr": zod.string().nullish(),
+  "assetType": zod.string(),
+  "assetStatus": zod.string(),
+  "pricePerHour": zod.number(),
+  "sessionCount": zod.number(),
+  "totalMinutes": zod.number(),
+  "gamingRevenue": zod.number(),
+  "roomOrderRevenue": zod.number(),
+  "totalRevenue": zod.number()
+})
+export const GetDashboardRoomsResponse = zod.array(GetDashboardRoomsResponseItem)
 
 
 /**

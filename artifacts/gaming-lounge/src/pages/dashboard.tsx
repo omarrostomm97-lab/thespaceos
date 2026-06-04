@@ -5,6 +5,7 @@ import {
   useListActiveSessions,
   useGetRevenueStats,
   useGetDashboardBreakdown,
+  useGetDashboardRooms,
   getGetDashboardSummaryQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
@@ -325,20 +326,18 @@ function MobileBottomNav({ tab, setTab, lang, pendingOrders }: {
 
 /* ─── Mobile Hero Revenue Card ───────────────────────── */
 function MobileHeroCard({
-  total, gamingRevenue, buffetRevenue, source, openShift, lang, periodLabel,
+  total, gamingRevenue, roomOrderRevenue, buffetRevenue, source, openShift, lang, periodLabel,
 }: {
-  total: number; gamingRevenue: number; buffetRevenue: number;
+  total: number; gamingRevenue: number; roomOrderRevenue: number; buffetRevenue: number;
   source: Source; openShift: boolean; lang: "ar"|"en"; periodLabel: string;
 }) {
   const animated = useCountUp(total, 1000);
   return (
     <div className="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-primary via-primary/90 to-blue-700 shadow-xl shadow-primary/30">
-      {/* Background decorations */}
       <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/2" />
 
       <div className="relative z-10">
-        {/* Live badge */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-1.5 bg-white/15 rounded-full px-2.5 py-1">
             <span className="relative flex h-1.5 w-1.5">
@@ -352,7 +351,6 @@ function MobileHeroCard({
           <Receipt className="h-4 w-4 text-white/50" />
         </div>
 
-        {/* Main number */}
         <p className="text-[11px] text-white/65 uppercase tracking-wider font-medium mb-1">
           {source === "gaming" ? (lang === "ar" ? "إيرادات الألعاب" : "Gaming Revenue")
            : source === "buffet" ? (lang === "ar" ? "إيرادات البوفيه" : "Buffet Revenue")
@@ -366,22 +364,29 @@ function MobileHeroCard({
           <span className="text-white/60 text-lg mb-1.5">ج.م</span>
         </div>
 
-        {/* Split row (only when source=all) */}
+        {/* 3-bucket split (only when source=all) */}
         {source === "all" && (
-          <div className="flex items-center gap-3">
-            <div className="flex-1 bg-white/10 rounded-2xl px-3 py-2">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-sm">🎮</span>
-                <span className="text-[10px] text-white/60 font-medium">{lang === "ar" ? "ألعاب" : "Gaming"}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-xs">🎮</span>
+                <span className="text-[9px] text-white/60 font-medium leading-tight">{lang === "ar" ? "وقت" : "Time"}</span>
               </div>
-              <p className="text-sm font-bold text-white tabular">{gamingRevenue.toFixed(2)}</p>
+              <p className="text-xs font-bold text-white tabular">{gamingRevenue.toFixed(2)}</p>
             </div>
-            <div className="flex-1 bg-white/10 rounded-2xl px-3 py-2">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span className="text-sm">🍽️</span>
-                <span className="text-[10px] text-white/60 font-medium">{lang === "ar" ? "بوفيه" : "Buffet"}</span>
+            <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-xs">🛒</span>
+                <span className="text-[9px] text-white/60 font-medium leading-tight">{lang === "ar" ? "طلبات" : "Orders"}</span>
               </div>
-              <p className="text-sm font-bold text-white tabular">{buffetRevenue.toFixed(2)}</p>
+              <p className="text-xs font-bold text-white tabular">{roomOrderRevenue.toFixed(2)}</p>
+            </div>
+            <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
+              <div className="flex items-center gap-1 mb-0.5">
+                <span className="text-xs">🍽️</span>
+                <span className="text-[9px] text-white/60 font-medium leading-tight">{lang === "ar" ? "بوفيه" : "POS"}</span>
+              </div>
+              <p className="text-xs font-bold text-white tabular">{buffetRevenue.toFixed(2)}</p>
             </div>
           </div>
         )}
@@ -434,6 +439,7 @@ export default function Dashboard() {
     query: { queryKey: ["/api/dashboard/revenue", period, source, method] },
   });
   const { data: breakdown, isLoading: isLoadingBreakdown } = useGetDashboardBreakdown(breakdownParams);
+  const { data: roomsData } = useGetDashboardRooms({ period } as any);
 
   if (isLoadingSummary || isLoadingSessions) return <DashboardSkeleton />;
 
@@ -720,6 +726,7 @@ export default function Dashboard() {
         <MobileHeroCard
           total={revenueStats?.total ?? 0}
           gamingRevenue={revenueStats?.sessionRevenue ?? 0}
+          roomOrderRevenue={revenueStats?.roomOrderRevenue ?? 0}
           buffetRevenue={revenueStats?.orderRevenue ?? 0}
           source={source}
           openShift={summary?.openShift ?? false}
@@ -762,18 +769,31 @@ export default function Dashboard() {
         </StaggerItem>
       </StaggerChildren>
 
-      {/* Desktop gaming/buffet split cards */}
-      {source === "all" && (summary as any)?.gamingRevenueToday !== undefined && (
-        <div className="hidden md:grid gap-4 md:grid-cols-2">
+      {/* Desktop 3-bucket today split */}
+      {source === "all" && summary?.gamingRevenueToday !== undefined && (
+        <div className="hidden md:grid gap-4 md:grid-cols-3">
           <HoverCard>
             <div className="bg-card border border-emerald-500/15 rounded-xl p-4 flex items-center gap-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
                 <Gamepad2 className="h-5 w-5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{lang === "ar" ? "إيرادات الألعاب — اليوم" : "Gaming Revenue — Today"}</p>
+                <p className="text-xs text-muted-foreground">{lang === "ar" ? "وقت الألعاب — اليوم" : "Gaming Time — Today"}</p>
                 <p className="text-2xl font-bold text-emerald-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {((summary as any)?.gamingRevenueToday ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                  {(summary.gamingRevenueToday ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                </p>
+              </div>
+            </div>
+          </HoverCard>
+          <HoverCard>
+            <div className="bg-card border border-primary/15 rounded-xl p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                <ShoppingCart className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">{lang === "ar" ? "طلبات الغرف — اليوم" : "Room Orders — Today"}</p>
+                <p className="text-2xl font-bold text-primary tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                  {(summary.roomOrdersToday ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
                 </p>
               </div>
             </div>
@@ -784,9 +804,9 @@ export default function Dashboard() {
                 <Utensils className="h-5 w-5 text-orange-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{lang === "ar" ? "إيرادات البوفيه — اليوم" : "Buffet Revenue — Today"}</p>
+                <p className="text-xs text-muted-foreground">{lang === "ar" ? "بوفيه / POS — اليوم" : "Buffet / POS — Today"}</p>
                 <p className="text-2xl font-bold text-orange-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {((summary as any)?.buffetRevenueToday ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                  {(summary.buffetRevenueToday ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
                 </p>
               </div>
             </div>
@@ -869,21 +889,28 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Session / Order split */}
+            {/* Revenue 3-bucket split */}
             <div className="space-y-2 pt-2 border-t border-border/50">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <Gamepad2 className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-muted-foreground">{t("sessions_revenue")}</span>
+                  <Gamepad2 className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="text-xs text-muted-foreground">{lang === "ar" ? "وقت الألعاب" : "Gaming Time"}</span>
                 </div>
-                <span className="text-xs font-bold text-primary tabular">{(revenueStats?.sessionRevenue ?? 0).toFixed(2)} ج.م</span>
+                <span className="text-xs font-bold text-emerald-500 tabular">{(revenueStats?.sessionRevenue ?? 0).toFixed(2)} ج.م</span>
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <Utensils className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-xs text-muted-foreground">{t("orders_revenue")}</span>
+                  <ShoppingCart className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs text-muted-foreground">{lang === "ar" ? "طلبات الغرف" : "Room Orders"}</span>
                 </div>
-                <span className="text-xs font-bold text-emerald-500 tabular">{(revenueStats?.orderRevenue ?? 0).toFixed(2)} ج.م</span>
+                <span className="text-xs font-bold text-primary tabular">{(revenueStats?.roomOrderRevenue ?? 0).toFixed(2)} ج.م</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Utensils className="h-3.5 w-3.5 text-orange-500" />
+                  <span className="text-xs text-muted-foreground">{lang === "ar" ? "بوفيه / POS" : "Buffet / POS"}</span>
+                </div>
+                <span className="text-xs font-bold text-orange-500 tabular">{(revenueStats?.orderRevenue ?? 0).toFixed(2)} ج.م</span>
               </div>
             </div>
           </div>
@@ -1013,17 +1040,18 @@ export default function Dashboard() {
   /* ─── Sales tab ──────────────────────────────────────── */
   const SalesContent = (
     <div className="space-y-4 md:space-y-6">
-      <StaggerChildren className="grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-3">
+      <StaggerChildren className="grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-4">
         {[
-          { label: lang==="ar"?"إجمالي الإيرادات":"Total Revenue", value:revenueStats?.total??0,          color:"text-primary",     Icon:Receipt },
-          { label: t("sessions_revenue"),                          value:revenueStats?.sessionRevenue??0,  color:"text-emerald-500", Icon:Gamepad2 },
-          { label: t("orders_revenue"),                            value:revenueStats?.orderRevenue??0,    color:"text-amber-500",   Icon:Utensils },
+          { label: lang==="ar"?"إجمالي الإيرادات":"Total Revenue",  value:revenueStats?.total??0,            color:"text-primary",      Icon:Receipt },
+          { label: lang==="ar"?"وقت الألعاب":"Gaming Time",          value:revenueStats?.sessionRevenue??0,   color:"text-emerald-500",  Icon:Gamepad2 },
+          { label: lang==="ar"?"طلبات الغرف":"Room Orders",          value:revenueStats?.roomOrderRevenue??0, color:"text-primary",      Icon:ShoppingCart },
+          { label: lang==="ar"?"بوفيه / POS":"Buffet / POS",         value:revenueStats?.orderRevenue??0,     color:"text-orange-500",   Icon:Utensils },
         ].map((stat) => (
           <StaggerItem key={stat.label}>
             <HoverCard>
               <div className="bg-card border border-card-border rounded-2xl p-4 md:p-5 flex items-center gap-4 md:block">
                 <div className="md:hidden">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${stat.color === "text-primary" ? "bg-primary/15" : stat.color === "text-emerald-500" ? "bg-emerald-500/15" : "bg-amber-500/15"}`}>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${stat.color === "text-primary" ? "bg-primary/15" : stat.color === "text-emerald-500" ? "bg-emerald-500/15" : stat.color === "text-orange-500" ? "bg-orange-500/15" : "bg-primary/15"}`}>
                     <stat.Icon className={`h-5 w-5 ${stat.color}`} />
                   </div>
                 </div>
@@ -1111,10 +1139,52 @@ export default function Dashboard() {
   );
 
   /* ─── Details tab ────────────────────────────────────── */
+  const ASSET_ICON_MAP: Record<string, string> = {
+    ps:"🎮", billiard:"🎱", air_hockey:"🏒", babyfoot:"⚽", other:"🕹️",
+  };
+
+  function CategoryBreakdown({ byCategory, total, color }: {
+    byCategory: any[]; total: number; color: string;
+  }) {
+    if (byCategory.length === 0) {
+      return <p className="text-sm text-muted-foreground text-center py-6">{lang==="ar"?"لا توجد طلبات":"No orders"}</p>;
+    }
+    return (
+      <div className="space-y-4">
+        {byCategory.map((cat: any) => (
+          <div key={cat.categoryId ?? "__none__"}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-bold ${color}`}>{cat.categoryNameAr||cat.categoryName}</span>
+                {total > 0 && (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full bg-current/10 ${color}`}>
+                    {Math.round(((cat.total ?? 0)/total)*100)}%
+                  </span>
+                )}
+              </div>
+              <span className={`text-sm font-bold ${color}`}>{(cat.total ?? 0).toFixed(2)} ج.م</span>
+            </div>
+            <div className={`space-y-1.5 ps-3 border-s-2`} style={{ borderColor: "currentColor", opacity: 1 }}>
+              {(cat.products ?? []).map((p: any) => (
+                <div key={p.productId} className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground truncate">
+                    {p.nameAr||p.name}<span className="ms-1 opacity-50">×{p.quantity}</span>
+                  </span>
+                  <span className="font-medium ms-2 whitespace-nowrap">{(p.total ?? 0).toFixed(2)} ج.م</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const DetailsContent = (
     <div className="space-y-4 md:space-y-6">
       {isLoadingBreakdown ? (
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="h-64 rounded-2xl bg-muted animate-pulse" />
           <div className="h-64 rounded-2xl bg-muted animate-pulse" />
           <div className="h-64 rounded-2xl bg-muted animate-pulse" />
         </div>
@@ -1125,8 +1195,8 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
-          <div className={`grid gap-3 md:gap-4 ${source === "all" ? "md:grid-cols-2" : "md:grid-cols-1"}`}>
-            {/* Gaming breakdown */}
+          <div className={`grid gap-3 md:gap-4 ${source === "all" ? "md:grid-cols-3" : "md:grid-cols-1"}`}>
+            {/* Gaming time breakdown */}
             {source !== "buffet" && (
               <HoverCard>
                 <div className="bg-card border border-emerald-500/15 rounded-2xl p-4 md:p-6">
@@ -1135,7 +1205,7 @@ export default function Dashboard() {
                       <div className="w-8 h-8 rounded-xl bg-emerald-500/15 flex items-center justify-center">
                         <Gamepad2 className="h-4 w-4 text-emerald-500" />
                       </div>
-                      <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"إيرادات الألعاب":"Gaming Revenue"}</h3>
+                      <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"وقت الألعاب":"Gaming Time"}</h3>
                     </div>
                     <span className="text-base md:text-lg font-bold text-emerald-500">{(breakdown?.gaming.total??0).toFixed(2)} ج.م</span>
                   </div>
@@ -1143,9 +1213,9 @@ export default function Dashboard() {
                     <p className="text-sm text-muted-foreground text-center py-6">{lang==="ar"?"لا توجد جلسات منتهية":"No completed sessions"}</p>
                   ) : (
                     <div>
-                      {breakdown!.gaming.byType.map(item => (
+                      {breakdown!.gaming.byType.map((item: any) => (
                         <div key={item.type} className="flex items-center gap-3 py-3 border-b border-border/40 last:border-0">
-                          <span className="text-xl">{ASSET_ICON[item.type]??"🕹️"}</span>
+                          <span className="text-xl">{ASSET_ICON_MAP[item.type]??"🕹️"}</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">{item.typeAr}</p>
                             <p className="text-xs text-muted-foreground">{item.sessions} {lang==="ar"?"جلسة":"sessions"}</p>
@@ -1164,7 +1234,29 @@ export default function Dashboard() {
               </HoverCard>
             )}
 
-            {/* Buffet breakdown */}
+            {/* Room orders breakdown */}
+            {source !== "buffet" && (
+              <HoverCard>
+                <div className="bg-card border border-primary/15 rounded-2xl p-4 md:p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
+                        <ShoppingCart className="h-4 w-4 text-primary" />
+                      </div>
+                      <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"طلبات الغرف":"Room Orders"}</h3>
+                    </div>
+                    <span className="text-base md:text-lg font-bold text-primary">{((breakdown as any)?.roomOrders?.total??0).toFixed(2)} ج.م</span>
+                  </div>
+                  <CategoryBreakdown
+                    byCategory={(breakdown as any)?.roomOrders?.byCategory ?? []}
+                    total={(breakdown as any)?.roomOrders?.total ?? 0}
+                    color="text-primary"
+                  />
+                </div>
+              </HoverCard>
+            )}
+
+            {/* POS / buffet breakdown */}
             {source !== "gaming" && (
               <HoverCard>
                 <div className="bg-card border border-orange-500/15 rounded-2xl p-4 md:p-6">
@@ -1173,41 +1265,15 @@ export default function Dashboard() {
                       <div className="w-8 h-8 rounded-xl bg-orange-500/15 flex items-center justify-center">
                         <Utensils className="h-4 w-4 text-orange-500" />
                       </div>
-                      <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"إيرادات البوفيه":"Buffet Revenue"}</h3>
+                      <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"بوفيه / POS":"Buffet / POS"}</h3>
                     </div>
                     <span className="text-base md:text-lg font-bold text-orange-500">{(breakdown?.buffet.total??0).toFixed(2)} ج.م</span>
                   </div>
-                  {(breakdown?.buffet.byCategory.length ?? 0) === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-6">{lang==="ar"?"لا توجد طلبات":"No orders"}</p>
-                  ) : (
-                    <div className="space-y-4">
-                      {breakdown!.buffet.byCategory.map(cat => (
-                        <div key={cat.categoryId ?? "__none__"}>
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-orange-500">{cat.categoryNameAr||cat.categoryName}</span>
-                              {breakdown!.buffet.total > 0 && (
-                                <span className="text-[10px] bg-orange-500/10 text-orange-500 px-1.5 py-0.5 rounded-full">
-                                  {Math.round(((cat.total ?? 0)/breakdown!.buffet.total)*100)}%
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-sm font-bold text-orange-500">{(cat.total ?? 0).toFixed(2)} ج.م</span>
-                          </div>
-                          <div className="space-y-1.5 ps-3 border-s-2 border-orange-500/20">
-                            {(cat.products ?? []).map(p => (
-                              <div key={p.productId} className="flex items-center justify-between text-xs">
-                                <span className="text-muted-foreground truncate">
-                                  {p.nameAr||p.name}<span className="ms-1 opacity-50">×{p.quantity}</span>
-                                </span>
-                                <span className="font-medium ms-2 whitespace-nowrap">{(p.total ?? 0).toFixed(2)} ج.م</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <CategoryBreakdown
+                    byCategory={breakdown?.buffet.byCategory ?? []}
+                    total={breakdown?.buffet.total ?? 0}
+                    color="text-orange-500"
+                  />
                 </div>
               </HoverCard>
             )}
@@ -1227,6 +1293,121 @@ export default function Dashboard() {
               <span className="text-lg md:text-xl text-primary/60 ms-1">ج.م</span>
             </span>
           </div>
+
+          {/* ── Rooms Panel ── */}
+          <HoverCard>
+            <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
+                  <Monitor className="h-4 w-4 text-primary" />
+                </div>
+                <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"نظرة الغرف":"Room Overview"}</h3>
+                <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">{PERIOD_LABELS[period]}</span>
+              </div>
+
+              {!roomsData || roomsData.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground text-sm">
+                  <Monitor className="h-8 w-8 mx-auto mb-3 opacity-20" />
+                  {lang==="ar"?"لا توجد بيانات للغرف":"No room data"}
+                </div>
+              ) : (
+                <div className="overflow-x-auto -mx-4 md:mx-0">
+                  <table className="w-full text-sm min-w-[560px]">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className={`pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium ${lang==="ar"?"text-right":"text-left"}`}>
+                          {lang==="ar"?"الغرفة":"Room"}
+                        </th>
+                        <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
+                          {lang==="ar"?"الجلسات":"Sessions"}
+                        </th>
+                        <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
+                          {lang==="ar"?"الوقت":"Time"}
+                        </th>
+                        <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
+                          {lang==="ar"?"وقت الألعاب":"Gaming Time"}
+                        </th>
+                        <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
+                          {lang==="ar"?"طلبات":"Orders"}
+                        </th>
+                        <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
+                          {lang==="ar"?"الإجمالي":"Total"}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {roomsData.map(room => {
+                        const name = lang==="ar" ? (room.assetNameAr || room.assetName) : (room.assetName || room.assetNameAr);
+                        const h = Math.floor((room.totalMinutes||0) / 60);
+                        const m = Math.round((room.totalMinutes||0) % 60);
+                        const durationStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+                        return (
+                          <tr key={room.assetId} className="border-b border-border/40 last:border-0 hover:bg-secondary/20 transition-colors">
+                            <td className="py-3">
+                              <div className="flex items-center gap-2.5">
+                                <span className="text-lg">{ASSET_ICON_MAP[room.assetType]??"🕹️"}</span>
+                                <div>
+                                  <p className="font-medium text-sm leading-tight">{name}</p>
+                                  <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                                    room.assetStatus === "available"
+                                      ? "bg-emerald-500/10 text-emerald-500"
+                                      : "bg-amber-500/10 text-amber-500"
+                                  }`}>
+                                    {room.assetStatus === "available"
+                                      ? (lang==="ar"?"متاح":"Available")
+                                      : (lang==="ar"?"مشغول":"Busy")}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 text-end tabular-nums text-muted-foreground">
+                              {room.sessionCount}
+                            </td>
+                            <td className="py-3 text-end tabular-nums text-muted-foreground text-xs">
+                              {room.totalMinutes > 0 ? durationStr : "-"}
+                            </td>
+                            <td className="py-3 text-end tabular-nums text-emerald-500 font-medium">
+                              {room.gamingRevenue > 0 ? `${room.gamingRevenue.toFixed(2)} ج.م` : "-"}
+                            </td>
+                            <td className="py-3 text-end tabular-nums text-primary font-medium">
+                              {room.roomOrderRevenue > 0 ? `${room.roomOrderRevenue.toFixed(2)} ج.م` : "-"}
+                            </td>
+                            <td className="py-3 text-end tabular-nums font-bold">
+                              {room.totalRevenue > 0 ? `${room.totalRevenue.toFixed(2)} ج.م` : "-"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr className="border-t-2 border-border">
+                        <td className="pt-3 text-xs font-bold text-muted-foreground">{lang==="ar"?"الإجمالي":"Total"}</td>
+                        <td className="pt-3 text-end tabular-nums font-bold text-muted-foreground">
+                          {roomsData.reduce((s,r) => s+r.sessionCount,0)}
+                        </td>
+                        <td className="pt-3 text-end text-xs text-muted-foreground tabular-nums">
+                          {(() => {
+                            const totalMins = roomsData.reduce((s,r) => s+(r.totalMinutes||0),0);
+                            const h=Math.floor(totalMins/60), m=Math.round(totalMins%60);
+                            return totalMins > 0 ? (h > 0 ? `${h}h ${m}m` : `${m}m`) : "-";
+                          })()}
+                        </td>
+                        <td className="pt-3 text-end tabular-nums font-bold text-emerald-500">
+                          {roomsData.reduce((s,r) => s+r.gamingRevenue,0).toFixed(2)} ج.م
+                        </td>
+                        <td className="pt-3 text-end tabular-nums font-bold text-primary">
+                          {roomsData.reduce((s,r) => s+r.roomOrderRevenue,0).toFixed(2)} ج.م
+                        </td>
+                        <td className="pt-3 text-end tabular-nums font-bold text-foreground">
+                          {roomsData.reduce((s,r) => s+r.totalRevenue,0).toFixed(2)} ج.م
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+          </HoverCard>
         </>
       )}
     </div>

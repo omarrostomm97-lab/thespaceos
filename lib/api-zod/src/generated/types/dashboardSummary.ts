@@ -11,6 +11,9 @@ export interface DashboardSummary {
   occupiedAssets: number;
   totalAssets: number;
   revenueToday: number;
+  gamingRevenueToday?: number;
+  roomOrdersToday?: number;
+  buffetRevenueToday?: number;
   pendingOrders: number;
   preparingOrders: number;
   lowStockAlerts: number;

@@ -29,10 +29,12 @@ import type {
   BookingInput,
   BreakdownResponse,
   CancelInput,
+  DashboardRoomStat,
   DashboardSummary,
   EmployeePerformance,
   ErrorResponse,
   GetDashboardBreakdownParams,
+  GetDashboardRoomsParams,
   GetRevenueStatsParams,
   HealthStatus,
   InventoryItem,
@@ -4701,6 +4703,90 @@ export function useGetDashboardBreakdown<TData = Awaited<ReturnType<typeof getDa
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetDashboardBreakdownQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDashboardRoomsUrl = (params?: GetDashboardRoomsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/dashboard/rooms?${stringifiedParams}` : `/api/dashboard/rooms`
+}
+
+/**
+ * @summary Get per-room revenue overview
+ */
+export const getDashboardRooms = async (params?: GetDashboardRoomsParams, options?: RequestInit): Promise<DashboardRoomStat[]> => {
+
+  return customFetch<DashboardRoomStat[]>(getGetDashboardRoomsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardRoomsQueryKey = (params?: GetDashboardRoomsParams,) => {
+    return [
+    `/api/dashboard/rooms`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDashboardRoomsQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardRooms>>, TError = ErrorType<unknown>>(params?: GetDashboardRoomsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardRooms>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardRoomsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardRooms>>> = ({ signal }) => getDashboardRooms(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardRooms>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDashboardRoomsQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardRooms>>>
+export type GetDashboardRoomsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get per-room revenue overview
+ */
+
+export function useGetDashboardRooms<TData = Awaited<ReturnType<typeof getDashboardRooms>>, TError = ErrorType<unknown>>(
+ params?: GetDashboardRoomsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardRooms>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDashboardRoomsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

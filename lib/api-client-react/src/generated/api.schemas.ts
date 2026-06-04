@@ -29,6 +29,27 @@ export type BreakdownResponseGaming = {
   byType: BreakdownResponseGamingByTypeItem[];
 };
 
+export type BreakdownResponseRoomOrdersByCategoryItemProductsItem = {
+  productId?: number;
+  name?: string;
+  nameAr?: string | null;
+  quantity?: number;
+  total?: number;
+};
+
+export type BreakdownResponseRoomOrdersByCategoryItem = {
+  categoryId?: number | null;
+  categoryName?: string;
+  categoryNameAr?: string | null;
+  total?: number;
+  products?: BreakdownResponseRoomOrdersByCategoryItemProductsItem[];
+};
+
+export type BreakdownResponseRoomOrders = {
+  total: number;
+  byCategory: BreakdownResponseRoomOrdersByCategoryItem[];
+};
+
 export type BreakdownResponseBuffetByCategoryItemProductsItem = {
   productId?: number;
   name?: string;
@@ -55,6 +76,7 @@ export interface BreakdownResponse {
   source: string;
   grandTotal: number;
   gaming: BreakdownResponseGaming;
+  roomOrders: BreakdownResponseRoomOrders;
   buffet: BreakdownResponseBuffet;
 }
 
@@ -767,6 +789,9 @@ export interface DashboardSummary {
   occupiedAssets: number;
   totalAssets: number;
   revenueToday: number;
+  gamingRevenueToday?: number;
+  roomOrdersToday?: number;
+  buffetRevenueToday?: number;
   pendingOrders: number;
   preparingOrders: number;
   lowStockAlerts: number;
@@ -789,10 +814,26 @@ export type RevenueStatsDailyBreakdownItem = {
 export interface RevenueStats {
   total: number;
   sessionRevenue: number;
+  roomOrderRevenue?: number;
   orderRevenue: number;
   period: string;
   paymentMethodBreakdown?: RevenueStatsPaymentMethodBreakdown;
   dailyBreakdown?: RevenueStatsDailyBreakdownItem[];
+}
+
+export interface DashboardRoomStat {
+  assetId: number;
+  assetName: string;
+  /** @nullable */
+  assetNameAr?: string | null;
+  assetType: string;
+  assetStatus: string;
+  pricePerHour: number;
+  sessionCount: number;
+  totalMinutes: number;
+  gamingRevenue: number;
+  roomOrderRevenue: number;
+  totalRevenue: number;
 }
 
 export interface EmployeePerformance {
@@ -974,6 +1015,19 @@ export const GetDashboardBreakdownSource = {
   all: 'all',
   gaming: 'gaming',
   buffet: 'buffet',
+} as const;
+
+export type GetDashboardRoomsParams = {
+period?: GetDashboardRoomsPeriod;
+};
+
+export type GetDashboardRoomsPeriod = typeof GetDashboardRoomsPeriod[keyof typeof GetDashboardRoomsPeriod];
+
+
+export const GetDashboardRoomsPeriod = {
+  today: 'today',
+  week: 'week',
+  month: 'month',
 } as const;
 
 export type ListAuditLogsParams = {
