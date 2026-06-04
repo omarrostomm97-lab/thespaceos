@@ -1880,6 +1880,10 @@ components:
           enum: [platform_owner, owner, manager, cashier, buffet_worker]
         tenantId:
           type: ["integer", "null"]
+        tenantName:
+          type: ["string", "null"]
+        tenantNameAr:
+          type: ["string", "null"]
         isActive:
           type: boolean
         createdAt:

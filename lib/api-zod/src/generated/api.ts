@@ -34,6 +34,8 @@ export const LoginResponse = zod.object({
   "nameAr": zod.string().nullish(),
   "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
   "tenantId": zod.number().nullish(),
+  "tenantName": zod.string().nullish(),
+  "tenantNameAr": zod.string().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
 })
@@ -58,6 +60,8 @@ export const GetMeResponse = zod.object({
   "nameAr": zod.string().nullish(),
   "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
   "tenantId": zod.number().nullish(),
+  "tenantName": zod.string().nullish(),
+  "tenantNameAr": zod.string().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
 })
@@ -80,6 +84,8 @@ export const RefreshTokenResponse = zod.object({
   "nameAr": zod.string().nullish(),
   "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
   "tenantId": zod.number().nullish(),
+  "tenantName": zod.string().nullish(),
+  "tenantNameAr": zod.string().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
 })
@@ -186,6 +192,8 @@ export const ListUsersResponseItem = zod.object({
   "nameAr": zod.string().nullish(),
   "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
   "tenantId": zod.number().nullish(),
+  "tenantName": zod.string().nullish(),
+  "tenantNameAr": zod.string().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
 })
@@ -219,6 +227,8 @@ export const GetUserResponse = zod.object({
   "nameAr": zod.string().nullish(),
   "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
   "tenantId": zod.number().nullish(),
+  "tenantName": zod.string().nullish(),
+  "tenantNameAr": zod.string().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
 })
@@ -245,6 +255,8 @@ export const UpdateUserResponse = zod.object({
   "nameAr": zod.string().nullish(),
   "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
   "tenantId": zod.number().nullish(),
+  "tenantName": zod.string().nullish(),
+  "tenantNameAr": zod.string().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
 })
@@ -264,6 +276,8 @@ export const DeactivateUserResponse = zod.object({
   "nameAr": zod.string().nullish(),
   "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
   "tenantId": zod.number().nullish(),
+  "tenantName": zod.string().nullish(),
+  "tenantNameAr": zod.string().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
 })

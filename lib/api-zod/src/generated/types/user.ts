@@ -16,6 +16,10 @@ export interface User {
   role: UserRole;
   /** @nullable */
   tenantId?: number | null;
+  /** @nullable */
+  tenantName?: string | null;
+  /** @nullable */
+  tenantNameAr?: string | null;
   isActive: boolean;
   createdAt: Date;
 }

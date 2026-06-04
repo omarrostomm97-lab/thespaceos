@@ -72,6 +72,13 @@ router.post("/auth/logout", requireAuth, async (req, res) => {
 });
 
 router.get("/auth/me", requireAuth, async (req, res) => {
+  let tenantName: string | null = null;
+  let tenantNameAr: string | null = null;
+  if (req.user!.tenantId) {
+    const [tenant] = await db.select({ name: tenantsTable.name, nameAr: tenantsTable.nameAr })
+      .from(tenantsTable).where(eq(tenantsTable.id, req.user!.tenantId)).limit(1);
+    if (tenant) { tenantName = tenant.name; tenantNameAr = tenant.nameAr ?? null; }
+  }
   res.json({
     id: req.user!.id,
     email: req.user!.email,
@@ -79,6 +86,8 @@ router.get("/auth/me", requireAuth, async (req, res) => {
     nameAr: req.user!.nameAr,
     role: req.user!.role,
     tenantId: req.user!.tenantId,
+    tenantName,
+    tenantNameAr,
     isActive: req.user!.isActive,
     createdAt: new Date(),
   });

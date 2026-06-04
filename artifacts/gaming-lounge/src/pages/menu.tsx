@@ -10,7 +10,6 @@ import {
   useDeleteProductCategory,
   useGenerateMenuQr,
   useGetMenuQr,
-  useGetTenant,
   getListProductsQueryKey,
   getListProductCategoriesQueryKey,
 } from "@workspace/api-client-react";
@@ -44,8 +43,7 @@ const emptyCategoryForm = (): CategoryForm => ({ name: "", nameAr: "" });
 
 export default function Menu() {
   const { user, impersonatedTenant } = useAuth();
-  const { data: tenantData } = useGetTenant(user?.tenantId ?? 0);
-  const venueName = impersonatedTenant?.name ?? tenantData?.name ?? "";
+  const venueName = impersonatedTenant?.name ?? user?.tenantName ?? "";
   const { t, dir } = useLang();
   const queryClient = useQueryClient();
   const isManager = MGMT_ROLES.includes(user?.role ?? "");

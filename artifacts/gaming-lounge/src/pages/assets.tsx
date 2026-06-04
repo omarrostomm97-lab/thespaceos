@@ -7,7 +7,6 @@ import {
   useCreateAsset,
   useUpdateAsset,
   useGenerateAssetQr,
-  useGetTenant,
   getListAssetsQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
@@ -302,8 +301,7 @@ export default function Assets() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const { user, impersonatedTenant } = useAuth();
-  const { data: tenantData } = useGetTenant(user?.tenantId ?? 0);
-  const venueName = impersonatedTenant?.name ?? tenantData?.name ?? "";
+  const venueName = impersonatedTenant?.name ?? user?.tenantName ?? "";
   const { t, dir, lang } = useLang();
   const isMgmt = MGMT_ROLES.includes(user?.role ?? "");
 
