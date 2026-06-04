@@ -234,18 +234,6 @@ export default function PrintQrPage() {
             </p>
           </div>
 
-          {/* ── URL hint ── */}
-          {url && (
-            <div style={{
-              marginTop: 20, padding: "0 24px",
-              color: "rgba(255,255,255,0.18)", fontSize: 9,
-              letterSpacing: "0.05em", textAlign: "center",
-              wordBreak: "break-all", fontFamily: "monospace",
-              position: "relative",
-            }}>
-              {url}
-            </div>
-          )}
         </div>
       </div>
     </>
