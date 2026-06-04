@@ -40,6 +40,8 @@ tags:
     description: Recipe management
   - name: bookings
     description: Room bookings and reservations
+  - name: finance
+    description: Owner finance module
 
 paths:
   /healthz:
@@ -1651,6 +1653,493 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  # ── FINANCE ──────────────────────────────────────────────────────
+  /finance/seed-defaults:
+    post:
+      operationId: seedFinanceDefaults
+      tags: [finance]
+      summary: Seed default finance categories and accounts
+      responses:
+        "200":
+          description: Seeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /finance/overview:
+    get:
+      operationId: getFinanceOverview
+      tags: [finance]
+      summary: Finance overview KPIs
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [today, week, month]
+      responses:
+        "200":
+          description: Finance overview data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceOverview"
+
+  /finance/categories:
+    get:
+      operationId: listFinanceCategories
+      tags: [finance]
+      summary: List finance categories
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Categories list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FinanceCategory"
+    post:
+      operationId: createFinanceCategory
+      tags: [finance]
+      summary: Create a finance category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceCategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceCategory"
+
+  /finance/categories/{categoryId}:
+    put:
+      operationId: updateFinanceCategory
+      tags: [finance]
+      summary: Update a finance category
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceCategoryInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceCategory"
+    delete:
+      operationId: deleteFinanceCategory
+      tags: [finance]
+      summary: Delete a finance category
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /finance/accounts:
+    get:
+      operationId: listFinanceAccounts
+      tags: [finance]
+      summary: List finance accounts
+      responses:
+        "200":
+          description: Accounts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FinanceAccount"
+    post:
+      operationId: createFinanceAccount
+      tags: [finance]
+      summary: Create a finance account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceAccountInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceAccount"
+
+  /finance/accounts/{accountId}:
+    put:
+      operationId: updateFinanceAccount
+      tags: [finance]
+      summary: Update a finance account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceAccountInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceAccount"
+
+  /finance/transactions:
+    get:
+      operationId: listFinanceTransactions
+      tags: [finance]
+      summary: List finance transactions
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: categoryId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: accountId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Transactions list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FinanceTransaction"
+    post:
+      operationId: createFinanceTransaction
+      tags: [finance]
+      summary: Create a finance transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceTransactionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceTransaction"
+
+  /finance/transactions/{transactionId}:
+    put:
+      operationId: updateFinanceTransaction
+      tags: [finance]
+      summary: Update a finance transaction
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceTransactionInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceTransaction"
+    delete:
+      operationId: deleteFinanceTransaction
+      tags: [finance]
+      summary: Delete a finance transaction
+      parameters:
+        - name: transactionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /finance/assets:
+    get:
+      operationId: listFinanceAssets
+      tags: [finance]
+      summary: List physical assets
+      responses:
+        "200":
+          description: Assets list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FinanceAsset"
+    post:
+      operationId: createFinanceAsset
+      tags: [finance]
+      summary: Create a physical asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceAssetInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceAsset"
+
+  /finance/assets/{assetId}:
+    put:
+      operationId: updateFinanceAsset
+      tags: [finance]
+      summary: Update a physical asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FinanceAssetInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceAsset"
+    delete:
+      operationId: deleteFinanceAsset
+      tags: [finance]
+      summary: Delete a physical asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
+  /finance/assets/{assetId}/maintenance:
+    get:
+      operationId: listAssetMaintenance
+      tags: [finance]
+      summary: List maintenance logs for an asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Maintenance logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssetMaintenanceLog"
+    post:
+      operationId: addAssetMaintenance
+      tags: [finance]
+      summary: Add a maintenance log to an asset
+      parameters:
+        - name: assetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssetMaintenanceInput"
+      responses:
+        "201":
+          description: Maintenance log created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetMaintenanceLog"
+
+  /finance/reports/daily-summary:
+    get:
+      operationId: getFinanceDailySummary
+      tags: [finance]
+      summary: Daily money summary report
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Daily summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceDailySummary"
+
+  /finance/reports/profit-loss:
+    get:
+      operationId: getFinanceProfitLoss
+      tags: [finance]
+      summary: Profit and loss report
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: P&L report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceProfitLoss"
+
+  /finance/reports/expenses:
+    get:
+      operationId: getFinanceExpensesReport
+      tags: [finance]
+      summary: Expense breakdown report
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Expenses report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceExpensesReport"
+
+  /finance/reports/cash-flow:
+    get:
+      operationId: getFinanceCashFlow
+      tags: [finance]
+      summary: Cash flow report
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Cash flow
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceCashFlow"
+
+  /finance/reports/shift-differences:
+    get:
+      operationId: getFinanceShiftDifferences
+      tags: [finance]
+      summary: Shift cash difference report
+      parameters:
+        - name: period
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Shift differences
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FinanceShiftDifference"
+
 components:
   schemas:
     HealthStatus:
@@ -2927,3 +3416,436 @@ components:
           type: integer
         limit:
           type: integer
+
+    # ── FINANCE SCHEMAS ──
+    FinanceOverview:
+      type: object
+      required: [incomeToday, incomeMonth, expensesToday, expensesMonth, profitToday, profitMonth, cashAvailable, pendingBills, pendingBillsCount, capitalMonth, withdrawalsMonth, cashDiscrepancyCount]
+      properties:
+        incomeToday:
+          type: number
+        incomeMonth:
+          type: number
+        expensesToday:
+          type: number
+        expensesMonth:
+          type: number
+        profitToday:
+          type: number
+        profitMonth:
+          type: number
+        cashAvailable:
+          type: number
+        pendingBills:
+          type: number
+        pendingBillsCount:
+          type: integer
+        capitalMonth:
+          type: number
+        withdrawalsMonth:
+          type: number
+        cashDiscrepancyCount:
+          type: integer
+        biggestCategoryName:
+          type: ["string", "null"]
+        biggestCategoryNameAr:
+          type: ["string", "null"]
+
+    FinanceCategory:
+      type: object
+      required: [id, tenantId, name, type, isSystem, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        tenantId:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        type:
+          type: string
+        color:
+          type: ["string", "null"]
+        icon:
+          type: ["string", "null"]
+        isSystem:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FinanceCategoryInput:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        type:
+          type: string
+        color:
+          type: ["string", "null"]
+        icon:
+          type: ["string", "null"]
+
+    FinanceAccount:
+      type: object
+      required: [id, tenantId, name, type, openingBalance, currentBalance, isActive, isDefault, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        tenantId:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        type:
+          type: string
+        openingBalance:
+          type: string
+        currentBalance:
+          type: string
+        isActive:
+          type: boolean
+        isDefault:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FinanceAccountInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        type:
+          type: string
+        openingBalance:
+          type: string
+        currentBalance:
+          type: string
+        isActive:
+          type: boolean
+        isDefault:
+          type: boolean
+
+    FinanceTransaction:
+      type: object
+      required: [id, tenantId, type, amount, status, transactionDate, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        tenantId:
+          type: integer
+        type:
+          type: string
+        categoryId:
+          type: ["integer", "null"]
+        accountId:
+          type: ["integer", "null"]
+        title:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        amount:
+          type: string
+        transactionDate:
+          type: string
+          format: date-time
+        paymentMethod:
+          type: ["string", "null"]
+        status:
+          type: string
+        referenceType:
+          type: ["string", "null"]
+        referenceId:
+          type: ["string", "null"]
+        vendorName:
+          type: ["string", "null"]
+        receiptUrl:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        createdByUserId:
+          type: ["integer", "null"]
+        approvedByUserId:
+          type: ["integer", "null"]
+        categoryName:
+          type: ["string", "null"]
+        categoryNameAr:
+          type: ["string", "null"]
+        categoryColor:
+          type: ["string", "null"]
+        categoryIcon:
+          type: ["string", "null"]
+        accountName:
+          type: ["string", "null"]
+        accountNameAr:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FinanceTransactionInput:
+      type: object
+      required: [type, amount]
+      properties:
+        type:
+          type: string
+        categoryId:
+          type: ["integer", "null"]
+        accountId:
+          type: ["integer", "null"]
+        title:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        amount:
+          type: number
+        transactionDate:
+          type: ["string", "null"]
+          format: date-time
+        paymentMethod:
+          type: ["string", "null"]
+        status:
+          type: string
+        referenceType:
+          type: ["string", "null"]
+        referenceId:
+          type: ["string", "null"]
+        vendorName:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    FinanceAsset:
+      type: object
+      required: [id, tenantId, name, condition, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        tenantId:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        purchaseCost:
+          type: ["string", "null"]
+        purchaseDate:
+          type: ["string", "null"]
+          format: date-time
+        assignedRoomId:
+          type: ["integer", "null"]
+        condition:
+          type: string
+        warrantyEndDate:
+          type: ["string", "null"]
+          format: date-time
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    FinanceAssetInput:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        category:
+          type: ["string", "null"]
+        purchaseCost:
+          type: ["number", "null"]
+        purchaseDate:
+          type: ["string", "null"]
+          format: date-time
+        assignedRoomId:
+          type: ["integer", "null"]
+        condition:
+          type: string
+        warrantyEndDate:
+          type: ["string", "null"]
+          format: date-time
+        notes:
+          type: ["string", "null"]
+
+    AssetMaintenanceLog:
+      type: object
+      required: [id, tenantId, assetId, title, maintenanceDate, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        tenantId:
+          type: integer
+        assetId:
+          type: integer
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        maintenanceCost:
+          type: ["string", "null"]
+        maintenanceDate:
+          type: string
+          format: date-time
+        vendorName:
+          type: ["string", "null"]
+        financeTransactionId:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AssetMaintenanceInput:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+        description:
+          type: ["string", "null"]
+        maintenanceCost:
+          type: ["number", "null"]
+        maintenanceDate:
+          type: ["string", "null"]
+          format: date-time
+        vendorName:
+          type: ["string", "null"]
+        accountId:
+          type: ["integer", "null"]
+
+    FinanceDailySummary:
+      type: object
+      required: [date, verifiedIncome, expensesPaid, capitalAdded, withdrawals, netProfit, actualCashCounted, expectedCash, cashDifference, shiftsCount]
+      properties:
+        date:
+          type: string
+        verifiedIncome:
+          type: number
+        expensesPaid:
+          type: number
+        capitalAdded:
+          type: number
+        withdrawals:
+          type: number
+        netProfit:
+          type: number
+        actualCashCounted:
+          type: number
+        expectedCash:
+          type: number
+        cashDifference:
+          type: number
+        shiftsCount:
+          type: integer
+
+    FinanceProfitLoss:
+      type: object
+      required: [period, totalIncome, totalExpenses, netProfit, expensesByCategory]
+      properties:
+        period:
+          type: string
+        totalIncome:
+          type: number
+        totalExpenses:
+          type: number
+        netProfit:
+          type: number
+        expensesByCategory:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              nameAr:
+                type: ["string", "null"]
+              total:
+                type: number
+
+    FinanceExpensesReport:
+      type: object
+      required: [period, total, pending, transactions]
+      properties:
+        period:
+          type: string
+        total:
+          type: number
+        pending:
+          type: number
+        transactions:
+          type: array
+          items:
+            $ref: "#/components/schemas/FinanceTransaction"
+
+    FinanceCashFlow:
+      type: object
+      required: [period, dailyFlow]
+      properties:
+        period:
+          type: string
+        dailyFlow:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              income:
+                type: number
+              expenses:
+                type: number
+              net:
+                type: number
+
+    FinanceShiftDifference:
+      type: object
+      required: [id, openedAt, status]
+      properties:
+        id:
+          type: integer
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: ["string", "null"]
+          format: date-time
+        openingCash:
+          type: ["string", "null"]
+        expectedCash:
+          type: ["string", "null"]
+        actualCash:
+          type: ["string", "null"]
+        difference:
+          type: ["string", "null"]
+        differenceExplanation:
+          type: ["string", "null"]
+        status:
+          type: string

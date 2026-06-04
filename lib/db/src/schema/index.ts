@@ -15,3 +15,8 @@ export * from "./inventory";
 export * from "./recipes";
 export * from "./audit_logs";
 export * from "./bookings";
+export * from "./finance-categories";
+export * from "./finance-accounts";
+export * from "./finance-transactions";
+export * from "./finance-assets";
+export * from "./finance-asset-maintenance";

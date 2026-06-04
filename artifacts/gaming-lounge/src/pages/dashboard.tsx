@@ -7,6 +7,7 @@ import {
   useGetDashboardBreakdown,
   useGetDashboardRooms,
   useGetDashboardShifts,
+  useGetFinanceOverview,
   getGetDashboardSummaryQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
@@ -15,7 +16,7 @@ import {
   Activity, Monitor, TrendingUp, Utensils, Bell, Plus,
   LayoutDashboard, ChefHat, Download, Banknote,
   Smartphone, CreditCard, Filter, X, Check, Users,
-  BarChart2, List,
+  BarChart2, List, TrendingDown, DollarSign, Wallet, PiggyBank, ArrowRight,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
@@ -443,6 +444,11 @@ export default function Dashboard() {
   const { data: breakdown, isLoading: isLoadingBreakdown } = useGetDashboardBreakdown(breakdownParams);
   const { data: roomsData } = useGetDashboardRooms({ period } as any);
   const { data: shiftsData, isLoading: isLoadingShifts } = useGetDashboardShifts({ period } as any);
+
+  const canSeeFinance = ["platform_owner", "owner", "manager"].includes(user?.role ?? "");
+  const { data: financeOverview } = useGetFinanceOverview({
+    query: { enabled: canSeeFinance },
+  });
 
   if (isLoadingSummary || isLoadingSessions) return <DashboardSkeleton />;
 
@@ -1040,6 +1046,75 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* ─── Owner Finance Snapshot ─────────────────────── */}
+      {canSeeFinance && (
+        <div className="mt-2">
+          <div className="flex items-center justify-between mb-2.5">
+            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              {lang === "ar" ? "لمحة مالية" : "Finance Snapshot"}
+            </p>
+            <Link href="/finance">
+              <span className="flex items-center gap-1 text-xs font-semibold text-[#17c964] hover:opacity-80 transition cursor-pointer">
+                {lang === "ar" ? "التفاصيل" : "Details"}
+                <ArrowRight className="h-3 w-3" />
+              </span>
+            </Link>
+          </div>
+          {financeOverview ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              {[
+                {
+                  label: lang === "ar" ? "دخل الشهر" : "Month Income",
+                  value: financeOverview.monthIncome ?? 0,
+                  icon: TrendingUp,
+                  color: "text-emerald-500",
+                  bg: "bg-emerald-500/10",
+                },
+                {
+                  label: lang === "ar" ? "مصاريف الشهر" : "Month Expenses",
+                  value: financeOverview.monthExpenses ?? 0,
+                  icon: TrendingDown,
+                  color: "text-red-500",
+                  bg: "bg-red-500/10",
+                },
+                {
+                  label: lang === "ar" ? "صافي الربح" : "Net Profit",
+                  value: financeOverview.netProfit ?? 0,
+                  icon: DollarSign,
+                  color: (financeOverview.netProfit ?? 0) >= 0 ? "text-[#17c964]" : "text-red-500",
+                  bg: (financeOverview.netProfit ?? 0) >= 0 ? "bg-[#17c964]/10" : "bg-red-500/10",
+                },
+                {
+                  label: lang === "ar" ? "رصيد الخزينة" : "Cash Balance",
+                  value: financeOverview.totalBalance ?? 0,
+                  icon: Wallet,
+                  color: "text-cyan-500",
+                  bg: "bg-cyan-500/10",
+                },
+              ].map(({ label, value, icon: Icon, color, bg }) => (
+                <div key={label} className="card-base rounded-2xl p-3.5 flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+                    <Icon className={`h-4 w-4 ${color}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-muted-foreground leading-tight truncate">{label}</p>
+                    <p className={`text-sm font-bold tabular-nums ${color}`}>
+                      {parseFloat(String(value)).toFixed(0)} <span className="text-[10px] font-normal text-muted-foreground">ج.م</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} className="card-base rounded-2xl p-3.5 h-[60px] animate-pulse bg-secondary/50" />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 

@@ -22,6 +22,8 @@ import type {
 import type {
   Asset,
   AssetInput,
+  AssetMaintenanceInput,
+  AssetMaintenanceLog,
   AssetUpdate,
   AuditLogList,
   AuthResponse,
@@ -33,9 +35,29 @@ import type {
   DashboardSummary,
   EmployeePerformance,
   ErrorResponse,
+  FinanceAccount,
+  FinanceAccountInput,
+  FinanceAsset,
+  FinanceAssetInput,
+  FinanceCashFlow,
+  FinanceCategory,
+  FinanceCategoryInput,
+  FinanceDailySummary,
+  FinanceExpensesReport,
+  FinanceOverview,
+  FinanceProfitLoss,
+  FinanceShiftDifference,
+  FinanceTransaction,
+  FinanceTransactionInput,
   GetDashboardBreakdownParams,
   GetDashboardRoomsParams,
   GetDashboardShiftsParams,
+  GetFinanceCashFlowParams,
+  GetFinanceDailySummaryParams,
+  GetFinanceExpensesReportParams,
+  GetFinanceOverviewParams,
+  GetFinanceProfitLossParams,
+  GetFinanceShiftDifferencesParams,
   GetRevenueStatsParams,
   HealthStatus,
   ImpersonateResponse,
@@ -46,6 +68,8 @@ import type {
   InventoryMovementInput,
   ListAuditLogsParams,
   ListBookingsParams,
+  ListFinanceCategoriesParams,
+  ListFinanceTransactionsParams,
   ListInventoryMovementsParams,
   ListOrdersParams,
   ListPaymentsParams,
@@ -5870,4 +5894,1831 @@ export const useCancelBooking = <TError = ErrorType<ErrorResponse>,
       > => {
       return useMutation(getCancelBookingMutationOptions(options));
     }
+
+export const getSeedFinanceDefaultsUrl = () => {
+
+
+
+
+  return `/api/finance/seed-defaults`
+}
+
+/**
+ * @summary Seed default finance categories and accounts
+ */
+export const seedFinanceDefaults = async ( options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getSeedFinanceDefaultsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getSeedFinanceDefaultsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedFinanceDefaults>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof seedFinanceDefaults>>, TError,void, TContext> => {
+
+const mutationKey = ['seedFinanceDefaults'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof seedFinanceDefaults>>, void> = () => {
+
+
+          return  seedFinanceDefaults(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SeedFinanceDefaultsMutationResult = NonNullable<Awaited<ReturnType<typeof seedFinanceDefaults>>>
+
+    export type SeedFinanceDefaultsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Seed default finance categories and accounts
+ */
+export const useSeedFinanceDefaults = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof seedFinanceDefaults>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof seedFinanceDefaults>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getSeedFinanceDefaultsMutationOptions(options));
+    }
+
+export const getGetFinanceOverviewUrl = (params?: GetFinanceOverviewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/finance/overview?${stringifiedParams}` : `/api/finance/overview`
+}
+
+/**
+ * @summary Finance overview KPIs
+ */
+export const getFinanceOverview = async (params?: GetFinanceOverviewParams, options?: RequestInit): Promise<FinanceOverview> => {
+
+  return customFetch<FinanceOverview>(getGetFinanceOverviewUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinanceOverviewQueryKey = (params?: GetFinanceOverviewParams,) => {
+    return [
+    `/api/finance/overview`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFinanceOverviewQueryOptions = <TData = Awaited<ReturnType<typeof getFinanceOverview>>, TError = ErrorType<unknown>>(params?: GetFinanceOverviewParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinanceOverviewQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinanceOverview>>> = ({ signal }) => getFinanceOverview(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinanceOverview>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFinanceOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getFinanceOverview>>>
+export type GetFinanceOverviewQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Finance overview KPIs
+ */
+
+export function useGetFinanceOverview<TData = Awaited<ReturnType<typeof getFinanceOverview>>, TError = ErrorType<unknown>>(
+ params?: GetFinanceOverviewParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceOverview>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFinanceOverviewQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListFinanceCategoriesUrl = (params?: ListFinanceCategoriesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/finance/categories?${stringifiedParams}` : `/api/finance/categories`
+}
+
+/**
+ * @summary List finance categories
+ */
+export const listFinanceCategories = async (params?: ListFinanceCategoriesParams, options?: RequestInit): Promise<FinanceCategory[]> => {
+
+  return customFetch<FinanceCategory[]>(getListFinanceCategoriesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFinanceCategoriesQueryKey = (params?: ListFinanceCategoriesParams,) => {
+    return [
+    `/api/finance/categories`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFinanceCategoriesQueryOptions = <TData = Awaited<ReturnType<typeof listFinanceCategories>>, TError = ErrorType<unknown>>(params?: ListFinanceCategoriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFinanceCategories>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFinanceCategoriesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFinanceCategories>>> = ({ signal }) => listFinanceCategories(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFinanceCategories>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFinanceCategoriesQueryResult = NonNullable<Awaited<ReturnType<typeof listFinanceCategories>>>
+export type ListFinanceCategoriesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List finance categories
+ */
+
+export function useListFinanceCategories<TData = Awaited<ReturnType<typeof listFinanceCategories>>, TError = ErrorType<unknown>>(
+ params?: ListFinanceCategoriesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFinanceCategories>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFinanceCategoriesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateFinanceCategoryUrl = () => {
+
+
+
+
+  return `/api/finance/categories`
+}
+
+/**
+ * @summary Create a finance category
+ */
+export const createFinanceCategory = async (financeCategoryInput: FinanceCategoryInput, options?: RequestInit): Promise<FinanceCategory> => {
+
+  return customFetch<FinanceCategory>(getCreateFinanceCategoryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      financeCategoryInput,)
+  }
+);}
+
+
+
+
+export const getCreateFinanceCategoryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFinanceCategory>>, TError,{data: BodyType<FinanceCategoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createFinanceCategory>>, TError,{data: BodyType<FinanceCategoryInput>}, TContext> => {
+
+const mutationKey = ['createFinanceCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createFinanceCategory>>, {data: BodyType<FinanceCategoryInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createFinanceCategory(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateFinanceCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof createFinanceCategory>>>
+    export type CreateFinanceCategoryMutationBody = BodyType<FinanceCategoryInput>
+    export type CreateFinanceCategoryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a finance category
+ */
+export const useCreateFinanceCategory = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFinanceCategory>>, TError,{data: BodyType<FinanceCategoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createFinanceCategory>>,
+        TError,
+        {data: BodyType<FinanceCategoryInput>},
+        TContext
+      > => {
+      return useMutation(getCreateFinanceCategoryMutationOptions(options));
+    }
+
+export const getUpdateFinanceCategoryUrl = (categoryId: number,) => {
+
+
+
+
+  return `/api/finance/categories/${categoryId}`
+}
+
+/**
+ * @summary Update a finance category
+ */
+export const updateFinanceCategory = async (categoryId: number,
+    financeCategoryInput: FinanceCategoryInput, options?: RequestInit): Promise<FinanceCategory> => {
+
+  return customFetch<FinanceCategory>(getUpdateFinanceCategoryUrl(categoryId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      financeCategoryInput,)
+  }
+);}
+
+
+
+
+export const getUpdateFinanceCategoryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceCategory>>, TError,{categoryId: number;data: BodyType<FinanceCategoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateFinanceCategory>>, TError,{categoryId: number;data: BodyType<FinanceCategoryInput>}, TContext> => {
+
+const mutationKey = ['updateFinanceCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFinanceCategory>>, {categoryId: number;data: BodyType<FinanceCategoryInput>}> = (props) => {
+          const {categoryId,data} = props ?? {};
+
+          return  updateFinanceCategory(categoryId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateFinanceCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof updateFinanceCategory>>>
+    export type UpdateFinanceCategoryMutationBody = BodyType<FinanceCategoryInput>
+    export type UpdateFinanceCategoryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a finance category
+ */
+export const useUpdateFinanceCategory = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceCategory>>, TError,{categoryId: number;data: BodyType<FinanceCategoryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateFinanceCategory>>,
+        TError,
+        {categoryId: number;data: BodyType<FinanceCategoryInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateFinanceCategoryMutationOptions(options));
+    }
+
+export const getDeleteFinanceCategoryUrl = (categoryId: number,) => {
+
+
+
+
+  return `/api/finance/categories/${categoryId}`
+}
+
+/**
+ * @summary Delete a finance category
+ */
+export const deleteFinanceCategory = async (categoryId: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteFinanceCategoryUrl(categoryId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteFinanceCategoryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceCategory>>, TError,{categoryId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceCategory>>, TError,{categoryId: number}, TContext> => {
+
+const mutationKey = ['deleteFinanceCategory'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteFinanceCategory>>, {categoryId: number}> = (props) => {
+          const {categoryId} = props ?? {};
+
+          return  deleteFinanceCategory(categoryId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteFinanceCategoryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFinanceCategory>>>
+
+    export type DeleteFinanceCategoryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a finance category
+ */
+export const useDeleteFinanceCategory = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceCategory>>, TError,{categoryId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteFinanceCategory>>,
+        TError,
+        {categoryId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteFinanceCategoryMutationOptions(options));
+    }
+
+export const getListFinanceAccountsUrl = () => {
+
+
+
+
+  return `/api/finance/accounts`
+}
+
+/**
+ * @summary List finance accounts
+ */
+export const listFinanceAccounts = async ( options?: RequestInit): Promise<FinanceAccount[]> => {
+
+  return customFetch<FinanceAccount[]>(getListFinanceAccountsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFinanceAccountsQueryKey = () => {
+    return [
+    `/api/finance/accounts`
+    ] as const;
+    }
+
+
+export const getListFinanceAccountsQueryOptions = <TData = Awaited<ReturnType<typeof listFinanceAccounts>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFinanceAccounts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFinanceAccountsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFinanceAccounts>>> = ({ signal }) => listFinanceAccounts({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFinanceAccounts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFinanceAccountsQueryResult = NonNullable<Awaited<ReturnType<typeof listFinanceAccounts>>>
+export type ListFinanceAccountsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List finance accounts
+ */
+
+export function useListFinanceAccounts<TData = Awaited<ReturnType<typeof listFinanceAccounts>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFinanceAccounts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFinanceAccountsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateFinanceAccountUrl = () => {
+
+
+
+
+  return `/api/finance/accounts`
+}
+
+/**
+ * @summary Create a finance account
+ */
+export const createFinanceAccount = async (financeAccountInput: FinanceAccountInput, options?: RequestInit): Promise<FinanceAccount> => {
+
+  return customFetch<FinanceAccount>(getCreateFinanceAccountUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      financeAccountInput,)
+  }
+);}
+
+
+
+
+export const getCreateFinanceAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFinanceAccount>>, TError,{data: BodyType<FinanceAccountInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createFinanceAccount>>, TError,{data: BodyType<FinanceAccountInput>}, TContext> => {
+
+const mutationKey = ['createFinanceAccount'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createFinanceAccount>>, {data: BodyType<FinanceAccountInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createFinanceAccount(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateFinanceAccountMutationResult = NonNullable<Awaited<ReturnType<typeof createFinanceAccount>>>
+    export type CreateFinanceAccountMutationBody = BodyType<FinanceAccountInput>
+    export type CreateFinanceAccountMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a finance account
+ */
+export const useCreateFinanceAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFinanceAccount>>, TError,{data: BodyType<FinanceAccountInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createFinanceAccount>>,
+        TError,
+        {data: BodyType<FinanceAccountInput>},
+        TContext
+      > => {
+      return useMutation(getCreateFinanceAccountMutationOptions(options));
+    }
+
+export const getUpdateFinanceAccountUrl = (accountId: number,) => {
+
+
+
+
+  return `/api/finance/accounts/${accountId}`
+}
+
+/**
+ * @summary Update a finance account
+ */
+export const updateFinanceAccount = async (accountId: number,
+    financeAccountInput: FinanceAccountInput, options?: RequestInit): Promise<FinanceAccount> => {
+
+  return customFetch<FinanceAccount>(getUpdateFinanceAccountUrl(accountId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      financeAccountInput,)
+  }
+);}
+
+
+
+
+export const getUpdateFinanceAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceAccount>>, TError,{accountId: number;data: BodyType<FinanceAccountInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateFinanceAccount>>, TError,{accountId: number;data: BodyType<FinanceAccountInput>}, TContext> => {
+
+const mutationKey = ['updateFinanceAccount'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFinanceAccount>>, {accountId: number;data: BodyType<FinanceAccountInput>}> = (props) => {
+          const {accountId,data} = props ?? {};
+
+          return  updateFinanceAccount(accountId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateFinanceAccountMutationResult = NonNullable<Awaited<ReturnType<typeof updateFinanceAccount>>>
+    export type UpdateFinanceAccountMutationBody = BodyType<FinanceAccountInput>
+    export type UpdateFinanceAccountMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a finance account
+ */
+export const useUpdateFinanceAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceAccount>>, TError,{accountId: number;data: BodyType<FinanceAccountInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateFinanceAccount>>,
+        TError,
+        {accountId: number;data: BodyType<FinanceAccountInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateFinanceAccountMutationOptions(options));
+    }
+
+export const getListFinanceTransactionsUrl = (params?: ListFinanceTransactionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/finance/transactions?${stringifiedParams}` : `/api/finance/transactions`
+}
+
+/**
+ * @summary List finance transactions
+ */
+export const listFinanceTransactions = async (params?: ListFinanceTransactionsParams, options?: RequestInit): Promise<FinanceTransaction[]> => {
+
+  return customFetch<FinanceTransaction[]>(getListFinanceTransactionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFinanceTransactionsQueryKey = (params?: ListFinanceTransactionsParams,) => {
+    return [
+    `/api/finance/transactions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListFinanceTransactionsQueryOptions = <TData = Awaited<ReturnType<typeof listFinanceTransactions>>, TError = ErrorType<unknown>>(params?: ListFinanceTransactionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFinanceTransactions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFinanceTransactionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFinanceTransactions>>> = ({ signal }) => listFinanceTransactions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFinanceTransactions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFinanceTransactionsQueryResult = NonNullable<Awaited<ReturnType<typeof listFinanceTransactions>>>
+export type ListFinanceTransactionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List finance transactions
+ */
+
+export function useListFinanceTransactions<TData = Awaited<ReturnType<typeof listFinanceTransactions>>, TError = ErrorType<unknown>>(
+ params?: ListFinanceTransactionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFinanceTransactions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFinanceTransactionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateFinanceTransactionUrl = () => {
+
+
+
+
+  return `/api/finance/transactions`
+}
+
+/**
+ * @summary Create a finance transaction
+ */
+export const createFinanceTransaction = async (financeTransactionInput: FinanceTransactionInput, options?: RequestInit): Promise<FinanceTransaction> => {
+
+  return customFetch<FinanceTransaction>(getCreateFinanceTransactionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      financeTransactionInput,)
+  }
+);}
+
+
+
+
+export const getCreateFinanceTransactionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFinanceTransaction>>, TError,{data: BodyType<FinanceTransactionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createFinanceTransaction>>, TError,{data: BodyType<FinanceTransactionInput>}, TContext> => {
+
+const mutationKey = ['createFinanceTransaction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createFinanceTransaction>>, {data: BodyType<FinanceTransactionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createFinanceTransaction(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateFinanceTransactionMutationResult = NonNullable<Awaited<ReturnType<typeof createFinanceTransaction>>>
+    export type CreateFinanceTransactionMutationBody = BodyType<FinanceTransactionInput>
+    export type CreateFinanceTransactionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a finance transaction
+ */
+export const useCreateFinanceTransaction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFinanceTransaction>>, TError,{data: BodyType<FinanceTransactionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createFinanceTransaction>>,
+        TError,
+        {data: BodyType<FinanceTransactionInput>},
+        TContext
+      > => {
+      return useMutation(getCreateFinanceTransactionMutationOptions(options));
+    }
+
+export const getUpdateFinanceTransactionUrl = (transactionId: number,) => {
+
+
+
+
+  return `/api/finance/transactions/${transactionId}`
+}
+
+/**
+ * @summary Update a finance transaction
+ */
+export const updateFinanceTransaction = async (transactionId: number,
+    financeTransactionInput: FinanceTransactionInput, options?: RequestInit): Promise<FinanceTransaction> => {
+
+  return customFetch<FinanceTransaction>(getUpdateFinanceTransactionUrl(transactionId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      financeTransactionInput,)
+  }
+);}
+
+
+
+
+export const getUpdateFinanceTransactionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceTransaction>>, TError,{transactionId: number;data: BodyType<FinanceTransactionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateFinanceTransaction>>, TError,{transactionId: number;data: BodyType<FinanceTransactionInput>}, TContext> => {
+
+const mutationKey = ['updateFinanceTransaction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFinanceTransaction>>, {transactionId: number;data: BodyType<FinanceTransactionInput>}> = (props) => {
+          const {transactionId,data} = props ?? {};
+
+          return  updateFinanceTransaction(transactionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateFinanceTransactionMutationResult = NonNullable<Awaited<ReturnType<typeof updateFinanceTransaction>>>
+    export type UpdateFinanceTransactionMutationBody = BodyType<FinanceTransactionInput>
+    export type UpdateFinanceTransactionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a finance transaction
+ */
+export const useUpdateFinanceTransaction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceTransaction>>, TError,{transactionId: number;data: BodyType<FinanceTransactionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateFinanceTransaction>>,
+        TError,
+        {transactionId: number;data: BodyType<FinanceTransactionInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateFinanceTransactionMutationOptions(options));
+    }
+
+export const getDeleteFinanceTransactionUrl = (transactionId: number,) => {
+
+
+
+
+  return `/api/finance/transactions/${transactionId}`
+}
+
+/**
+ * @summary Delete a finance transaction
+ */
+export const deleteFinanceTransaction = async (transactionId: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteFinanceTransactionUrl(transactionId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteFinanceTransactionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceTransaction>>, TError,{transactionId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceTransaction>>, TError,{transactionId: number}, TContext> => {
+
+const mutationKey = ['deleteFinanceTransaction'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteFinanceTransaction>>, {transactionId: number}> = (props) => {
+          const {transactionId} = props ?? {};
+
+          return  deleteFinanceTransaction(transactionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteFinanceTransactionMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFinanceTransaction>>>
+
+    export type DeleteFinanceTransactionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a finance transaction
+ */
+export const useDeleteFinanceTransaction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceTransaction>>, TError,{transactionId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteFinanceTransaction>>,
+        TError,
+        {transactionId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteFinanceTransactionMutationOptions(options));
+    }
+
+export const getListFinanceAssetsUrl = () => {
+
+
+
+
+  return `/api/finance/assets`
+}
+
+/**
+ * @summary List physical assets
+ */
+export const listFinanceAssets = async ( options?: RequestInit): Promise<FinanceAsset[]> => {
+
+  return customFetch<FinanceAsset[]>(getListFinanceAssetsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListFinanceAssetsQueryKey = () => {
+    return [
+    `/api/finance/assets`
+    ] as const;
+    }
+
+
+export const getListFinanceAssetsQueryOptions = <TData = Awaited<ReturnType<typeof listFinanceAssets>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFinanceAssets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListFinanceAssetsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listFinanceAssets>>> = ({ signal }) => listFinanceAssets({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listFinanceAssets>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListFinanceAssetsQueryResult = NonNullable<Awaited<ReturnType<typeof listFinanceAssets>>>
+export type ListFinanceAssetsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List physical assets
+ */
+
+export function useListFinanceAssets<TData = Awaited<ReturnType<typeof listFinanceAssets>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listFinanceAssets>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListFinanceAssetsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateFinanceAssetUrl = () => {
+
+
+
+
+  return `/api/finance/assets`
+}
+
+/**
+ * @summary Create a physical asset
+ */
+export const createFinanceAsset = async (financeAssetInput: FinanceAssetInput, options?: RequestInit): Promise<FinanceAsset> => {
+
+  return customFetch<FinanceAsset>(getCreateFinanceAssetUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      financeAssetInput,)
+  }
+);}
+
+
+
+
+export const getCreateFinanceAssetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFinanceAsset>>, TError,{data: BodyType<FinanceAssetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createFinanceAsset>>, TError,{data: BodyType<FinanceAssetInput>}, TContext> => {
+
+const mutationKey = ['createFinanceAsset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createFinanceAsset>>, {data: BodyType<FinanceAssetInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createFinanceAsset(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateFinanceAssetMutationResult = NonNullable<Awaited<ReturnType<typeof createFinanceAsset>>>
+    export type CreateFinanceAssetMutationBody = BodyType<FinanceAssetInput>
+    export type CreateFinanceAssetMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a physical asset
+ */
+export const useCreateFinanceAsset = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createFinanceAsset>>, TError,{data: BodyType<FinanceAssetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createFinanceAsset>>,
+        TError,
+        {data: BodyType<FinanceAssetInput>},
+        TContext
+      > => {
+      return useMutation(getCreateFinanceAssetMutationOptions(options));
+    }
+
+export const getUpdateFinanceAssetUrl = (assetId: number,) => {
+
+
+
+
+  return `/api/finance/assets/${assetId}`
+}
+
+/**
+ * @summary Update a physical asset
+ */
+export const updateFinanceAsset = async (assetId: number,
+    financeAssetInput: FinanceAssetInput, options?: RequestInit): Promise<FinanceAsset> => {
+
+  return customFetch<FinanceAsset>(getUpdateFinanceAssetUrl(assetId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      financeAssetInput,)
+  }
+);}
+
+
+
+
+export const getUpdateFinanceAssetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceAsset>>, TError,{assetId: number;data: BodyType<FinanceAssetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateFinanceAsset>>, TError,{assetId: number;data: BodyType<FinanceAssetInput>}, TContext> => {
+
+const mutationKey = ['updateFinanceAsset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateFinanceAsset>>, {assetId: number;data: BodyType<FinanceAssetInput>}> = (props) => {
+          const {assetId,data} = props ?? {};
+
+          return  updateFinanceAsset(assetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateFinanceAssetMutationResult = NonNullable<Awaited<ReturnType<typeof updateFinanceAsset>>>
+    export type UpdateFinanceAssetMutationBody = BodyType<FinanceAssetInput>
+    export type UpdateFinanceAssetMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update a physical asset
+ */
+export const useUpdateFinanceAsset = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateFinanceAsset>>, TError,{assetId: number;data: BodyType<FinanceAssetInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateFinanceAsset>>,
+        TError,
+        {assetId: number;data: BodyType<FinanceAssetInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateFinanceAssetMutationOptions(options));
+    }
+
+export const getDeleteFinanceAssetUrl = (assetId: number,) => {
+
+
+
+
+  return `/api/finance/assets/${assetId}`
+}
+
+/**
+ * @summary Delete a physical asset
+ */
+export const deleteFinanceAsset = async (assetId: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteFinanceAssetUrl(assetId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteFinanceAssetMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceAsset>>, TError,{assetId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceAsset>>, TError,{assetId: number}, TContext> => {
+
+const mutationKey = ['deleteFinanceAsset'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteFinanceAsset>>, {assetId: number}> = (props) => {
+          const {assetId} = props ?? {};
+
+          return  deleteFinanceAsset(assetId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteFinanceAssetMutationResult = NonNullable<Awaited<ReturnType<typeof deleteFinanceAsset>>>
+
+    export type DeleteFinanceAssetMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete a physical asset
+ */
+export const useDeleteFinanceAsset = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteFinanceAsset>>, TError,{assetId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteFinanceAsset>>,
+        TError,
+        {assetId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteFinanceAssetMutationOptions(options));
+    }
+
+export const getListAssetMaintenanceUrl = (assetId: number,) => {
+
+
+
+
+  return `/api/finance/assets/${assetId}/maintenance`
+}
+
+/**
+ * @summary List maintenance logs for an asset
+ */
+export const listAssetMaintenance = async (assetId: number, options?: RequestInit): Promise<AssetMaintenanceLog[]> => {
+
+  return customFetch<AssetMaintenanceLog[]>(getListAssetMaintenanceUrl(assetId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAssetMaintenanceQueryKey = (assetId: number,) => {
+    return [
+    `/api/finance/assets/${assetId}/maintenance`
+    ] as const;
+    }
+
+
+export const getListAssetMaintenanceQueryOptions = <TData = Awaited<ReturnType<typeof listAssetMaintenance>>, TError = ErrorType<unknown>>(assetId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAssetMaintenance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAssetMaintenanceQueryKey(assetId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAssetMaintenance>>> = ({ signal }) => listAssetMaintenance(assetId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(assetId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAssetMaintenance>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListAssetMaintenanceQueryResult = NonNullable<Awaited<ReturnType<typeof listAssetMaintenance>>>
+export type ListAssetMaintenanceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List maintenance logs for an asset
+ */
+
+export function useListAssetMaintenance<TData = Awaited<ReturnType<typeof listAssetMaintenance>>, TError = ErrorType<unknown>>(
+ assetId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listAssetMaintenance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListAssetMaintenanceQueryOptions(assetId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAddAssetMaintenanceUrl = (assetId: number,) => {
+
+
+
+
+  return `/api/finance/assets/${assetId}/maintenance`
+}
+
+/**
+ * @summary Add a maintenance log to an asset
+ */
+export const addAssetMaintenance = async (assetId: number,
+    assetMaintenanceInput: AssetMaintenanceInput, options?: RequestInit): Promise<AssetMaintenanceLog> => {
+
+  return customFetch<AssetMaintenanceLog>(getAddAssetMaintenanceUrl(assetId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      assetMaintenanceInput,)
+  }
+);}
+
+
+
+
+export const getAddAssetMaintenanceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAssetMaintenance>>, TError,{assetId: number;data: BodyType<AssetMaintenanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addAssetMaintenance>>, TError,{assetId: number;data: BodyType<AssetMaintenanceInput>}, TContext> => {
+
+const mutationKey = ['addAssetMaintenance'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addAssetMaintenance>>, {assetId: number;data: BodyType<AssetMaintenanceInput>}> = (props) => {
+          const {assetId,data} = props ?? {};
+
+          return  addAssetMaintenance(assetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddAssetMaintenanceMutationResult = NonNullable<Awaited<ReturnType<typeof addAssetMaintenance>>>
+    export type AddAssetMaintenanceMutationBody = BodyType<AssetMaintenanceInput>
+    export type AddAssetMaintenanceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Add a maintenance log to an asset
+ */
+export const useAddAssetMaintenance = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addAssetMaintenance>>, TError,{assetId: number;data: BodyType<AssetMaintenanceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addAssetMaintenance>>,
+        TError,
+        {assetId: number;data: BodyType<AssetMaintenanceInput>},
+        TContext
+      > => {
+      return useMutation(getAddAssetMaintenanceMutationOptions(options));
+    }
+
+export const getGetFinanceDailySummaryUrl = (params?: GetFinanceDailySummaryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/finance/reports/daily-summary?${stringifiedParams}` : `/api/finance/reports/daily-summary`
+}
+
+/**
+ * @summary Daily money summary report
+ */
+export const getFinanceDailySummary = async (params?: GetFinanceDailySummaryParams, options?: RequestInit): Promise<FinanceDailySummary> => {
+
+  return customFetch<FinanceDailySummary>(getGetFinanceDailySummaryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinanceDailySummaryQueryKey = (params?: GetFinanceDailySummaryParams,) => {
+    return [
+    `/api/finance/reports/daily-summary`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFinanceDailySummaryQueryOptions = <TData = Awaited<ReturnType<typeof getFinanceDailySummary>>, TError = ErrorType<unknown>>(params?: GetFinanceDailySummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceDailySummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinanceDailySummaryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinanceDailySummary>>> = ({ signal }) => getFinanceDailySummary(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinanceDailySummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFinanceDailySummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getFinanceDailySummary>>>
+export type GetFinanceDailySummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Daily money summary report
+ */
+
+export function useGetFinanceDailySummary<TData = Awaited<ReturnType<typeof getFinanceDailySummary>>, TError = ErrorType<unknown>>(
+ params?: GetFinanceDailySummaryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceDailySummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFinanceDailySummaryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetFinanceProfitLossUrl = (params?: GetFinanceProfitLossParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/finance/reports/profit-loss?${stringifiedParams}` : `/api/finance/reports/profit-loss`
+}
+
+/**
+ * @summary Profit and loss report
+ */
+export const getFinanceProfitLoss = async (params?: GetFinanceProfitLossParams, options?: RequestInit): Promise<FinanceProfitLoss> => {
+
+  return customFetch<FinanceProfitLoss>(getGetFinanceProfitLossUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinanceProfitLossQueryKey = (params?: GetFinanceProfitLossParams,) => {
+    return [
+    `/api/finance/reports/profit-loss`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFinanceProfitLossQueryOptions = <TData = Awaited<ReturnType<typeof getFinanceProfitLoss>>, TError = ErrorType<unknown>>(params?: GetFinanceProfitLossParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceProfitLoss>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinanceProfitLossQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinanceProfitLoss>>> = ({ signal }) => getFinanceProfitLoss(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinanceProfitLoss>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFinanceProfitLossQueryResult = NonNullable<Awaited<ReturnType<typeof getFinanceProfitLoss>>>
+export type GetFinanceProfitLossQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Profit and loss report
+ */
+
+export function useGetFinanceProfitLoss<TData = Awaited<ReturnType<typeof getFinanceProfitLoss>>, TError = ErrorType<unknown>>(
+ params?: GetFinanceProfitLossParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceProfitLoss>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFinanceProfitLossQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetFinanceExpensesReportUrl = (params?: GetFinanceExpensesReportParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/finance/reports/expenses?${stringifiedParams}` : `/api/finance/reports/expenses`
+}
+
+/**
+ * @summary Expense breakdown report
+ */
+export const getFinanceExpensesReport = async (params?: GetFinanceExpensesReportParams, options?: RequestInit): Promise<FinanceExpensesReport> => {
+
+  return customFetch<FinanceExpensesReport>(getGetFinanceExpensesReportUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinanceExpensesReportQueryKey = (params?: GetFinanceExpensesReportParams,) => {
+    return [
+    `/api/finance/reports/expenses`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFinanceExpensesReportQueryOptions = <TData = Awaited<ReturnType<typeof getFinanceExpensesReport>>, TError = ErrorType<unknown>>(params?: GetFinanceExpensesReportParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceExpensesReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinanceExpensesReportQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinanceExpensesReport>>> = ({ signal }) => getFinanceExpensesReport(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinanceExpensesReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFinanceExpensesReportQueryResult = NonNullable<Awaited<ReturnType<typeof getFinanceExpensesReport>>>
+export type GetFinanceExpensesReportQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Expense breakdown report
+ */
+
+export function useGetFinanceExpensesReport<TData = Awaited<ReturnType<typeof getFinanceExpensesReport>>, TError = ErrorType<unknown>>(
+ params?: GetFinanceExpensesReportParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceExpensesReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFinanceExpensesReportQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetFinanceCashFlowUrl = (params?: GetFinanceCashFlowParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/finance/reports/cash-flow?${stringifiedParams}` : `/api/finance/reports/cash-flow`
+}
+
+/**
+ * @summary Cash flow report
+ */
+export const getFinanceCashFlow = async (params?: GetFinanceCashFlowParams, options?: RequestInit): Promise<FinanceCashFlow> => {
+
+  return customFetch<FinanceCashFlow>(getGetFinanceCashFlowUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinanceCashFlowQueryKey = (params?: GetFinanceCashFlowParams,) => {
+    return [
+    `/api/finance/reports/cash-flow`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFinanceCashFlowQueryOptions = <TData = Awaited<ReturnType<typeof getFinanceCashFlow>>, TError = ErrorType<unknown>>(params?: GetFinanceCashFlowParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceCashFlow>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinanceCashFlowQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinanceCashFlow>>> = ({ signal }) => getFinanceCashFlow(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinanceCashFlow>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFinanceCashFlowQueryResult = NonNullable<Awaited<ReturnType<typeof getFinanceCashFlow>>>
+export type GetFinanceCashFlowQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Cash flow report
+ */
+
+export function useGetFinanceCashFlow<TData = Awaited<ReturnType<typeof getFinanceCashFlow>>, TError = ErrorType<unknown>>(
+ params?: GetFinanceCashFlowParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceCashFlow>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFinanceCashFlowQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetFinanceShiftDifferencesUrl = (params?: GetFinanceShiftDifferencesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/finance/reports/shift-differences?${stringifiedParams}` : `/api/finance/reports/shift-differences`
+}
+
+/**
+ * @summary Shift cash difference report
+ */
+export const getFinanceShiftDifferences = async (params?: GetFinanceShiftDifferencesParams, options?: RequestInit): Promise<FinanceShiftDifference[]> => {
+
+  return customFetch<FinanceShiftDifference[]>(getGetFinanceShiftDifferencesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetFinanceShiftDifferencesQueryKey = (params?: GetFinanceShiftDifferencesParams,) => {
+    return [
+    `/api/finance/reports/shift-differences`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetFinanceShiftDifferencesQueryOptions = <TData = Awaited<ReturnType<typeof getFinanceShiftDifferences>>, TError = ErrorType<unknown>>(params?: GetFinanceShiftDifferencesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceShiftDifferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetFinanceShiftDifferencesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getFinanceShiftDifferences>>> = ({ signal }) => getFinanceShiftDifferences(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getFinanceShiftDifferences>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetFinanceShiftDifferencesQueryResult = NonNullable<Awaited<ReturnType<typeof getFinanceShiftDifferences>>>
+export type GetFinanceShiftDifferencesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Shift cash difference report
+ */
+
+export function useGetFinanceShiftDifferences<TData = Awaited<ReturnType<typeof getFinanceShiftDifferences>>, TError = ErrorType<unknown>>(
+ params?: GetFinanceShiftDifferencesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getFinanceShiftDifferences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetFinanceShiftDifferencesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 

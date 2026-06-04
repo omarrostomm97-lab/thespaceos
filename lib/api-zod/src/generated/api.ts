@@ -1736,3 +1736,550 @@ export const CancelBookingResponse = zod.object({
 })
 
 
+/**
+ * @summary Seed default finance categories and accounts
+ */
+export const SeedFinanceDefaultsResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Finance overview KPIs
+ */
+export const GetFinanceOverviewQueryParams = zod.object({
+  "period": zod.enum(['today', 'week', 'month']).optional()
+})
+
+export const GetFinanceOverviewResponse = zod.object({
+  "incomeToday": zod.number(),
+  "incomeMonth": zod.number(),
+  "expensesToday": zod.number(),
+  "expensesMonth": zod.number(),
+  "profitToday": zod.number(),
+  "profitMonth": zod.number(),
+  "cashAvailable": zod.number(),
+  "pendingBills": zod.number(),
+  "pendingBillsCount": zod.number(),
+  "capitalMonth": zod.number(),
+  "withdrawalsMonth": zod.number(),
+  "cashDiscrepancyCount": zod.number(),
+  "biggestCategoryName": zod.string().nullish(),
+  "biggestCategoryNameAr": zod.string().nullish()
+})
+
+
+/**
+ * @summary List finance categories
+ */
+export const ListFinanceCategoriesQueryParams = zod.object({
+  "type": zod.coerce.string().optional()
+})
+
+export const ListFinanceCategoriesResponseItem = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "type": zod.string(),
+  "color": zod.string().nullish(),
+  "icon": zod.string().nullish(),
+  "isSystem": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListFinanceCategoriesResponse = zod.array(ListFinanceCategoriesResponseItem)
+
+
+/**
+ * @summary Create a finance category
+ */
+export const CreateFinanceCategoryBody = zod.object({
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "type": zod.string(),
+  "color": zod.string().nullish(),
+  "icon": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update a finance category
+ */
+export const UpdateFinanceCategoryParams = zod.object({
+  "categoryId": zod.coerce.number()
+})
+
+export const UpdateFinanceCategoryBody = zod.object({
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "type": zod.string(),
+  "color": zod.string().nullish(),
+  "icon": zod.string().nullish()
+})
+
+export const UpdateFinanceCategoryResponse = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "type": zod.string(),
+  "color": zod.string().nullish(),
+  "icon": zod.string().nullish(),
+  "isSystem": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a finance category
+ */
+export const DeleteFinanceCategoryParams = zod.object({
+  "categoryId": zod.coerce.number()
+})
+
+export const DeleteFinanceCategoryResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary List finance accounts
+ */
+export const ListFinanceAccountsResponseItem = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "type": zod.string(),
+  "openingBalance": zod.string(),
+  "currentBalance": zod.string(),
+  "isActive": zod.boolean(),
+  "isDefault": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListFinanceAccountsResponse = zod.array(ListFinanceAccountsResponseItem)
+
+
+/**
+ * @summary Create a finance account
+ */
+export const CreateFinanceAccountBody = zod.object({
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "type": zod.string().optional(),
+  "openingBalance": zod.string().optional(),
+  "currentBalance": zod.string().optional(),
+  "isActive": zod.boolean().optional(),
+  "isDefault": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Update a finance account
+ */
+export const UpdateFinanceAccountParams = zod.object({
+  "accountId": zod.coerce.number()
+})
+
+export const UpdateFinanceAccountBody = zod.object({
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "type": zod.string().optional(),
+  "openingBalance": zod.string().optional(),
+  "currentBalance": zod.string().optional(),
+  "isActive": zod.boolean().optional(),
+  "isDefault": zod.boolean().optional()
+})
+
+export const UpdateFinanceAccountResponse = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "type": zod.string(),
+  "openingBalance": zod.string(),
+  "currentBalance": zod.string(),
+  "isActive": zod.boolean(),
+  "isDefault": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary List finance transactions
+ */
+export const ListFinanceTransactionsQueryParams = zod.object({
+  "period": zod.coerce.string().optional(),
+  "type": zod.coerce.string().optional(),
+  "status": zod.coerce.string().optional(),
+  "categoryId": zod.coerce.number().optional(),
+  "accountId": zod.coerce.number().optional()
+})
+
+export const ListFinanceTransactionsResponseItem = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "type": zod.string(),
+  "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
+  "title": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "amount": zod.string(),
+  "transactionDate": zod.coerce.date(),
+  "paymentMethod": zod.string().nullish(),
+  "status": zod.string(),
+  "referenceType": zod.string().nullish(),
+  "referenceId": zod.string().nullish(),
+  "vendorName": zod.string().nullish(),
+  "receiptUrl": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "createdByUserId": zod.number().nullish(),
+  "approvedByUserId": zod.number().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryNameAr": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "accountName": zod.string().nullish(),
+  "accountNameAr": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListFinanceTransactionsResponse = zod.array(ListFinanceTransactionsResponseItem)
+
+
+/**
+ * @summary Create a finance transaction
+ */
+export const CreateFinanceTransactionBody = zod.object({
+  "type": zod.string(),
+  "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
+  "title": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "amount": zod.number(),
+  "transactionDate": zod.coerce.date().nullish(),
+  "paymentMethod": zod.string().nullish(),
+  "status": zod.string().optional(),
+  "referenceType": zod.string().nullish(),
+  "referenceId": zod.string().nullish(),
+  "vendorName": zod.string().nullish(),
+  "notes": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update a finance transaction
+ */
+export const UpdateFinanceTransactionParams = zod.object({
+  "transactionId": zod.coerce.number()
+})
+
+export const UpdateFinanceTransactionBody = zod.object({
+  "type": zod.string(),
+  "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
+  "title": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "amount": zod.number(),
+  "transactionDate": zod.coerce.date().nullish(),
+  "paymentMethod": zod.string().nullish(),
+  "status": zod.string().optional(),
+  "referenceType": zod.string().nullish(),
+  "referenceId": zod.string().nullish(),
+  "vendorName": zod.string().nullish(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdateFinanceTransactionResponse = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "type": zod.string(),
+  "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
+  "title": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "amount": zod.string(),
+  "transactionDate": zod.coerce.date(),
+  "paymentMethod": zod.string().nullish(),
+  "status": zod.string(),
+  "referenceType": zod.string().nullish(),
+  "referenceId": zod.string().nullish(),
+  "vendorName": zod.string().nullish(),
+  "receiptUrl": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "createdByUserId": zod.number().nullish(),
+  "approvedByUserId": zod.number().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryNameAr": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "accountName": zod.string().nullish(),
+  "accountNameAr": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a finance transaction
+ */
+export const DeleteFinanceTransactionParams = zod.object({
+  "transactionId": zod.coerce.number()
+})
+
+export const DeleteFinanceTransactionResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary List physical assets
+ */
+export const ListFinanceAssetsResponseItem = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "purchaseCost": zod.string().nullish(),
+  "purchaseDate": zod.coerce.date().nullish(),
+  "assignedRoomId": zod.number().nullish(),
+  "condition": zod.string(),
+  "warrantyEndDate": zod.coerce.date().nullish(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListFinanceAssetsResponse = zod.array(ListFinanceAssetsResponseItem)
+
+
+/**
+ * @summary Create a physical asset
+ */
+export const CreateFinanceAssetBody = zod.object({
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "purchaseCost": zod.number().nullish(),
+  "purchaseDate": zod.coerce.date().nullish(),
+  "assignedRoomId": zod.number().nullish(),
+  "condition": zod.string().optional(),
+  "warrantyEndDate": zod.coerce.date().nullish(),
+  "notes": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update a physical asset
+ */
+export const UpdateFinanceAssetParams = zod.object({
+  "assetId": zod.coerce.number()
+})
+
+export const UpdateFinanceAssetBody = zod.object({
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "purchaseCost": zod.number().nullish(),
+  "purchaseDate": zod.coerce.date().nullish(),
+  "assignedRoomId": zod.number().nullish(),
+  "condition": zod.string().optional(),
+  "warrantyEndDate": zod.coerce.date().nullish(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdateFinanceAssetResponse = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "category": zod.string().nullish(),
+  "purchaseCost": zod.string().nullish(),
+  "purchaseDate": zod.coerce.date().nullish(),
+  "assignedRoomId": zod.number().nullish(),
+  "condition": zod.string(),
+  "warrantyEndDate": zod.coerce.date().nullish(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete a physical asset
+ */
+export const DeleteFinanceAssetParams = zod.object({
+  "assetId": zod.coerce.number()
+})
+
+export const DeleteFinanceAssetResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary List maintenance logs for an asset
+ */
+export const ListAssetMaintenanceParams = zod.object({
+  "assetId": zod.coerce.number()
+})
+
+export const ListAssetMaintenanceResponseItem = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "assetId": zod.number(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "maintenanceCost": zod.string().nullish(),
+  "maintenanceDate": zod.coerce.date(),
+  "vendorName": zod.string().nullish(),
+  "financeTransactionId": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListAssetMaintenanceResponse = zod.array(ListAssetMaintenanceResponseItem)
+
+
+/**
+ * @summary Add a maintenance log to an asset
+ */
+export const AddAssetMaintenanceParams = zod.object({
+  "assetId": zod.coerce.number()
+})
+
+export const AddAssetMaintenanceBody = zod.object({
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "maintenanceCost": zod.number().nullish(),
+  "maintenanceDate": zod.coerce.date().nullish(),
+  "vendorName": zod.string().nullish(),
+  "accountId": zod.number().nullish()
+})
+
+
+/**
+ * @summary Daily money summary report
+ */
+export const GetFinanceDailySummaryQueryParams = zod.object({
+  "date": zod.date().optional()
+})
+
+export const GetFinanceDailySummaryResponse = zod.object({
+  "date": zod.string(),
+  "verifiedIncome": zod.number(),
+  "expensesPaid": zod.number(),
+  "capitalAdded": zod.number(),
+  "withdrawals": zod.number(),
+  "netProfit": zod.number(),
+  "actualCashCounted": zod.number(),
+  "expectedCash": zod.number(),
+  "cashDifference": zod.number(),
+  "shiftsCount": zod.number()
+})
+
+
+/**
+ * @summary Profit and loss report
+ */
+export const GetFinanceProfitLossQueryParams = zod.object({
+  "period": zod.coerce.string().optional()
+})
+
+export const GetFinanceProfitLossResponse = zod.object({
+  "period": zod.string(),
+  "totalIncome": zod.number(),
+  "totalExpenses": zod.number(),
+  "netProfit": zod.number(),
+  "expensesByCategory": zod.array(zod.object({
+  "name": zod.string().optional(),
+  "nameAr": zod.string().nullish(),
+  "total": zod.number().optional()
+}))
+})
+
+
+/**
+ * @summary Expense breakdown report
+ */
+export const GetFinanceExpensesReportQueryParams = zod.object({
+  "period": zod.coerce.string().optional()
+})
+
+export const GetFinanceExpensesReportResponse = zod.object({
+  "period": zod.string(),
+  "total": zod.number(),
+  "pending": zod.number(),
+  "transactions": zod.array(zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "type": zod.string(),
+  "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
+  "title": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "amount": zod.string(),
+  "transactionDate": zod.coerce.date(),
+  "paymentMethod": zod.string().nullish(),
+  "status": zod.string(),
+  "referenceType": zod.string().nullish(),
+  "referenceId": zod.string().nullish(),
+  "vendorName": zod.string().nullish(),
+  "receiptUrl": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "createdByUserId": zod.number().nullish(),
+  "approvedByUserId": zod.number().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryNameAr": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "accountName": zod.string().nullish(),
+  "accountNameAr": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Cash flow report
+ */
+export const GetFinanceCashFlowQueryParams = zod.object({
+  "period": zod.coerce.string().optional()
+})
+
+export const GetFinanceCashFlowResponse = zod.object({
+  "period": zod.string(),
+  "dailyFlow": zod.array(zod.object({
+  "date": zod.string().optional(),
+  "income": zod.number().optional(),
+  "expenses": zod.number().optional(),
+  "net": zod.number().optional()
+}))
+})
+
+
+/**
+ * @summary Shift cash difference report
+ */
+export const GetFinanceShiftDifferencesQueryParams = zod.object({
+  "period": zod.coerce.string().optional()
+})
+
+export const GetFinanceShiftDifferencesResponseItem = zod.object({
+  "id": zod.number(),
+  "openedAt": zod.coerce.date(),
+  "closedAt": zod.coerce.date().nullish(),
+  "openingCash": zod.string().nullish(),
+  "expectedCash": zod.string().nullish(),
+  "actualCash": zod.string().nullish(),
+  "difference": zod.string().nullish(),
+  "differenceExplanation": zod.string().nullish(),
+  "status": zod.string()
+})
+export const GetFinanceShiftDifferencesResponse = zod.array(GetFinanceShiftDifferencesResponseItem)
+
+

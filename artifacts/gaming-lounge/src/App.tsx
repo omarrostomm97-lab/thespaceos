@@ -35,6 +35,14 @@ import AdminUsers from "@/pages/admin/users";
 import Performance from "@/pages/performance";
 import Recipes from "@/pages/recipes";
 import Bookings from "@/pages/bookings";
+import FinanceIndex from "@/pages/finance/index";
+import FinanceExpenses from "@/pages/finance/expenses";
+import FinanceMoneyIn from "@/pages/finance/money-in";
+import FinanceCapital from "@/pages/finance/capital";
+import FinanceWithdrawals from "@/pages/finance/withdrawals";
+import FinanceAccounts from "@/pages/finance/accounts";
+import FinanceAssets from "@/pages/finance/assets";
+import FinanceReports from "@/pages/finance/reports";
 import { UserRole, ROUTE_ALLOWED_ROLES, defaultRedirect } from "@/lib/permissions";
 
 const queryClient = new QueryClient();
@@ -135,6 +143,31 @@ function Router() {
       </Route>
       <Route path="/settings">
         <ProtectedPage path="/settings"><Settings /></ProtectedPage>
+      </Route>
+
+      <Route path="/finance">
+        <ProtectedPage path="/finance"><FinanceIndex /></ProtectedPage>
+      </Route>
+      <Route path="/finance/expenses">
+        <ProtectedPage path="/finance/expenses"><FinanceExpenses /></ProtectedPage>
+      </Route>
+      <Route path="/finance/money-in">
+        <ProtectedPage path="/finance/money-in"><FinanceMoneyIn /></ProtectedPage>
+      </Route>
+      <Route path="/finance/capital">
+        <ProtectedPage path="/finance/capital"><FinanceCapital /></ProtectedPage>
+      </Route>
+      <Route path="/finance/withdrawals">
+        <ProtectedPage path="/finance/withdrawals"><FinanceWithdrawals /></ProtectedPage>
+      </Route>
+      <Route path="/finance/accounts">
+        <ProtectedPage path="/finance/accounts"><FinanceAccounts /></ProtectedPage>
+      </Route>
+      <Route path="/finance/assets">
+        <ProtectedPage path="/finance/assets"><FinanceAssets /></ProtectedPage>
+      </Route>
+      <Route path="/finance/reports">
+        <ProtectedPage path="/finance/reports"><FinanceReports /></ProtectedPage>
       </Route>
 
       <Route component={NotFound} />

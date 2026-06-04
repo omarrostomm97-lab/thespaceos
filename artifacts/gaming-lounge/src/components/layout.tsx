@@ -7,7 +7,8 @@ import {
   LayoutDashboard, Monitor, Gamepad2, ShoppingCart, UtensilsCrossed,
   Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut,
   TrendingUp, BookOpen, ChefHat, HelpCircle, Sun, Moon, Languages, Menu, X,
-  CalendarCheck, Bell, ArrowRight,
+  CalendarCheck, Bell, ArrowRight, Wallet, TrendingDown, PiggyBank, BarChart3,
+  Landmark, Boxes, DollarSign,
 } from "lucide-react";
 import { useBookingAlerts } from "@/hooks/use-booking-alerts";
 import { ROUTE_ALLOWED_ROLES, UserRole } from "@/lib/permissions";
@@ -40,6 +41,19 @@ const navigation: NavItem[] = [
   { nameKey: "nav_audit",       href: "/audit",       icon: ShieldAlert,     routeKey: "/audit" },
   { nameKey: "nav_settings",    href: "/settings",    icon: Settings,        routeKey: "/settings" },
 ];
+
+const financeNavigation: NavItem[] = [
+  { nameKey: "nav_finance_overview",     href: "/finance",              icon: DollarSign,   routeKey: "/finance" },
+  { nameKey: "nav_finance_expenses",     href: "/finance/expenses",     icon: TrendingDown, routeKey: "/finance/expenses" },
+  { nameKey: "nav_finance_money_in",     href: "/finance/money-in",     icon: TrendingUp,   routeKey: "/finance/money-in" },
+  { nameKey: "nav_finance_capital",      href: "/finance/capital",      icon: PiggyBank,    routeKey: "/finance/capital" },
+  { nameKey: "nav_finance_withdrawals",  href: "/finance/withdrawals",  icon: Wallet,       routeKey: "/finance/withdrawals" },
+  { nameKey: "nav_finance_accounts",     href: "/finance/accounts",     icon: Landmark,     routeKey: "/finance/accounts" },
+  { nameKey: "nav_finance_assets",       href: "/finance/assets",       icon: Boxes,        routeKey: "/finance/assets" },
+  { nameKey: "nav_finance_reports",      href: "/finance/reports",      icon: BarChart3,    routeKey: "/finance/reports" },
+];
+
+const FINANCE_ROLES = new Set(["platform_owner", "owner", "manager"]);
 
 const ROLE_KEY_MAP: Record<string, TranslationKey> = {
   platform_owner: "role_platform_owner",
@@ -231,7 +245,6 @@ export function Layout({ children }: LayoutProps) {
                       : { border: "1px solid transparent" }
                   }
                 >
-                  {/* Active accent bar */}
                   {isActive && (
                     <div
                       className={cn(
@@ -244,16 +257,12 @@ export function Layout({ children }: LayoutProps) {
                       }}
                     />
                   )}
-
-                  {/* Hover overlay */}
                   {!isActive && (
                     <div
                       className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150"
                       style={{ background: "var(--sb-nav-hover)" }}
                     />
                   )}
-
-                  {/* Icon */}
                   <div
                     className="relative w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
                     style={
@@ -264,7 +273,6 @@ export function Layout({ children }: LayoutProps) {
                   >
                     <item.icon className="h-3.5 w-3.5" />
                   </div>
-
                   <span
                     className="text-sm relative transition-colors duration-150"
                     style={{
@@ -278,6 +286,80 @@ export function Layout({ children }: LayoutProps) {
               </Link>
             );
           })}
+
+          {/* ── Finance section (owner / manager only) ── */}
+          {user?.role && FINANCE_ROLES.has(user.role) && (
+            <>
+              <div className="pt-3 pb-1.5 px-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1" style={{ background: "var(--sb-glass-border)" }} />
+                  <p className="text-[9px] uppercase tracking-[0.18em] font-semibold shrink-0"
+                    style={{ color: "var(--sb-icon-inactive)" }}>
+                    {t("nav_finance_section")}
+                  </p>
+                  <div className="h-px flex-1" style={{ background: "var(--sb-glass-border)" }} />
+                </div>
+              </div>
+              {financeNavigation.map(item => {
+                const isActive = location === item.href || (item.href !== "/finance" && location.startsWith(item.href));
+                return (
+                  <Link key={item.routeKey} href={item.href}>
+                    <motion.div
+                      whileHover={isActive ? {} : { x: lang === "ar" ? -1 : 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                      className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer select-none group"
+                      style={
+                        isActive
+                          ? {
+                              background: "linear-gradient(90deg, rgba(23,201,100,0.15) 0%, rgba(23,201,100,0.07) 100%)",
+                              border: "1px solid rgba(23,201,100,0.2)",
+                            }
+                          : { border: "1px solid transparent" }
+                      }
+                    >
+                      {isActive && (
+                        <div
+                          className={cn(
+                            "absolute top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full",
+                            lang === "ar" ? "left-0" : "right-0"
+                          )}
+                          style={{
+                            background: "linear-gradient(180deg, #17c964, #12a352)",
+                            boxShadow: "0 0 8px rgba(23,201,100,0.7)",
+                          }}
+                        />
+                      )}
+                      {!isActive && (
+                        <div
+                          className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                          style={{ background: "var(--sb-nav-hover)" }}
+                        />
+                      )}
+                      <div
+                        className="relative w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
+                        style={
+                          isActive
+                            ? { background: "rgba(23,201,100,0.25)", boxShadow: "0 0 10px rgba(23,201,100,0.3)", color: "#17c964" }
+                            : { color: "var(--sb-icon-inactive)" }
+                        }
+                      >
+                        <item.icon className="h-3.5 w-3.5" />
+                      </div>
+                      <span
+                        className="text-sm relative transition-colors duration-150"
+                        style={{
+                          color: isActive ? "#17c964" : "var(--sb-text-inactive)",
+                          fontWeight: isActive ? 600 : 500,
+                        }}
+                      >
+                        {t(item.nameKey)}
+                      </span>
+                    </motion.div>
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {/* ── Bottom: Theme + Lang + Help + Logout ── */}

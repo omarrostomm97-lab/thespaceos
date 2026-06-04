@@ -12,6 +12,9 @@ export const ROLE_DEFAULTS: Record<UserRole, string> = {
   buffet_worker: "/kds",
 };
 
+const FINANCE_ROLES: UserRole[] = ["platform_owner", "owner", "manager"];
+const FINANCE_OWNER_ROLES: UserRole[] = ["platform_owner", "owner"];
+
 export const ROUTE_ALLOWED_ROLES: Record<string, UserRole[]> = {
   "/dashboard":   ALL_MGMT,
   "/assets":      [...ALL_MGMT, "cashier"],
@@ -33,6 +36,14 @@ export const ROUTE_ALLOWED_ROLES: Record<string, UserRole[]> = {
   "/settings":    ALL_MGMT,
   "/admin/tenants": ["platform_owner"],
   "/admin/users":   ["platform_owner"],
+  "/finance":             FINANCE_ROLES,
+  "/finance/expenses":    FINANCE_ROLES,
+  "/finance/money-in":    FINANCE_ROLES,
+  "/finance/capital":     FINANCE_OWNER_ROLES,
+  "/finance/withdrawals": FINANCE_OWNER_ROLES,
+  "/finance/accounts":    FINANCE_ROLES,
+  "/finance/assets":      FINANCE_ROLES,
+  "/finance/reports":     FINANCE_ROLES,
 };
 
 export function canAccess(role: UserRole | undefined, routePath: string): boolean {

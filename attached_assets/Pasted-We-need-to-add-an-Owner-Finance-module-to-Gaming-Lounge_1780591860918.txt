@@ -1,0 +1,557 @@
+We need to add an Owner Finance module to Gaming Lounge OS, but the highest priority is:
+
+DO NOT BREAK ANY EXISTING WORKING FUNCTIONALITY.
+
+This implementation must be additive, safe, and backward-compatible.
+
+Important context:
+The current dashboard is already working and must not be rebuilt or replaced.
+
+The existing dashboard already has:
+- Global filters: Period, Source, Payment Method
+- Tabs: Overview, Sales, Details, Shifts
+- KPI cards for Total Revenue, Gaming Revenue, Room Orders, Buffet/POS, Active Sessions, Occupied Rooms, Pending Orders, Preparing Orders, Low Stock Alerts, Cash Discrepancies
+- Sales breakdown by revenue source and payment method
+- Details tab for gaming by room type, room orders by category, and buffet/POS by category
+- Shifts tab with opening cash, expected cash, actual cash, and cash difference
+- Revenue calculated from verified payments only
+- Auto-refresh for key dashboard data every 10 seconds
+
+The current dashboard revenue numbers are based on verified payments as the ground truth, and this logic must stay unchanged. :contentReference[oaicite:0]{index=0}
+
+DO NOT change the existing dashboard revenue logic.
+DO NOT change the existing verified payments calculation.
+DO NOT change the existing sessions logic.
+DO NOT change the existing orders logic.
+DO NOT change the existing shifts logic.
+DO NOT change the existing payment verification logic.
+DO NOT remove, rename, or restructure existing routes, tables, fields, components, or UI sections unless absolutely required.
+DO NOT replace the current dashboard.
+
+The finance module should only extend the system by adding missing owner-money features:
+1. Expenses
+2. Capital injections
+3. Owner withdrawals
+4. Financial accounts / cash balance
+5. Profit after expenses
+6. Pending bills
+7. Asset and maintenance tracking
+8. Owner-friendly finance reports
+
+Implementation safety rules:
+- Before modifying anything, inspect the existing schema, routes, services, components, and dashboard logic.
+- Reuse existing revenue/payment data instead of duplicating it.
+- Keep existing APIs working exactly as they are.
+- Add new APIs under /api/finance only.
+- Add new database tables without damaging existing tables.
+- If an existing table needs a new optional field, make it nullable and backward-compatible.
+- Do not introduce required fields that would break old records.
+- Do not change existing enum values unless safely migrated.
+- Do not change existing auth/session behavior.
+- Do not change existing role behavior except by adding optional finance permissions.
+- If integration with existing payments/orders/sessions is risky, create a read-only finance view first and add write integration carefully.
+- Avoid destructive migrations.
+- Do not delete any existing data.
+- Add seed data safely and idempotently.
+- Every migration should be safe to run more than once if possible.
+- Use feature-safe coding and handle missing finance data gracefully.
+
+Owner experience:
+The module must be extremely easy for arcade owners to use.
+Most owners are not accountants, so the UI should not feel like accounting software.
+
+Use simple wording:
+- Money In
+- Money Out
+- Expenses
+- Profit
+- Cash Available
+- Capital Added
+- Owner Withdrawals
+- Pending Bills
+
+Avoid complicated accounting words in the UI:
+- Debit
+- Credit
+- Ledger
+- Journal entry
+- Equity
+- Chart of accounts
+- Liabilities
+
+These terms can be used internally only if technically needed.
+
+Recommended safe dashboard integration:
+Do not redesign the existing dashboard.
+
+Only add a small new section inside the existing Overview tab called:
+“Owner Finance Snapshot”
+
+This section should appear after the existing KPI cards and should not affect the current cards.
+
+Owner Finance Snapshot cards:
+- Today’s Expenses
+- Today’s Profit
+- Cash Available
+- Pending Bills
+- This Month’s Expenses
+- This Month’s Profit
+- Owner Withdrawals This Month
+- Capital Added This Month
+
+If finance data does not exist yet, show zero values and friendly empty states.
+Do not crash the dashboard if finance tables are empty.
+
+Existing revenue remains the source of truth:
+- Total Revenue must continue to come from verified payments.
+- Gaming Revenue must continue using the current formula.
+- Room Orders must continue using the current formula.
+- Buffet/POS must continue using the current formula.
+- Do not calculate revenue from live session estimates.
+- Do not double-count orders.
+
+Profit calculation:
+- Profit = verified income - paid expenses
+- Capital injections are not income
+- Owner withdrawals are not expenses
+- Pending expenses should not reduce profit until paid unless the report specifically shows pending bills separately.
+
+Current Cash Available:
+opening account balances
++ verified income
++ capital injections
+- paid expenses
+- owner withdrawals
++ transfers in
+- transfers out
+
+New sidebar section:
+Add Finance section without removing or changing existing sidebar links.
+
+Finance
+- Overview
+- Expenses
+- Money In
+- Capital
+- Owner Withdrawals
+- Accounts
+- Assets
+- Reports
+
+Finance Overview:
+This page should focus on owner money control and should not duplicate the whole existing dashboard.
+
+Show:
+- Income from existing verified payments
+- Expenses
+- Net Profit
+- Cash Available
+- Pending Bills
+- Capital Added
+- Owner Withdrawals
+- Biggest Expense Category
+- Cash Discrepancy Warning from existing shifts
+
+Owner-friendly insights:
+Add simple automatic messages like:
+- “Your biggest expense this month is Electricity.”
+- “Today’s profit is positive.”
+- “You have pending bills that are not paid yet.”
+- “Cash counted does not match expected cash in one or more shifts.”
+- “Maintenance expenses are high this month.”
+
+Expenses page:
+The owner should be able to add an expense in less than 30 seconds.
+
+Quick expense buttons:
+- Electricity
+- Internet
+- Rent
+- Maintenance
+- Salaries
+- Stock Purchase
+- Cleaning
+- Software
+- Other
+
+Simple Add Expense form:
+Required fields:
+- Expense category
+- Amount
+- Date
+- Paid from account
+- Status: Paid / Pending / Partial / Cancelled
+
+Optional fields hidden under “More details”:
+- Title
+- Vendor
+- Notes
+- Receipt upload
+- Linked asset
+- Payment method
+
+If title is empty, auto-generate it.
+Example:
+“Electricity Expense - June 2026”
+
+Money In page:
+This page should read income from the existing verified payments system.
+Do not duplicate existing income records unnecessarily.
+
+Show:
+- Gaming income
+- Room orders income
+- Buffet/POS income
+- Manual income
+- Payment method breakdown: Cash, InstaPay, Visa
+- Source filter: All, Gaming, Buffet/POS, Room Orders, Manual
+
+Manual income:
+Manual income is only for money not already captured by existing sessions/orders/payments.
+
+Examples:
+- Private booking outside normal session flow
+- Miscellaneous income
+- Membership/subscription if not already supported elsewhere
+
+Capital page:
+Only owner/super admin can access.
+
+Fields:
+- Amount
+- Date
+- Added to account
+- Source: Owner / Partner / Other
+- Notes
+
+UI explanation:
+“Capital is money added by the owner or partners. It increases available cash but is not counted as profit.”
+
+Owner Withdrawals page:
+Only owner/super admin can access.
+
+Fields:
+- Amount
+- Date
+- Taken from account
+- Owner/partner name
+- Notes
+
+UI explanation:
+“Owner withdrawals reduce available cash but are not counted as business expenses.”
+
+Accounts page:
+Show where the money currently exists.
+
+Default accounts:
+- Cash
+- Bank
+- Card Machine
+- Wallet / InstaPay
+
+Each account should show:
+- Opening balance
+- Current balance
+- Money in
+- Money out
+- Latest transactions
+
+Only owner/super admin can adjust balances.
+
+Assets page:
+Allow tracking of arcade assets.
+
+Examples:
+- PS5 console
+- TV screen
+- Arcade machine
+- Router
+- Air conditioner
+- Gaming chair
+- Furniture
+
+Asset fields:
+- Asset name
+- Category
+- Purchase cost
+- Purchase date
+- Assigned room/device if available
+- Condition: New / Good / Needs Maintenance / Damaged / Retired
+- Warranty end date
+- Notes
+
+Maintenance:
+The owner should be able to add maintenance logs to assets.
+When maintenance cost is added, create an expense transaction linked to the asset.
+
+Reports page:
+Reports must be simple and owner-friendly.
+
+Reports:
+- Daily Money Summary
+- Monthly Profit Report
+- Expense Breakdown
+- Cash Flow
+- Shift Cash Difference Report
+- Asset Maintenance Report
+
+Daily Money Summary should show:
+- Opening cash
+- Verified income
+- Expenses paid
+- Owner withdrawals
+- Capital added
+- Expected cash
+- Actual cash counted from shifts
+- Difference
+
+Database requirements:
+Add new finance tables safely.
+
+Do not alter existing tables unless absolutely required.
+
+1. financial_transactions
+Fields:
+- id
+- tenant_id
+- type: income, expense, capital_injection, owner_withdrawal, transfer, adjustment
+- category_id
+- account_id
+- title
+- description
+- amount
+- transaction_date
+- payment_method
+- status: paid, pending, partial, cancelled
+- reference_type: payment, session, order, shift, manual, asset, maintenance, capital, withdrawal, account_transfer, adjustment
+- reference_id
+- vendor_name
+- receipt_url
+- created_by
+- approved_by
+- created_at
+- updated_at
+
+2. financial_categories
+Fields:
+- id
+- tenant_id
+- name
+- type: income, expense, capital, withdrawal
+- color
+- icon
+- is_system
+- created_at
+- updated_at
+
+3. financial_accounts
+Fields:
+- id
+- tenant_id
+- name
+- type: cash, bank, wallet, card_processor, other
+- opening_balance
+- current_balance
+- is_active
+- created_at
+- updated_at
+
+4. assets
+Fields:
+- id
+- tenant_id
+- name
+- category
+- purchase_cost
+- purchase_date
+- assigned_room_id
+- assigned_device_id
+- condition: new, good, needs_maintenance, damaged, retired
+- warranty_end_date
+- notes
+- created_at
+- updated_at
+
+5. asset_maintenance_logs
+Fields:
+- id
+- tenant_id
+- asset_id
+- title
+- description
+- maintenance_cost
+- maintenance_date
+- vendor_name
+- financial_transaction_id
+- created_at
+- updated_at
+
+Default expense categories:
+- Electricity
+- Internet
+- Rent
+- Salaries
+- Maintenance
+- Device Repair
+- Food & Beverage Stock
+- Cleaning Supplies
+- Marketing
+- Software Subscriptions
+- Taxes
+- Other
+
+Default income categories:
+- Gaming Sessions
+- Cafe Orders
+- Room Orders
+- Arcade Games
+- Memberships
+- Private Room Bookings
+- Manual Income
+- Other
+
+Default capital categories:
+- Initial Capital
+- Owner Capital Injection
+- Partner Contribution
+- Capital Adjustment
+
+Default withdrawal categories:
+- Owner Withdrawal
+- Partner Withdrawal
+
+Backend API requirements:
+Add new secure tenant-scoped API endpoints only under /api/finance:
+
+- GET /api/finance/overview
+- GET /api/finance/transactions
+- POST /api/finance/transactions
+- PUT /api/finance/transactions/:id
+- DELETE /api/finance/transactions/:id
+
+- GET /api/finance/categories
+- POST /api/finance/categories
+- PUT /api/finance/categories/:id
+- DELETE /api/finance/categories/:id
+
+- GET /api/finance/accounts
+- POST /api/finance/accounts
+- PUT /api/finance/accounts/:id
+
+- GET /api/finance/reports/daily-summary
+- GET /api/finance/reports/profit-loss
+- GET /api/finance/reports/cash-flow
+- GET /api/finance/reports/expenses
+- GET /api/finance/reports/shift-differences
+
+- GET /api/finance/assets
+- POST /api/finance/assets
+- PUT /api/finance/assets/:id
+- DELETE /api/finance/assets/:id
+- POST /api/finance/assets/:id/maintenance
+
+Integration requirements:
+- Do not break existing dashboard tabs.
+- Do not break existing revenue calculation.
+- Do not break existing sessions.
+- Do not break existing orders.
+- Do not break existing payments.
+- Do not break existing shifts.
+- Do not break existing tenants.
+- Do not break existing authentication.
+- Do not break existing permissions.
+- When a payment is verified, it should be reflected in finance as Money In.
+- Avoid duplicate finance records by checking reference_type and reference_id.
+- If integration risk is high, make finance read directly from existing verified payments instead of creating duplicate transaction rows for payment income.
+- If a payment is refunded, cancelled, or unverified, update the finance view/result safely.
+- Manual income should only be used for money not already captured by existing payments.
+
+Shift integration:
+The existing Shifts tab already has opening cash, expected cash, actual cash, and difference.
+
+Add finance support carefully:
+- Show expenses paid during the shift if available.
+- Show owner withdrawals during the shift if available.
+- Show manual income during the shift if available.
+- Do not change the current shift closing behavior unless required.
+- Do not break current cash discrepancy logic.
+
+Permissions:
+Add finance permissions safely without changing existing role behavior unexpectedly.
+
+Finance permissions:
+- finance.view_dashboard
+- finance.view_money_in
+- finance.add_manual_income
+- finance.view_expenses
+- finance.add_expense
+- finance.edit_expense
+- finance.delete_expense
+- finance.approve_expense
+- finance.view_capital
+- finance.manage_capital
+- finance.view_withdrawals
+- finance.manage_withdrawals
+- finance.view_accounts
+- finance.manage_accounts
+- finance.view_assets
+- finance.manage_assets
+- finance.view_reports
+- finance.export_reports
+- finance.view_profit
+
+Role behavior:
+- Platform Owner: full finance access
+- Owner: full finance access
+- Manager: can view operational finance and add expenses, but cannot view capital or owner withdrawals unless permission is granted
+- Cashier: can only view shift-related cash and add allowed small expenses if permission is granted
+- Staff/Kitchen: no finance access
+
+UI requirements:
+- Arabic-first RTL premium design
+- Owner-friendly and non-accounting language
+- Use large clear cards
+- Use icons
+- Use simple charts
+- Use clear empty states
+- Use helper text
+- Make mobile/tablet experience strong
+- Add quick actions
+- Keep forms short
+- Hide advanced fields behind “More details”
+- Do not overload the owner with technical financial structure
+
+Testing requirements before completion:
+Before considering the task done, verify that:
+1. Existing dashboard loads normally.
+2. Existing Overview tab still works.
+3. Existing Sales tab still works.
+4. Existing Details tab still works.
+5. Existing Shifts tab still works.
+6. Existing revenue numbers did not change unexpectedly.
+7. Existing sessions still start, pause, resume, and close normally.
+8. Existing orders still work normally.
+9. Existing payments still verify normally.
+10. Existing shift opening/closing still works normally.
+11. New finance pages work with empty finance data.
+12. New finance pages work after adding expenses.
+13. Unauthorized users cannot see sensitive finance data.
+14. Tenant isolation is respected.
+
+MVP scope:
+1. Add Owner Finance Snapshot to existing dashboard Overview tab without changing existing cards.
+2. Expenses management.
+3. Money In page connected to existing verified payments.
+4. Manual income.
+5. Capital injections.
+6. Owner withdrawals.
+7. Accounts and balances.
+8. Simple owner-friendly reports.
+9. Finance permissions.
+10. Safe shift cash integration.
+11. Basic assets and maintenance expense tracking.
+
+Final instruction:
+If any requested finance feature risks breaking existing functionality, implement the safe version first and leave the risky integration isolated behind a small, well-contained change.
+
+Do not break anything currently available.

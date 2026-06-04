@@ -16,6 +16,7 @@ import auditRouter from "./audit";
 import recipesRouter from "./recipes";
 import bookingsRouter from "./bookings";
 import publicMenuRouter from "./publicMenu";
+import financeRouter from "./finance";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(auditRouter);
 router.use(recipesRouter);
 router.use(bookingsRouter);
 router.use(publicMenuRouter);
+router.use(financeRouter);
 
 export default router;

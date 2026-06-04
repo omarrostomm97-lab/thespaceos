@@ -977,6 +977,290 @@ export interface AuditLogList {
   limit: number;
 }
 
+export interface FinanceOverview {
+  incomeToday: number;
+  incomeMonth: number;
+  expensesToday: number;
+  expensesMonth: number;
+  profitToday: number;
+  profitMonth: number;
+  cashAvailable: number;
+  pendingBills: number;
+  pendingBillsCount: number;
+  capitalMonth: number;
+  withdrawalsMonth: number;
+  cashDiscrepancyCount: number;
+  /** @nullable */
+  biggestCategoryName?: string | null;
+  /** @nullable */
+  biggestCategoryNameAr?: string | null;
+}
+
+export interface FinanceCategory {
+  id: number;
+  tenantId: number;
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  type: string;
+  /** @nullable */
+  color?: string | null;
+  /** @nullable */
+  icon?: string | null;
+  isSystem: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinanceCategoryInput {
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  type: string;
+  /** @nullable */
+  color?: string | null;
+  /** @nullable */
+  icon?: string | null;
+}
+
+export interface FinanceAccount {
+  id: number;
+  tenantId: number;
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  type: string;
+  openingBalance: string;
+  currentBalance: string;
+  isActive: boolean;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinanceAccountInput {
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  type?: string;
+  openingBalance?: string;
+  currentBalance?: string;
+  isActive?: boolean;
+  isDefault?: boolean;
+}
+
+export interface FinanceTransaction {
+  id: number;
+  tenantId: number;
+  type: string;
+  /** @nullable */
+  categoryId?: number | null;
+  /** @nullable */
+  accountId?: number | null;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  description?: string | null;
+  amount: string;
+  transactionDate: string;
+  /** @nullable */
+  paymentMethod?: string | null;
+  status: string;
+  /** @nullable */
+  referenceType?: string | null;
+  /** @nullable */
+  referenceId?: string | null;
+  /** @nullable */
+  vendorName?: string | null;
+  /** @nullable */
+  receiptUrl?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  createdByUserId?: number | null;
+  /** @nullable */
+  approvedByUserId?: number | null;
+  /** @nullable */
+  categoryName?: string | null;
+  /** @nullable */
+  categoryNameAr?: string | null;
+  /** @nullable */
+  categoryColor?: string | null;
+  /** @nullable */
+  categoryIcon?: string | null;
+  /** @nullable */
+  accountName?: string | null;
+  /** @nullable */
+  accountNameAr?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinanceTransactionInput {
+  type: string;
+  /** @nullable */
+  categoryId?: number | null;
+  /** @nullable */
+  accountId?: number | null;
+  /** @nullable */
+  title?: string | null;
+  /** @nullable */
+  description?: string | null;
+  amount: number;
+  /** @nullable */
+  transactionDate?: string | null;
+  /** @nullable */
+  paymentMethod?: string | null;
+  status?: string;
+  /** @nullable */
+  referenceType?: string | null;
+  /** @nullable */
+  referenceId?: string | null;
+  /** @nullable */
+  vendorName?: string | null;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface FinanceAsset {
+  id: number;
+  tenantId: number;
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  purchaseCost?: string | null;
+  /** @nullable */
+  purchaseDate?: string | null;
+  /** @nullable */
+  assignedRoomId?: number | null;
+  condition: string;
+  /** @nullable */
+  warrantyEndDate?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FinanceAssetInput {
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  purchaseCost?: number | null;
+  /** @nullable */
+  purchaseDate?: string | null;
+  /** @nullable */
+  assignedRoomId?: number | null;
+  condition?: string;
+  /** @nullable */
+  warrantyEndDate?: string | null;
+  /** @nullable */
+  notes?: string | null;
+}
+
+export interface AssetMaintenanceLog {
+  id: number;
+  tenantId: number;
+  assetId: number;
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  maintenanceCost?: string | null;
+  maintenanceDate: string;
+  /** @nullable */
+  vendorName?: string | null;
+  /** @nullable */
+  financeTransactionId?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AssetMaintenanceInput {
+  title: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  maintenanceCost?: number | null;
+  /** @nullable */
+  maintenanceDate?: string | null;
+  /** @nullable */
+  vendorName?: string | null;
+  /** @nullable */
+  accountId?: number | null;
+}
+
+export interface FinanceDailySummary {
+  date: string;
+  verifiedIncome: number;
+  expensesPaid: number;
+  capitalAdded: number;
+  withdrawals: number;
+  netProfit: number;
+  actualCashCounted: number;
+  expectedCash: number;
+  cashDifference: number;
+  shiftsCount: number;
+}
+
+export type FinanceProfitLossExpensesByCategoryItem = {
+  name?: string;
+  /** @nullable */
+  nameAr?: string | null;
+  total?: number;
+};
+
+export interface FinanceProfitLoss {
+  period: string;
+  totalIncome: number;
+  totalExpenses: number;
+  netProfit: number;
+  expensesByCategory: FinanceProfitLossExpensesByCategoryItem[];
+}
+
+export interface FinanceExpensesReport {
+  period: string;
+  total: number;
+  pending: number;
+  transactions: FinanceTransaction[];
+}
+
+export type FinanceCashFlowDailyFlowItem = {
+  date?: string;
+  income?: number;
+  expenses?: number;
+  net?: number;
+};
+
+export interface FinanceCashFlow {
+  period: string;
+  dailyFlow: FinanceCashFlowDailyFlowItem[];
+}
+
+export interface FinanceShiftDifference {
+  id: number;
+  openedAt: string;
+  /** @nullable */
+  closedAt?: string | null;
+  /** @nullable */
+  openingCash?: string | null;
+  /** @nullable */
+  expectedCash?: string | null;
+  /** @nullable */
+  actualCash?: string | null;
+  /** @nullable */
+  difference?: string | null;
+  /** @nullable */
+  differenceExplanation?: string | null;
+  status: string;
+}
+
 export type RefreshTokenBody = {
   refreshToken: string;
 };
@@ -1129,5 +1413,50 @@ export type ListBookingsParams = {
 status?: string;
 from?: string;
 to?: string;
+};
+
+export type GetFinanceOverviewParams = {
+period?: GetFinanceOverviewPeriod;
+};
+
+export type GetFinanceOverviewPeriod = typeof GetFinanceOverviewPeriod[keyof typeof GetFinanceOverviewPeriod];
+
+
+export const GetFinanceOverviewPeriod = {
+  today: 'today',
+  week: 'week',
+  month: 'month',
+} as const;
+
+export type ListFinanceCategoriesParams = {
+type?: string;
+};
+
+export type ListFinanceTransactionsParams = {
+period?: string;
+type?: string;
+status?: string;
+categoryId?: number;
+accountId?: number;
+};
+
+export type GetFinanceDailySummaryParams = {
+date?: string;
+};
+
+export type GetFinanceProfitLossParams = {
+period?: string;
+};
+
+export type GetFinanceExpensesReportParams = {
+period?: string;
+};
+
+export type GetFinanceCashFlowParams = {
+period?: string;
+};
+
+export type GetFinanceShiftDifferencesParams = {
+period?: string;
 };
 
