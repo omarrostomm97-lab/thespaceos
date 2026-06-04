@@ -798,6 +798,56 @@ export const PlaceQrOrderBody = zod.object({
 
 
 /**
+ * @summary Generate or regenerate the venue menu QR token (owner+)
+ */
+export const GenerateMenuQrResponse = zod.object({
+  "token": zod.string().nullable(),
+  "menuUrl": zod.string().nullable()
+})
+
+
+/**
+ * @summary Get the current venue menu QR token (owner+)
+ */
+export const GetMenuQrResponse = zod.object({
+  "token": zod.string().nullable(),
+  "menuUrl": zod.string().nullable()
+})
+
+
+/**
+ * @summary Get the full public menu by QR token (no auth)
+ */
+export const GetPublicMenuParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const GetPublicMenuResponse = zod.object({
+  "tenant": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish()
+}),
+  "categories": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})),
+  "products": zod.array(zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "categoryId": zod.number().nullish(),
+  "price": zod.number(),
+  "isAvailable": zod.boolean(),
+  "description": zod.string().nullish(),
+  "descriptionAr": zod.string().nullish()
+}))
+})
+
+
+/**
  * @summary List orders
  */
 export const ListOrdersQueryParams = zod.object({

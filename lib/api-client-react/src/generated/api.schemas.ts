@@ -561,6 +561,41 @@ export interface ProductCategoryInput {
   nameAr?: string;
 }
 
+export interface MenuQrResponse {
+  /** @nullable */
+  token: string | null;
+  /** @nullable */
+  menuUrl: string | null;
+}
+
+export interface PublicMenuTenant {
+  id: number;
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+}
+
+export interface PublicMenuProduct {
+  id: number;
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  /** @nullable */
+  categoryId?: number | null;
+  price: number;
+  isAvailable: boolean;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  descriptionAr?: string | null;
+}
+
+export interface PublicMenuResponse {
+  tenant: PublicMenuTenant;
+  categories: ProductCategory[];
+  products: PublicMenuProduct[];
+}
+
 export interface QrMenuResponse {
   asset: Asset;
   categories: ProductCategory[];

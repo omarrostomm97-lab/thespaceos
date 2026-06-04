@@ -20,6 +20,7 @@ import Kds from "@/pages/kds";
 import Orders from "@/pages/orders";
 import Menu from "@/pages/menu";
 import QrMenu from "@/pages/qr/[token]";
+import PublicMenuPage from "@/pages/public-menu/[token]";
 import Inventory from "@/pages/inventory";
 import Shifts from "@/pages/shifts";
 import Payments from "@/pages/payments";
@@ -69,6 +70,7 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/unauthorized" component={Unauthorized} />
       <Route path="/qr/:token" component={QrMenu} />
+      <Route path="/public-menu/:token" component={PublicMenuPage} />
 
       <Route path="/admin/tenants">
         <ProtectedPage path="/admin/tenants"><AdminTenants /></ProtectedPage>

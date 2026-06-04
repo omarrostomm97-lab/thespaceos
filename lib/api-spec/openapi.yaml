@@ -786,6 +786,74 @@ paths:
               schema:
                 $ref: "#/components/schemas/Order"
 
+  # ── PUBLIC MENU QR ────────────────────────────────────
+  /menu-qr/generate:
+    post:
+      operationId: generateMenuQr
+      tags: [qr]
+      summary: Generate or regenerate the venue menu QR token (owner+)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: New QR token generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuQrResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /menu-qr/current:
+    get:
+      operationId: getMenuQr
+      tags: [qr]
+      summary: Get the current venue menu QR token (owner+)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current QR token (token may be null if not generated yet)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MenuQrResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /public-menu/{token}:
+    get:
+      operationId: getPublicMenu
+      tags: [qr]
+      summary: Get the full public menu by QR token (no auth)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Public menu data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicMenuResponse"
+        "404":
+          description: Token not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   # ── ORDERS ──────────────────────────────────────────
   /orders:
     get:
@@ -2111,6 +2179,63 @@ components:
           type: string
         nameAr:
           type: string
+
+    # ── PUBLIC MENU SCHEMAS ──
+    MenuQrResponse:
+      type: object
+      required: [token, menuUrl]
+      properties:
+        token:
+          type: ["string", "null"]
+        menuUrl:
+          type: ["string", "null"]
+
+    PublicMenuTenant:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+
+    PublicMenuProduct:
+      type: object
+      required: [id, name, price, isAvailable]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        nameAr:
+          type: ["string", "null"]
+        categoryId:
+          type: ["integer", "null"]
+        price:
+          type: number
+        isAvailable:
+          type: boolean
+        description:
+          type: ["string", "null"]
+        descriptionAr:
+          type: ["string", "null"]
+
+    PublicMenuResponse:
+      type: object
+      required: [tenant, categories, products]
+      properties:
+        tenant:
+          $ref: "#/components/schemas/PublicMenuTenant"
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductCategory"
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicMenuProduct"
 
     # ── QR MENU SCHEMAS ──
     QrMenuResponse:

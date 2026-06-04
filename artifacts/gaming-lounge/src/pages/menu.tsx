@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   useListProducts,
   useListProductCategories,
@@ -8,9 +8,12 @@ import {
   useCreateProductCategory,
   useUpdateProductCategory,
   useDeleteProductCategory,
+  useGenerateMenuQr,
+  useGetMenuQr,
   getListProductsQueryKey,
   getListProductCategoriesQueryKey,
 } from "@workspace/api-client-react";
+import { QRCodeCanvas } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -25,7 +28,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Settings, UtensilsCrossed } from "lucide-react";
+import { Plus, Pencil, Trash2, Settings, UtensilsCrossed, QrCode, RefreshCw, Download, Copy, Check, ExternalLink } from "lucide-react";
 import { getProductEmoji } from "@/lib/product-emoji";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang } from "@/hooks/use-language";
@@ -146,6 +149,43 @@ export default function Menu() {
 
   const visibleProducts = products?.filter(p => activeTab === "all" || p.categoryId?.toString() === activeTab) ?? [];
 
+  const generateMenuQr = useGenerateMenuQr();
+  const { data: qrData, refetch: refetchQr } = useGetMenuQr();
+  const qrCanvasRef = useRef<HTMLDivElement>(null);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const menuUrl = qrData?.token
+    ? `${window.location.origin}${base}/public-menu/${qrData.token}`
+    : null;
+
+  const handleGenerateQr = async () => {
+    try {
+      await generateMenuQr.mutateAsync();
+      await refetchQr();
+      toast.success("QR code generated!");
+    } catch {
+      toast.error("Failed to generate QR code");
+    }
+  };
+
+  const handleCopyUrl = () => {
+    if (!menuUrl) return;
+    navigator.clipboard.writeText(menuUrl);
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 2000);
+  };
+
+  const handleDownloadQr = () => {
+    const canvas = qrCanvasRef.current?.querySelector("canvas");
+    if (!canvas) return;
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "menu-qr.png";
+    a.click();
+  };
+
   if (isLoadingCats || isLoadingProds) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
@@ -177,6 +217,93 @@ export default function Menu() {
           </div>
         )}
       </div>
+
+      {/* Walk-in Menu QR Panel */}
+      {isManager && (
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6">
+          <div className="flex flex-col sm:flex-row gap-6 items-start">
+            {/* QR Code */}
+            <div className="shrink-0">
+              {menuUrl ? (
+                <div ref={qrCanvasRef} className="bg-white p-3 rounded-xl shadow-lg inline-block">
+                  <QRCodeCanvas
+                    value={menuUrl}
+                    size={140}
+                    bgColor="#ffffff"
+                    fgColor="#1a1a2e"
+                    level="M"
+                    includeMargin={false}
+                  />
+                </div>
+              ) : (
+                <div className="w-[164px] h-[164px] bg-secondary rounded-xl border border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                  <QrCode className="h-10 w-10 opacity-30" />
+                  <span className="text-xs">No QR yet</span>
+                </div>
+              )}
+            </div>
+
+            {/* Info & Actions */}
+            <div className="flex-1 space-y-4">
+              <div>
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <QrCode className="h-5 w-5 text-primary" />
+                  Walk-in Menu QR Code
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Display this QR code at your venue entrance. Customers scan it to view your full menu in English — no ordering, display only.
+                </p>
+              </div>
+
+              {menuUrl && (
+                <div className="flex items-center gap-2 bg-background rounded-lg border border-border px-3 py-2">
+                  <code className="text-xs text-muted-foreground flex-1 truncate" dir="ltr">{menuUrl}</code>
+                  <button
+                    onClick={handleCopyUrl}
+                    className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                    title="Copy URL"
+                  >
+                    {copiedUrl ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                  <a
+                    href={menuUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+                    title="Open menu"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </div>
+              )}
+
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  onClick={handleGenerateQr}
+                  disabled={generateMenuQr.isPending}
+                  className="gap-2"
+                  variant={menuUrl ? "outline" : "default"}
+                >
+                  <RefreshCw className={`h-4 w-4 ${generateMenuQr.isPending ? "animate-spin" : ""}`} />
+                  {menuUrl ? "Regenerate QR" : "Generate QR Code"}
+                </Button>
+                {menuUrl && (
+                  <Button variant="outline" onClick={handleDownloadQr} className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Download PNG
+                  </Button>
+                )}
+              </div>
+
+              {menuUrl && (
+                <p className="text-xs text-muted-foreground">
+                  Regenerating creates a new URL — update any printed QR codes after regenerating.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4 bg-secondary flex flex-wrap h-auto p-1 gap-1">

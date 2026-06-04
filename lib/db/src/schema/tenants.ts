@@ -9,6 +9,7 @@ export const tenantsTable = pgTable("tenants", {
   slug: text("slug").notNull().unique(),
   isActive: boolean("is_active").notNull().default(true),
   language: text("language").notNull().default("ar"),
+  menuQrToken: text("menu_qr_token").unique(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

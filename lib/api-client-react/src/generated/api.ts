@@ -51,6 +51,7 @@ import type {
   ListProductsParams,
   ListSessionsParams,
   LoginInput,
+  MenuQrResponse,
   MessageResponse,
   Order,
   OrderAssignInput,
@@ -65,6 +66,7 @@ import type {
   ProductInput,
   ProductUpdate,
   ProductWithRecipe,
+  PublicMenuResponse,
   QrCode,
   QrMenuResponse,
   QrOrderInput,
@@ -2900,6 +2902,230 @@ export const usePlaceQrOrder = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getPlaceQrOrderMutationOptions(options));
     }
+
+export const getGenerateMenuQrUrl = () => {
+
+
+
+
+  return `/api/menu-qr/generate`
+}
+
+/**
+ * @summary Generate or regenerate the venue menu QR token (owner+)
+ */
+export const generateMenuQr = async ( options?: RequestInit): Promise<MenuQrResponse> => {
+
+  return customFetch<MenuQrResponse>(getGenerateMenuQrUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGenerateMenuQrMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateMenuQr>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateMenuQr>>, TError,void, TContext> => {
+
+const mutationKey = ['generateMenuQr'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateMenuQr>>, void> = () => {
+
+
+          return  generateMenuQr(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateMenuQrMutationResult = NonNullable<Awaited<ReturnType<typeof generateMenuQr>>>
+
+    export type GenerateMenuQrMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Generate or regenerate the venue menu QR token (owner+)
+ */
+export const useGenerateMenuQr = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateMenuQr>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateMenuQr>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGenerateMenuQrMutationOptions(options));
+    }
+
+export const getGetMenuQrUrl = () => {
+
+
+
+
+  return `/api/menu-qr/current`
+}
+
+/**
+ * @summary Get the current venue menu QR token (owner+)
+ */
+export const getMenuQr = async ( options?: RequestInit): Promise<MenuQrResponse> => {
+
+  return customFetch<MenuQrResponse>(getGetMenuQrUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMenuQrQueryKey = () => {
+    return [
+    `/api/menu-qr/current`
+    ] as const;
+    }
+
+
+export const getGetMenuQrQueryOptions = <TData = Awaited<ReturnType<typeof getMenuQr>>, TError = ErrorType<ErrorResponse>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMenuQr>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMenuQrQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMenuQr>>> = ({ signal }) => getMenuQr({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMenuQr>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMenuQrQueryResult = NonNullable<Awaited<ReturnType<typeof getMenuQr>>>
+export type GetMenuQrQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get the current venue menu QR token (owner+)
+ */
+
+export function useGetMenuQr<TData = Awaited<ReturnType<typeof getMenuQr>>, TError = ErrorType<ErrorResponse>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMenuQr>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMenuQrQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPublicMenuUrl = (token: string,) => {
+
+
+
+
+  return `/api/public-menu/${token}`
+}
+
+/**
+ * @summary Get the full public menu by QR token (no auth)
+ */
+export const getPublicMenu = async (token: string, options?: RequestInit): Promise<PublicMenuResponse> => {
+
+  return customFetch<PublicMenuResponse>(getGetPublicMenuUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicMenuQueryKey = (token: string,) => {
+    return [
+    `/api/public-menu/${token}`
+    ] as const;
+    }
+
+
+export const getGetPublicMenuQueryOptions = <TData = Awaited<ReturnType<typeof getPublicMenu>>, TError = ErrorType<ErrorResponse>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicMenuQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicMenu>>> = ({ signal }) => getPublicMenu(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(token), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicMenuQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicMenu>>>
+export type GetPublicMenuQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Get the full public menu by QR token (no auth)
+ */
+
+export function useGetPublicMenu<TData = Awaited<ReturnType<typeof getPublicMenu>>, TError = ErrorType<ErrorResponse>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicMenu>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicMenuQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getListOrdersUrl = (params?: ListOrdersParams,) => {
   const normalizedParams = new URLSearchParams();
