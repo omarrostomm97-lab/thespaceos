@@ -11,3 +11,9 @@ id = "OjA38A4f__We1hH6nPuqb"
 uri = "file://GAMING_LOUNGE_OS_PLAN.md"
 type = "text"
 title = "Gaming Lounge OS — Full System Reference"
+
+[[outputs]]
+id = "hNQZPLltvSZluy8-AH57k"
+uri = "file://dashboard-guide.md"
+type = "text"
+title = "Dashboard Guide"
