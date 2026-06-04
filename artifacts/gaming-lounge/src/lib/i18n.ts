@@ -121,9 +121,14 @@ const translations = {
     error_generic: "حدث خطأ، يرجى المحاولة مجدداً",
 
     /* ── Sessions page ── */
-    sessions_title: "الجلسات النشطة",
+    sessions_title: "الجلسات",
     sessions_subtitle: "إدارة الجلسات الحالية والتكلفة",
     no_sessions_hint: "يمكنك بدء جلسة جديدة من شاشة الغرف",
+    sessions_active_tab: "النشطة",
+    sessions_history_tab: "السجل",
+    sessions_history_empty: "لا توجد جلسات منتهية بعد",
+    session_duration_label: "المدة",
+    session_started_at: "بدأت",
     go_to_devices: "الذهاب للغرف",
     session_status_paused: "متوقفة مؤقتاً",
     session_status_playing: "قيد اللعب",
@@ -631,9 +636,14 @@ const translations = {
     error_generic: "An error occurred, please try again",
 
     /* ── Sessions page ── */
-    sessions_title: "Active Sessions",
+    sessions_title: "Sessions",
     sessions_subtitle: "Manage current sessions and costs",
     no_sessions_hint: "Start a new session from the rooms screen",
+    sessions_active_tab: "Active",
+    sessions_history_tab: "History",
+    sessions_history_empty: "No ended sessions yet",
+    session_duration_label: "Duration",
+    session_started_at: "Started",
     go_to_devices: "Go to Rooms",
     session_status_paused: "Paused",
     session_status_playing: "Playing",

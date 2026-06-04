@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   useListActiveSessions,
+  useListSessions,
   usePauseSession,
   useResumeSession,
   useEndSession,
@@ -14,7 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Gamepad2, Clock, Pause, Play, SquareSquare, Receipt, Banknote, CreditCard, Smartphone, AlertTriangle, ShoppingBag } from "lucide-react";
+import { Gamepad2, Clock, Pause, Play, SquareSquare, Receipt, Banknote, CreditCard, Smartphone, AlertTriangle, ShoppingBag, History, CheckCircle, XCircle } from "lucide-react";
+import { format } from "date-fns";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Link, useLocation } from "wouter";
@@ -52,6 +54,16 @@ export default function Sessions() {
   const endSession    = useEndSession();
   const createPayment = useCreatePayment();
   const verifyPayment = useVerifyPayment();
+
+  const [tab, setTab] = useState<"active" | "history">("active");
+
+  const { data: historySessions, isLoading: historyLoading } = useListSessions(
+    undefined,
+    { query: { enabled: tab === "history", refetchInterval: 15000 } }
+  );
+  const endedSessions = (historySessions ?? [])
+    .filter(s => s.status === "ended" || s.status === "cancelled")
+    .slice(0, 60);
 
   const [checkout, setCheckout]         = useState<CheckoutState | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
@@ -170,7 +182,79 @@ export default function Sessions() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+      {/* Tab toggle */}
+      <div className="flex gap-1 p-1 bg-secondary rounded-lg w-fit">
+        <button
+          onClick={() => setTab("active")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === "active" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          <Gamepad2 className="h-4 w-4" />
+          {t("sessions_active_tab")}
+          {(sessions?.length ?? 0) > 0 && (
+            <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full px-1.5 py-0.5 min-w-[1.25rem] text-center">
+              {sessions?.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setTab("history")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === "history" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          <History className="h-4 w-4" />
+          {t("sessions_history_tab")}
+        </button>
+      </div>
+
+      {/* ── History tab ── */}
+      {tab === "history" && (
+        <div className="space-y-3">
+          {historyLoading ? (
+            <div className="py-12 flex justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            </div>
+          ) : endedSessions.length === 0 ? (
+            <div className="py-12 text-center text-muted-foreground rounded-xl card-base">
+              <History className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium">{t("sessions_history_empty")}</p>
+            </div>
+          ) : (
+            endedSessions.map(s => {
+              const name = (s as any).assetNameAr || s.assetName || `${t("session_label")} #${s.id}`;
+              const isCancelled = s.status === "cancelled";
+              const mins = s.totalMinutes ? Math.round(parseFloat(String(s.totalMinutes))) : 0;
+              const cost = s.totalCost ? parseFloat(String(s.totalCost)) : 0;
+              return (
+                <div key={s.id} className="card-base flex items-center gap-4 px-4 py-3">
+                  <div className={`p-2 rounded-md shrink-0 ${isCancelled ? "bg-destructive/10" : "bg-emerald-500/10"}`}>
+                    {isCancelled
+                      ? <XCircle className="h-5 w-5 text-destructive" />
+                      : <CheckCircle className="h-5 w-5 text-emerald-500" />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold truncate">{name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {t("session_started_at")} {s.startedAt ? format(new Date(s.startedAt), "HH:mm") : "—"}
+                      {s.endedAt && ` → ${format(new Date(s.endedAt), "HH:mm")}`}
+                      {" · "}
+                      {t("session_duration_label")}: {Math.floor(mins / 60).toString().padStart(2, "0")}:{(mins % 60).toString().padStart(2, "0")}
+                    </p>
+                  </div>
+                  <div className="text-end shrink-0">
+                    <p className="font-bold text-emerald-500 tabular-nums">{cost.toFixed(2)} <span className="text-xs text-muted-foreground">ج.م</span></p>
+                    <Link href={`/sessions/${s.id}`}>
+                      <button className="text-xs text-primary hover:underline mt-0.5">{t("session_details_btn")}</button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* ── Active tab ── */}
+      {tab === "active" && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {sessions?.length === 0 ? (
           <div className="col-span-full py-12 text-center text-muted-foreground rounded-xl card-base">
             <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -290,7 +374,7 @@ export default function Sessions() {
             );
           })
         )}
-      </div>
+      </div>}
 
       {/* Checkout Dialog */}
       <Dialog open={!!checkout} onOpenChange={closeCheckout}>
