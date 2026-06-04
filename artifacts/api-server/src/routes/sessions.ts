@@ -144,6 +144,10 @@ router.get("/sessions/:sessionId", requireAuth, requireTenant, async (req, res) 
         unitPrice: orderItemsTable.unitPrice,
         totalPrice: orderItemsTable.totalPrice,
         notes: orderItemsTable.notes,
+        status: orderItemsTable.status,
+        returnReason: orderItemsTable.returnReason,
+        returnedAt: orderItemsTable.returnedAt,
+        returnedByUserId: orderItemsTable.returnedByUserId,
       }).from(orderItemsTable)
         .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
         .where(eq(orderItemsTable.orderId, o.id));
