@@ -2,9 +2,9 @@ import { Router } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db } from "@workspace/db";
-import { usersTable } from "@workspace/db";
+import { usersTable, tenantsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { signToken, requireAuth } from "../lib/auth";
+import { signToken, signImpersonateToken, requireAuth, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
 function getJwtSecret(): string {
@@ -117,6 +117,32 @@ router.post("/auth/refresh", async (req, res) => {
         role: user.role, tenantId: user.tenantId, isActive: user.isActive, createdAt: user.createdAt,
       },
     });
+  } catch {
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/auth/impersonate/:tenantId", requireAuth, requireRole("platform_owner"), async (req, res) => {
+  try {
+    const tenantId = parseInt(req.params.tenantId as string);
+    if (isNaN(tenantId)) {
+      res.status(400).json({ error: "Invalid tenantId" });
+      return;
+    }
+    const [tenant] = await db.select().from(tenantsTable).where(eq(tenantsTable.id, tenantId)).limit(1);
+    if (!tenant) {
+      res.status(404).json({ error: "Tenant not found" });
+      return;
+    }
+    const token = signImpersonateToken(req.user!.id, tenant.id);
+    await writeAuditLog({
+      user: req.user,
+      action: "impersonate_tenant",
+      entityType: "tenant",
+      entityId: tenant.id,
+      ipAddress: req.ip,
+    });
+    res.json({ token, tenant });
   } catch {
     res.status(500).json({ error: "Internal server error" });
   }

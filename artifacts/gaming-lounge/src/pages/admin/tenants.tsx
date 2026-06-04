@@ -1,11 +1,26 @@
-import { useListTenants } from "@workspace/api-client-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useListTenants, useImpersonateTenant } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
-import { Building2, Globe } from "lucide-react";
+import { Building2, Globe, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
+import { toast } from "sonner";
 
 export default function Tenants() {
   const { data: tenants, isLoading } = useListTenants();
+  const { enterImpersonation } = useAuth();
+  const [, setLocation] = useLocation();
+  const impersonate = useImpersonateTenant();
+
+  const handleEnter = async (tenantId: number) => {
+    try {
+      const result = await impersonate.mutateAsync({ tenantId });
+      enterImpersonation(result.token, result.tenant);
+      setLocation("/dashboard");
+    } catch {
+      toast.error("تعذّر الدخول إلى هذا الفرع");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -22,7 +37,7 @@ export default function Tenants() {
           <h2 className="text-3xl font-bold tracking-tight text-primary">إدارة الفروع (Tenants)</h2>
           <p className="text-muted-foreground mt-1">إدارة كافة المشتركين والفروع في النظام</p>
         </div>
-        <Button>إضافة فرع جديد</Button>
+        <Button disabled>إضافة فرع جديد</Button>
       </div>
 
       <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -58,7 +73,16 @@ export default function Tenants() {
                   )}
                 </td>
                 <td className="px-6 py-4 text-left">
-                  <Button variant="ghost" size="sm">إدارة</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5"
+                    onClick={() => handleEnter(tenant.id)}
+                    disabled={impersonate.isPending}
+                  >
+                    <LogIn className="h-3.5 w-3.5" />
+                    دخول
+                  </Button>
                 </td>
               </tr>
             ))}

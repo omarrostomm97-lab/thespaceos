@@ -17,6 +17,30 @@ export interface MessageResponse {
   message: string;
 }
 
+export type TenantLanguage = typeof TenantLanguage[keyof typeof TenantLanguage];
+
+
+export const TenantLanguage = {
+  ar: 'ar',
+  en: 'en',
+} as const;
+
+export interface Tenant {
+  id: number;
+  name: string;
+  /** @nullable */
+  nameAr?: string | null;
+  slug: string;
+  isActive: boolean;
+  language?: TenantLanguage;
+  createdAt: string;
+}
+
+export interface ImpersonateResponse {
+  token: string;
+  tenant: Tenant;
+}
+
 export type BreakdownResponseGamingByTypeItem = {
   type: string;
   typeAr: string;
@@ -115,25 +139,6 @@ export interface AuthResponse {
   user: User;
 }
 
-export type TenantLanguage = typeof TenantLanguage[keyof typeof TenantLanguage];
-
-
-export const TenantLanguage = {
-  ar: 'ar',
-  en: 'en',
-} as const;
-
-export interface Tenant {
-  id: number;
-  name: string;
-  /** @nullable */
-  nameAr?: string | null;
-  slug: string;
-  isActive: boolean;
-  language?: TenantLanguage;
-  createdAt: string;
-}
-
 export type TenantInputLanguage = typeof TenantInputLanguage[keyof typeof TenantInputLanguage];
 
 
@@ -180,6 +185,7 @@ export interface UserInput {
   nameAr?: string;
   role: UserInputRole;
   password: string;
+  tenantId?: number;
 }
 
 export type UserUpdateRole = typeof UserUpdateRole[keyof typeof UserUpdateRole];

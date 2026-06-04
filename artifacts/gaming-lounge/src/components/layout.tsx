@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Monitor, Gamepad2, ShoppingCart, UtensilsCrossed,
   Package, Clock, ReceiptText, Users, ShieldAlert, Settings, LogOut,
   TrendingUp, BookOpen, ChefHat, HelpCircle, Sun, Moon, Languages, Menu, X,
-  CalendarCheck, Bell,
+  CalendarCheck, Bell, ArrowRight,
 } from "lucide-react";
 import { useBookingAlerts } from "@/hooks/use-booking-alerts";
 import { ROUTE_ALLOWED_ROLES, UserRole } from "@/lib/permissions";
@@ -55,7 +55,7 @@ const fmtHHMM = (dt: string | Date) =>
   new Date(dt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
 
 export function Layout({ children }: LayoutProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, isImpersonating, impersonatedTenant, exitImpersonation } = useAuth();
   const [location] = useLocation();
   const { t, lang, toggleLang, dir } = useLang();
   const { theme, toggleTheme } = useTheme();
@@ -366,6 +366,39 @@ export function Layout({ children }: LayoutProps) {
 
       {/* ─── Main Content ─────────────────────────────── */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        {/* ── Impersonation Banner ── */}
+        {isImpersonating && impersonatedTenant && (
+          <div
+            className="shrink-0 flex items-center justify-between px-5 py-2.5"
+            style={{
+              background: "linear-gradient(90deg, rgba(245,158,11,0.15) 0%, rgba(245,158,11,0.08) 100%)",
+              borderBottom: "1px solid rgba(245,158,11,0.3)",
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <div
+                className="w-2 h-2 rounded-full animate-pulse"
+                style={{ background: "#f59e0b" }}
+              />
+              <span className="text-sm font-semibold" style={{ color: "#f59e0b" }}>
+                تتصفح الآن: {impersonatedTenant.nameAr || impersonatedTenant.name}
+              </span>
+            </div>
+            <button
+              onClick={exitImpersonation}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 hover:opacity-80"
+              style={{
+                background: "rgba(245,158,11,0.15)",
+                border: "1px solid rgba(245,158,11,0.3)",
+                color: "#f59e0b",
+              }}
+            >
+              <ArrowRight className="h-3.5 w-3.5" />
+              رجوع للوحة الإدارة
+            </button>
+          </div>
+        )}
 
         {/* Mobile top bar */}
         <div

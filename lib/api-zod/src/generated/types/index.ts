@@ -44,6 +44,7 @@ export * from './getDashboardShiftsPeriod';
 export * from './getRevenueStatsParams';
 export * from './getRevenueStatsPeriod';
 export * from './healthStatus';
+export * from './impersonateResponse';
 export * from './inventoryItem';
 export * from './inventoryItemInput';
 export * from './inventoryItemUpdate';

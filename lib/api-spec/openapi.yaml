@@ -142,6 +142,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /auth/impersonate/{tenantId}:
+    post:
+      operationId: impersonateTenant
+      tags: [auth]
+      summary: Impersonate a tenant (platform_owner only)
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Impersonation token issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImpersonateResponse"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   # ── TENANTS ──────────────────────────────────────────
   /tenants:
     get:
@@ -1646,6 +1677,15 @@ components:
       required:
         - message
 
+    ImpersonateResponse:
+      type: object
+      required: [token, tenant]
+      properties:
+        token:
+          type: string
+        tenant:
+          $ref: "#/components/schemas/Tenant"
+
     BreakdownResponse:
       type: object
       required: [period, source, gaming, roomOrders, buffet, grandTotal]
@@ -1862,6 +1902,8 @@ components:
           enum: [owner, manager, cashier, buffet_worker]
         password:
           type: string
+        tenantId:
+          type: integer
 
     UserUpdate:
       type: object

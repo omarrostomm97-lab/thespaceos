@@ -1,21 +1,42 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
-import { User } from "@workspace/api-client-react";
+import { User, Tenant } from "@workspace/api-client-react";
 import { useGetMe, getGetMeQueryKey, useRefreshToken } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+
+interface ImpersonatedTenant {
+  id: number;
+  name: string;
+  nameAr: string | null;
+}
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isImpersonating: boolean;
+  impersonatedTenant: ImpersonatedTenant | null;
   login: (token: string, user: User, refreshToken?: string) => void;
   logout: () => void;
+  enterImpersonation: (token: string, tenant: Tenant) => void;
+  exitImpersonation: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function getImpersonatedTenant(): ImpersonatedTenant | null {
+  try {
+    const raw = localStorage.getItem("impersonated_tenant");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("gl_token"));
+  const [isImpersonating, setIsImpersonating] = useState<boolean>(() => !!localStorage.getItem("platform_admin_token"));
+  const [impersonatedTenant, setImpersonatedTenant] = useState<ImpersonatedTenant | null>(getImpersonatedTenant);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const refreshingRef = useRef(false);
@@ -33,6 +54,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isError) return;
     if (refreshingRef.current) return;
+    if (isImpersonating) {
+      exitImpersonation();
+      return;
+    }
 
     const storedRefreshToken = localStorage.getItem("gl_refresh_token");
     if (!storedRefreshToken) {
@@ -67,10 +92,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     queryClient.setQueryData(getGetMeQueryKey(), newUser);
   };
 
+  const enterImpersonation = (newToken: string, tenant: Tenant) => {
+    const currentToken = localStorage.getItem("gl_token");
+    if (currentToken) {
+      localStorage.setItem("platform_admin_token", currentToken);
+    }
+    const tenantInfo: ImpersonatedTenant = { id: tenant.id, name: tenant.name, nameAr: tenant.nameAr ?? null };
+    localStorage.setItem("impersonated_tenant", JSON.stringify(tenantInfo));
+    localStorage.setItem("gl_token", newToken);
+    setToken(newToken);
+    setIsImpersonating(true);
+    setImpersonatedTenant(tenantInfo);
+    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+  };
+
+  const exitImpersonation = () => {
+    const adminToken = localStorage.getItem("platform_admin_token");
+    if (adminToken) {
+      localStorage.setItem("gl_token", adminToken);
+      setToken(adminToken);
+    }
+    localStorage.removeItem("platform_admin_token");
+    localStorage.removeItem("impersonated_tenant");
+    setIsImpersonating(false);
+    setImpersonatedTenant(null);
+    queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
+    setLocation("/admin/tenants");
+  };
+
   const doLogout = () => {
     localStorage.removeItem("gl_token");
     localStorage.removeItem("gl_refresh_token");
+    localStorage.removeItem("platform_admin_token");
+    localStorage.removeItem("impersonated_tenant");
     setToken(null);
+    setIsImpersonating(false);
+    setImpersonatedTenant(null);
     queryClient.removeQueries({ queryKey: getGetMeQueryKey() });
     setLocation("/login");
   };
@@ -78,7 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = doLogout;
 
   return (
-    <AuthContext.Provider value={{ user: user || null, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user: user || null, token, isLoading, isImpersonating, impersonatedTenant, login, logout, enterImpersonation, exitImpersonation }}>
       {children}
     </AuthContext.Provider>
   );

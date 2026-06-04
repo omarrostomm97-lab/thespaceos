@@ -36,8 +36,12 @@ export function signToken(userId: number): string {
   return jwt.sign({ userId }, getJwtSecret(), { expiresIn: "7d" });
 }
 
-export function verifyToken(token: string): { userId: number } {
-  return jwt.verify(token, getJwtSecret()) as { userId: number };
+export function signImpersonateToken(userId: number, impersonatedTenantId: number): string {
+  return jwt.sign({ userId, impersonatedTenantId }, getJwtSecret(), { expiresIn: "8h" });
+}
+
+export function verifyToken(token: string): { userId: number; impersonatedTenantId?: number } {
+  return jwt.verify(token, getJwtSecret()) as { userId: number; impersonatedTenantId?: number };
 }
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -49,7 +53,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
   const token = authHeader.slice(7);
   try {
-    const { userId } = verifyToken(token);
+    const { userId, impersonatedTenantId } = verifyToken(token);
     const [user] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
     if (!user || !user.isActive) {
       res.status(401).json({ error: "Unauthorized" });
@@ -61,7 +65,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
       name: user.name,
       nameAr: user.nameAr,
       role: user.role,
-      tenantId: user.tenantId,
+      tenantId: impersonatedTenantId ?? user.tenantId,
       isActive: user.isActive,
     };
     next();

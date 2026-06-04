@@ -1,13 +1,16 @@
-import { useListUsers, useCreateUser, useDeactivateUser, getListUsersQueryKey } from "@workspace/api-client-react";
+import {
+  useListUsers, useCreateUser, useDeactivateUser, useUpdateUser,
+  useListTenants, getListUsersQueryKey, getListTenantsQueryKey,
+} from "@workspace/api-client-react";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, UserX, Shield, Users } from "lucide-react";
+import { UserPlus, UserX, Shield, Users, Pencil, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import type { UserInputRole } from "@workspace/api-client-react";
+import type { UserInputRole, UserUpdateRole } from "@workspace/api-client-react";
 
 const ROLES: Record<string, { label: string; color: string }> = {
   platform_owner: { label: "مدير النظام", color: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
@@ -17,15 +20,30 @@ const ROLES: Record<string, { label: string; color: string }> = {
   buffet_worker: { label: "عامل بوفيه", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
 };
 
+interface EditState {
+  userId: number;
+  name: string;
+  nameAr: string;
+  role: string;
+  password: string;
+}
+
 export default function AdminUsers() {
   const { user: currentUser } = useAuth();
+  const isPlatformOwner = currentUser?.role === "platform_owner";
   const queryClient = useQueryClient();
+
   const { data: users, isLoading } = useListUsers();
+  const { data: tenants } = useListTenants({ query: { queryKey: getListTenantsQueryKey(), enabled: isPlatformOwner } });
   const createUser = useCreateUser();
   const deactivateUser = useDeactivateUser();
+  const updateUser = useUpdateUser();
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", nameAr: "", email: "", password: "", role: "cashier" });
+  const [form, setForm] = useState({
+    name: "", nameAr: "", email: "", password: "", role: "cashier", tenantId: "",
+  });
+  const [editState, setEditState] = useState<EditState | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +52,19 @@ export default function AdminUsers() {
       return;
     }
     try {
-      await createUser.mutateAsync({ data: { ...form, role: form.role as UserInputRole } });
+      const payload: Parameters<typeof createUser.mutateAsync>[0]["data"] = {
+        name: form.name,
+        nameAr: form.nameAr || undefined,
+        email: form.email,
+        password: form.password,
+        role: form.role as UserInputRole,
+      };
+      if (isPlatformOwner && form.tenantId) {
+        (payload as unknown as Record<string, unknown>).tenantId = parseInt(form.tenantId);
+      }
+      await createUser.mutateAsync({ data: payload });
       toast.success("تم إنشاء المستخدم بنجاح");
-      setForm({ name: "", nameAr: "", email: "", password: "", role: "cashier" });
+      setForm({ name: "", nameAr: "", email: "", password: "", role: "cashier", tenantId: "" });
       setShowForm(false);
       queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
     } catch {
@@ -55,6 +83,37 @@ export default function AdminUsers() {
     }
   };
 
+  const startEdit = (u: NonNullable<typeof users>[number]) => {
+    setEditState({
+      userId: u.id,
+      name: u.name,
+      nameAr: u.nameAr ?? "",
+      role: u.role,
+      password: "",
+    });
+  };
+
+  const cancelEdit = () => setEditState(null);
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editState) return;
+    try {
+      const data: Parameters<typeof updateUser.mutateAsync>[0]["data"] = {
+        name: editState.name || undefined,
+        nameAr: editState.nameAr || undefined,
+        role: editState.role as UserUpdateRole,
+        password: editState.password || undefined,
+      };
+      await updateUser.mutateAsync({ userId: editState.userId, data });
+      toast.success("تم حفظ التعديلات");
+      setEditState(null);
+      queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+    } catch {
+      toast.error("حدث خطأ أثناء حفظ التعديلات");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
@@ -66,6 +125,12 @@ export default function AdminUsers() {
   const activeUsers = users?.filter(u => u.isActive) ?? [];
   const inactiveUsers = users?.filter(u => !u.isActive) ?? [];
 
+  const tenantName = (tenantId: number | null | undefined) => {
+    if (!tenantId || !tenants) return "—";
+    const t = tenants.find(t => t.id === tenantId);
+    return t ? (t.nameAr || t.name) : `#${tenantId}`;
+  };
+
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -75,7 +140,7 @@ export default function AdminUsers() {
             إدارة المستخدمين
           </h2>
           <p className="text-muted-foreground mt-1">
-            {currentUser?.role === "platform_owner" ? "كافة المستخدمين عبر جميع الفروع" : "مستخدمو هذا الفرع"}
+            {isPlatformOwner ? "كافة المستخدمين عبر جميع الفروع" : "مستخدمو هذا الفرع"}
           </p>
         </div>
         <Button onClick={() => setShowForm(!showForm)} className="gap-2">
@@ -129,7 +194,7 @@ export default function AdminUsers() {
                   placeholder="••••••••"
                 />
               </div>
-              <div className="space-y-1 col-span-2">
+              <div className="space-y-1">
                 <label className="text-sm text-muted-foreground">الدور</label>
                 <select
                   className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-right"
@@ -141,6 +206,21 @@ export default function AdminUsers() {
                   ))}
                 </select>
               </div>
+              {isPlatformOwner && (
+                <div className="space-y-1">
+                  <label className="text-sm text-muted-foreground">الفرع</label>
+                  <select
+                    className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-right"
+                    value={form.tenantId}
+                    onChange={e => setForm(p => ({ ...p, tenantId: e.target.value }))}
+                  >
+                    <option value="">— اختر الفرع —</option>
+                    {tenants?.map(t => (
+                      <option key={t.id} value={t.id}>{t.nameAr || t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="col-span-2 flex gap-3 justify-end">
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>إلغاء</Button>
                 <Button type="submit" disabled={createUser.isPending}>
@@ -163,6 +243,7 @@ export default function AdminUsers() {
               <tr>
                 <th className="px-6 py-4">الاسم</th>
                 <th className="px-6 py-4">البريد الإلكتروني</th>
+                {isPlatformOwner && <th className="px-6 py-4">الفرع</th>}
                 <th className="px-6 py-4">الدور</th>
                 <th className="px-6 py-4">الحالة</th>
                 <th className="px-6 py-4">إجراءات</th>
@@ -172,10 +253,75 @@ export default function AdminUsers() {
               {activeUsers.map(u => {
                 const role = ROLES[u.role] ?? { label: u.role, color: "bg-secondary text-foreground border-border" };
                 const isSelf = u.id === currentUser?.id;
+                const isEditing = editState?.userId === u.id;
+
+                if (isEditing && editState) {
+                  return (
+                    <tr key={u.id} className="border-b border-border bg-primary/5">
+                      <td colSpan={isPlatformOwner ? 6 : 5} className="px-6 py-4">
+                        <form onSubmit={handleSaveEdit} className="flex flex-wrap gap-3 items-end">
+                          <div className="space-y-1 min-w-[140px]">
+                            <label className="text-xs text-muted-foreground">الاسم (إنجليزي)</label>
+                            <input
+                              className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm text-right"
+                              value={editState.name}
+                              onChange={e => setEditState(s => s ? { ...s, name: e.target.value } : s)}
+                            />
+                          </div>
+                          <div className="space-y-1 min-w-[140px]">
+                            <label className="text-xs text-muted-foreground">الاسم (عربي)</label>
+                            <input
+                              className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm text-right"
+                              value={editState.nameAr}
+                              onChange={e => setEditState(s => s ? { ...s, nameAr: e.target.value } : s)}
+                              placeholder="اختياري"
+                            />
+                          </div>
+                          <div className="space-y-1 min-w-[120px]">
+                            <label className="text-xs text-muted-foreground">الدور</label>
+                            <select
+                              className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm text-right"
+                              value={editState.role}
+                              onChange={e => setEditState(s => s ? { ...s, role: e.target.value } : s)}
+                            >
+                              {Object.entries(ROLES).filter(([r]) => r !== "platform_owner").map(([value, { label }]) => (
+                                <option key={value} value={value}>{label}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="space-y-1 min-w-[140px]">
+                            <label className="text-xs text-muted-foreground">كلمة مرور جديدة (اختياري)</label>
+                            <input
+                              className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm text-right"
+                              type="password"
+                              value={editState.password}
+                              onChange={e => setEditState(s => s ? { ...s, password: e.target.value } : s)}
+                              placeholder="••••••••"
+                            />
+                          </div>
+                          <div className="flex gap-2 pb-0.5">
+                            <Button type="submit" size="sm" className="gap-1" disabled={updateUser.isPending}>
+                              <Check className="h-3.5 w-3.5" />
+                              حفظ
+                            </Button>
+                            <Button type="button" size="sm" variant="outline" className="gap-1" onClick={cancelEdit}>
+                              <X className="h-3.5 w-3.5" />
+                              إلغاء
+                            </Button>
+                          </div>
+                        </form>
+                      </td>
+                    </tr>
+                  );
+                }
+
                 return (
                   <tr key={u.id} className="border-b border-border hover:bg-secondary/30">
                     <td className="px-6 py-4 font-medium">{u.nameAr || u.name}</td>
                     <td className="px-6 py-4 text-muted-foreground font-mono text-xs">{u.email}</td>
+                    {isPlatformOwner && (
+                      <td className="px-6 py-4 text-muted-foreground text-xs">{tenantName(u.tenantId)}</td>
+                    )}
                     <td className="px-6 py-4">
                       <Badge className={`text-xs border ${role.color}`}>{role.label}</Badge>
                     </td>
@@ -183,25 +329,36 @@ export default function AdminUsers() {
                       <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 border text-xs">نشط</Badge>
                     </td>
                     <td className="px-6 py-4">
-                      {!isSelf && (
+                      <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:bg-destructive/10 gap-1"
-                          onClick={() => handleDeactivate(u.id, u.nameAr || u.name)}
-                          disabled={deactivateUser.isPending}
+                          className="gap-1"
+                          onClick={() => startEdit(u)}
                         >
-                          <UserX className="h-4 w-4" />
-                          إلغاء التفعيل
+                          <Pencil className="h-3.5 w-3.5" />
+                          تعديل
                         </Button>
-                      )}
+                        {!isSelf && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:bg-destructive/10 gap-1"
+                            onClick={() => handleDeactivate(u.id, u.nameAr || u.name)}
+                            disabled={deactivateUser.isPending}
+                          >
+                            <UserX className="h-4 w-4" />
+                            إلغاء التفعيل
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
               })}
               {activeUsers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">لا يوجد مستخدمون نشطون</td>
+                  <td colSpan={isPlatformOwner ? 6 : 5} className="px-6 py-12 text-center text-muted-foreground">لا يوجد مستخدمون نشطون</td>
                 </tr>
               )}
             </tbody>
@@ -218,6 +375,7 @@ export default function AdminUsers() {
                 <tr>
                   <th className="px-6 py-4">الاسم</th>
                   <th className="px-6 py-4">البريد الإلكتروني</th>
+                  {isPlatformOwner && <th className="px-6 py-4">الفرع</th>}
                   <th className="px-6 py-4">الدور</th>
                 </tr>
               </thead>
@@ -228,6 +386,9 @@ export default function AdminUsers() {
                     <tr key={u.id} className="border-b border-border">
                       <td className="px-6 py-4 line-through text-muted-foreground">{u.nameAr || u.name}</td>
                       <td className="px-6 py-4 text-muted-foreground font-mono text-xs">{u.email}</td>
+                      {isPlatformOwner && (
+                        <td className="px-6 py-4 text-muted-foreground text-xs">{tenantName(u.tenantId)}</td>
+                      )}
                       <td className="px-6 py-4 text-muted-foreground text-xs">{role.label}</td>
                     </tr>
                   );

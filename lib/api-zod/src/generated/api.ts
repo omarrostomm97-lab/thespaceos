@@ -87,6 +87,27 @@ export const RefreshTokenResponse = zod.object({
 
 
 /**
+ * @summary Impersonate a tenant (platform_owner only)
+ */
+export const ImpersonateTenantParams = zod.object({
+  "tenantId": zod.coerce.number()
+})
+
+export const ImpersonateTenantResponse = zod.object({
+  "token": zod.string(),
+  "tenant": zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "slug": zod.string(),
+  "isActive": zod.boolean(),
+  "language": zod.enum(['ar', 'en']).optional(),
+  "createdAt": zod.coerce.date()
+})
+})
+
+
+/**
  * @summary List all tenants (platform owner only)
  */
 export const ListTenantsResponseItem = zod.object({
@@ -179,7 +200,8 @@ export const CreateUserBody = zod.object({
   "name": zod.string(),
   "nameAr": zod.string().optional(),
   "role": zod.enum(['owner', 'manager', 'cashier', 'buffet_worker']),
-  "password": zod.string()
+  "password": zod.string(),
+  "tenantId": zod.number().optional()
 })
 
 

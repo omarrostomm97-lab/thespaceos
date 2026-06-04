@@ -38,6 +38,7 @@ import type {
   GetDashboardShiftsParams,
   GetRevenueStatsParams,
   HealthStatus,
+  ImpersonateResponse,
   InventoryItem,
   InventoryItemInput,
   InventoryItemUpdate,
@@ -466,6 +467,76 @@ export const useRefreshToken = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getRefreshTokenMutationOptions(options));
+    }
+
+export const getImpersonateTenantUrl = (tenantId: number,) => {
+
+
+
+
+  return `/api/auth/impersonate/${tenantId}`
+}
+
+/**
+ * @summary Impersonate a tenant (platform_owner only)
+ */
+export const impersonateTenant = async (tenantId: number, options?: RequestInit): Promise<ImpersonateResponse> => {
+
+  return customFetch<ImpersonateResponse>(getImpersonateTenantUrl(tenantId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getImpersonateTenantMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof impersonateTenant>>, TError,{tenantId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof impersonateTenant>>, TError,{tenantId: number}, TContext> => {
+
+const mutationKey = ['impersonateTenant'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof impersonateTenant>>, {tenantId: number}> = (props) => {
+          const {tenantId} = props ?? {};
+
+          return  impersonateTenant(tenantId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImpersonateTenantMutationResult = NonNullable<Awaited<ReturnType<typeof impersonateTenant>>>
+
+    export type ImpersonateTenantMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Impersonate a tenant (platform_owner only)
+ */
+export const useImpersonateTenant = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof impersonateTenant>>, TError,{tenantId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof impersonateTenant>>,
+        TError,
+        {tenantId: number},
+        TContext
+      > => {
+      return useMutation(getImpersonateTenantMutationOptions(options));
     }
 
 export const getListTenantsUrl = () => {

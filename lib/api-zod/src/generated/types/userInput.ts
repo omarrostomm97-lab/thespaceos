@@ -13,4 +13,5 @@ export interface UserInput {
   nameAr?: string;
   role: UserInputRole;
   password: string;
+  tenantId?: number;
 }
