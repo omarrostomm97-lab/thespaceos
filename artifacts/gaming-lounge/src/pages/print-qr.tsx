@@ -242,13 +242,8 @@ export default function PrintQrPage() {
             <img
               src={`${import.meta.env.BASE_URL}gaming-lounge-os-logo.png`}
               alt="Gaming Lounge OS"
-              style={{ width: 22, height: 22, borderRadius: 5, objectFit: "cover" }}
+              style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover" }}
             />
-            <span style={{
-              color: "rgba(255,255,255,0.55)", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
-            }}>
-              GAMING LOUNGE OS
-            </span>
           </div>
 
         </div>

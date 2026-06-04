@@ -130,10 +130,7 @@ function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venu
         display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
       }}>
         <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 9, letterSpacing: "0.08em" }}>POWERED BY</span>
-        <img src={LOGO} alt="Gaming Lounge OS" style={{ width: 20, height: 20, borderRadius: 4, objectFit: "cover" }} />
-        <span style={{ color: "rgba(255,255,255,0.55)", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em" }}>
-          GAMING LOUNGE OS
-        </span>
+        <img src={LOGO} alt="Gaming Lounge OS" style={{ width: 44, height: 44, borderRadius: 9, objectFit: "cover" }} />
       </div>
     </div>
   );
