@@ -135,14 +135,9 @@ export default function PrintQrPage() {
               <Gamepad2 style={{ width: 18, height: 18, color: "white" }} />
             </div>
             <div style={{ position: "relative" }}>
-              <div style={{ color: "rgba(255,255,255,0.65)", fontSize: 10, fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                Gaming Lounge
+              <div style={{ color: "white", fontSize: 14, fontWeight: 700, letterSpacing: "0.02em" }}>
+                {venue || "Gaming Lounge"}
               </div>
-              {venue && (
-                <div style={{ color: "white", fontSize: 13, fontWeight: 700, lineHeight: 1.2, marginTop: 1 }}>
-                  {venue}
-                </div>
-              )}
             </div>
           </div>
 

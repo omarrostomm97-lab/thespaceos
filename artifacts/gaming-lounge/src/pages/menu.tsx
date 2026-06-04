@@ -10,6 +10,7 @@ import {
   useDeleteProductCategory,
   useGenerateMenuQr,
   useGetMenuQr,
+  useGetTenant,
   getListProductsQueryKey,
   getListProductCategoriesQueryKey,
 } from "@workspace/api-client-react";
@@ -42,7 +43,9 @@ const emptyProductForm  = (): ProductForm  => ({ name: "", nameAr: "", price: ""
 const emptyCategoryForm = (): CategoryForm => ({ name: "", nameAr: "" });
 
 export default function Menu() {
-  const { user } = useAuth();
+  const { user, impersonatedTenant } = useAuth();
+  const { data: tenantData } = useGetTenant(user?.tenantId ?? 0);
+  const venueName = impersonatedTenant?.name ?? tenantData?.name ?? "";
   const { t, dir } = useLang();
   const queryClient = useQueryClient();
   const isManager = MGMT_ROLES.includes(user?.role ?? "");
@@ -298,6 +301,7 @@ export default function Menu() {
                         url: menuUrl,
                         title: "Walk-in Menu",
                         type: "menu",
+                        venue: venueName,
                       });
                       window.open(`${window.location.origin}${base}/print-qr?${params}`, "_blank");
                     }} className="gap-2">

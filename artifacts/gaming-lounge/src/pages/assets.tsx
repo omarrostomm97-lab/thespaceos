@@ -7,6 +7,7 @@ import {
   useCreateAsset,
   useUpdateAsset,
   useGenerateAssetQr,
+  useGetTenant,
   getListAssetsQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
@@ -300,7 +301,9 @@ const EMPTY_FORM: FormState = { nameAr: "", name: "", type: "ps", pricePerHour: 
 export default function Assets() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, impersonatedTenant } = useAuth();
+  const { data: tenantData } = useGetTenant(user?.tenantId ?? 0);
+  const venueName = impersonatedTenant?.name ?? tenantData?.name ?? "";
   const { t, dir, lang } = useLang();
   const isMgmt = MGMT_ROLES.includes(user?.role ?? "");
 
@@ -638,6 +641,7 @@ export default function Assets() {
                   url: qrUrl,
                   title: qrAsset?.name ?? "",
                   type: "room",
+                  venue: venueName,
                 });
                 window.open(`${window.location.origin}${base}/print-qr?${params}`, "_blank");
               }} disabled={!qrToken || qrLoading} className="gap-1.5">
