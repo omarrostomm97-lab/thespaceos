@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { useListAssets } from "@workspace/api-client-react";
+import { useListAssets, generateAssetQr } from "@workspace/api-client-react";
 import type { Asset } from "@workspace/api-client-react";
 import { Gamepad2, Printer, X, Loader2, LayoutGrid, Square } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -16,7 +16,7 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
-/* ── Full-page card (one per page) ── */
+/* ── Full-page card (1 per page) ── */
 function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venueName: string }) {
   return (
     <div
@@ -65,9 +65,7 @@ function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venu
           background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)",
           borderRadius: 100, padding: "3px 12px", marginBottom: 10,
         }}>
-          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#34d399" }}>
-            Room Order
-          </span>
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#34d399" }}>Room Order</span>
         </div>
         <h2 style={{
           color: "white", fontSize: asset.name.length > 14 ? 22 : 28, fontWeight: 900,
@@ -116,68 +114,82 @@ function CompactQrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: strin
         background: "linear-gradient(160deg, #0f0720 0%, #0a0a0f 40%, #12072a 100%)",
         borderRadius: 14,
         boxShadow: "0 0 0 1px rgba(124,58,237,0.35)",
-        padding: "0 0 10px",
         printColorAdjust: "exact",
+        justifyContent: "space-between",
       }}
     >
-      {/* header */}
+      {/* header strip */}
       <div style={{
-        width: "100%",
+        width: "100%", flexShrink: 0,
         background: "linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)",
-        padding: "8px 12px 6px",
-        display: "flex", alignItems: "center", gap: 6, position: "relative",
+        padding: "9px 14px 7px",
+        display: "flex", alignItems: "center", gap: 7, position: "relative",
       }}>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%)" }} />
         <div style={{
-          background: "rgba(255,255,255,0.15)", borderRadius: 6, width: 20, height: 20,
+          background: "rgba(255,255,255,0.15)", borderRadius: 6, width: 22, height: 22,
           display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative",
         }}>
-          <Gamepad2 style={{ width: 11, height: 11, color: "white" }} />
+          <Gamepad2 style={{ width: 12, height: 12, color: "white" }} />
         </div>
-        <span style={{ position: "relative", color: "white", fontSize: 9, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span style={{
+          position: "relative", color: "white", fontSize: 10, fontWeight: 700,
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>
           {venueName || "Gaming Lounge"}
         </span>
       </div>
 
       {/* room name */}
-      <div style={{ padding: "8px 10px 6px", textAlign: "center", width: "100%" }}>
+      <div style={{ textAlign: "center", padding: "10px 12px 4px", width: "100%", flexShrink: 0 }}>
         <div style={{
           display: "inline-block",
           background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)",
-          borderRadius: 100, padding: "2px 8px", marginBottom: 5,
+          borderRadius: 100, padding: "2px 9px", marginBottom: 6,
         }}>
           <span style={{ fontSize: 7, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#34d399" }}>
             Room Order
           </span>
         </div>
         <div style={{
-          color: "white", fontSize: asset.name.length > 12 ? 13 : 16, fontWeight: 900,
-          lineHeight: 1.1, letterSpacing: "-0.01em",
+          color: "white",
+          fontSize: asset.name.length > 12 ? 14 : 18,
+          fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.01em",
           fontFamily: "system-ui, -apple-system, sans-serif",
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}>{asset.name}</div>
-      </div>
-
-      {/* QR */}
-      <div style={{ background: "white", borderRadius: 10, padding: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.4)" }}>
-        <QRCodeCanvas value={qrUrl} size={120} bgColor="#ffffff" fgColor="#0a0a0f" level="M" includeMargin={false} />
-      </div>
-
-      {/* CTA */}
-      <div style={{ textAlign: "center", padding: "8px 8px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-          <span style={{ fontSize: 11 }}>📱</span>
-          <span style={{ color: "white", fontSize: 9, fontWeight: 800 }}>Scan to Order</span>
+        }}>
+          {asset.name}
         </div>
       </div>
 
-      {/* footer */}
+      {/* QR code */}
+      <div style={{ flexShrink: 0, padding: "0 0 4px" }}>
+        <div style={{
+          background: "white", borderRadius: 10, padding: 10,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+        }}>
+          <QRCodeCanvas value={qrUrl} size={120} bgColor="#ffffff" fgColor="#0a0a0f" level="M" includeMargin={false} />
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div style={{ textAlign: "center", padding: "6px 12px 0", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5 }}>
+          <span style={{ fontSize: 12 }}>📱</span>
+          <span style={{ color: "white", fontSize: 10, fontWeight: 800 }}>Scan to Order</span>
+        </div>
+      </div>
+
+      {/* Powered by */}
       <div style={{
-        marginTop: "auto", paddingTop: 6,
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+        flexShrink: 0,
+        padding: "8px 12px 10px",
+        borderTop: "1px solid rgba(255,255,255,0.07)",
+        width: "100%",
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
       }}>
-        <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 6, letterSpacing: "0.08em" }}>POWERED BY</span>
-        <img src={LOGO} alt="" style={{ width: 18, height: 18, borderRadius: 4, objectFit: "cover" }} />
+        <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 7, letterSpacing: "0.08em" }}>POWERED BY</span>
+        <img src={LOGO} alt="Gaming Lounge OS" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "cover" }} />
       </div>
     </div>
   );
@@ -188,13 +200,45 @@ export default function PrintAllQrPage() {
   const { user, impersonatedTenant } = useAuth();
   const venueName = impersonatedTenant?.name ?? user?.tenantName ?? "";
   const [layout, setLayout] = useState<Layout>("single");
+  const [tokenMap, setTokenMap] = useState<Record<number, string>>({});
+  const [generating, setGenerating] = useState(false);
 
   const { data: assets, isLoading } = useListAssets();
-  const assetsWithQr = (assets ?? []).filter(a => a.qrToken);
 
-  const CARDS_PER_PAGE = 6; // 2 columns × 3 rows
+  // Auto-generate QR tokens for assets that don't have one yet
+  useEffect(() => {
+    if (!assets || assets.length === 0) return;
+    const missing = assets.filter(a => !a.qrToken && !tokenMap[a.id]);
+    if (missing.length === 0) return;
 
-  const pages = layout === "compact" ? chunk(assetsWithQr, CARDS_PER_PAGE) : [];
+    setGenerating(true);
+    Promise.all(
+      missing.map(a =>
+        generateAssetQr(a.id)
+          .then(data => ({ id: a.id, token: data.token }))
+          .catch(() => null)
+      )
+    ).then(results => {
+      const newMap: Record<number, string> = {};
+      for (const r of results) {
+        if (r?.token) newMap[r.id] = r.token;
+      }
+      setTokenMap(prev => ({ ...prev, ...newMap }));
+      setGenerating(false);
+    });
+  }, [assets]);
+
+  const allAssets = assets ?? [];
+  // Use fetched qrToken or auto-generated one
+  const assetsReady = allAssets.map(a => ({
+    ...a,
+    qrToken: a.qrToken ?? tokenMap[a.id] ?? null,
+  })).filter(a => a.qrToken);
+
+  const CARDS_PER_PAGE = 6;
+  const pages = layout === "compact" ? chunk(assetsReady, CARDS_PER_PAGE) : [];
+
+  const isWorking = isLoading || generating;
 
   return (
     <>
@@ -216,7 +260,7 @@ export default function PrintAllQrPage() {
             display: grid !important;
             grid-template-columns: 1fr 1fr !important;
             grid-template-rows: 1fr 1fr 1fr !important;
-            gap: 6mm !important;
+            gap: 5mm !important;
             width: 210mm !important;
             height: 297mm !important;
             padding: 8mm !important;
@@ -226,6 +270,7 @@ export default function PrintAllQrPage() {
           }
           .compact-cell {
             display: flex !important;
+            min-height: 0 !important;
           }
           .qr-card {
             print-color-adjust: exact;
@@ -244,15 +289,14 @@ export default function PrintAllQrPage() {
           .compact-page {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto auto;
-            gap: 16px;
-            max-width: 720px;
+            gap: 14px;
+            max-width: 740px;
             margin: 0 auto;
             padding: 72px 20px 40px;
           }
           .compact-cell {
             display: flex;
-            aspect-ratio: 0.85;
+            height: 320px;
           }
         }
       `}</style>
@@ -268,14 +312,12 @@ export default function PrintAllQrPage() {
         <div className="flex-1" />
 
         {/* Layout toggle */}
-        {!isLoading && assetsWithQr.length > 0 && (
+        {!isWorking && assetsReady.length > 0 && (
           <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             <button
               onClick={() => setLayout("single")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                layout === "single"
-                  ? "bg-white shadow text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
+                layout === "single" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"
               }`}
             >
               <Square className="h-3.5 w-3.5" /> 1 per page
@@ -283,9 +325,7 @@ export default function PrintAllQrPage() {
             <button
               onClick={() => setLayout("compact")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                layout === "compact"
-                  ? "bg-white shadow text-gray-900"
-                  : "text-gray-500 hover:text-gray-700"
+                layout === "compact" ? "bg-white shadow text-gray-900" : "text-gray-500 hover:text-gray-700"
               }`}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> 6 per page
@@ -293,20 +333,21 @@ export default function PrintAllQrPage() {
           </div>
         )}
 
-        {isLoading ? (
+        {isWorking ? (
           <span className="flex items-center gap-1.5 text-sm text-gray-500">
-            <Loader2 className="h-4 w-4 animate-spin" /> Loading rooms…
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {isLoading ? "Loading rooms…" : "Generating QR codes…"}
           </span>
         ) : (
           <span className="text-sm text-gray-400">
-            {assetsWithQr.length} room{assetsWithQr.length !== 1 ? "s" : ""}
+            {assetsReady.length} room{assetsReady.length !== 1 ? "s" : ""}
             {layout === "compact" ? ` · ${pages.length} page${pages.length !== 1 ? "s" : ""}` : ""}
           </span>
         )}
 
         <button
           onClick={() => window.print()}
-          disabled={isLoading || assetsWithQr.length === 0}
+          disabled={isWorking || assetsReady.length === 0}
           className="flex items-center gap-1.5 text-sm font-semibold text-white bg-[#7c3aed] hover:bg-[#6d28d9] disabled:opacity-50 rounded-lg px-4 py-1.5 transition-colors shadow-sm"
         >
           <Printer className="h-4 w-4" /> Print All
@@ -315,14 +356,19 @@ export default function PrintAllQrPage() {
 
       {/* Cards */}
       <div>
-        {isLoading && (
+        {isWorking && (
           <div className="card-page">
-            <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
+              <p className="text-gray-500 text-sm">
+                {isLoading ? "Loading rooms…" : `Generating QR codes for ${allAssets.filter(a => !a.qrToken).length} room(s)…`}
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Single layout: one card per page */}
-        {!isLoading && layout === "single" && assetsWithQr.map(asset => {
+        {/* Single layout */}
+        {!isWorking && layout === "single" && assetsReady.map(asset => {
           const qrUrl = `${window.location.origin}/qr/${asset.qrToken}`;
           return (
             <div key={asset.id} className="card-page">
@@ -332,7 +378,7 @@ export default function PrintAllQrPage() {
         })}
 
         {/* Compact layout: 6 per page in 2×3 grid */}
-        {!isLoading && layout === "compact" && pages.map((group, pageIdx) => (
+        {!isWorking && layout === "compact" && pages.map((group, pageIdx) => (
           <div key={pageIdx} className="compact-page">
             {group.map(asset => {
               const qrUrl = `${window.location.origin}/qr/${asset.qrToken}`;
@@ -345,11 +391,10 @@ export default function PrintAllQrPage() {
           </div>
         ))}
 
-        {!isLoading && assetsWithQr.length === 0 && (
+        {!isWorking && assetsReady.length === 0 && (
           <div className="card-page" style={{ flexDirection: "column", gap: 12 }}>
             <Gamepad2 className="h-12 w-12 text-purple-400 mx-auto" />
-            <p className="text-gray-500 text-sm">No rooms have QR codes generated yet.</p>
-            <p className="text-gray-400 text-xs">Go to Assets → generate a QR code for each room first.</p>
+            <p className="text-gray-500 text-sm">No rooms found.</p>
           </div>
         )}
       </div>
