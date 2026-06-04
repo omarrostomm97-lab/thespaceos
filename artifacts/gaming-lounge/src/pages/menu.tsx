@@ -28,7 +28,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Settings, UtensilsCrossed, QrCode, RefreshCw, Download, Copy, Check, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Settings, UtensilsCrossed, QrCode, RefreshCw, Download, Copy, Check, ExternalLink, Printer } from "lucide-react";
 import { getProductEmoji } from "@/lib/product-emoji";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang } from "@/hooks/use-language";
@@ -288,10 +288,23 @@ export default function Menu() {
                   {menuUrl ? "Regenerate QR" : "Generate QR Code"}
                 </Button>
                 {menuUrl && (
-                  <Button variant="outline" onClick={handleDownloadQr} className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Download PNG
-                  </Button>
+                  <>
+                    <Button variant="outline" onClick={handleDownloadQr} className="gap-2">
+                      <Download className="h-4 w-4" />
+                      Download PNG
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      const params = new URLSearchParams({
+                        url: menuUrl,
+                        title: "Walk-in Menu",
+                        type: "menu",
+                      });
+                      window.open(`${window.location.origin}${base}/print-qr?${params}`, "_blank");
+                    }} className="gap-2">
+                      <Printer className="h-4 w-4" />
+                      Print QR Card
+                    </Button>
+                  </>
                 )}
               </div>
 

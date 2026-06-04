@@ -21,6 +21,7 @@ import Orders from "@/pages/orders";
 import Menu from "@/pages/menu";
 import QrMenu from "@/pages/qr/[token]";
 import PublicMenuPage from "@/pages/public-menu/[token]";
+import PrintQrPage from "@/pages/print-qr";
 import Inventory from "@/pages/inventory";
 import Shifts from "@/pages/shifts";
 import Payments from "@/pages/payments";
@@ -71,6 +72,7 @@ function Router() {
       <Route path="/unauthorized" component={Unauthorized} />
       <Route path="/qr/:token" component={QrMenu} />
       <Route path="/public-menu/:token" component={PublicMenuPage} />
+      <Route path="/print-qr" component={PrintQrPage} />
 
       <Route path="/admin/tenants">
         <ProtectedPage path="/admin/tenants"><AdminTenants /></ProtectedPage>

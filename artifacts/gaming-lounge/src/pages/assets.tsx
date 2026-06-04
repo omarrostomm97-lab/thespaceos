@@ -632,7 +632,15 @@ export default function Assets() {
                   {t("regenerate_qr")}
                 </Button>
               )}
-              <Button size="sm" onClick={() => window.print()} disabled={!qrToken || qrLoading} className="gap-1.5">
+              <Button size="sm" onClick={() => {
+                const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+                const params = new URLSearchParams({
+                  url: qrUrl,
+                  title: qrAsset?.name ?? "",
+                  type: "room",
+                });
+                window.open(`${window.location.origin}${base}/print-qr?${params}`, "_blank");
+              }} disabled={!qrToken || qrLoading} className="gap-1.5">
                 <Printer className="h-3.5 w-3.5" />
                 {t("print")}
               </Button>
