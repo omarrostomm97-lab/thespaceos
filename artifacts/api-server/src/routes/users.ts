@@ -49,7 +49,7 @@ router.get("/users", requireAuth, async (req, res) => {
   }
 });
 
-router.post("/users", requireAuth, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
+router.post("/users", requireAuth, requireRole("platform_owner", "owner"), async (req, res) => {
   try {
     const { email, name, nameAr, role, password } = req.body;
     if (!email || !name || !role || !password) {
@@ -93,7 +93,7 @@ router.get("/users/:userId", requireAuth, async (req, res) => {
   }
 });
 
-router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
+router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner"), async (req, res) => {
   try {
     const id = parseInt(req.params.userId as string);
     const { name, nameAr, role, password } = req.body;
@@ -119,22 +119,33 @@ router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner
   }
 });
 
-router.post("/users/:userId/deactivate", requireAuth, requireRole("platform_owner", "owner", "manager"), async (req, res) => {
+router.post("/users/:userId/deactivate", requireAuth, requireRole("platform_owner", "owner"), async (req, res) => {
   try {
     const id = parseInt(req.params.userId as string);
-    // Prevent self-deactivation
     if (id === req.user!.id) {
       res.status(400).json({ error: "Cannot deactivate your own account" });
       return;
     }
     const where = buildUserWhere(id, req.user!);
-
     const [user] = await db.update(usersTable).set({ isActive: false }).where(where).returning();
     if (!user) { res.status(404).json({ error: "Not found" }); return; }
     await writeAuditLog({ user: req.user, action: "deactivate_user", entityType: "user", entityId: id });
     res.json(formatUser(user));
   } catch {
     res.status(500).json({ error: "Failed to deactivate user" });
+  }
+});
+
+router.post("/users/:userId/activate", requireAuth, requireRole("platform_owner", "owner"), async (req, res) => {
+  try {
+    const id = parseInt(req.params.userId as string);
+    const where = buildUserWhere(id, req.user!);
+    const [user] = await db.update(usersTable).set({ isActive: true }).where(where).returning();
+    if (!user) { res.status(404).json({ error: "Not found" }); return; }
+    await writeAuditLog({ user: req.user, action: "activate_user", entityType: "user", entityId: id });
+    res.json(formatUser(user));
+  } catch {
+    res.status(500).json({ error: "Failed to activate user" });
   }
 });
 

@@ -284,6 +284,27 @@ export const DeactivateUserResponse = zod.object({
 
 
 /**
+ * @summary Activate (reactivate) a user
+ */
+export const ActivateUserParams = zod.object({
+  "userId": zod.coerce.number()
+})
+
+export const ActivateUserResponse = zod.object({
+  "id": zod.number(),
+  "email": zod.string(),
+  "name": zod.string(),
+  "nameAr": zod.string().nullish(),
+  "role": zod.enum(['platform_owner', 'owner', 'manager', 'cashier', 'buffet_worker']),
+  "tenantId": zod.number().nullish(),
+  "tenantName": zod.string().nullish(),
+  "tenantNameAr": zod.string().nullish(),
+  "isActive": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary List assets for current tenant
  */
 export const ListAssetsResponseItem = zod.object({

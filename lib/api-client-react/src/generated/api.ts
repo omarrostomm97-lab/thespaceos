@@ -1234,6 +1234,76 @@ export const useDeactivateUser = <TError = ErrorType<unknown>,
       return useMutation(getDeactivateUserMutationOptions(options));
     }
 
+export const getActivateUserUrl = (userId: number,) => {
+
+
+
+
+  return `/api/users/${userId}/activate`
+}
+
+/**
+ * @summary Activate (reactivate) a user
+ */
+export const activateUser = async (userId: number, options?: RequestInit): Promise<User> => {
+
+  return customFetch<User>(getActivateUserUrl(userId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getActivateUserMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateUser>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof activateUser>>, TError,{userId: number}, TContext> => {
+
+const mutationKey = ['activateUser'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof activateUser>>, {userId: number}> = (props) => {
+          const {userId} = props ?? {};
+
+          return  activateUser(userId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ActivateUserMutationResult = NonNullable<Awaited<ReturnType<typeof activateUser>>>
+
+    export type ActivateUserMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Activate (reactivate) a user
+ */
+export const useActivateUser = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof activateUser>>, TError,{userId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof activateUser>>,
+        TError,
+        {userId: number},
+        TContext
+      > => {
+      return useMutation(getActivateUserMutationOptions(options));
+    }
+
 export const getListAssetsUrl = () => {
 
 
