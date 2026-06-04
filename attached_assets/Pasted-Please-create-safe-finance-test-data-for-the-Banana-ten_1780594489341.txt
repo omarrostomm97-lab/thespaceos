@@ -1,0 +1,192 @@
+Please create safe finance test data for the Banana tenant only.
+
+Important:
+- Do not delete, reset, or modify any existing production data.
+- Do not touch any other tenant.
+- First find the Banana tenant by name. It may be called “Banana”, “Bananas”, “Banana Gaming Lounge”, or similar.
+- Use the Banana tenant_id after finding it.
+- Make the partners/owners: Mazen and Moza.
+- Exclude the bank account completely. Do not create any bank account.
+- Do not change existing dashboard, sessions, orders, payments, shifts, auth, or permissions.
+- Use idempotent logic where possible so running this more than once does not create duplicate categories/accounts if they already exist.
+
+Create finance accounts for the Banana tenant only:
+
+1. Cash Drawer
+- type: cash
+- opening balance: 5000
+
+2. InstaPay Wallet
+- type: wallet
+- opening balance: 0
+
+3. Card Machine
+- type: card_processor
+- opening balance: 0
+
+Do NOT create Bank Account.
+
+Create default expense categories for the Banana tenant if missing:
+- Electricity
+- Internet
+- Rent
+- Salaries
+- Maintenance
+- Device Repair
+- Food & Beverage Stock
+- Cleaning Supplies
+- Marketing
+- Software Subscriptions
+- Taxes
+- Other
+
+Create default income categories for the Banana tenant if missing:
+- Gaming Sessions
+- Cafe Orders
+- Room Orders
+- Arcade Games
+- Memberships
+- Private Room Bookings
+- Manual Income
+- Other
+
+Create default capital categories for the Banana tenant if missing:
+- Initial Capital
+- Owner Capital Injection
+- Partner Contribution
+- Capital Adjustment
+
+Create default withdrawal categories for the Banana tenant if missing:
+- Owner Withdrawal
+- Partner Withdrawal
+
+Add capital injections:
+
+1. Capital from Mazen
+- amount: 30000
+- source/partner name: Mazen
+- added to account: Cash Drawer
+- date: today
+- notes: Initial capital contribution from Mazen
+
+2. Capital from Moza
+- amount: 30000
+- source/partner name: Moza
+- added to account: Cash Drawer
+- date: today
+- notes: Initial capital contribution from Moza
+
+Add paid expenses:
+
+1. Electricity
+- amount: 3500
+- status: paid
+- paid from account: Cash Drawer
+- date: today
+- notes: Monthly electricity bill
+
+2. Internet
+- amount: 800
+- status: paid
+- paid from account: Cash Drawer
+- date: today
+- notes: Monthly internet bill
+
+3. Food & Beverage Stock
+- amount: 2500
+- status: paid
+- paid from account: Cash Drawer
+- date: today
+- notes: Initial stock purchase
+
+Add pending expense:
+
+1. Maintenance
+- amount: 1800
+- status: pending
+- paid from account: Cash Drawer
+- date: today
+- notes: Pending console maintenance
+
+Add manual income:
+
+1. Extra private booking
+- amount: 1200
+- received into account: Cash Drawer
+- payment method: cash
+- date: today
+- notes: Extra private booking not captured by sessions/orders
+
+2. InstaPay manual income
+- amount: 700
+- received into account: InstaPay Wallet
+- payment method: instapay
+- date: today
+- notes: Manual income received through InstaPay
+
+Add owner withdrawals:
+
+1. Mazen withdrawal
+- amount: 1500
+- taken from account: Cash Drawer
+- date: today
+- owner/partner name: Mazen
+- notes: Partner withdrawal by Mazen
+
+2. Moza withdrawal
+- amount: 1000
+- taken from account: Cash Drawer
+- date: today
+- owner/partner name: Moza
+- notes: Partner withdrawal by Moza
+
+Add assets:
+
+1. PlayStation 5
+- name EN: PlayStation 5
+- name AR: بلايستيشن 5
+- category: Gaming Console
+- purchase cost: 25000
+- condition: Good
+- purchase date: today
+- notes: Main gaming console
+
+2. TV Screen
+- name EN: Samsung 55 Inch TV
+- name AR: شاشة سامسونج ٥٥ بوصة
+- category: Screen
+- purchase cost: 18000
+- condition: Good
+- purchase date: today
+- notes: Gaming room screen
+
+3. Router
+- name EN: Main Router
+- name AR: الراوتر الرئيسي
+- category: Network Equipment
+- purchase cost: 2500
+- condition: Good
+- purchase date: today
+- notes: Main internet router
+
+Expected result after seed:
+- Accounts should show Cash Drawer, InstaPay Wallet, and Card Machine only.
+- No Bank Account should exist.
+- Capital this month should equal 60000.
+- Paid expenses should equal 6800.
+- Pending expenses should equal 1800.
+- Manual income should equal 1900.
+- Owner withdrawals should equal 2500.
+- Cash Drawer balance should reflect:
+  opening 5000
+  + capital 60000
+  + cash manual income 1200
+  - paid expenses 6800
+  - withdrawals 2500
+  = 56900
+
+- InstaPay Wallet balance should be 700.
+- Card Machine balance should be 0.
+- Total cash available should be 57600.
+
+Please show me the exact SQL or seed script before running it.
