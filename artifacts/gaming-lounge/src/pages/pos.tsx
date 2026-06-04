@@ -9,7 +9,7 @@ import {
 import { getProductEmoji } from "@/lib/product-emoji";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, X, Banknote, CreditCard, Smartphone, Gamepad2, Check, Receipt } from "lucide-react";
+import { ShoppingCart, X, Banknote, CreditCard, Smartphone, Gamepad2, Check, Receipt, Search } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,6 +33,7 @@ export default function Pos() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orderMode, setOrderMode] = useState<OrderMode>("direct");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
@@ -47,9 +48,17 @@ export default function Pos() {
 
   const createOrder = useCreateOrder();
 
-  const filteredProducts = products?.filter(p =>
-    p.isAvailable && (!activeCategory || p.categoryId === activeCategory)
-  );
+  const q = searchQuery.trim().toLowerCase();
+  const filteredProducts = products?.filter(p => {
+    if (!p.isAvailable) return false;
+    if (q) {
+      return (
+        (p.nameAr ?? "").toLowerCase().includes(q) ||
+        (p.name ?? "").toLowerCase().includes(q)
+      );
+    }
+    return !activeCategory || p.categoryId === activeCategory;
+  });
 
   const addToCart = (product: any) => {
     setCart(prev => {
@@ -155,8 +164,32 @@ export default function Pos() {
 
       {/* ── Products Grid ── */}
       <div className="flex-1 flex flex-col min-w-0 border-s border-border overflow-hidden">
+        {/* Search bar */}
+        <div className="px-3 md:px-4 pt-3 md:pt-4 pb-2 shrink-0">
+          <div className="relative">
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="ابحث عن منتج..."
+              className="w-full h-11 rounded-xl border border-border bg-background ps-9 pe-9 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+              dir="rtl"
+              autoComplete="off"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Category tabs */}
-        <div className="p-3 md:p-4 border-b border-border bg-card shrink-0 overflow-x-auto">
+        <div className={`px-3 md:px-4 pb-3 md:pb-4 border-b border-border bg-card shrink-0 overflow-x-auto transition-opacity ${searchQuery ? "opacity-40 pointer-events-none" : ""}`}>
           <div className="flex gap-2 min-w-max">
             <Button
               variant={activeCategory === null ? "default" : "outline"}
@@ -180,6 +213,12 @@ export default function Pos() {
 
         {/* Products */}
         <div className="flex-1 p-3 md:p-4 overflow-y-auto">
+          {filteredProducts?.length === 0 && q && (
+            <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50 gap-3">
+              <Search className="h-12 w-12" />
+              <p className="text-lg">لا توجد منتجات تطابق "{searchQuery}"</p>
+            </div>
+          )}
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
             {filteredProducts?.map(product => (
               <Button
