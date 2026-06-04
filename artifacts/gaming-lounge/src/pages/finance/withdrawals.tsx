@@ -23,9 +23,7 @@ export default function FinanceWithdrawals() {
   const [notes, setNotes] = useState("");
   const [txDate, setTxDate] = useState(() => new Date().toISOString().slice(0, 10));
 
-  const now = new Date();
-  const monthFrom = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  const { data: txData, isLoading } = useListFinanceTransactions({ type: "owner_withdrawal", from: monthFrom });
+  const { data: txData, isLoading } = useListFinanceTransactions({ type: "owner_withdrawal", period: "month" });
   const { data: accData } = useListFinanceAccounts();
   const createTx = useCreateFinanceTransaction();
 

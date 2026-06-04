@@ -42,13 +42,7 @@ export default function FinanceExpenses() {
   const [txDate, setTxDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [showMore, setShowMore] = useState(false);
 
-  const now = new Date();
-  const periodFrom =
-    period === "today" ? now.toISOString().slice(0, 10) :
-    period === "week"  ? new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).toISOString().slice(0, 10) :
-    new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-
-  const { data: txData, isLoading } = useListFinanceTransactions({ type: "expense", from: periodFrom });
+  const { data: txData, isLoading } = useListFinanceTransactions({ type: "expense", period });
   const { data: catData } = useListFinanceCategories({ type: "expense" });
   const { data: accData } = useListFinanceAccounts();
   const createTx = useCreateFinanceTransaction();
