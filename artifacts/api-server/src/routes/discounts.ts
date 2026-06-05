@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import {
-  discountRequestsTable, sessionsTable, ordersTable, assetsTable, usersTable,
+  discountRequestsTable, sessionsTable, ordersTable, assetsTable, usersTable, paymentsTable,
 } from "@workspace/db";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, ne } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole, requireOpenShift } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -17,47 +17,76 @@ function calcMinutes(startedAt: Date, pausedAt: Date | null, pausedDuration: num
   return Math.max(0, totalMs / 60000 - pausedDuration);
 }
 
-async function formatRequest(row: typeof discountRequestsTable.$inferSelect) {
-  let sessionAssetName = null, sessionAssetNameAr = null, pricePerHour = 0;
-  let session: { assetId: number | null; startedAt: Date; pausedAt: Date | null; pausedDurationMinutes: unknown; status: string } | undefined;
-
-  if (row.sessionId) {
-    const [s] = await db.select({ assetId: sessionsTable.assetId, startedAt: sessionsTable.startedAt, pausedAt: sessionsTable.pausedAt, pausedDurationMinutes: sessionsTable.pausedDurationMinutes, status: sessionsTable.status })
-      .from(sessionsTable).where(eq(sessionsTable.id, row.sessionId)).limit(1);
-    session = s;
-    if (session?.assetId) {
-      const [asset] = await db.select({ name: assetsTable.name, nameAr: assetsTable.nameAr, pricePerHour: assetsTable.pricePerHour })
-        .from(assetsTable).where(eq(assetsTable.id, session.assetId)).limit(1);
-      sessionAssetName = asset?.name ?? null;
-      sessionAssetNameAr = asset?.nameAr ?? null;
-      pricePerHour = asset ? parseFloat(asset.pricePerHour as string) : 0;
-    }
+/**
+ * Compute originalAmount + discountedAmount for a discount request row.
+ * For approved rows the persisted snapshot is used directly (avoids reading
+ * a mutated source record). For pending rows it calculates live.
+ */
+async function computeAmounts(row: typeof discountRequestsTable.$inferSelect): Promise<{
+  originalGamingCost: number | null;
+  originalOrderTotal: number | null;
+  discountedAmount: number | null;
+}> {
+  // Approved rows already have the snapshot persisted — use it.
+  if (
+    row.status === "approved" &&
+    row.originalAmount !== null && row.originalAmount !== undefined &&
+    row.discountedAmount !== null && row.discountedAmount !== undefined
+  ) {
+    const isSession = row.type === "session_time";
+    return {
+      originalGamingCost: isSession ? parseFloat(row.originalAmount as string) : null,
+      originalOrderTotal: !isSession ? parseFloat(row.originalAmount as string) : null,
+      discountedAmount: parseFloat(row.discountedAmount as string),
+    };
   }
 
-  const [requester] = await db.select({ name: usersTable.name })
-    .from(usersTable).where(eq(usersTable.id, row.requestedByUserId)).limit(1);
-
+  // Live calculation path (pending / rejected / cancelled rows).
   let originalGamingCost: number | null = null;
   let originalOrderTotal: number | null = null;
   let discountedAmount: number | null = null;
 
-  if (row.type === "session_time" && session) {
-    const pausedDuration = parseFloat((session.pausedDurationMinutes as string) || "0");
-    const actualMinutes = calcMinutes(session.startedAt, session.pausedAt, pausedDuration);
-    originalGamingCost = Math.round((actualMinutes / 60) * pricePerHour * 100) / 100;
+  if (row.type === "session_time" && row.sessionId) {
+    const [s] = await db
+      .select({
+        assetId: sessionsTable.assetId,
+        startedAt: sessionsTable.startedAt,
+        pausedAt: sessionsTable.pausedAt,
+        pausedDurationMinutes: sessionsTable.pausedDurationMinutes,
+        status: sessionsTable.status,
+      })
+      .from(sessionsTable)
+      .where(eq(sessionsTable.id, row.sessionId))
+      .limit(1);
 
-    const discountVal = parseFloat(row.discountValue as string);
-    if (row.billedMinutes !== null && row.billedMinutes !== undefined) {
-      const billedMins = parseFloat(row.billedMinutes as string);
-      discountedAmount = Math.round((billedMins / 60) * pricePerHour * 100) / 100;
-    } else if (row.discountKind === "percent") {
-      discountedAmount = Math.round(originalGamingCost * (1 - discountVal / 100) * 100) / 100;
-    } else {
-      discountedAmount = Math.max(0, Math.round((originalGamingCost - discountVal) * 100) / 100);
+    if (s?.assetId) {
+      const [asset] = await db
+        .select({ pricePerHour: assetsTable.pricePerHour })
+        .from(assetsTable)
+        .where(eq(assetsTable.id, s.assetId))
+        .limit(1);
+
+      const pricePerHour = asset ? parseFloat(asset.pricePerHour as string) : 0;
+      const pausedDuration = parseFloat((s.pausedDurationMinutes as string) || "0");
+      const actualMinutes = calcMinutes(s.startedAt, s.pausedAt, pausedDuration);
+      originalGamingCost = Math.round((actualMinutes / 60) * pricePerHour * 100) / 100;
+
+      const discountVal = parseFloat(row.discountValue as string);
+      if (row.billedMinutes !== null && row.billedMinutes !== undefined) {
+        const billedMins = parseFloat(row.billedMinutes as string);
+        discountedAmount = Math.round((billedMins / 60) * pricePerHour * 100) / 100;
+      } else if (row.discountKind === "percent") {
+        discountedAmount = Math.round(originalGamingCost * (1 - discountVal / 100) * 100) / 100;
+      } else {
+        discountedAmount = Math.max(0, Math.round((originalGamingCost - discountVal) * 100) / 100);
+      }
     }
   } else if (row.type === "order" && row.orderId) {
-    const [order] = await db.select({ totalAmount: ordersTable.totalAmount })
-      .from(ordersTable).where(eq(ordersTable.id, row.orderId)).limit(1);
+    const [order] = await db
+      .select({ totalAmount: ordersTable.totalAmount })
+      .from(ordersTable)
+      .where(eq(ordersTable.id, row.orderId))
+      .limit(1);
     originalOrderTotal = order ? Math.round(parseFloat(order.totalAmount as string) * 100) / 100 : null;
     if (originalOrderTotal !== null) {
       const discountVal = parseFloat(row.discountValue as string);
@@ -69,6 +98,37 @@ async function formatRequest(row: typeof discountRequestsTable.$inferSelect) {
     }
   }
 
+  return { originalGamingCost, originalOrderTotal, discountedAmount };
+}
+
+async function formatRequest(row: typeof discountRequestsTable.$inferSelect) {
+  let sessionAssetName = null, sessionAssetNameAr = null;
+
+  if (row.sessionId) {
+    const [s] = await db
+      .select({ assetId: sessionsTable.assetId })
+      .from(sessionsTable)
+      .where(eq(sessionsTable.id, row.sessionId))
+      .limit(1);
+    if (s?.assetId) {
+      const [asset] = await db
+        .select({ name: assetsTable.name, nameAr: assetsTable.nameAr })
+        .from(assetsTable)
+        .where(eq(assetsTable.id, s.assetId))
+        .limit(1);
+      sessionAssetName = asset?.name ?? null;
+      sessionAssetNameAr = asset?.nameAr ?? null;
+    }
+  }
+
+  const [requester] = await db
+    .select({ name: usersTable.name })
+    .from(usersTable)
+    .where(eq(usersTable.id, row.requestedByUserId))
+    .limit(1);
+
+  const { originalGamingCost, originalOrderTotal, discountedAmount } = await computeAmounts(row);
+
   return {
     id: row.id,
     sessionId: row.sessionId ?? null,
@@ -76,7 +136,10 @@ async function formatRequest(row: typeof discountRequestsTable.$inferSelect) {
     type: row.type,
     discountKind: row.discountKind,
     discountValue: parseFloat(row.discountValue as string),
-    billedMinutes: row.billedMinutes !== null && row.billedMinutes !== undefined ? parseFloat(row.billedMinutes as string) : null,
+    billedMinutes:
+      row.billedMinutes !== null && row.billedMinutes !== undefined
+        ? parseFloat(row.billedMinutes as string)
+        : null,
     reason: row.reason ?? null,
     status: row.status,
     adminNote: row.adminNote ?? null,
@@ -112,8 +175,7 @@ router.get("/discounts", requireAuth, requireTenant, MGMT, async (req, res) => {
   }
 });
 
-// GET /discounts/session/:sessionId — cashier checks their session's discounts
-// NOTE: must be before /discounts/:requestId routes
+// GET /discounts/session/:sessionId
 router.get("/discounts/session/:sessionId", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const sessionId = parseInt(req.params.sessionId);
@@ -129,8 +191,7 @@ router.get("/discounts/session/:sessionId", requireAuth, requireTenant, CASHIER_
   }
 });
 
-// GET /discounts/order/:orderId — cashier checks discount requests for a direct order
-// NOTE: must be before /discounts/:requestId routes
+// GET /discounts/order/:orderId
 router.get("/discounts/order/:orderId", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const orderId = parseInt(req.params.orderId);
@@ -172,7 +233,6 @@ router.post("/discounts", requireAuth, requireTenant, CASHIER_UP, requireOpenShi
       res.status(400).json({ error: "sessionId required for session_time discount" }); return;
     }
 
-    // Verify session belongs to tenant and is active (only for session discounts)
     if (sessionId) {
       const [session] = await db.select().from(sessionsTable)
         .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.tenantId, req.user!.tenantId!)))
@@ -183,7 +243,6 @@ router.post("/discounts", requireAuth, requireTenant, CASHIER_UP, requireOpenShi
       }
     }
 
-    // Verify order belongs to tenant (for order discounts without session)
     if (type === "order" && orderId && !sessionId) {
       const [order] = await db.select({ id: ordersTable.id }).from(ordersTable)
         .where(and(eq(ordersTable.id, orderId), eq(ordersTable.tenantId, req.user!.tenantId!)))
@@ -191,16 +250,15 @@ router.post("/discounts", requireAuth, requireTenant, CASHIER_UP, requireOpenShi
       if (!order) { res.status(404).json({ error: "Order not found" }); return; }
     }
 
-    // Block duplicate pending requests for same target
     const dupConditions = [
       eq(discountRequestsTable.status, "pending"),
       eq(discountRequestsTable.type, type),
       eq(discountRequestsTable.tenantId, req.user!.tenantId!),
-      ...(orderId ? [eq(discountRequestsTable.orderId, orderId)] : []),
+      ...(orderId   ? [eq(discountRequestsTable.orderId,   orderId)]   : []),
       ...(sessionId ? [eq(discountRequestsTable.sessionId, sessionId)] : []),
     ];
-    const existing = await db.select({ id: discountRequestsTable.id }).from(discountRequestsTable)
-      .where(and(...dupConditions)).limit(1);
+    const existing = await db.select({ id: discountRequestsTable.id })
+      .from(discountRequestsTable).where(and(...dupConditions)).limit(1);
     if (existing.length > 0) {
       res.status(409).json({ error: "duplicate_pending" }); return;
     }
@@ -229,15 +287,51 @@ router.post("/discounts/:requestId/approve", requireAuth, requireTenant, MGMT, a
   try {
     const id = parseInt(req.params.requestId);
     const { adminNote } = req.body ?? {};
+
     const [row] = await db.select().from(discountRequestsTable)
       .where(and(eq(discountRequestsTable.id, id), eq(discountRequestsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
     if (!row) { res.status(404).json({ error: "Not found" }); return; }
     if (row.status !== "pending") { res.status(400).json({ error: "Already reviewed" }); return; }
 
+    // Compute amounts BEFORE mutating anything (while source records still hold original values)
+    const { originalGamingCost, originalOrderTotal, discountedAmount } = await computeAmounts(row);
+
+    const originalAmount = originalGamingCost ?? originalOrderTotal;
+
+    // Persist snapshot + flip status
     const [updated] = await db.update(discountRequestsTable)
-      .set({ status: "approved", reviewedByUserId: req.user!.id, reviewedAt: new Date(), adminNote: adminNote ?? null })
-      .where(eq(discountRequestsTable.id, id)).returning();
+      .set({
+        status: "approved",
+        reviewedByUserId: req.user!.id,
+        reviewedAt: new Date(),
+        adminNote: adminNote ?? null,
+        originalAmount: originalAmount !== null ? String(originalAmount) : null,
+        discountedAmount: discountedAmount !== null ? String(discountedAmount) : null,
+      })
+      .where(eq(discountRequestsTable.id, id))
+      .returning();
+
+    // Mutate source record so all revenue queries immediately reflect the discount
+    if (discountedAmount !== null) {
+      if (row.type === "order" && row.orderId) {
+        await db.update(ordersTable)
+          .set({ totalAmount: String(discountedAmount) })
+          .where(eq(ordersTable.id, row.orderId));
+      } else if (row.type === "session_time" && row.sessionId) {
+        await db.update(sessionsTable)
+          .set({ totalCost: String(discountedAmount) })
+          .where(eq(sessionsTable.id, row.sessionId));
+        // Also update any unverified payments for this session
+        await db.update(paymentsTable)
+          .set({ amount: String(discountedAmount) })
+          .where(and(
+            eq(paymentsTable.sessionId, row.sessionId),
+            ne(paymentsTable.status, "verified"),
+          ));
+      }
+    }
+
     await writeAuditLog({ user: req.user, action: "approve_discount_request", entityType: "discount_request", entityId: id });
     res.json(await formatRequest(updated));
   } catch {

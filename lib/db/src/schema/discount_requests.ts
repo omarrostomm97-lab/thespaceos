@@ -19,6 +19,8 @@ export const discountRequestsTable = pgTable("discount_requests", {
   requestedByUserId: integer("requested_by_user_id").notNull().references(() => usersTable.id),
   reviewedByUserId: integer("reviewed_by_user_id").references(() => usersTable.id),
   reviewedAt: timestamp("reviewed_at"),
+  originalAmount: numeric("original_amount", { precision: 12, scale: 2 }),
+  discountedAmount: numeric("discounted_amount", { precision: 12, scale: 2 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
