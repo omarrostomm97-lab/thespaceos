@@ -424,7 +424,7 @@ function DashboardSkeleton() {
 
 /* ─── Main Dashboard ─────────────────────────────────── */
 export default function Dashboard() {
-  const [period, setPeriod] = useState<Period>("week");
+  const [period, setPeriod] = useState<Period>("today");
   const [source, setSource] = useState<Source>("all");
   const [method, setMethod] = useState<PayMethod>("all");
   const [tab, setTab]       = useState<Tab>("overview");
@@ -786,8 +786,8 @@ export default function Dashboard() {
         </StaggerItem>
       </StaggerChildren>
 
-      {/* Desktop 3-bucket today split */}
-      {source === "all" && summary?.gamingRevenueToday !== undefined && (
+      {/* Desktop 3-bucket split — period-aware */}
+      {source === "all" && revenueStats !== undefined && (
         <div className="hidden md:grid gap-4 md:grid-cols-3">
           <HoverCard>
             <div className="bg-card border border-emerald-500/15 rounded-xl p-4 flex items-center gap-4">
@@ -795,9 +795,9 @@ export default function Dashboard() {
                 <Gamepad2 className="h-5 w-5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{lang === "ar" ? "وقت الألعاب — اليوم" : "Gaming Time — Today"}</p>
+                <p className="text-xs text-muted-foreground">{lang === "ar" ? `وقت الألعاب — ${PERIOD_LABELS[period]}` : `Gaming Time — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-emerald-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(summary.gamingRevenueToday ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                  {(revenueStats.sessionRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
                 </p>
               </div>
             </div>
@@ -808,9 +808,9 @@ export default function Dashboard() {
                 <ShoppingCart className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{lang === "ar" ? "طلبات الغرف — اليوم" : "Room Orders — Today"}</p>
+                <p className="text-xs text-muted-foreground">{lang === "ar" ? `طلبات الغرف — ${PERIOD_LABELS[period]}` : `Room Orders — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-primary tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(summary.roomOrdersToday ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                  {(revenueStats.roomOrderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
                 </p>
               </div>
             </div>
@@ -821,9 +821,9 @@ export default function Dashboard() {
                 <Utensils className="h-5 w-5 text-orange-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{lang === "ar" ? "بوفيه / POS — اليوم" : "Buffet / POS — Today"}</p>
+                <p className="text-xs text-muted-foreground">{lang === "ar" ? `بوفيه / POS — ${PERIOD_LABELS[period]}` : `Buffet / POS — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-orange-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(summary.buffetRevenueToday ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                  {(revenueStats.orderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
                 </p>
               </div>
             </div>
