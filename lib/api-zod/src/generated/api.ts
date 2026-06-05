@@ -1039,6 +1039,41 @@ export const RejectDiscountRequestResponse = zod.object({
 
 
 /**
+ * @summary Cashier cancels own pending discount request (or manager/owner)
+ */
+export const CancelDiscountRequestParams = zod.object({
+  "requestId": zod.coerce.number()
+})
+
+export const CancelDiscountRequestBody = zod.object({
+  "reason": zod.string().optional()
+})
+
+export const CancelDiscountRequestResponse = zod.object({
+  "id": zod.number(),
+  "sessionId": zod.number(),
+  "orderId": zod.number().nullish(),
+  "type": zod.string(),
+  "discountKind": zod.string(),
+  "discountValue": zod.number(),
+  "billedMinutes": zod.number().nullish(),
+  "reason": zod.string().nullish(),
+  "status": zod.string(),
+  "adminNote": zod.string().nullish(),
+  "requestedByUserId": zod.number(),
+  "requestedByName": zod.string().nullish(),
+  "reviewedByUserId": zod.number().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "sessionAssetName": zod.string().nullish(),
+  "sessionAssetNameAr": zod.string().nullish(),
+  "originalGamingCost": zod.number().nullish(),
+  "originalOrderTotal": zod.number().nullish(),
+  "discountedAmount": zod.number().nullish()
+})
+
+
+/**
  * @summary Get approved discount requests for a session (cashier preview)
  */
 export const GetSessionDiscountsParams = zod.object({

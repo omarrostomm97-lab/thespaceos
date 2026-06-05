@@ -30,6 +30,7 @@ import type {
   Booking,
   BookingInput,
   BreakdownResponse,
+  CancelDiscountInput,
   CancelInput,
   CreateDiscountRequestInput,
   DashboardRoomStat,
@@ -3666,6 +3667,78 @@ export const useRejectDiscountRequest = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRejectDiscountRequestMutationOptions(options));
+    }
+
+export const getCancelDiscountRequestUrl = (requestId: number,) => {
+
+
+
+
+  return `/api/discounts/${requestId}/cancel`
+}
+
+/**
+ * @summary Cashier cancels own pending discount request (or manager/owner)
+ */
+export const cancelDiscountRequest = async (requestId: number,
+    cancelDiscountInput?: CancelDiscountInput, options?: RequestInit): Promise<DiscountRequest> => {
+
+  return customFetch<DiscountRequest>(getCancelDiscountRequestUrl(requestId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      cancelDiscountInput,)
+  }
+);}
+
+
+
+
+export const getCancelDiscountRequestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelDiscountRequest>>, TError,{requestId: number;data?: BodyType<CancelDiscountInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof cancelDiscountRequest>>, TError,{requestId: number;data?: BodyType<CancelDiscountInput>}, TContext> => {
+
+const mutationKey = ['cancelDiscountRequest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof cancelDiscountRequest>>, {requestId: number;data?: BodyType<CancelDiscountInput>}> = (props) => {
+          const {requestId,data} = props ?? {};
+
+          return  cancelDiscountRequest(requestId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CancelDiscountRequestMutationResult = NonNullable<Awaited<ReturnType<typeof cancelDiscountRequest>>>
+    export type CancelDiscountRequestMutationBody = BodyType<CancelDiscountInput> | undefined
+    export type CancelDiscountRequestMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Cashier cancels own pending discount request (or manager/owner)
+ */
+export const useCancelDiscountRequest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof cancelDiscountRequest>>, TError,{requestId: number;data?: BodyType<CancelDiscountInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof cancelDiscountRequest>>,
+        TError,
+        {requestId: number;data?: BodyType<CancelDiscountInput>},
+        TContext
+      > => {
+      return useMutation(getCancelDiscountRequestMutationOptions(options));
     }
 
 export const getGetSessionDiscountsUrl = (sessionId: number,) => {

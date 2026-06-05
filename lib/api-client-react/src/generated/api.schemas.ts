@@ -1375,6 +1375,10 @@ export interface ReviewDiscountInput {
   adminNote?: string;
 }
 
+export interface CancelDiscountInput {
+  reason?: string;
+}
+
 export type RefreshTokenBody = {
   refreshToken: string;
 };

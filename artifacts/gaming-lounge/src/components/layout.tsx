@@ -10,7 +10,7 @@ import {
   CalendarCheck, Bell, ArrowRight, Wallet, TrendingDown, PiggyBank, BarChart3,
   Landmark, Boxes, DollarSign, RotateCcw, Tag,
 } from "lucide-react";
-import { useListReturnRequests } from "@workspace/api-client-react";
+import { useListReturnRequests, useListDiscountRequests } from "@workspace/api-client-react";
 import { useBookingAlerts } from "@/hooks/use-booking-alerts";
 import { ROUTE_ALLOWED_ROLES, UserRole } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
@@ -86,6 +86,12 @@ export function Layout({ children }: LayoutProps) {
     query: { enabled: !!isMgmt, refetchInterval: 30000, staleTime: 15000 }
   });
   const pendingReturnsCount = returnRequests?.length ?? 0;
+
+  const { data: pendingDiscounts } = useListDiscountRequests(
+    { status: "pending" },
+    { query: { enabled: !!isMgmt, refetchInterval: 30000, staleTime: 15000 } }
+  );
+  const pendingDiscountsCount = pendingDiscounts?.length ?? 0;
 
   useEffect(() => { setSidebarOpen(false); }, [location]);
 
@@ -299,6 +305,14 @@ export function Layout({ children }: LayoutProps) {
                       style={{ background: "#f5a524", color: "#000" }}
                     >
                       {pendingReturnsCount}
+                    </span>
+                  )}
+                  {item.routeKey === "/discounts" && pendingDiscountsCount > 0 && (
+                    <span
+                      className="ms-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
+                      style={{ background: "#f5a524", color: "#000" }}
+                    >
+                      {pendingDiscountsCount}
                     </span>
                   )}
                 </motion.div>

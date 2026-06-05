@@ -31,6 +31,7 @@ export * from './breakdownResponseGamingByTypeItem';
 export * from './breakdownResponseRoomOrders';
 export * from './breakdownResponseRoomOrdersByCategoryItem';
 export * from './breakdownResponseRoomOrdersByCategoryItemProductsItem';
+export * from './cancelDiscountInput';
 export * from './cancelInput';
 export * from './createDiscountRequestInput';
 export * from './dashboardRoomStat';

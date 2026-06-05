@@ -228,4 +228,28 @@ router.post("/discounts/:requestId/reject", requireAuth, requireTenant, MGMT, as
   }
 });
 
+// POST /discounts/:requestId/cancel — cashier cancels own pending request (or manager/owner)
+router.post("/discounts/:requestId/cancel", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
+  try {
+    const id = parseInt(req.params.requestId);
+    const [row] = await db.select().from(discountRequestsTable)
+      .where(and(eq(discountRequestsTable.id, id), eq(discountRequestsTable.tenantId, req.user!.tenantId!)))
+      .limit(1);
+    if (!row) { res.status(404).json({ error: "Not found" }); return; }
+    if (row.status !== "pending") { res.status(400).json({ error: "Not pending" }); return; }
+
+    const isMgmt = ["platform_owner", "owner", "manager"].includes(req.user!.role ?? "");
+    const isRequester = row.requestedByUserId === req.user!.id;
+    if (!isMgmt && !isRequester) { res.status(403).json({ error: "Forbidden" }); return; }
+
+    const [updated] = await db.update(discountRequestsTable)
+      .set({ status: "cancelled", reviewedByUserId: req.user!.id, reviewedAt: new Date() })
+      .where(eq(discountRequestsTable.id, id)).returning();
+    await writeAuditLog({ user: req.user, action: "cancel_discount_request", entityType: "discount_request", entityId: id });
+    res.json(await formatRequest(updated));
+  } catch {
+    res.status(500).json({ error: "Failed to cancel" });
+  }
+});
+
 export default router;

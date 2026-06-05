@@ -1007,6 +1007,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/DiscountRequest"
 
+  /discounts/{requestId}/cancel:
+    post:
+      operationId: cancelDiscountRequest
+      tags: [discounts]
+      summary: Cashier cancels own pending discount request (or manager/owner)
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CancelDiscountInput"
+      responses:
+        "200":
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscountRequest"
+
   /discounts/session/{sessionId}:
     get:
       operationId: getSessionDiscounts
@@ -4235,4 +4260,10 @@ components:
       type: object
       properties:
         adminNote:
+          type: string
+
+    CancelDiscountInput:
+      type: object
+      properties:
+        reason:
           type: string
