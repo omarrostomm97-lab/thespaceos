@@ -66,6 +66,25 @@ router.post("/payments", requireAuth, requireTenant, CASHIER_UP, requireOpenShif
   }
 });
 
+router.post("/payments/:paymentId/void", requireAuth, requireTenant, requireRole("platform_owner", "owner"), async (req, res) => {
+  try {
+    const id = parseInt(req.params.paymentId as string);
+    const [payment] = await db.select().from(paymentsTable)
+      .where(and(eq(paymentsTable.id, id), eq(paymentsTable.tenantId, req.user!.tenantId!)))
+      .limit(1);
+    if (!payment) { res.status(404).json({ error: "Not found" }); return; }
+    if (payment.status === "voided") { res.status(400).json({ error: "Already voided" }); return; }
+    const [updated] = await db.update(paymentsTable)
+      .set({ status: "voided" })
+      .where(and(eq(paymentsTable.id, id), eq(paymentsTable.tenantId, req.user!.tenantId!)))
+      .returning();
+    await writeAuditLog({ user: req.user, action: "void_payment", entityType: "payment", entityId: id, oldValue: { status: payment.status, amount: payment.amount }, newValue: { status: "voided" } });
+    res.json(fmtPayment(updated));
+  } catch {
+    res.status(500).json({ error: "Failed to void payment" });
+  }
+});
+
 router.post("/payments/:paymentId/verify", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const id = parseInt(req.params.paymentId as string);
