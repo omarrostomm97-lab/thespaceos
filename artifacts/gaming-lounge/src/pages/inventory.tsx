@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearch, useLocation } from "wouter";
 import {
   useListInventoryItems,
   useCreateInventoryItem,
@@ -19,7 +20,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Package, AlertTriangle, Plus, Pencil, Trash2, ArrowUpDown } from "lucide-react";
+import { Package, AlertTriangle, Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang } from "@/hooks/use-language";
 
@@ -54,6 +55,8 @@ export default function Inventory() {
   const { dir } = useLang();
   const queryClient = useQueryClient();
   const isManager = MGMT_ROLES.includes(user?.role ?? "");
+  const searchStr = useSearch();
+  const [, setLocation] = useLocation();
 
   const { data: items, isLoading } = useListInventoryItems();
 
@@ -71,6 +74,7 @@ export default function Inventory() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; name: string } | null>(null);
 
   const [search, setSearch] = useState("");
+  const [showLowOnly, setShowLowOnly] = useState(() => new URLSearchParams(searchStr).get("low") === "1");
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: getListInventoryItemsQueryKey() });
 
@@ -152,9 +156,11 @@ export default function Inventory() {
     }
   };
 
-  const filteredItems = items?.filter(item =>
-    !search || (item.nameAr || item.name).toLowerCase().includes(search.toLowerCase())
-  ) ?? [];
+  const filteredItems = items?.filter(item => {
+    if (search && !(item.nameAr || item.name).toLowerCase().includes(search.toLowerCase())) return false;
+    if (showLowOnly && item.currentStock > (item.minStockLevel ?? 0)) return false;
+    return true;
+  }) ?? [];
 
   const lowStockCount = items?.filter(i => i.currentStock <= (i.minStockLevel ?? 0)).length ?? 0;
 
@@ -188,13 +194,23 @@ export default function Inventory() {
         )}
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Input
           placeholder="بحث عن صنف..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs"
         />
+        {showLowOnly && (
+          <button
+            onClick={() => { setShowLowOnly(false); setLocation("/inventory"); }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-destructive/15 text-destructive border border-destructive/30 hover:bg-destructive/25 transition-colors"
+          >
+            <AlertTriangle className="h-3 w-3" />
+            عرض المنخفض فقط
+            <X className="h-3 w-3" />
+          </button>
+        )}
       </div>
 
       <div className="bg-card rounded-lg border border-border overflow-hidden">

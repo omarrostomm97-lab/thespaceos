@@ -100,36 +100,40 @@ interface KpiCardProps {
   label: string; value: number; subtitle?: string;
   icon: React.ElementType; iconClass: string;
   isLive?: boolean; isFloat?: boolean; compact?: boolean;
+  href?: string;
 }
-function KpiCard({ label, value, subtitle, icon: Icon, iconClass, isLive, isFloat, compact }: KpiCardProps) {
+function KpiCard({ label, value, subtitle, icon: Icon, iconClass, isLive, isFloat, compact, href }: KpiCardProps) {
   const animated = useCountUp(value);
   const display = isFloat ? animated.toFixed(2) : Math.round(animated).toLocaleString();
-  return (
-    <HoverCard>
-      <div className={`bg-card border border-card-border rounded-2xl h-full ${compact ? "p-4" : "p-5"}`}>
-        <div className="flex items-start justify-between mb-3">
-          <span className={`uppercase tracking-wide text-muted-foreground/70 font-medium leading-tight ${compact ? "text-[10px]" : "text-[11px]"}`}>{label}</span>
-          {isLive && (
-            <span className="relative flex h-2 w-2 mt-0.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 live-dot" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-          )}
+  const inner = (
+    <div className={`bg-card border border-card-border rounded-2xl h-full ${compact ? "p-4" : "p-5"} ${href ? "cursor-pointer ring-0 hover:ring-2 hover:ring-red-500/40 transition-all" : ""}`}>
+      <div className="flex items-start justify-between mb-3">
+        <span className={`uppercase tracking-wide text-muted-foreground/70 font-medium leading-tight ${compact ? "text-[10px]" : "text-[11px]"}`}>{label}</span>
+        {isLive && (
+          <span className="relative flex h-2 w-2 mt-0.5">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 live-dot" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+        )}
+      </div>
+      <div className="flex items-end justify-between gap-2">
+        <div className="min-w-0">
+          <p className={`font-bold leading-none tabular ${compact ? "text-2xl" : "text-[40px]"}`}
+             style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+            {display}
+          </p>
+          {isFloat && <span className={`text-muted-foreground block ${compact ? "text-[11px] mt-0.5" : "text-sm mt-1"}`}>ج.م</span>}
+          {subtitle && <p className={`text-muted-foreground mt-1.5 leading-relaxed ${compact ? "text-[10px]" : "text-xs"}`}>{subtitle}</p>}
         </div>
-        <div className="flex items-end justify-between gap-2">
-          <div className="min-w-0">
-            <p className={`font-bold leading-none tabular ${compact ? "text-2xl" : "text-[40px]"}`}
-               style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-              {display}
-            </p>
-            {isFloat && <span className={`text-muted-foreground block ${compact ? "text-[11px] mt-0.5" : "text-sm mt-1"}`}>ج.م</span>}
-            {subtitle && <p className={`text-muted-foreground mt-1.5 leading-relaxed ${compact ? "text-[10px]" : "text-xs"}`}>{subtitle}</p>}
-          </div>
-          <div className={`rounded-xl flex items-center justify-center shrink-0 ${iconClass} ${compact ? "w-9 h-9" : "w-10 h-10"}`}>
-            <Icon className={compact ? "h-4 w-4" : "h-5 w-5"} />
-          </div>
+        <div className={`rounded-xl flex items-center justify-center shrink-0 ${iconClass} ${compact ? "w-9 h-9" : "w-10 h-10"}`}>
+          <Icon className={compact ? "h-4 w-4" : "h-5 w-5"} />
         </div>
       </div>
+    </div>
+  );
+  return (
+    <HoverCard>
+      {href ? <Link href={href} className="block h-full">{inner}</Link> : inner}
     </HoverCard>
   );
 }
@@ -777,7 +781,8 @@ export default function Dashboard() {
           <KpiCard label={t("kpi_low_stock")} value={summary?.lowStockAlerts ?? 0}
             subtitle={lang === "ar" ? "تنبيهات المخزون" : "Stock alerts"}
             icon={AlertTriangle} iconClass="bg-red-500/15 text-red-500"
-            compact={isMobile} />
+            compact={isMobile}
+            href="/inventory?low=1" />
         </StaggerItem>
       </StaggerChildren>
 
