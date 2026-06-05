@@ -65,11 +65,14 @@ export default function Pos() {
     { query: { enabled: !!selectedSessionId && orderMode === "session", refetchInterval: 10000 } }
   );
 
-  const pendingPosDiscount = posSessionDiscounts.find(d => d.status === "pending");
-  const approvedPosDiscount = posSessionDiscounts.find(d => d.status === "approved");
-  const rejectedOrCancelledDiscount = !pendingPosDiscount && !approvedPosDiscount && posSessionDiscounts.length > 0
-    ? posSessionDiscounts[posSessionDiscounts.length - 1]
-    : null;
+  const sortedDiscounts = [...posSessionDiscounts].sort((a, b) => b.id - a.id);
+  const latestDiscount = sortedDiscounts[0] ?? null;
+  const pendingPosDiscount = latestDiscount?.status === "pending" ? latestDiscount : null;
+  const approvedPosDiscount = latestDiscount?.status === "approved" ? latestDiscount : null;
+  const rejectedOrCancelledDiscount =
+    latestDiscount && (latestDiscount.status === "rejected" || latestDiscount.status === "cancelled")
+      ? latestDiscount
+      : null;
 
   const q = searchQuery.trim().toLowerCase();
   const filteredProducts = products?.filter(p => {
@@ -369,9 +372,8 @@ export default function Pos() {
             <span className="font-bold text-2xl md:text-3xl text-emerald-500">{total.toFixed(2)} ج.م</span>
           </div>
 
-          {cart.length > 0 ? (
-            <div className="space-y-3">
-              {/* Mode toggle */}
+          <div className="space-y-3">
+              {/* Mode toggle — always visible */}
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => switchMode("direct")}
@@ -397,30 +399,36 @@ export default function Pos() {
                 </button>
               </div>
 
-              {/* ── Direct order: payment methods ── */}
+              {/* ── Direct order: payment methods (requires cart items) ── */}
               {orderMode === "direct" && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground text-center">اختر طريقة الدفع:</p>
-                  <div className="grid gap-2">
-                    {PAYMENT_METHODS.map(method => (
-                      <Button
-                        key={method.id}
-                        className={`h-12 md:h-14 text-sm md:text-base font-bold gap-2 md:gap-3 ${method.color}`}
-                        disabled={createOrder.isPending}
-                        onClick={() => handleDirectCheckout(method.id)}
-                      >
-                        {method.icon}
-                        <div className="flex flex-col items-start">
-                          <span>{method.label}</span>
-                          <span className="text-xs font-normal opacity-80">{method.sublabel}</span>
-                        </div>
-                      </Button>
-                    ))}
+                cart.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground text-center">اختر طريقة الدفع:</p>
+                    <div className="grid gap-2">
+                      {PAYMENT_METHODS.map(method => (
+                        <Button
+                          key={method.id}
+                          className={`h-12 md:h-14 text-sm md:text-base font-bold gap-2 md:gap-3 ${method.color}`}
+                          disabled={createOrder.isPending}
+                          onClick={() => handleDirectCheckout(method.id)}
+                        >
+                          {method.icon}
+                          <div className="flex flex-col items-start">
+                            <span>{method.label}</span>
+                            <span className="text-xs font-normal opacity-80">{method.sublabel}</span>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <Button className="w-full h-12 md:h-14 text-base md:text-lg" disabled>
+                    أضف منتجات للسلة
+                  </Button>
+                )
               )}
 
-              {/* ── Session order: room picker ── */}
+              {/* ── Session order: room picker + discount (always accessible) ── */}
               {orderMode === "session" && (
                 <div className="space-y-2">
                   <p className="text-xs text-muted-foreground text-center">اختر الغرفة التي تريد إضافة الطلب إليها:</p>
@@ -468,7 +476,7 @@ export default function Pos() {
 
                   <Button
                     className="w-full h-12 font-bold text-base bg-primary hover:bg-primary/90 text-white"
-                    disabled={!selectedSessionId || createOrder.isPending}
+                    disabled={!selectedSessionId || cart.length === 0 || createOrder.isPending}
                     onClick={handleAddToSession}
                   >
                     {createOrder.isPending ? (
@@ -605,11 +613,6 @@ export default function Pos() {
                 </div>
               )}
             </div>
-          ) : (
-            <Button className="w-full h-12 md:h-14 text-base md:text-lg" disabled>
-              أضف منتجات للسلة
-            </Button>
-          )}
         </div>
       </div>
     </div>
