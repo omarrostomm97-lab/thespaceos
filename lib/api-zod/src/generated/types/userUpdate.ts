@@ -12,4 +12,6 @@ export interface UserUpdate {
   nameAr?: string;
   role?: UserUpdateRole;
   password?: string;
+  /** @nullable */
+  tenantId?: number | null;
 }

@@ -245,7 +245,8 @@ export const UpdateUserBody = zod.object({
   "name": zod.string().optional(),
   "nameAr": zod.string().optional(),
   "role": zod.enum(['owner', 'manager', 'cashier', 'buffet_worker']).optional(),
-  "password": zod.string().optional()
+  "password": zod.string().optional(),
+  "tenantId": zod.number().nullish()
 })
 
 export const UpdateUserResponse = zod.object({

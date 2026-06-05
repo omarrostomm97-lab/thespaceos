@@ -2640,6 +2640,8 @@ components:
           enum: [owner, manager, cashier, buffet_worker]
         password:
           type: string
+        tenantId:
+          type: ["integer", "null"]
 
     # ── ASSET SCHEMAS ──
     Asset:

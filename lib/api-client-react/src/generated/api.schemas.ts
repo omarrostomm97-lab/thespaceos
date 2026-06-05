@@ -207,6 +207,8 @@ export interface UserUpdate {
   nameAr?: string;
   role?: UserUpdateRole;
   password?: string;
+  /** @nullable */
+  tenantId?: number | null;
 }
 
 export type AssetType = typeof AssetType[keyof typeof AssetType];

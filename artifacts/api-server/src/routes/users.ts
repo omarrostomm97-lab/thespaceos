@@ -96,7 +96,7 @@ router.get("/users/:userId", requireAuth, async (req, res) => {
 router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner"), async (req, res) => {
   try {
     const id = parseInt(req.params.userId as string);
-    const { name, nameAr, role, password } = req.body;
+    const { name, nameAr, role, password, tenantId } = req.body;
     // Non-platform-owners cannot elevate to platform_owner
     if (role === "platform_owner" && req.user!.role !== "platform_owner") {
       res.status(403).json({ error: "Cannot assign platform_owner role" });
@@ -107,6 +107,10 @@ router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner
     if (nameAr !== undefined) updates.nameAr = nameAr;
     if (role !== undefined) updates.role = role;
     if (password) updates.passwordHash = await bcrypt.hash(password, 10);
+    // Only platform_owner can reassign a user to a different tenant
+    if (tenantId !== undefined && req.user!.role === "platform_owner") {
+      updates.tenantId = tenantId === null ? null : Number(tenantId);
+    }
 
     const where = buildUserWhere(id, req.user!);
 

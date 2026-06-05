@@ -26,6 +26,7 @@ interface EditState {
   nameAr: string;
   role: string;
   password: string;
+  tenantId: string;
 }
 
 export default function AdminUsers() {
@@ -89,6 +90,7 @@ export default function AdminUsers() {
       nameAr: u.nameAr ?? "",
       role: u.role,
       password: "",
+      tenantId: u.tenantId ? String(u.tenantId) : "",
     });
   };
 
@@ -103,6 +105,9 @@ export default function AdminUsers() {
         nameAr: editState.nameAr || undefined,
         role: editState.role as UserUpdateRole,
         password: editState.password || undefined,
+        tenantId: isPlatformOwner
+          ? (editState.tenantId ? parseInt(editState.tenantId) : null)
+          : undefined,
       };
       await updateUser.mutateAsync({ userId: editState.userId, data });
       toast.success("تم حفظ التعديلات");
@@ -289,6 +294,21 @@ export default function AdminUsers() {
                               ))}
                             </select>
                           </div>
+                          {isPlatformOwner && (
+                            <div className="space-y-1 min-w-[160px]">
+                              <label className="text-xs text-muted-foreground">الفرع</label>
+                              <select
+                                className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm text-right"
+                                value={editState.tenantId}
+                                onChange={e => setEditState(s => s ? { ...s, tenantId: e.target.value } : s)}
+                              >
+                                <option value="">— بدون فرع —</option>
+                                {tenants?.map(t => (
+                                  <option key={t.id} value={t.id}>{t.nameAr || t.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
                           <div className="space-y-1 min-w-[140px]">
                             <label className="text-xs text-muted-foreground">كلمة مرور جديدة (اختياري)</label>
                             <input
