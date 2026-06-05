@@ -7,7 +7,7 @@ import { usersTable } from "./users";
 export const discountRequestsTable = pgTable("discount_requests", {
   id: serial("id").primaryKey(),
   tenantId: integer("tenant_id").notNull().references(() => tenantsTable.id),
-  sessionId: integer("session_id").notNull().references(() => sessionsTable.id),
+  sessionId: integer("session_id").references(() => sessionsTable.id),
   orderId: integer("order_id").references(() => ordersTable.id),
   type: text("type").notNull(),
   discountKind: text("discount_kind").notNull(),

@@ -18,16 +18,22 @@ function calcMinutes(startedAt: Date, pausedAt: Date | null, pausedDuration: num
 }
 
 async function formatRequest(row: typeof discountRequestsTable.$inferSelect) {
-  const [session] = await db.select({ assetId: sessionsTable.assetId, startedAt: sessionsTable.startedAt, pausedAt: sessionsTable.pausedAt, pausedDurationMinutes: sessionsTable.pausedDurationMinutes, status: sessionsTable.status })
-    .from(sessionsTable).where(eq(sessionsTable.id, row.sessionId)).limit(1);
   let sessionAssetName = null, sessionAssetNameAr = null, pricePerHour = 0;
-  if (session?.assetId) {
-    const [asset] = await db.select({ name: assetsTable.name, nameAr: assetsTable.nameAr, pricePerHour: assetsTable.pricePerHour })
-      .from(assetsTable).where(eq(assetsTable.id, session.assetId)).limit(1);
-    sessionAssetName = asset?.name ?? null;
-    sessionAssetNameAr = asset?.nameAr ?? null;
-    pricePerHour = asset ? parseFloat(asset.pricePerHour as string) : 0;
+  let session: { assetId: number | null; startedAt: Date; pausedAt: Date | null; pausedDurationMinutes: unknown; status: string } | undefined;
+
+  if (row.sessionId) {
+    const [s] = await db.select({ assetId: sessionsTable.assetId, startedAt: sessionsTable.startedAt, pausedAt: sessionsTable.pausedAt, pausedDurationMinutes: sessionsTable.pausedDurationMinutes, status: sessionsTable.status })
+      .from(sessionsTable).where(eq(sessionsTable.id, row.sessionId)).limit(1);
+    session = s;
+    if (session?.assetId) {
+      const [asset] = await db.select({ name: assetsTable.name, nameAr: assetsTable.nameAr, pricePerHour: assetsTable.pricePerHour })
+        .from(assetsTable).where(eq(assetsTable.id, session.assetId)).limit(1);
+      sessionAssetName = asset?.name ?? null;
+      sessionAssetNameAr = asset?.nameAr ?? null;
+      pricePerHour = asset ? parseFloat(asset.pricePerHour as string) : 0;
+    }
   }
+
   const [requester] = await db.select({ name: usersTable.name })
     .from(usersTable).where(eq(usersTable.id, row.requestedByUserId)).limit(1);
 
@@ -65,7 +71,7 @@ async function formatRequest(row: typeof discountRequestsTable.$inferSelect) {
 
   return {
     id: row.id,
-    sessionId: row.sessionId,
+    sessionId: row.sessionId ?? null,
     orderId: row.orderId ?? null,
     type: row.type,
     discountKind: row.discountKind,
@@ -123,11 +129,28 @@ router.get("/discounts/session/:sessionId", requireAuth, requireTenant, CASHIER_
   }
 });
 
+// GET /discounts/order/:orderId — cashier checks discount requests for a direct order
+// NOTE: must be before /discounts/:requestId routes
+router.get("/discounts/order/:orderId", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
+  try {
+    const orderId = parseInt(req.params.orderId);
+    const rows = await db.select().from(discountRequestsTable)
+      .where(and(
+        eq(discountRequestsTable.orderId, orderId),
+        eq(discountRequestsTable.tenantId, req.user!.tenantId!),
+      ));
+    const result = await Promise.all(rows.map(formatRequest));
+    res.json(result);
+  } catch {
+    res.status(500).json({ error: "Failed to get order discounts" });
+  }
+});
+
 // POST /discounts — cashier submits a discount request
 router.post("/discounts", requireAuth, requireTenant, CASHIER_UP, requireOpenShift, async (req, res) => {
   try {
     const { sessionId, orderId, type, discountKind, discountValue, billedMinutes, reason } = req.body;
-    if (!sessionId || !type || !discountKind || discountValue === undefined) {
+    if (!type || !discountKind || discountValue === undefined) {
       res.status(400).json({ error: "Missing required fields" }); return;
     }
     if (!["session_time", "order"].includes(type)) {
@@ -145,31 +168,46 @@ router.post("/discounts", requireAuth, requireTenant, CASHIER_UP, requireOpenShi
     if (type === "order" && !orderId) {
       res.status(400).json({ error: "orderId required for order discount" }); return;
     }
+    if (type === "session_time" && !sessionId) {
+      res.status(400).json({ error: "sessionId required for session_time discount" }); return;
+    }
 
-    // Verify session belongs to tenant and is active
-    const [session] = await db.select().from(sessionsTable)
-      .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.tenantId, req.user!.tenantId!)))
-      .limit(1);
-    if (!session) { res.status(404).json({ error: "Session not found" }); return; }
-    if (!["active", "paused"].includes(session.status)) {
-      res.status(400).json({ error: "Session is not active" }); return;
+    // Verify session belongs to tenant and is active (only for session discounts)
+    if (sessionId) {
+      const [session] = await db.select().from(sessionsTable)
+        .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.tenantId, req.user!.tenantId!)))
+        .limit(1);
+      if (!session) { res.status(404).json({ error: "Session not found" }); return; }
+      if (!["active", "paused"].includes(session.status)) {
+        res.status(400).json({ error: "Session is not active" }); return;
+      }
+    }
+
+    // Verify order belongs to tenant (for order discounts without session)
+    if (type === "order" && orderId && !sessionId) {
+      const [order] = await db.select({ id: ordersTable.id }).from(ordersTable)
+        .where(and(eq(ordersTable.id, orderId), eq(ordersTable.tenantId, req.user!.tenantId!)))
+        .limit(1);
+      if (!order) { res.status(404).json({ error: "Order not found" }); return; }
     }
 
     // Block duplicate pending requests for same target
+    const dupConditions = [
+      eq(discountRequestsTable.status, "pending"),
+      eq(discountRequestsTable.type, type),
+      eq(discountRequestsTable.tenantId, req.user!.tenantId!),
+      ...(orderId ? [eq(discountRequestsTable.orderId, orderId)] : []),
+      ...(sessionId ? [eq(discountRequestsTable.sessionId, sessionId)] : []),
+    ];
     const existing = await db.select({ id: discountRequestsTable.id }).from(discountRequestsTable)
-      .where(and(
-        eq(discountRequestsTable.sessionId, sessionId),
-        eq(discountRequestsTable.status, "pending"),
-        eq(discountRequestsTable.type, type),
-        orderId ? eq(discountRequestsTable.orderId, orderId) : eq(discountRequestsTable.tenantId, req.user!.tenantId!),
-      )).limit(1);
+      .where(and(...dupConditions)).limit(1);
     if (existing.length > 0) {
       res.status(409).json({ error: "duplicate_pending" }); return;
     }
 
     const [inserted] = await db.insert(discountRequestsTable).values({
       tenantId: req.user!.tenantId!,
-      sessionId,
+      sessionId: sessionId ?? null,
       orderId: orderId ?? null,
       type,
       discountKind,

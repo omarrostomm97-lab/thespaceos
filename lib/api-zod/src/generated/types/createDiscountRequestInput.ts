@@ -7,7 +7,7 @@
  */
 
 export interface CreateDiscountRequestInput {
-  sessionId: number;
+  sessionId?: number;
   orderId?: number;
   type: string;
   discountKind: string;

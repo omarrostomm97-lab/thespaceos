@@ -3750,7 +3750,7 @@ export const getGetSessionDiscountsUrl = (sessionId: number,) => {
 }
 
 /**
- * @summary Get approved discount requests for a session (cashier preview)
+ * @summary Get discount requests for a session (cashier preview)
  */
 export const getSessionDiscounts = async (sessionId: number, options?: RequestInit): Promise<DiscountRequest[]> => {
 
@@ -3797,7 +3797,7 @@ export type GetSessionDiscountsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary Get approved discount requests for a session (cashier preview)
+ * @summary Get discount requests for a session (cashier preview)
  */
 
 export function useGetSessionDiscounts<TData = Awaited<ReturnType<typeof getSessionDiscounts>>, TError = ErrorType<unknown>>(
@@ -3806,6 +3806,83 @@ export function useGetSessionDiscounts<TData = Awaited<ReturnType<typeof getSess
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetSessionDiscountsQueryOptions(sessionId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetOrderDiscountsUrl = (orderId: number,) => {
+
+
+
+
+  return `/api/discounts/order/${orderId}`
+}
+
+/**
+ * @summary Get discount requests for a direct POS order (cashier preview)
+ */
+export const getOrderDiscounts = async (orderId: number, options?: RequestInit): Promise<DiscountRequest[]> => {
+
+  return customFetch<DiscountRequest[]>(getGetOrderDiscountsUrl(orderId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetOrderDiscountsQueryKey = (orderId: number,) => {
+    return [
+    `/api/discounts/order/${orderId}`
+    ] as const;
+    }
+
+
+export const getGetOrderDiscountsQueryOptions = <TData = Awaited<ReturnType<typeof getOrderDiscounts>>, TError = ErrorType<unknown>>(orderId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOrderDiscounts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetOrderDiscountsQueryKey(orderId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getOrderDiscounts>>> = ({ signal }) => getOrderDiscounts(orderId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(orderId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getOrderDiscounts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetOrderDiscountsQueryResult = NonNullable<Awaited<ReturnType<typeof getOrderDiscounts>>>
+export type GetOrderDiscountsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get discount requests for a direct POS order (cashier preview)
+ */
+
+export function useGetOrderDiscounts<TData = Awaited<ReturnType<typeof getOrderDiscounts>>, TError = ErrorType<unknown>>(
+ orderId: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getOrderDiscounts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetOrderDiscountsQueryOptions(orderId,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

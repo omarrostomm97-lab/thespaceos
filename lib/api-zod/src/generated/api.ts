@@ -931,7 +931,7 @@ export const ListDiscountRequestsQueryParams = zod.object({
 
 export const ListDiscountRequestsResponseItem = zod.object({
   "id": zod.number(),
-  "sessionId": zod.number(),
+  "sessionId": zod.number().nullish(),
   "orderId": zod.number().nullish(),
   "type": zod.string(),
   "discountKind": zod.string(),
@@ -958,7 +958,7 @@ export const ListDiscountRequestsResponse = zod.array(ListDiscountRequestsRespon
  * @summary Cashier submits a discount request
  */
 export const CreateDiscountRequestBody = zod.object({
-  "sessionId": zod.number(),
+  "sessionId": zod.number().optional(),
   "orderId": zod.number().optional(),
   "type": zod.string(),
   "discountKind": zod.string(),
@@ -981,7 +981,7 @@ export const ApproveDiscountRequestBody = zod.object({
 
 export const ApproveDiscountRequestResponse = zod.object({
   "id": zod.number(),
-  "sessionId": zod.number(),
+  "sessionId": zod.number().nullish(),
   "orderId": zod.number().nullish(),
   "type": zod.string(),
   "discountKind": zod.string(),
@@ -1016,7 +1016,7 @@ export const RejectDiscountRequestBody = zod.object({
 
 export const RejectDiscountRequestResponse = zod.object({
   "id": zod.number(),
-  "sessionId": zod.number(),
+  "sessionId": zod.number().nullish(),
   "orderId": zod.number().nullish(),
   "type": zod.string(),
   "discountKind": zod.string(),
@@ -1051,7 +1051,7 @@ export const CancelDiscountRequestBody = zod.object({
 
 export const CancelDiscountRequestResponse = zod.object({
   "id": zod.number(),
-  "sessionId": zod.number(),
+  "sessionId": zod.number().nullish(),
   "orderId": zod.number().nullish(),
   "type": zod.string(),
   "discountKind": zod.string(),
@@ -1074,7 +1074,7 @@ export const CancelDiscountRequestResponse = zod.object({
 
 
 /**
- * @summary Get approved discount requests for a session (cashier preview)
+ * @summary Get discount requests for a session (cashier preview)
  */
 export const GetSessionDiscountsParams = zod.object({
   "sessionId": zod.coerce.number()
@@ -1082,7 +1082,7 @@ export const GetSessionDiscountsParams = zod.object({
 
 export const GetSessionDiscountsResponseItem = zod.object({
   "id": zod.number(),
-  "sessionId": zod.number(),
+  "sessionId": zod.number().nullish(),
   "orderId": zod.number().nullish(),
   "type": zod.string(),
   "discountKind": zod.string(),
@@ -1103,6 +1103,38 @@ export const GetSessionDiscountsResponseItem = zod.object({
   "discountedAmount": zod.number().nullish()
 })
 export const GetSessionDiscountsResponse = zod.array(GetSessionDiscountsResponseItem)
+
+
+/**
+ * @summary Get discount requests for a direct POS order (cashier preview)
+ */
+export const GetOrderDiscountsParams = zod.object({
+  "orderId": zod.coerce.number()
+})
+
+export const GetOrderDiscountsResponseItem = zod.object({
+  "id": zod.number(),
+  "sessionId": zod.number().nullish(),
+  "orderId": zod.number().nullish(),
+  "type": zod.string(),
+  "discountKind": zod.string(),
+  "discountValue": zod.number(),
+  "billedMinutes": zod.number().nullish(),
+  "reason": zod.string().nullish(),
+  "status": zod.string(),
+  "adminNote": zod.string().nullish(),
+  "requestedByUserId": zod.number(),
+  "requestedByName": zod.string().nullish(),
+  "reviewedByUserId": zod.number().nullish(),
+  "reviewedAt": zod.coerce.date().nullish(),
+  "createdAt": zod.coerce.date(),
+  "sessionAssetName": zod.string().nullish(),
+  "sessionAssetNameAr": zod.string().nullish(),
+  "originalGamingCost": zod.number().nullish(),
+  "originalOrderTotal": zod.number().nullish(),
+  "discountedAmount": zod.number().nullish()
+})
+export const GetOrderDiscountsResponse = zod.array(GetOrderDiscountsResponseItem)
 
 
 /**

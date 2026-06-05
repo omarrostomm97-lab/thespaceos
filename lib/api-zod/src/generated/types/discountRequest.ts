@@ -8,7 +8,8 @@
 
 export interface DiscountRequest {
   id: number;
-  sessionId: number;
+  /** @nullable */
+  sessionId?: number | null;
   /** @nullable */
   orderId?: number | null;
   type: string;

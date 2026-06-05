@@ -1036,7 +1036,7 @@ paths:
     get:
       operationId: getSessionDiscounts
       tags: [discounts]
-      summary: Get approved discount requests for a session (cashier preview)
+      summary: Get discount requests for a session (cashier preview)
       parameters:
         - name: sessionId
           in: path
@@ -1046,6 +1046,27 @@ paths:
       responses:
         "200":
           description: Discount requests for session
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiscountRequest"
+
+  /discounts/order/{orderId}:
+    get:
+      operationId: getOrderDiscounts
+      tags: [discounts]
+      summary: Get discount requests for a direct POS order (cashier preview)
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Discount requests for order
           content:
             application/json:
               schema:
@@ -4192,12 +4213,12 @@ components:
 
     DiscountRequest:
       type: object
-      required: [id, sessionId, type, discountKind, discountValue, status, requestedByUserId, createdAt]
+      required: [id, type, discountKind, discountValue, status, requestedByUserId, createdAt]
       properties:
         id:
           type: integer
         sessionId:
-          type: integer
+          type: ["integer", "null"]
         orderId:
           type: ["integer", "null"]
         type:
@@ -4239,7 +4260,7 @@ components:
 
     CreateDiscountRequestInput:
       type: object
-      required: [sessionId, type, discountKind, discountValue]
+      required: [type, discountKind, discountValue]
       properties:
         sessionId:
           type: integer

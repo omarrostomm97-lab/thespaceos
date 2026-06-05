@@ -1328,7 +1328,8 @@ export interface FinanceShiftDifference {
 
 export interface DiscountRequest {
   id: number;
-  sessionId: number;
+  /** @nullable */
+  sessionId?: number | null;
   /** @nullable */
   orderId?: number | null;
   type: string;
@@ -1362,7 +1363,7 @@ export interface DiscountRequest {
 }
 
 export interface CreateDiscountRequestInput {
-  sessionId: number;
+  sessionId?: number;
   orderId?: number;
   type: string;
   discountKind: string;

@@ -6,14 +6,16 @@ import {
   useCreateDiscountRequest,
   useCancelDiscountRequest,
   useGetSessionDiscounts,
+  useGetOrderDiscounts,
   getListOrdersQueryKey,
   getListActiveSessionsQueryKey,
   getGetSessionDiscountsQueryKey,
+  getGetOrderDiscountsQueryKey,
 } from "@workspace/api-client-react";
 import { getProductEmoji } from "@/lib/product-emoji";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, X, Banknote, CreditCard, Smartphone, Gamepad2, Check, Receipt, Search, Tag, CheckCircle, XCircle, Clock } from "lucide-react";
+import { ShoppingCart, X, Banknote, CreditCard, Smartphone, Gamepad2, Check, Receipt, Search, Tag, CheckCircle, XCircle, Clock, RotateCcw } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -23,6 +25,12 @@ import { useLang } from "@/hooks/use-language";
 interface CartItem {
   product: any;
   quantity: number;
+}
+
+interface LastDirectOrder {
+  id: number;
+  items: CartItem[];
+  total: number;
 }
 
 type PaymentMethod = "cash" | "instapay" | "visa";
@@ -44,9 +52,18 @@ export default function Pos() {
   const [orderMode, setOrderMode] = useState<OrderMode>("direct");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
 
+  // Session discount form state
   const [discountFormOpen, setDiscountFormOpen] = useState(false);
   const [discountPct, setDiscountPct] = useState("");
   const [discountReasonText, setDiscountReasonText] = useState("");
+
+  // Last direct order state (receipt + discount/return panel)
+  const [lastDirectOrder, setLastDirectOrder] = useState<LastDirectOrder | null>(null);
+
+  // Order discount form state (separate from session discount form)
+  const [orderDiscountFormOpen, setOrderDiscountFormOpen] = useState(false);
+  const [orderDiscountPct, setOrderDiscountPct] = useState("");
+  const [orderDiscountReasonText, setOrderDiscountReasonText] = useState("");
 
   const { data: categories, isLoading: isLoadingCats } = useListProductCategories();
   const { data: products, isLoading: isLoadingProds } = useListProducts(undefined, {
@@ -60,11 +77,19 @@ export default function Pos() {
   const createDiscountReq = useCreateDiscountRequest();
   const cancelDiscountReq = useCancelDiscountRequest();
 
+  // Session discounts polling
   const { data: posSessionDiscounts = [] } = useGetSessionDiscounts(
     selectedSessionId ?? 0,
-    { query: { enabled: !!selectedSessionId && orderMode === "session", refetchInterval: 10000 } }
+    { query: { queryKey: getGetSessionDiscountsQueryKey(selectedSessionId ?? 0), enabled: !!selectedSessionId && orderMode === "session", refetchInterval: 10000 } }
   );
 
+  // Order discounts polling (for receipt panel)
+  const { data: posOrderDiscounts = [] } = useGetOrderDiscounts(
+    lastDirectOrder?.id ?? 0,
+    { query: { queryKey: getGetOrderDiscountsQueryKey(lastDirectOrder?.id ?? 0), enabled: !!lastDirectOrder && orderMode === "direct", refetchInterval: 10000 } }
+  );
+
+  // Session discount chip state (sorted by id desc for deterministic chip)
   const sortedDiscounts = [...posSessionDiscounts].sort((a, b) => b.id - a.id);
   const latestDiscount = sortedDiscounts[0] ?? null;
   const pendingPosDiscount = latestDiscount?.status === "pending" ? latestDiscount : null;
@@ -72,6 +97,16 @@ export default function Pos() {
   const rejectedOrCancelledDiscount =
     latestDiscount && (latestDiscount.status === "rejected" || latestDiscount.status === "cancelled")
       ? latestDiscount
+      : null;
+
+  // Order discount chip state (same deterministic pattern)
+  const sortedOrderDiscounts = [...posOrderDiscounts].sort((a, b) => b.id - a.id);
+  const latestOrderDiscount = sortedOrderDiscounts[0] ?? null;
+  const pendingOrderDiscount = latestOrderDiscount?.status === "pending" ? latestOrderDiscount : null;
+  const approvedOrderDiscount = latestOrderDiscount?.status === "approved" ? latestOrderDiscount : null;
+  const rejectedOrCancelledOrderDiscount =
+    latestOrderDiscount && (latestOrderDiscount.status === "rejected" || latestOrderDiscount.status === "cancelled")
+      ? latestOrderDiscount
       : null;
 
   const q = searchQuery.trim().toLowerCase();
@@ -117,10 +152,21 @@ export default function Pos() {
     setDiscountReasonText("");
   };
 
+  const resetOrderDiscountForm = () => {
+    setOrderDiscountFormOpen(false);
+    setOrderDiscountPct("");
+    setOrderDiscountReasonText("");
+  };
+
   const clearCart = () => {
     setCart([]);
     setSelectedSessionId(null);
     resetDiscountForm();
+  };
+
+  const clearLastOrder = () => {
+    setLastDirectOrder(null);
+    resetOrderDiscountForm();
   };
 
   const handleSelectSession = (id: number | null) => {
@@ -128,6 +174,7 @@ export default function Pos() {
     resetDiscountForm();
   };
 
+  // Session time discount submit
   const handlePosDiscountSubmit = async () => {
     if (!selectedSessionId) return;
     const val = parseFloat(discountPct);
@@ -164,12 +211,52 @@ export default function Pos() {
     }
   };
 
+  // Direct order discount submit
+  const handleOrderDiscountSubmit = async () => {
+    if (!lastDirectOrder) return;
+    const val = parseFloat(orderDiscountPct);
+    if (isNaN(val) || val <= 0 || val > 100) {
+      toast.error(t("discount_value_label")); return;
+    }
+    try {
+      await createDiscountReq.mutateAsync({
+        data: {
+          type: "order",
+          orderId: lastDirectOrder.id,
+          discountKind: "percent",
+          discountValue: val,
+          reason: orderDiscountReasonText.trim() || undefined,
+        } as any,
+      });
+      queryClient.invalidateQueries({ queryKey: getGetOrderDiscountsQueryKey(lastDirectOrder.id) });
+      resetOrderDiscountForm();
+      toast.success(t("discount_submitted_ok"));
+    } catch (err: any) {
+      const code = err?.response?.data?.error ?? err?.data?.error;
+      toast.error(code === "duplicate_pending" ? t("discount_duplicate_error") : t("discount_submit_error"));
+      setOrderDiscountFormOpen(false);
+    }
+  };
+
+  const handleCancelOrderDiscount = async (requestId: number) => {
+    if (!lastDirectOrder) return;
+    try {
+      await cancelDiscountReq.mutateAsync({ requestId });
+      queryClient.invalidateQueries({ queryKey: getGetOrderDiscountsQueryKey(lastDirectOrder.id) });
+      toast.success(t("discount_cancel_ok"));
+    } catch {
+      toast.error(t("discount_cancel_error"));
+    }
+  };
+
   const total = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
 
   const handleDirectCheckout = async (paymentMethod: PaymentMethod) => {
     if (cart.length === 0) return;
+    const cartSnapshot = [...cart];
+    const totalSnapshot = total;
     try {
-      await createOrder.mutateAsync({
+      const order = await createOrder.mutateAsync({
         data: {
           paymentMethod: paymentMethod as string,
           items: cart.map(item => ({ productId: item.product.id, quantity: item.quantity }))
@@ -180,7 +267,10 @@ export default function Pos() {
       } else {
         toast.success(`تم إنشاء الطلب — يحتاج تأكيد ${paymentMethod === "instapay" ? "انستا باي" : "الفيزا"} من صفحة المدفوعات`);
       }
-      clearCart();
+      // Store last order for discount/return panel, clear cart
+      setLastDirectOrder({ id: (order as any).id, items: cartSnapshot, total: totalSnapshot });
+      setCart([]);
+      resetOrderDiscountForm();
       queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() });
     } catch (err: any) {
       if (err?.response?.data?.error === "no_open_shift") {
@@ -366,253 +456,409 @@ export default function Pos() {
 
         {/* Checkout area */}
         <div className="p-3 md:p-4 border-t border-border bg-sidebar shrink-0 space-y-3">
-          {/* Total */}
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground text-base md:text-lg">الإجمالي:</span>
-            <span className="font-bold text-2xl md:text-3xl text-emerald-500">{total.toFixed(2)} ج.م</span>
-          </div>
+          {/* Total (hide when showing receipt panel) */}
+          {!lastDirectOrder && (
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground text-base md:text-lg">الإجمالي:</span>
+              <span className="font-bold text-2xl md:text-3xl text-emerald-500">{total.toFixed(2)} ج.م</span>
+            </div>
+          )}
 
           <div className="space-y-3">
-              {/* Mode toggle — always visible */}
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => switchMode("direct")}
-                  className={`flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-bold transition-all ${
-                    orderMode === "direct"
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  }`}
-                >
-                  <Receipt className="h-4 w-4 shrink-0" />
-                  طلب منفصل
-                </button>
-                <button
-                  onClick={() => switchMode("session")}
-                  className={`flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-bold transition-all ${
-                    orderMode === "session"
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
-                  }`}
-                >
-                  <Gamepad2 className="h-4 w-4 shrink-0" />
-                  إضافة لغرفة
-                </button>
-              </div>
+            {/* Mode toggle — always visible */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => { switchMode("direct"); clearLastOrder(); }}
+                className={`flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-bold transition-all ${
+                  orderMode === "direct"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                <Receipt className="h-4 w-4 shrink-0" />
+                طلب منفصل
+              </button>
+              <button
+                onClick={() => { switchMode("session"); clearLastOrder(); }}
+                className={`flex items-center justify-center gap-2 h-11 rounded-xl border-2 text-sm font-bold transition-all ${
+                  orderMode === "session"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                <Gamepad2 className="h-4 w-4 shrink-0" />
+                إضافة لغرفة
+              </button>
+            </div>
 
-              {/* ── Direct order: payment methods (requires cart items) ── */}
-              {orderMode === "direct" && (
-                cart.length > 0 ? (
-                  <div className="space-y-2">
-                    <p className="text-xs text-muted-foreground text-center">اختر طريقة الدفع:</p>
-                    <div className="grid gap-2">
-                      {PAYMENT_METHODS.map(method => (
-                        <Button
-                          key={method.id}
-                          className={`h-12 md:h-14 text-sm md:text-base font-bold gap-2 md:gap-3 ${method.color}`}
-                          disabled={createOrder.isPending}
-                          onClick={() => handleDirectCheckout(method.id)}
+            {/* ── Direct order section ── */}
+            {orderMode === "direct" && (
+              lastDirectOrder ? (
+                /* ── Receipt panel: last completed direct order ── */
+                <div className="space-y-2">
+                  {/* Receipt header */}
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <Receipt className="h-3.5 w-3.5 text-emerald-500" />
+                      {t("order_receipt_label")} #{lastDirectOrder.id}
+                    </span>
+                    <span className="text-sm font-bold text-emerald-500">{lastDirectOrder.total.toFixed(2)} ج.م</span>
+                  </div>
+
+                  {/* Receipt items */}
+                  <div className="space-y-1 bg-background rounded-xl border border-border px-3 py-2 max-h-28 overflow-y-auto">
+                    {lastDirectOrder.items.map(item => (
+                      <div key={item.product.id} className="flex items-center justify-between text-xs">
+                        <span className="text-foreground truncate me-2">{item.product.nameAr || item.product.name}</span>
+                        <span className="text-muted-foreground shrink-0">
+                          {item.quantity} × {item.product.price.toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Discount panel for order */}
+                  <div className="space-y-1.5 pt-1 border-t border-border/50">
+                    {/* Pending chip */}
+                    {pendingOrderDiscount && !orderDiscountFormOpen && (
+                      <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                          <span className="text-xs font-medium text-amber-500 truncate">
+                            {t("discount_pending_badge")} — {pendingOrderDiscount.discountValue}%
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleCancelOrderDiscount(pendingOrderDiscount.id)}
+                          disabled={cancelDiscountReq.isPending}
+                          className="text-xs text-amber-600 hover:text-amber-700 font-semibold px-2 py-1 rounded-lg hover:bg-amber-500/10 shrink-0 ms-2 disabled:opacity-50"
                         >
-                          {method.icon}
-                          <div className="flex flex-col items-start">
-                            <span>{method.label}</span>
-                            <span className="text-xs font-normal opacity-80">{method.sublabel}</span>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
+                          {cancelDiscountReq.isPending
+                            ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-amber-500 border-t-transparent inline-block" />
+                            : t("discount_cancel_btn")}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Approved chip */}
+                    {approvedOrderDiscount && !pendingOrderDiscount && (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <span className="text-xs font-medium text-emerald-500">
+                          {t("discount_approved_badge")} — {approvedOrderDiscount.discountValue}%
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Rejected / cancelled chip — allow re-request */}
+                    {rejectedOrCancelledOrderDiscount && !orderDiscountFormOpen && (
+                      <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/30">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                          <span className="text-xs font-medium text-destructive">
+                            {rejectedOrCancelledOrderDiscount.status === "rejected" ? t("discount_rejected_badge") : t("discount_cancelled_badge")}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => setOrderDiscountFormOpen(true)}
+                          className="text-xs text-primary font-semibold px-2 py-1 rounded-lg hover:bg-primary/10 shrink-0 ms-2"
+                        >
+                          {t("discount_submit")}
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Request button (no active discount) */}
+                    {!pendingOrderDiscount && !approvedOrderDiscount && !rejectedOrCancelledOrderDiscount && !orderDiscountFormOpen && (
+                      <button
+                        onClick={() => setOrderDiscountFormOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 h-9 rounded-xl border border-dashed border-amber-500/40 text-amber-500 text-xs font-medium hover:bg-amber-500/5 transition-colors"
+                      >
+                        <Tag className="h-3.5 w-3.5" />
+                        {t("discount_pos_order_request_btn")}
+                      </button>
+                    )}
+
+                    {/* Inline discount form */}
+                    {orderDiscountFormOpen && !pendingOrderDiscount && !approvedOrderDiscount && (
+                      <div className="space-y-2 bg-secondary/30 rounded-xl p-3 border border-border">
+                        <p className="text-[10px] text-muted-foreground">{t("discount_pos_hint")}</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={orderDiscountPct}
+                            onChange={e => setOrderDiscountPct(e.target.value)}
+                            placeholder={t("discount_pos_pct_label")}
+                            className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+                            dir="ltr"
+                          />
+                          <span className="text-sm text-muted-foreground font-bold">%</span>
+                        </div>
+                        <input
+                          type="text"
+                          value={orderDiscountReasonText}
+                          onChange={e => setOrderDiscountReasonText(e.target.value)}
+                          placeholder={t("discount_reason_placeholder")}
+                          className="w-full h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+                          dir="rtl"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-9"
+                            onClick={resetOrderDiscountForm}
+                          >
+                            {t("cancel")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 h-9 bg-amber-500 hover:bg-amber-600 text-white border-0"
+                            onClick={handleOrderDiscountSubmit}
+                            disabled={createDiscountReq.isPending || !orderDiscountPct}
+                          >
+                            {createDiscountReq.isPending
+                              ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              : t("discount_pos_submit")}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Return items button */}
+                  <button
+                    onClick={() => setLocation(`/orders/returns`)}
+                    className="w-full flex items-center justify-center gap-2 h-9 rounded-xl border border-dashed border-destructive/40 text-destructive text-xs font-medium hover:bg-destructive/5 transition-colors"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    {t("return_request_btn")}
+                  </button>
+
+                  {/* New order button */}
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 font-bold text-sm"
+                    onClick={clearLastOrder}
+                  >
+                    {t("new_order_btn")}
+                  </Button>
+                </div>
+              ) : cart.length > 0 ? (
+                /* ── Payment methods ── */
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground text-center">اختر طريقة الدفع:</p>
+                  <div className="grid gap-2">
+                    {PAYMENT_METHODS.map(method => (
+                      <Button
+                        key={method.id}
+                        className={`h-12 md:h-14 text-sm md:text-base font-bold gap-2 md:gap-3 ${method.color}`}
+                        disabled={createOrder.isPending}
+                        onClick={() => handleDirectCheckout(method.id)}
+                      >
+                        {method.icon}
+                        <div className="flex flex-col items-start">
+                          <span>{method.label}</span>
+                          <span className="text-xs font-normal opacity-80">{method.sublabel}</span>
+                        </div>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <Button className="w-full h-12 md:h-14 text-base md:text-lg" disabled>
+                  أضف منتجات للسلة
+                </Button>
+              )
+            )}
+
+            {/* ── Session order: room picker + discount (always accessible) ── */}
+            {orderMode === "session" && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground text-center">اختر الغرفة التي تريد إضافة الطلب إليها:</p>
+
+                {!activeSessions || activeSessions.length === 0 ? (
+                  <div className="text-center py-4 text-sm text-muted-foreground bg-secondary/30 rounded-xl border border-border">
+                    <Gamepad2 className="h-6 w-6 mx-auto mb-1.5 opacity-40" />
+                    لا توجد جلسات نشطة الآن
                   </div>
                 ) : (
-                  <Button className="w-full h-12 md:h-14 text-base md:text-lg" disabled>
-                    أضف منتجات للسلة
-                  </Button>
-                )
-              )}
+                  <div className="space-y-1.5 max-h-36 md:max-h-48 overflow-y-auto">
+                    {activeSessions.map((session: any) => {
+                      const isSelected = selectedSessionId === session.id;
+                      const isPaused = session.status === "paused";
+                      return (
+                        <button
+                          key={session.id}
+                          onClick={() => handleSelectSession(isSelected ? null : session.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border-2 text-sm transition-all ${
+                            isSelected
+                              ? "border-primary bg-primary/10"
+                              : "border-border bg-background hover:border-primary/40"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className={`h-2 w-2 rounded-full shrink-0 ${isPaused ? "bg-amber-400" : "bg-emerald-500"}`} />
+                            <span className="font-bold truncate text-foreground">
+                              {session.assetNameAr || session.assetName || `جلسة #${session.id}`}
+                            </span>
+                            <span className={`text-xs shrink-0 ${isPaused ? "text-amber-500" : "text-emerald-500"}`}>
+                              {isPaused ? "موقف" : "يلعب"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0 ms-2">
+                            <span className="text-xs text-muted-foreground font-mono">
+                              {(session.totalCost ?? session.currentCost ?? 0).toFixed(2)} ج.م
+                            </span>
+                            {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
 
-              {/* ── Session order: room picker + discount (always accessible) ── */}
-              {orderMode === "session" && (
-                <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground text-center">اختر الغرفة التي تريد إضافة الطلب إليها:</p>
-
-                  {!activeSessions || activeSessions.length === 0 ? (
-                    <div className="text-center py-4 text-sm text-muted-foreground bg-secondary/30 rounded-xl border border-border">
-                      <Gamepad2 className="h-6 w-6 mx-auto mb-1.5 opacity-40" />
-                      لا توجد جلسات نشطة الآن
-                    </div>
+                <Button
+                  className="w-full h-12 font-bold text-base bg-primary hover:bg-primary/90 text-white"
+                  disabled={!selectedSessionId || cart.length === 0 || createOrder.isPending}
+                  onClick={handleAddToSession}
+                >
+                  {createOrder.isPending ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      جاري الإرسال...
+                    </span>
                   ) : (
-                    <div className="space-y-1.5 max-h-36 md:max-h-48 overflow-y-auto">
-                      {activeSessions.map((session: any) => {
-                        const isSelected = selectedSessionId === session.id;
-                        const isPaused = session.status === "paused";
-                        return (
-                          <button
-                            key={session.id}
-                            onClick={() => handleSelectSession(isSelected ? null : session.id)}
-                            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border-2 text-sm transition-all ${
-                              isSelected
-                                ? "border-primary bg-primary/10"
-                                : "border-border bg-background hover:border-primary/40"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span className={`h-2 w-2 rounded-full shrink-0 ${isPaused ? "bg-amber-400" : "bg-emerald-500"}`} />
-                              <span className="font-bold truncate text-foreground">
-                                {session.assetNameAr || session.assetName || `جلسة #${session.id}`}
-                              </span>
-                              <span className={`text-xs shrink-0 ${isPaused ? "text-amber-500" : "text-emerald-500"}`}>
-                                {isPaused ? "موقف" : "يلعب"}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0 ms-2">
-                              <span className="text-xs text-muted-foreground font-mono">
-                                {(session.totalCost ?? session.currentCost ?? 0).toFixed(2)} ج.م
-                              </span>
-                              {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <>
+                      <Gamepad2 className="me-2 h-4 w-4" />
+                      إرسال للغرفة
+                      {selectedSessionId && activeSessions && (
+                        <span className="ms-1 opacity-80">
+                          ({(activeSessions as any[]).find(s => s.id === selectedSessionId)?.assetNameAr ||
+                            (activeSessions as any[]).find(s => s.id === selectedSessionId)?.assetName || ""})
+                        </span>
+                      )}
+                    </>
                   )}
+                </Button>
 
-                  <Button
-                    className="w-full h-12 font-bold text-base bg-primary hover:bg-primary/90 text-white"
-                    disabled={!selectedSessionId || cart.length === 0 || createOrder.isPending}
-                    onClick={handleAddToSession}
-                  >
-                    {createOrder.isPending ? (
-                      <span className="flex items-center gap-2">
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        جاري الإرسال...
-                      </span>
-                    ) : (
-                      <>
-                        <Gamepad2 className="me-2 h-4 w-4" />
-                        إرسال للغرفة
-                        {selectedSessionId && activeSessions && (
-                          <span className="ms-1 opacity-80">
-                            ({(activeSessions as any[]).find(s => s.id === selectedSessionId)?.assetNameAr ||
-                              (activeSessions as any[]).find(s => s.id === selectedSessionId)?.assetName || ""})
+                {/* ── Session Discount Panel ── */}
+                {selectedSessionId && (
+                  <div className="space-y-2 pt-1 border-t border-border/50">
+                    {/* Pending chip */}
+                    {pendingPosDiscount && !discountFormOpen && (
+                      <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                          <span className="text-xs font-medium text-amber-500 truncate">
+                            {t("discount_pending_badge")} — {pendingPosDiscount.discountValue}%
                           </span>
-                        )}
-                      </>
+                        </div>
+                        <button
+                          onClick={() => handleCancelDiscount(pendingPosDiscount.id)}
+                          disabled={cancelDiscountReq.isPending}
+                          className="text-xs text-amber-600 hover:text-amber-700 font-semibold px-2 py-1 rounded-lg hover:bg-amber-500/10 shrink-0 ms-2 disabled:opacity-50"
+                        >
+                          {cancelDiscountReq.isPending
+                            ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-amber-500 border-t-transparent inline-block" />
+                            : t("discount_cancel_btn")}
+                        </button>
+                      </div>
                     )}
-                  </Button>
 
-                  {/* ── Discount Panel (session selected) ── */}
-                  {selectedSessionId && (
-                    <div className="space-y-2 pt-1 border-t border-border/50">
-                      {/* Pending chip */}
-                      {pendingPosDiscount && !discountFormOpen && (
-                        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
-                            <span className="text-xs font-medium text-amber-500 truncate">
-                              {t("discount_pending_badge")} — {pendingPosDiscount.discountValue}%
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => handleCancelDiscount(pendingPosDiscount.id)}
-                            disabled={cancelDiscountReq.isPending}
-                            className="text-xs text-amber-600 hover:text-amber-700 font-semibold px-2 py-1 rounded-lg hover:bg-amber-500/10 shrink-0 ms-2 disabled:opacity-50"
-                          >
-                            {cancelDiscountReq.isPending
-                              ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-amber-500 border-t-transparent inline-block" />
-                              : t("discount_cancel_btn")}
-                          </button>
-                        </div>
-                      )}
+                    {/* Approved chip */}
+                    {approvedPosDiscount && !pendingPosDiscount && (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        <span className="text-xs font-medium text-emerald-500">
+                          {t("discount_approved_badge")} — {approvedPosDiscount.discountValue}%
+                        </span>
+                      </div>
+                    )}
 
-                      {/* Approved chip */}
-                      {approvedPosDiscount && !pendingPosDiscount && (
-                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-                          <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                          <span className="text-xs font-medium text-emerald-500">
-                            {t("discount_approved_badge")} — {approvedPosDiscount.discountValue}%
+                    {/* Rejected / cancelled chip — allow re-request */}
+                    {rejectedOrCancelledDiscount && !discountFormOpen && (
+                      <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/30">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
+                          <span className="text-xs font-medium text-destructive">
+                            {rejectedOrCancelledDiscount.status === "rejected" ? t("discount_rejected_badge") : t("discount_cancelled_badge")}
                           </span>
                         </div>
-                      )}
-
-                      {/* Rejected / cancelled chip — allow re-request */}
-                      {rejectedOrCancelledDiscount && !discountFormOpen && (
-                        <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/30">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <XCircle className="h-3.5 w-3.5 text-destructive shrink-0" />
-                            <span className="text-xs font-medium text-destructive">
-                              {rejectedOrCancelledDiscount.status === "rejected" ? t("discount_rejected_badge") : t("discount_cancelled_badge")}
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => setDiscountFormOpen(true)}
-                            className="text-xs text-primary font-semibold px-2 py-1 rounded-lg hover:bg-primary/10 shrink-0 ms-2"
-                          >
-                            {t("discount_submit")}
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Request button (no active/pending/approved discount) */}
-                      {!pendingPosDiscount && !approvedPosDiscount && !rejectedOrCancelledDiscount && !discountFormOpen && (
                         <button
                           onClick={() => setDiscountFormOpen(true)}
-                          className="w-full flex items-center justify-center gap-2 h-9 rounded-xl border border-dashed border-amber-500/40 text-amber-500 text-xs font-medium hover:bg-amber-500/5 transition-colors"
+                          className="text-xs text-primary font-semibold px-2 py-1 rounded-lg hover:bg-primary/10 shrink-0 ms-2"
                         >
-                          <Tag className="h-3.5 w-3.5" />
-                          {t("discount_pos_request_btn")}
+                          {t("discount_submit")}
                         </button>
-                      )}
+                      </div>
+                    )}
 
-                      {/* Inline form */}
-                      {discountFormOpen && !pendingPosDiscount && !approvedPosDiscount && (
-                        <div className="space-y-2 bg-secondary/30 rounded-xl p-3 border border-border">
-                          <p className="text-[10px] text-muted-foreground">{t("discount_pos_hint")}</p>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="number"
-                              min="1"
-                              max="100"
-                              value={discountPct}
-                              onChange={e => setDiscountPct(e.target.value)}
-                              placeholder={t("discount_pos_pct_label")}
-                              className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
-                              dir="ltr"
-                            />
-                            <span className="text-sm text-muted-foreground font-bold">%</span>
-                          </div>
+                    {/* Request button (no active/pending/approved discount) */}
+                    {!pendingPosDiscount && !approvedPosDiscount && !rejectedOrCancelledDiscount && !discountFormOpen && (
+                      <button
+                        onClick={() => setDiscountFormOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 h-9 rounded-xl border border-dashed border-amber-500/40 text-amber-500 text-xs font-medium hover:bg-amber-500/5 transition-colors"
+                      >
+                        <Tag className="h-3.5 w-3.5" />
+                        {t("discount_pos_request_btn")}
+                      </button>
+                    )}
+
+                    {/* Inline session discount form */}
+                    {discountFormOpen && !pendingPosDiscount && !approvedPosDiscount && (
+                      <div className="space-y-2 bg-secondary/30 rounded-xl p-3 border border-border">
+                        <p className="text-[10px] text-muted-foreground">{t("discount_pos_hint")}</p>
+                        <div className="flex items-center gap-2">
                           <input
-                            type="text"
-                            value={discountReasonText}
-                            onChange={e => setDiscountReasonText(e.target.value)}
-                            placeholder={t("discount_reason_placeholder")}
-                            className="w-full h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
-                            dir="rtl"
+                            type="number"
+                            min="1"
+                            max="100"
+                            value={discountPct}
+                            onChange={e => setDiscountPct(e.target.value)}
+                            placeholder={t("discount_pos_pct_label")}
+                            className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+                            dir="ltr"
                           />
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="flex-1 h-9"
-                              onClick={() => { setDiscountFormOpen(false); setDiscountPct(""); setDiscountReasonText(""); }}
-                            >
-                              {t("cancel")}
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="flex-1 h-9 bg-amber-500 hover:bg-amber-600 text-white border-0"
-                              onClick={handlePosDiscountSubmit}
-                              disabled={createDiscountReq.isPending || !discountPct}
-                            >
-                              {createDiscountReq.isPending
-                                ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                                : t("discount_pos_submit")}
-                            </Button>
-                          </div>
+                          <span className="text-sm text-muted-foreground font-bold">%</span>
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                        <input
+                          type="text"
+                          value={discountReasonText}
+                          onChange={e => setDiscountReasonText(e.target.value)}
+                          placeholder={t("discount_reason_placeholder")}
+                          className="w-full h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
+                          dir="rtl"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 h-9"
+                            onClick={() => { setDiscountFormOpen(false); setDiscountPct(""); setDiscountReasonText(""); }}
+                          >
+                            {t("cancel")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="flex-1 h-9 bg-amber-500 hover:bg-amber-600 text-white border-0"
+                            onClick={handlePosDiscountSubmit}
+                            disabled={createDiscountReq.isPending || !discountPct}
+                          >
+                            {createDiscountReq.isPending
+                              ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                              : t("discount_pos_submit")}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
