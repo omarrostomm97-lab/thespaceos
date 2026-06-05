@@ -1,0 +1,230 @@
+Please add the following stock quantities to the Inventory module for the Banana tenant only.
+
+Important rules:
+- Do not delete or reset any existing stock.
+- Do not touch any other tenant.
+- First find the Banana tenant by name. It may be called “Banana”, “Bananas”, “Banana Gaming Lounge”, or similar.
+- Use the Banana tenant_id after finding it.
+- If an inventory item already exists, update its current stock to match the quantity below.
+- If an inventory item does not exist, create it.
+- Use idempotent logic where possible to avoid creating duplicate items.
+- Keep all existing sessions, orders, payments, shifts, dashboard, finance, users, and permissions unchanged.
+- Do not break any existing inventory recipes or product links.
+- If an item already has recipe/product links, preserve them.
+- Add a stock movement record for every item updated/created so the stock change is auditable.
+- Movement reason: “Initial Banana stock count”
+- Movement type: adjustment/count
+- Date: today
+- Created by: current admin/system user if available.
+
+Please create/update the following inventory stock for Banana tenant:
+
+Beverages / Drinks:
+1. Pepsi
+- Quantity: 49
+- Unit: cans
+
+2. 7up
+- Quantity: 40
+- Unit: cans
+
+3. Birell
+- Quantity: 20
+- Unit: cans
+
+4. Fayrouz
+- Quantity: 14
+- Unit: cans
+
+5. Fanta
+- Quantity: 19
+- Unit: cans
+
+6. V Cola
+- Quantity: 6
+- Unit: cans
+
+7. V Pink Lemonade
+- Quantity: 17
+- Unit: cans
+
+8. Red Bull
+- Quantity: 5
+- Unit: cans
+
+9. Twist
+- Quantity: 23
+- Unit: cans
+
+10. Sting
+- Quantity: 12
+- Unit: cans
+
+11. Fury
+- Quantity: 40
+- Unit: cans
+
+12. Aquafina
+- Quantity: 80
+- Unit: bottles
+- Notes: Also counted as 11 boxes if box tracking exists. If only one stock unit is supported, use 80 bottles as the main quantity and add “11 boxes” in notes.
+
+Chocolate / Cakes / Sweets:
+13. Todo
+- Quantity: 21
+- Unit: pieces
+
+14. Moro
+- Quantity: 10
+- Unit: pieces
+
+15. Galaxy Hazelnut
+- Quantity: 12
+- Unit: pieces
+
+16. Galaxy Flutes
+- Quantity: 12
+- Unit: pieces
+
+17. Snickers
+- Quantity: 8
+- Unit: pieces
+
+18. Hohos
+- Quantity: 20
+- Unit: pieces
+
+19. Twinkies
+- Quantity: 44
+- Unit: pieces
+
+Chips / Snacks:
+20. Sunbites Cheese Motabbala / صن بايتس جبنة متبلة
+- Quantity: 12
+- Unit: packets
+
+21. Sunbites Sweet Pepper / صن بايتس فلفل حلو
+- Quantity: 14
+- Unit: packets
+
+22. Crunchy Chili & Lemon / كرانشي شطة و ليمون
+- Quantity: 7
+- Unit: packets
+
+23. Doritos Cheese / دوريتوس جبنة
+- Quantity: 5
+- Unit: packets
+
+24. Doritos Sweet Pepper / دوريتوس فلفل حلو
+- Quantity: 12
+- Unit: packets
+
+25. Chipsy Cheese / شيبسي جبنة
+- Quantity: 5
+- Unit: packets
+
+26. Chipsy Kebab / شيبسي كباب
+- Quantity: 12
+- Unit: packets
+
+27. Chipsy Tomato / شيبسي طماطم
+- Quantity: 12
+- Unit: packets
+
+28. Chipsy Vinegar & Salt / شيبسي خل و ملح
+- Quantity: 15
+- Unit: packets
+
+29. Flamenco Peanuts / فلامنكو سوداني
+- Quantity: 18
+- Unit: packets
+
+30. Dorow / درو
+- Quantity: 14
+- Unit: packets
+
+31. Oreo / أوريو
+- Quantity: 12
+- Unit: packets
+
+32. Ulker / أولكر
+- Quantity: 13
+- Unit: packets
+
+Hot Drinks Supplies:
+33. Tea / شاي
+- Quantity: 225
+- Unit: packets
+
+34. Green Tea / شاي أخضر
+- Quantity: 42
+- Unit: packets
+
+35. Hibiscus / كركديه
+- Quantity: 100
+- Unit: packets
+
+36. Mint / نعناع
+- Quantity: 100
+- Unit: packets
+
+37. Anise / ينسون
+- Quantity: 92
+- Unit: packets
+
+38. Sugar / سكر
+- Quantity: 9
+- Unit: kg
+
+Coffee Stock:
+39. Light Plain Coffee / بن فاتح سادة
+- Quantity: 2.3
+- Unit: kg
+- Notes: 2 kg + 300 grams under operation
+
+40. Light Mixed Coffee / فاتح محوج
+- Quantity: 0.47
+- Unit: kg
+- Notes: 250 grams + 220 grams
+
+41. Medium Plain Coffee / وسط سادة
+- Quantity: 0.45
+- Unit: kg
+- Notes: 250 grams + 200 grams
+
+42. Medium Mixed Coffee / وسط محوج
+- Quantity: 0.23
+- Unit: kg
+- Notes: 230 grams
+
+43. Dark Plain Coffee / غامق سادة
+- Quantity: 0.115
+- Unit: kg
+- Notes: 115 grams
+
+Category suggestions:
+- Beverages
+- Chocolate & Sweets
+- Chips & Snacks
+- Hot Drinks Supplies
+- Coffee Stock
+
+If the system supports Arabic and English item names:
+- Add English name where available.
+- Add Arabic name where provided.
+- If Arabic name is not provided, leave it blank or auto-translate only if the system already supports this behavior.
+
+If the system supports minimum stock alerts, set reasonable low stock thresholds:
+- Cans/Bottles: 5
+- Pieces/Packets: 5
+- Tea/herbs packets: 20
+- Sugar: 2 kg
+- Coffee: 0.1 kg
+
+After completion, show me:
+1. The Banana tenant_id used.
+2. Items created.
+3. Items updated.
+4. Final stock table.
+5. Any skipped items and why.
+6. Confirm that no other tenant was affected.
