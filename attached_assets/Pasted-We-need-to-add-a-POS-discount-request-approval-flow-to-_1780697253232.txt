@@ -1,0 +1,273 @@
+We need to add a POS discount request approval flow to Gaming Lounge OS without breaking any existing functionality.
+
+Main goal:
+Cashier users should NOT be able to apply discounts directly.
+Cashiers can only request a discount percentage from the POS.
+The owner can approve or reject the discount request.
+If approved, the discount is applied to the current POS order/session bill.
+If rejected, the discount is not applied.
+
+Important:
+- Do not break existing POS, orders, payments, sessions, shifts, dashboard, inventory, finance, auth, tenant system, or permissions.
+- This must be multi-tenant and fully scoped by tenant_id.
+- Add this feature safely and additively.
+- Do not change existing payment verification logic.
+- Do not allow unauthorized users to approve discounts.
+
+Business logic:
+1. Cashier opens POS.
+2. Cashier creates or edits an order.
+3. Cashier clicks “Request Discount”.
+4. Cashier enters discount percentage and optional reason.
+5. The request is sent to the owner/manager approval queue.
+6. The order stays without discount until approval.
+7. Owner sees the discount request in POS or notifications.
+8. Owner can Approve or Reject.
+9. If approved:
+   - Apply the discount to the target order/session bill.
+   - Recalculate subtotal, discount amount, tax if applicable, and final total.
+   - Save who approved it and when.
+10. If rejected:
+   - Do not apply any discount.
+   - Save who rejected it and when.
+   - Show cashier that the request was rejected.
+
+Discount rules:
+- Discount must be percentage-based.
+- Minimum discount: 0%
+- Maximum discount: configurable, but default max should be 50%.
+- Cashier cannot approve their own request.
+- Cashier cannot edit a discount after it is approved.
+- Owner can approve or reject.
+- Platform Owner can approve or reject.
+- Manager can approve only if permission is granted.
+- A discount request can have only one final status: pending, approved, rejected, cancelled.
+- Only one active pending discount request should exist per order/session bill at a time.
+- If the order is already paid, do not allow a new discount request.
+- If the bill is closed/paid, approved discounts should not change past verified payments unless a clear refund/adjustment flow already exists.
+
+Database:
+Add a new table called discount_requests.
+
+Fields:
+- id
+- tenant_id
+- order_id nullable
+- session_id nullable
+- payment_id nullable
+- requested_by user id
+- approved_by user id nullable
+- discount_percent numeric
+- discount_amount numeric nullable
+- original_total numeric
+- final_total numeric nullable
+- reason text nullable
+- owner_note text nullable
+- status: pending, approved, rejected, cancelled
+- requested_at
+- reviewed_at nullable
+- created_at
+- updated_at
+
+Important:
+- Either order_id or session_id should be linked depending on where the discount is requested.
+- Keep fields nullable where needed to avoid breaking existing records.
+- Do not modify existing tables unless absolutely required.
+- If existing orders already have discount fields, reuse them safely.
+- If not, add optional nullable fields only:
+  - discount_percent
+  - discount_amount
+  - discount_request_id
+  - discount_approved_by
+  - discount_approved_at
+
+Backend API:
+Create tenant-scoped secure endpoints:
+
+- POST /api/pos/discount-requests
+  Cashier creates a discount request.
+
+Payload:
+- order_id or session_id
+- discount_percent
+- reason
+
+Validation:
+- user must have permission discount.request
+- order/session must belong to same tenant
+- order/session must not be paid/closed
+- discount_percent must be valid
+- no duplicate pending request for same target
+
+- GET /api/pos/discount-requests
+  Owner/manager gets pending/recent requests.
+
+Query filters:
+- status
+- date range
+- requested_by
+- order_id
+- session_id
+
+- POST /api/pos/discount-requests/:id/approve
+  Owner approves request.
+
+Payload:
+- optional owner_note
+
+Behavior:
+- user must have permission discount.approve
+- request must be pending
+- apply discount to the linked order/session bill
+- recalculate totals
+- save approved_by and reviewed_at
+- status becomes approved
+- cashier sees updated bill in POS
+
+- POST /api/pos/discount-requests/:id/reject
+  Owner rejects request.
+
+Payload:
+- optional owner_note
+
+Behavior:
+- user must have permission discount.approve
+- request must be pending
+- status becomes rejected
+- do not change order/session total
+- cashier sees rejection message
+
+- POST /api/pos/discount-requests/:id/cancel
+  Cashier can cancel their own pending request before review.
+
+Permissions:
+Add these permissions:
+
+- discount.request
+- discount.view_requests
+- discount.approve
+- discount.reject
+- discount.cancel_own
+
+Role behavior:
+- Owner: can view, approve, reject all discount requests
+- Platform Owner: can view, approve, reject all discount requests
+- Manager: can approve/reject only if permission is enabled
+- Cashier: can request discounts and cancel own pending requests only
+- Staff/Kitchen: no discount access
+
+POS UI requirements:
+Add a “Request Discount” button in the POS checkout/order summary area.
+
+For cashier:
+- Button label: “Request Discount”
+- Opens modal:
+  - Discount percentage
+  - Reason
+  - Submit request
+- After submission, show status:
+  - “Waiting for owner approval”
+- Disable direct discount application for cashier.
+- If approved, show:
+  - “Discount approved”
+  - Approved percent
+  - New final total
+- If rejected, show:
+  - “Discount rejected”
+  - Owner note if available
+
+For owner:
+Add one of these safe options:
+1. A pending discount request panel inside POS.
+2. A notification badge in POS/header.
+3. A small approval queue page.
+
+Owner request card should show:
+- Cashier name
+- Order/session reference
+- Original total
+- Requested discount percent
+- Estimated discount amount
+- Final total after discount
+- Reason
+- Time requested
+- Approve button
+- Reject button
+- Optional owner note
+
+Realtime behavior:
+If the system already supports polling or realtime updates, use the safest existing pattern.
+Otherwise:
+- Poll pending discount requests every 5–10 seconds in POS.
+- Do not introduce risky realtime infrastructure if not already available.
+
+Calculations:
+Example:
+Original total = 500 EGP
+Discount request = 10%
+Discount amount = 50 EGP
+Final total = 450 EGP
+
+Formula:
+discount_amount = original_total * discount_percent / 100
+final_total = original_total - discount_amount
+
+Make sure:
+- Discount amount is rounded correctly to 2 decimals.
+- Final total cannot be below zero.
+- Discount is clearly shown in the order summary.
+- Payment should use final discounted total after approval.
+
+Audit log:
+Create audit log entries for:
+- Discount request created
+- Discount approved
+- Discount rejected
+- Discount cancelled
+
+Each log should include:
+- tenant_id
+- user_id
+- order_id/session_id
+- discount_percent
+- old total
+- new total if approved
+- timestamp
+
+Finance/reporting behavior:
+- Approved discount should reduce the final payable amount.
+- Finance and dashboard should continue using verified payments as source of truth.
+- Do not change existing revenue calculation logic.
+- If the payment is made after discount approval, the verified payment amount should naturally reflect the discounted total.
+- Do not create fake expense transactions for discounts.
+
+Testing requirements:
+Before finishing, verify:
+
+1. Cashier can create discount request from POS.
+2. Cashier cannot approve discount.
+3. Owner can see pending discount request.
+4. Owner can approve request.
+5. Approved discount updates order/session total correctly.
+6. Owner can reject request.
+7. Rejected request does not change total.
+8. Cashier sees pending/approved/rejected status.
+9. Cannot request discount on paid order.
+10. Cannot create duplicate pending request for same order/session.
+11. Existing POS still works without discounts.
+12. Existing payments still work.
+13. Existing sessions still work.
+14. Existing orders still work.
+15. Existing dashboard revenue is not broken.
+16. Tenant isolation is respected.
+17. Unauthorized users cannot see or approve discount requests.
+
+UI style:
+- Keep Arabic-first RTL premium design.
+- Use simple owner-friendly wording.
+- Make the cashier flow very fast.
+- Make the owner approval card clear and easy.
+- Do not overload the POS screen.
+
+Final instruction:
+Implement this as a safe additive feature. If any change risks breaking the existing POS or payment flow, use the safer approach first and keep the discount request logic isolated.
