@@ -244,6 +244,7 @@ export const UpdateUserParams = zod.object({
 export const UpdateUserBody = zod.object({
   "name": zod.string().optional(),
   "nameAr": zod.string().optional(),
+  "email": zod.string().optional(),
   "role": zod.enum(['owner', 'manager', 'cashier', 'buffet_worker']).optional(),
   "password": zod.string().optional(),
   "tenantId": zod.number().nullish()
@@ -260,6 +261,14 @@ export const UpdateUserResponse = zod.object({
   "tenantNameAr": zod.string().nullish(),
   "isActive": zod.boolean(),
   "createdAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Permanently delete a user (platform owner only)
+ */
+export const DeleteUserParams = zod.object({
+  "userId": zod.coerce.number()
 })
 
 

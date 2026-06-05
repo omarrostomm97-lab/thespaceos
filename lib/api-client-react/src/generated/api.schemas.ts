@@ -205,6 +205,7 @@ export const UserUpdateRole = {
 export interface UserUpdate {
   name?: string;
   nameAr?: string;
+  email?: string;
   role?: UserUpdateRole;
   password?: string;
   /** @nullable */

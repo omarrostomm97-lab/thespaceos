@@ -96,7 +96,7 @@ router.get("/users/:userId", requireAuth, async (req, res) => {
 router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner"), async (req, res) => {
   try {
     const id = parseInt(req.params.userId as string);
-    const { name, nameAr, role, password, tenantId } = req.body;
+    const { name, nameAr, email, role, password, tenantId } = req.body;
     // Non-platform-owners cannot elevate to platform_owner
     if (role === "platform_owner" && req.user!.role !== "platform_owner") {
       res.status(403).json({ error: "Cannot assign platform_owner role" });
@@ -107,9 +107,10 @@ router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner
     if (nameAr !== undefined) updates.nameAr = nameAr;
     if (role !== undefined) updates.role = role;
     if (password) updates.passwordHash = await bcrypt.hash(password, 10);
-    // Only platform_owner can reassign a user to a different tenant
-    if (tenantId !== undefined && req.user!.role === "platform_owner") {
-      updates.tenantId = tenantId === null ? null : Number(tenantId);
+    // Only platform_owner can change email or reassign tenant
+    if (req.user!.role === "platform_owner") {
+      if (email !== undefined) updates.email = email;
+      if (tenantId !== undefined) updates.tenantId = tenantId === null ? null : Number(tenantId);
     }
 
     const where = buildUserWhere(id, req.user!);
@@ -120,6 +121,22 @@ router.patch("/users/:userId", requireAuth, requireRole("platform_owner", "owner
     res.json(formatUser(user));
   } catch {
     res.status(500).json({ error: "Failed to update user" });
+  }
+});
+
+router.delete("/users/:userId", requireAuth, requireRole("platform_owner"), async (req, res) => {
+  try {
+    const id = parseInt(req.params.userId as string);
+    if (id === req.user!.id) {
+      res.status(400).json({ error: "Cannot delete your own account" });
+      return;
+    }
+    const [user] = await db.delete(usersTable).where(eq(usersTable.id, id)).returning();
+    if (!user) { res.status(404).json({ error: "Not found" }); return; }
+    await writeAuditLog({ user: req.user, action: "delete_user", entityType: "user", entityId: id });
+    res.status(204).end();
+  } catch {
+    res.status(500).json({ error: "Failed to delete user" });
   }
 });
 

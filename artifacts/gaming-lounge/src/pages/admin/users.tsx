@@ -1,12 +1,12 @@
 import {
-  useListUsers, useCreateUser, useDeactivateUser, useUpdateUser,
+  useListUsers, useCreateUser, useDeactivateUser, useUpdateUser, useDeleteUser,
   useListTenants, getListUsersQueryKey, getListTenantsQueryKey,
 } from "@workspace/api-client-react";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, UserX, Shield, Users, Pencil, Check, X } from "lucide-react";
+import { UserPlus, UserX, Shield, Users, Pencil, Check, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
@@ -24,6 +24,7 @@ interface EditState {
   userId: number;
   name: string;
   nameAr: string;
+  email: string;
   role: string;
   password: string;
   tenantId: string;
@@ -39,6 +40,7 @@ export default function AdminUsers() {
   const createUser = useCreateUser();
   const deactivateUser = useDeactivateUser();
   const updateUser = useUpdateUser();
+  const deleteUser = useDeleteUser();
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -83,11 +85,23 @@ export default function AdminUsers() {
     }
   };
 
+  const handleDelete = async (userId: number, userName: string) => {
+    if (!confirm(`سيتم حذف "${userName}" نهائياً ولا يمكن التراجع. هل أنت متأكد؟`)) return;
+    try {
+      await deleteUser.mutateAsync({ userId });
+      toast.success("تم حذف المستخدم نهائياً");
+      queryClient.invalidateQueries({ queryKey: getListUsersQueryKey() });
+    } catch {
+      toast.error("حدث خطأ أثناء الحذف");
+    }
+  };
+
   const startEdit = (u: NonNullable<typeof users>[number]) => {
     setEditState({
       userId: u.id,
       name: u.name,
       nameAr: u.nameAr ?? "",
+      email: u.email,
       role: u.role,
       password: "",
       tenantId: u.tenantId ? String(u.tenantId) : "",
@@ -103,6 +117,7 @@ export default function AdminUsers() {
       const data: Parameters<typeof updateUser.mutateAsync>[0]["data"] = {
         name: editState.name || undefined,
         nameAr: editState.nameAr || undefined,
+        email: isPlatformOwner && editState.email ? editState.email : undefined,
         role: editState.role as UserUpdateRole,
         password: editState.password || undefined,
         tenantId: isPlatformOwner
@@ -282,6 +297,17 @@ export default function AdminUsers() {
                               placeholder="اختياري"
                             />
                           </div>
+                          {isPlatformOwner && (
+                            <div className="space-y-1 min-w-[190px]">
+                              <label className="text-xs text-muted-foreground">البريد الإلكتروني</label>
+                              <input
+                                className="w-full bg-background border border-border rounded-md px-3 py-1.5 text-sm text-right"
+                                type="email"
+                                value={editState.email}
+                                onChange={e => setEditState(s => s ? { ...s, email: e.target.value } : s)}
+                              />
+                            </div>
+                          )}
                           <div className="space-y-1 min-w-[120px]">
                             <label className="text-xs text-muted-foreground">الدور</label>
                             <select
@@ -371,6 +397,18 @@ export default function AdminUsers() {
                             إلغاء التفعيل
                           </Button>
                         )}
+                        {isPlatformOwner && !isSelf && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:bg-red-600/10 gap-1"
+                            onClick={() => handleDelete(u.id, u.nameAr || u.name)}
+                            disabled={deleteUser.isPending}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            حذف
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -397,6 +435,7 @@ export default function AdminUsers() {
                   <th className="px-6 py-4">البريد الإلكتروني</th>
                   {isPlatformOwner && <th className="px-6 py-4">الفرع</th>}
                   <th className="px-6 py-4">الدور</th>
+                  {isPlatformOwner && <th className="px-6 py-4">إجراءات</th>}
                 </tr>
               </thead>
               <tbody>
@@ -410,6 +449,20 @@ export default function AdminUsers() {
                         <td className="px-6 py-4 text-muted-foreground text-xs">{tenantName(u.tenantId)}</td>
                       )}
                       <td className="px-6 py-4 text-muted-foreground text-xs">{role.label}</td>
+                      {isPlatformOwner && (
+                        <td className="px-6 py-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:bg-red-600/10 gap-1"
+                            onClick={() => handleDelete(u.id, u.nameAr || u.name)}
+                            disabled={deleteUser.isPending}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            حذف
+                          </Button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })}

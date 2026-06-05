@@ -324,6 +324,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Permanently delete a user (platform owner only)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
 
   /users/{userId}/deactivate:
     post:
@@ -2634,6 +2647,8 @@ components:
         name:
           type: string
         nameAr:
+          type: string
+        email:
           type: string
         role:
           type: string
