@@ -622,7 +622,7 @@ export default function Sessions() {
                         <div className="space-y-1.5">
                           <Label className="text-xs">{t("discount_order_label")}</Label>
                           {checkout.deliveredOrders.length === 0 ? (
-                            <p className="text-xs text-muted-foreground">{lang === "ar" ? "لا توجد طلبات مسلمة" : "No delivered orders"}</p>
+                            <p className="text-xs text-muted-foreground">{t("sessions_no_delivered_orders")}</p>
                           ) : (
                             <div className="space-y-1">
                               {checkout.deliveredOrders.map(o => (
@@ -650,7 +650,7 @@ export default function Sessions() {
                           <Input
                             type="number"
                             min={0}
-                            placeholder={lang === "ar" ? "اتركها فارغة لاستخدام الخصم بالنسبة أو المبلغ" : "Leave empty to use % or fixed discount"}
+                            placeholder={t("sessions_billed_mins_placeholder")}
                             value={billedMinutes}
                             onChange={e => setBilledMinutes(e.target.value)}
                             className="h-9 text-sm"
@@ -709,7 +709,7 @@ export default function Sessions() {
                             <span className="font-bold text-emerald-600">{discountPreview.after.toFixed(2)} ج.م</span>
                           </div>
                           <div className="flex justify-between border-t border-emerald-500/20 pt-1 mt-1">
-                            <span className="font-semibold">{lang === "ar" ? "الإجمالي بعد الخصم" : "Total after discount"}</span>
+                            <span className="font-semibold">{t("sessions_total_after_discount")}</span>
                             <span className="font-bold text-emerald-600">{discountPreview.totalAfter.toFixed(2)} ج.م</span>
                           </div>
                         </div>

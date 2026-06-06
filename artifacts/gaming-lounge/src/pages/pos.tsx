@@ -36,14 +36,14 @@ interface LastDirectOrder {
 type PaymentMethod = "cash" | "instapay" | "visa";
 type OrderMode = "direct" | "session";
 
-const PAYMENT_METHODS: { id: PaymentMethod; label: string; sublabel: string; icon: React.ReactNode; color: string }[] = [
-  { id: "cash", label: "كاش", sublabel: "استلام فوري", icon: <Banknote className="h-5 w-5" />, color: "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600" },
-  { id: "instapay", label: "انستا باي", sublabel: "يحتاج تأكيد", icon: <Smartphone className="h-5 w-5" />, color: "bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600" },
-  { id: "visa", label: "فيزا / ماستر", sublabel: "يحتاج تأكيد", icon: <CreditCard className="h-5 w-5" />, color: "bg-blue-600 hover:bg-blue-700 text-white border-blue-600" },
-];
-
 export default function Pos() {
-  const { t } = useLang();
+  const { t, dir } = useLang();
+
+  const PAYMENT_METHODS: { id: PaymentMethod; label: string; sublabel: string; icon: React.ReactNode; color: string }[] = [
+    { id: "cash",     label: t("pay_cash"),     sublabel: t("pos_cash_sublabel"),    icon: <Banknote className="h-5 w-5" />,  color: "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600" },
+    { id: "instapay", label: t("pay_instapay"), sublabel: t("pos_confirm_sublabel"), icon: <Smartphone className="h-5 w-5" />, color: "bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600" },
+    { id: "visa",     label: t("pay_visa"),     sublabel: t("pos_confirm_sublabel"), icon: <CreditCard className="h-5 w-5" />,  color: "bg-blue-600 hover:bg-blue-700 text-white border-blue-600" },
+  ];
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
@@ -263,9 +263,9 @@ export default function Pos() {
         } as Parameters<typeof createOrder.mutateAsync>[0]['data']
       });
       if (paymentMethod === "cash") {
-        toast.success("تم تأكيد الطلب واستلام النقدية");
+        toast.success(t("pos_order_confirmed_cash"));
       } else {
-        toast.success(`تم إنشاء الطلب — يحتاج تأكيد ${paymentMethod === "instapay" ? "انستا باي" : "الفيزا"} من صفحة المدفوعات`);
+        toast.success(`${t("pos_order_created")} — ${paymentMethod === "instapay" ? t("pay_instapay") : t("pay_visa")} ${t("pos_needs_confirm_payments")}`);
       }
       // Store last order for discount/return panel, clear cart
       setLastDirectOrder({ id: (order as any).id, items: cartSnapshot, total: totalSnapshot });
@@ -274,11 +274,11 @@ export default function Pos() {
       queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() });
     } catch (err: any) {
       if (err?.response?.data?.error === "no_open_shift") {
-        toast.error("افتح وردية أولاً", {
-          action: { label: "فتح الوردية", onClick: () => setLocation("/shifts") },
+        toast.error(t("no_open_shift_toast"), {
+          action: { label: t("shift_gate_open_btn"), onClick: () => setLocation("/shifts") },
         });
       } else {
-        toast.error("حدث خطأ أثناء تأكيد الطلب");
+        toast.error(t("pos_order_error"));
       }
     }
   };
@@ -293,18 +293,18 @@ export default function Pos() {
         }
       });
       const session = activeSessions?.find(s => s.id === selectedSessionId);
-      const roomName = (session as any)?.assetNameAr || (session as any)?.assetName || `جلسة #${selectedSessionId}`;
-      toast.success(`تم إرسال الطلب إلى ${roomName} ✓`);
+      const roomName = (session as any)?.assetNameAr || (session as any)?.assetName || `${t("session_label")} #${selectedSessionId}`;
+      toast.success(`${t("pos_room_order_sent")} ${roomName} ✓`);
       clearCart();
       queryClient.invalidateQueries({ queryKey: getListOrdersQueryKey() });
       queryClient.invalidateQueries({ queryKey: getListActiveSessionsQueryKey() });
     } catch (err: any) {
       if (err?.response?.data?.error === "no_open_shift") {
-        toast.error("افتح وردية أولاً", {
-          action: { label: "فتح الوردية", onClick: () => setLocation("/shifts") },
+        toast.error(t("no_open_shift_toast"), {
+          action: { label: t("shift_gate_open_btn"), onClick: () => setLocation("/shifts") },
         });
       } else {
-        toast.error("حدث خطأ أثناء إرسال الطلب للغرفة");
+        toast.error(t("pos_room_order_error"));
       }
     }
   };
@@ -337,9 +337,9 @@ export default function Pos() {
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="ابحث عن منتج..."
+              placeholder={t("pos_search_placeholder")}
               className="w-full h-11 rounded-xl border border-border bg-background ps-9 pe-9 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
-              dir="rtl"
+              dir={dir}
               autoComplete="off"
             />
             {searchQuery && (
@@ -361,7 +361,7 @@ export default function Pos() {
               onClick={() => setActiveCategory(null)}
               className="h-10 md:h-12 px-4 md:px-6 text-base md:text-lg font-medium"
             >
-              الكل
+              {t("all_tab")}
             </Button>
             {categories?.map(cat => (
               <Button
@@ -381,7 +381,7 @@ export default function Pos() {
           {filteredProducts?.length === 0 && q && (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50 gap-3">
               <Search className="h-12 w-12" />
-              <p className="text-lg">لا توجد منتجات تطابق "{searchQuery}"</p>
+              <p className="text-lg">{t("pos_no_results_prefix")} "{searchQuery}"</p>
             </div>
           )}
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
@@ -418,11 +418,11 @@ export default function Pos() {
         <div className="h-14 md:h-16 flex items-center justify-between px-4 md:px-6 border-b border-border bg-sidebar text-foreground shrink-0">
           <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-primary" />
-            سلة الطلبات
+            {t("pos_cart_title")}
           </h2>
           {cart.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearCart} className="text-destructive hover:text-destructive">
-              إفراغ
+              {t("pos_cart_clear")}
             </Button>
           )}
         </div>
@@ -432,7 +432,7 @@ export default function Pos() {
           {cart.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50">
               <ShoppingCart className="h-12 md:h-16 w-12 md:w-16 mb-3 md:mb-4" />
-              <p className="text-base md:text-lg">السلة فارغة</p>
+              <p className="text-base md:text-lg">{t("pos_cart_empty")}</p>
             </div>
           ) : (
             cart.map(item => (
@@ -459,7 +459,7 @@ export default function Pos() {
           {/* Total (hide when showing receipt panel) */}
           {!lastDirectOrder && (
             <div className="flex justify-between items-center">
-              <span className="text-muted-foreground text-base md:text-lg">الإجمالي:</span>
+              <span className="text-muted-foreground text-base md:text-lg">{t("pos_total_label")}</span>
               <span className="font-bold text-2xl md:text-3xl text-emerald-500">{total.toFixed(2)} ج.م</span>
             </div>
           )}
@@ -476,7 +476,7 @@ export default function Pos() {
                 }`}
               >
                 <Receipt className="h-4 w-4 shrink-0" />
-                طلب منفصل
+                {t("pos_direct_mode")}
               </button>
               <button
                 onClick={() => { switchMode("session"); clearLastOrder(); }}
@@ -487,7 +487,7 @@ export default function Pos() {
                 }`}
               >
                 <Gamepad2 className="h-4 w-4 shrink-0" />
-                إضافة لغرفة
+                {t("pos_session_mode")}
               </button>
             </div>
 
@@ -602,7 +602,7 @@ export default function Pos() {
                           onChange={e => setOrderDiscountReasonText(e.target.value)}
                           placeholder={t("discount_reason_placeholder")}
                           className="w-full h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
-                          dir="rtl"
+                          dir={dir}
                         />
                         <div className="flex gap-2">
                           <Button
@@ -649,7 +649,7 @@ export default function Pos() {
               ) : cart.length > 0 ? (
                 /* ── Payment methods ── */
                 <div className="space-y-2">
-                  <p className="text-xs text-muted-foreground text-center">اختر طريقة الدفع:</p>
+                  <p className="text-xs text-muted-foreground text-center">{t("pos_choose_payment")}</p>
                   <div className="grid gap-2">
                     {PAYMENT_METHODS.map(method => (
                       <Button
@@ -669,7 +669,7 @@ export default function Pos() {
                 </div>
               ) : (
                 <Button className="w-full h-12 md:h-14 text-base md:text-lg" disabled>
-                  أضف منتجات للسلة
+                  {t("pos_add_products_hint")}
                 </Button>
               )
             )}
@@ -677,12 +677,12 @@ export default function Pos() {
             {/* ── Session order: room picker + discount (always accessible) ── */}
             {orderMode === "session" && (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground text-center">اختر الغرفة التي تريد إضافة الطلب إليها:</p>
+                <p className="text-xs text-muted-foreground text-center">{t("pos_choose_room")}</p>
 
                 {!activeSessions || activeSessions.length === 0 ? (
                   <div className="text-center py-4 text-sm text-muted-foreground bg-secondary/30 rounded-xl border border-border">
                     <Gamepad2 className="h-6 w-6 mx-auto mb-1.5 opacity-40" />
-                    لا توجد جلسات نشطة الآن
+                    {t("pos_no_sessions_now")}
                   </div>
                 ) : (
                   <div className="space-y-1.5 max-h-36 md:max-h-48 overflow-y-auto">
@@ -702,10 +702,10 @@ export default function Pos() {
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`h-2 w-2 rounded-full shrink-0 ${isPaused ? "bg-amber-400" : "bg-emerald-500"}`} />
                             <span className="font-bold truncate text-foreground">
-                              {session.assetNameAr || session.assetName || `جلسة #${session.id}`}
+                              {session.assetNameAr || session.assetName || `${t("session_label")} #${session.id}`}
                             </span>
                             <span className={`text-xs shrink-0 ${isPaused ? "text-amber-500" : "text-emerald-500"}`}>
-                              {isPaused ? "موقف" : "يلعب"}
+                              {isPaused ? t("pos_status_paused") : t("pos_status_playing")}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 shrink-0 ms-2">
@@ -728,12 +728,12 @@ export default function Pos() {
                   {createOrder.isPending ? (
                     <span className="flex items-center gap-2">
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      جاري الإرسال...
+                      {t("pos_sending")}
                     </span>
                   ) : (
                     <>
                       <Gamepad2 className="me-2 h-4 w-4" />
-                      إرسال للغرفة
+                      {t("pos_send_to_room")}
                       {selectedSessionId && activeSessions && (
                         <span className="ms-1 opacity-80">
                           ({(activeSessions as any[]).find(s => s.id === selectedSessionId)?.assetNameAr ||
@@ -830,7 +830,7 @@ export default function Pos() {
                           onChange={e => setDiscountReasonText(e.target.value)}
                           placeholder={t("discount_reason_placeholder")}
                           className="w-full h-9 rounded-lg border border-border bg-background px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500"
-                          dir="rtl"
+                          dir={dir}
                         />
                         <div className="flex gap-2">
                           <Button

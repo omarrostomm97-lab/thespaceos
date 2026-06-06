@@ -340,7 +340,8 @@ function MobileHeroCard({
 }) {
   const animated = useCountUp(total, 1000);
   return (
-    <div className="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-primary via-primary/90 to-blue-700 shadow-xl shadow-primary/30">
+    <div className="relative overflow-hidden rounded-3xl p-5 shadow-xl"
+         style={{ background: "linear-gradient(135deg, hsl(211, 100%, 47%) 0%, hsl(211, 100%, 38%) 55%, #1d4ed8 100%)", boxShadow: "0 20px 40px -8px hsl(211 100% 47% / 0.35)" }}>
       <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/2" />
 
