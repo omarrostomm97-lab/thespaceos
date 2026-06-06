@@ -206,21 +206,21 @@ export default function Menu() {
   const isSavingCategory = createCategory.isPending || updateCategoryMut.isPending;
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary">{t("menu_title")}</h2>
           <p className="text-muted-foreground mt-1">{products?.length ?? 0} {t("add_product").toLowerCase()} · {categories?.length ?? 0} {t("product_category").toLowerCase()}</p>
         </div>
         {isManager && (
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
             <Button variant="outline" onClick={openAddCategory} className="gap-2">
               <Settings className="h-4 w-4" />
-              {t("manage_categories")}
+              <span className="hidden sm:inline">{t("manage_categories")}</span>
             </Button>
             <Button onClick={openAddProduct} className="gap-2">
               <Plus className="h-4 w-4" />
-              {t("add_product")}
+              <span className="hidden sm:inline">{t("add_product")}</span>
             </Button>
           </div>
         )}

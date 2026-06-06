@@ -58,10 +58,10 @@ export default function Shifts() {
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">إدارة الورديات</h2>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">إدارة الورديات</h2>
           <p className="text-muted-foreground mt-1">فتح وإغلاق ورديات العمليات وحساب النقدية</p>
         </div>
       </div>
@@ -74,25 +74,25 @@ export default function Shifts() {
               الوردية الحالية
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             {!currentShift ? (
               <div className="space-y-4">
-                <div className="bg-amber-500/10 text-amber-500 p-4 rounded-lg flex items-center gap-3 border border-amber-500/20">
-                  <AlertCircle className="h-5 w-5" />
+                <div className="bg-amber-500/10 text-amber-500 p-4 rounded-lg flex items-start gap-3 border border-amber-500/20">
+                  <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
                   <p className="font-bold">لا توجد وردية مفتوحة حالياً. يرجى فتح وردية للبدء في تلقي الطلبات.</p>
                 </div>
                 <div className="pt-4 border-t border-border">
                   <label className="block text-sm font-medium mb-2">النقدية الافتتاحية (الدرج)</label>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Input 
                       type="number" 
                       placeholder="0.00" 
                       value={openingCash}
                       onChange={(e) => setOpeningCash(e.target.value)}
-                      className="h-12 text-lg font-bold"
+                      className="h-12 text-lg font-bold flex-1"
                     />
                     <Button 
-                      className="h-12 px-8 font-bold" 
+                      className="h-12 px-6 font-bold sm:w-auto w-full" 
                       onClick={handleOpen}
                       disabled={openShift.isPending || !openingCash}
                     >
@@ -104,13 +104,13 @@ export default function Shifts() {
             ) : (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-background p-4 rounded-lg border border-border">
+                  <div className="bg-background p-3 md:p-4 rounded-lg border border-border">
                     <p className="text-sm text-muted-foreground">مسؤول الوردية</p>
-                    <p className="font-bold text-lg">{currentShift.userName}</p>
+                    <p className="font-bold text-base md:text-lg">{currentShift.userName}</p>
                   </div>
-                  <div className="bg-background p-4 rounded-lg border border-border">
+                  <div className="bg-background p-3 md:p-4 rounded-lg border border-border">
                     <p className="text-sm text-muted-foreground">وقت الفتح</p>
-                    <p className="font-bold text-lg font-mono">{new Date(currentShift.openedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
+                    <p className="font-bold text-base md:text-lg font-mono">{new Date(currentShift.openedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
                   </div>
                 </div>
 
@@ -136,17 +136,17 @@ export default function Shifts() {
 
                 <div className="pt-4 border-t border-border space-y-3">
                   <label className="block text-sm font-bold text-destructive">إغلاق الوردية (العهدية الفعلية)</label>
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <Input 
                       type="number" 
                       placeholder="النقدية الفعلية الموجودة" 
                       value={actualCash}
                       onChange={(e) => setActualCash(e.target.value)}
-                      className="h-12 text-lg font-bold border-destructive focus-visible:ring-destructive"
+                      className="h-12 text-lg font-bold border-destructive focus-visible:ring-destructive flex-1"
                     />
                     <Button 
                       variant="destructive"
-                      className="h-12 px-8 font-bold" 
+                      className="h-12 px-6 font-bold sm:w-auto w-full" 
                       onClick={handleClose}
                       disabled={closeShift.isPending || !actualCash}
                     >
@@ -168,38 +168,40 @@ export default function Shifts() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-y-auto max-h-[500px]">
-              <table className="w-full text-sm text-right">
-                <thead className="bg-secondary text-muted-foreground sticky top-0">
-                  <tr>
-                    <th className="px-4 py-3">المسؤول</th>
-                    <th className="px-4 py-3">التاريخ</th>
-                    <th className="px-4 py-3">العجز/الزيادة</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shifts?.filter(s => s.status === 'closed').map(shift => (
-                    <tr key={shift.id} className="border-b border-border hover:bg-secondary/20">
-                      <td className="px-4 py-3 font-medium">{shift.userName}</td>
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {format(new Date(shift.openedAt), "dd/MM/yyyy")}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`font-mono font-bold ${
-                          (shift.difference || 0) < 0 ? 'text-destructive' : 
-                          (shift.difference || 0) > 0 ? 'text-emerald-500' : 
-                          'text-muted-foreground'
-                        }`}>
-                          {shift.difference != null ? shift.difference.toFixed(2) : "-"}
-                        </span>
-                      </td>
+            <div className="overflow-y-auto max-h-[400px] md:max-h-[500px]">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-right min-w-[280px]">
+                  <thead className="bg-secondary text-muted-foreground sticky top-0">
+                    <tr>
+                      <th className="px-4 py-3">المسؤول</th>
+                      <th className="px-4 py-3">التاريخ</th>
+                      <th className="px-4 py-3">العجز/الزيادة</th>
                     </tr>
-                  ))}
-                  {shifts?.filter(s => s.status === 'closed').length === 0 && (
-                    <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">لا توجد ورديات مغلقة</td></tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {shifts?.filter(s => s.status === 'closed').map(shift => (
+                      <tr key={shift.id} className="border-b border-border hover:bg-secondary/20">
+                        <td className="px-4 py-3 font-medium">{shift.userName}</td>
+                        <td className="px-4 py-3 text-muted-foreground text-xs">
+                          {format(new Date(shift.openedAt), "dd/MM/yyyy")}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`font-mono font-bold ${
+                            (shift.difference || 0) < 0 ? 'text-destructive' : 
+                            (shift.difference || 0) > 0 ? 'text-emerald-500' : 
+                            'text-muted-foreground'
+                          }`}>
+                            {shift.difference != null ? shift.difference.toFixed(2) : "-"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {shifts?.filter(s => s.status === 'closed').length === 0 && (
+                      <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">لا توجد ورديات مغلقة</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </CardContent>
         </Card>

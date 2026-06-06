@@ -43,10 +43,10 @@ export default function Payments() {
   const verifiedPayments = payments?.filter(p => p.status === 'verified') || [];
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">المدفوعات المعلقة</h2>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">المدفوعات المعلقة</h2>
           <p className="text-muted-foreground mt-1">تأكيد مدفوعات انستا باي والفيزا التي تحتاج مراجعة الكاشير</p>
         </div>
       </div>
@@ -73,13 +73,13 @@ export default function Payments() {
                 </div>
 
                 {payment.instapayReference && (
-                  <div className="bg-secondary/50 p-2 rounded text-sm mb-4 font-mono">
+                  <div className="bg-secondary/50 p-2 rounded text-sm mb-4 font-mono break-all">
                     <span className="text-muted-foreground">الرقم المرجعي:</span> {payment.instapayReference}
                   </div>
                 )}
                 
                 {payment.transactionReference && !payment.instapayReference && (
-                  <div className="bg-secondary/50 p-2 rounded text-sm mb-4 font-mono">
+                  <div className="bg-secondary/50 p-2 rounded text-sm mb-4 font-mono break-all">
                     <span className="text-muted-foreground">رقم العملية:</span> {payment.transactionReference}
                   </div>
                 )}
@@ -103,29 +103,31 @@ export default function Payments() {
         </div>
       </div>
       
-      <div className="mt-12 space-y-4">
+      <div className="mt-8 md:mt-12 space-y-4">
         <h3 className="text-lg font-bold text-muted-foreground">أحدث المدفوعات المؤكدة</h3>
         <div className="bg-card rounded-lg border border-border overflow-hidden">
-          <table className="w-full text-sm text-right">
-            <thead className="bg-secondary text-muted-foreground uppercase text-xs">
-              <tr>
-                <th className="px-6 py-4">رقم الجلسة</th>
-                <th className="px-6 py-4">الطريقة</th>
-                <th className="px-6 py-4">المبلغ</th>
-                <th className="px-6 py-4">أكد بواسطة</th>
-              </tr>
-            </thead>
-            <tbody>
-              {verifiedPayments.slice(0, 10).map(payment => (
-                <tr key={payment.id} className="border-b border-border hover:bg-secondary/30">
-                  <td className="px-6 py-4 font-medium">#{payment.sessionId}</td>
-                  <td className="px-6 py-4 font-medium uppercase text-xs">{payment.method}</td>
-                  <td className="px-6 py-4 font-bold text-emerald-500 font-mono">{payment.amount.toFixed(2)}</td>
-                  <td className="px-6 py-4 text-muted-foreground">{payment.verifiedByUserName || "-"}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-right min-w-[380px]">
+              <thead className="bg-secondary text-muted-foreground uppercase text-xs">
+                <tr>
+                  <th className="px-4 md:px-6 py-4">رقم الجلسة</th>
+                  <th className="px-4 md:px-6 py-4">الطريقة</th>
+                  <th className="px-4 md:px-6 py-4">المبلغ</th>
+                  <th className="px-4 md:px-6 py-4 hidden sm:table-cell">أكد بواسطة</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {verifiedPayments.slice(0, 10).map(payment => (
+                  <tr key={payment.id} className="border-b border-border hover:bg-secondary/30">
+                    <td className="px-4 md:px-6 py-4 font-medium">#{payment.sessionId}</td>
+                    <td className="px-4 md:px-6 py-4 font-medium uppercase text-xs">{payment.method}</td>
+                    <td className="px-4 md:px-6 py-4 font-bold text-emerald-500 font-mono">{payment.amount.toFixed(2)}</td>
+                    <td className="px-4 md:px-6 py-4 text-muted-foreground hidden sm:table-cell">{payment.verifiedByUserName || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

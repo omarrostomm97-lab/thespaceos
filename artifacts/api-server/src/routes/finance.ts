@@ -39,7 +39,7 @@ router.post("/finance/seed-defaults", requireAuth, requireTenant, async (req, re
       .where(and(eq(financeCategoriesTable.tenantId, tenantId), eq(financeCategoriesTable.isSystem, true)))
       .limit(1);
     if (existing.length > 0) {
-      return res.json({ message: "Already seeded" });
+      res.json({ message: "Already seeded" }); return;
     }
 
     // Default expense categories
@@ -275,7 +275,7 @@ router.post("/finance/categories", requireAuth, requireTenant, async (req, res) 
   try {
     const tenantId = req.user!.tenantId!;
     const { name, nameAr, type, color, icon } = req.body;
-    if (!name || !type) return res.status(400).json({ error: "name and type are required" });
+    if (!name || !type) { res.status(400).json({ error: "name and type are required" }); return; }
     const [row] = await db.insert(financeCategoriesTable)
       .values({ tenantId, name, nameAr, type, color, icon, isSystem: false })
       .returning();
@@ -288,13 +288,13 @@ router.post("/finance/categories", requireAuth, requireTenant, async (req, res) 
 router.put("/finance/categories/:id", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const { name, nameAr, color, icon } = req.body;
     const [row] = await db.update(financeCategoriesTable)
       .set({ name, nameAr, color, icon, updatedAt: new Date() })
       .where(and(eq(financeCategoriesTable.id, id), eq(financeCategoriesTable.tenantId, tenantId)))
       .returning();
-    if (!row) return res.status(404).json({ error: "Not found" });
+    if (!row) { res.status(404).json({ error: "Not found" }); return; }
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: "Failed to update category" });
@@ -304,7 +304,7 @@ router.put("/finance/categories/:id", requireAuth, requireTenant, async (req, re
 router.delete("/finance/categories/:id", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     await db.delete(financeCategoriesTable)
       .where(and(
         eq(financeCategoriesTable.id, id),
@@ -334,7 +334,7 @@ router.post("/finance/accounts", requireAuth, requireTenant, async (req, res) =>
   try {
     const tenantId = req.user!.tenantId!;
     const { name, nameAr, type, openingBalance } = req.body;
-    if (!name) return res.status(400).json({ error: "name is required" });
+    if (!name) { res.status(400).json({ error: "name is required" }); return; }
     const bal = openingBalance ?? "0";
     const [row] = await db.insert(financeAccountsTable)
       .values({ tenantId, name, nameAr, type: type ?? "cash", openingBalance: bal, currentBalance: bal })
@@ -348,13 +348,13 @@ router.post("/finance/accounts", requireAuth, requireTenant, async (req, res) =>
 router.put("/finance/accounts/:id", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const { name, nameAr, currentBalance, isActive, isDefault } = req.body;
     const [row] = await db.update(financeAccountsTable)
       .set({ ...(name !== undefined && { name }), ...(nameAr !== undefined && { nameAr }), ...(currentBalance !== undefined && { currentBalance }), ...(isActive !== undefined && { isActive }), ...(isDefault !== undefined && { isDefault }), updatedAt: new Date() })
       .where(and(eq(financeAccountsTable.id, id), eq(financeAccountsTable.tenantId, tenantId)))
       .returning();
-    if (!row) return res.status(404).json({ error: "Not found" });
+    if (!row) { res.status(404).json({ error: "Not found" }); return; }
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: "Failed to update account" });
@@ -417,7 +417,7 @@ router.post("/finance/transactions", requireAuth, requireTenant, async (req, res
     const tenantId = req.user!.tenantId!;
     const userId = req.user!.id;
     const { type, categoryId, accountId, title, description, amount, transactionDate, paymentMethod, status, referenceType, referenceId, vendorName, notes } = req.body;
-    if (!type || !amount) return res.status(400).json({ error: "type and amount are required" });
+    if (!type || !amount) { res.status(400).json({ error: "type and amount are required" }); return; }
 
     // Auto-generate title if missing
     let finalTitle = title;
@@ -474,7 +474,7 @@ router.post("/finance/transactions", requireAuth, requireTenant, async (req, res
 router.put("/finance/transactions/:id", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const { title, description, status, vendorName, notes, categoryId, accountId } = req.body;
     const [row] = await db.update(financeTransactionsTable)
       .set({
@@ -489,7 +489,7 @@ router.put("/finance/transactions/:id", requireAuth, requireTenant, async (req, 
       })
       .where(and(eq(financeTransactionsTable.id, id), eq(financeTransactionsTable.tenantId, tenantId)))
       .returning();
-    if (!row) return res.status(404).json({ error: "Not found" });
+    if (!row) { res.status(404).json({ error: "Not found" }); return; }
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: "Failed to update transaction" });
@@ -499,7 +499,7 @@ router.put("/finance/transactions/:id", requireAuth, requireTenant, async (req, 
 router.delete("/finance/transactions/:id", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     await db.delete(financeTransactionsTable)
       .where(and(eq(financeTransactionsTable.id, id), eq(financeTransactionsTable.tenantId, tenantId)));
     res.json({ success: true });
@@ -525,7 +525,7 @@ router.post("/finance/assets", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
     const { name, nameAr, category, purchaseCost, purchaseDate, assignedRoomId, condition, warrantyEndDate, notes } = req.body;
-    if (!name) return res.status(400).json({ error: "name is required" });
+    if (!name) { res.status(400).json({ error: "name is required" }); return; }
     const [row] = await db.insert(financeAssetsTable)
       .values({
         tenantId, name, nameAr: nameAr ?? null,
@@ -547,7 +547,7 @@ router.post("/finance/assets", requireAuth, requireTenant, async (req, res) => {
 router.put("/finance/assets/:id", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     const { name, nameAr, category, condition, notes, warrantyEndDate } = req.body;
     const [row] = await db.update(financeAssetsTable)
       .set({
@@ -561,7 +561,7 @@ router.put("/finance/assets/:id", requireAuth, requireTenant, async (req, res) =
       })
       .where(and(eq(financeAssetsTable.id, id), eq(financeAssetsTable.tenantId, tenantId)))
       .returning();
-    if (!row) return res.status(404).json({ error: "Not found" });
+    if (!row) { res.status(404).json({ error: "Not found" }); return; }
     res.json(row);
   } catch (err) {
     res.status(500).json({ error: "Failed to update asset" });
@@ -571,7 +571,7 @@ router.put("/finance/assets/:id", requireAuth, requireTenant, async (req, res) =
 router.delete("/finance/assets/:id", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const id = parseInt(req.params.id);
+    const id = parseInt(req.params.id as string);
     await db.delete(financeAssetsTable)
       .where(and(eq(financeAssetsTable.id, id), eq(financeAssetsTable.tenantId, tenantId)));
     res.json({ success: true });
@@ -584,9 +584,9 @@ router.post("/finance/assets/:id/maintenance", requireAuth, requireTenant, async
   try {
     const tenantId = req.user!.tenantId!;
     const userId = req.user!.id;
-    const assetId = parseInt(req.params.id);
+    const assetId = parseInt(req.params.id as string);
     const { title, description, maintenanceCost, maintenanceDate, vendorName, accountId } = req.body;
-    if (!title) return res.status(400).json({ error: "title is required" });
+    if (!title) { res.status(400).json({ error: "title is required" }); return; }
 
     let txId: number | null = null;
 
@@ -647,7 +647,7 @@ router.post("/finance/assets/:id/maintenance", requireAuth, requireTenant, async
 router.get("/finance/assets/:id/maintenance", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const assetId = parseInt(req.params.id);
+    const assetId = parseInt(req.params.id as string);
     const rows = await db.select().from(financeAssetMaintenanceTable)
       .where(and(
         eq(financeAssetMaintenanceTable.tenantId, tenantId),

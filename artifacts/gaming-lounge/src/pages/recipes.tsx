@@ -111,15 +111,15 @@ export default function Recipes() {
   }
 
   return (
-    <div className="p-8 space-y-6 h-full flex flex-col">
+    <div className="p-4 md:p-8 space-y-6 h-full flex flex-col">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-primary">{t("rec_title")}</h2>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">{t("rec_title")}</h2>
         <p className="text-muted-foreground mt-1">{t("rec_subtitle")}</p>
       </div>
 
-      <div className="flex gap-6 flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 flex-1 min-h-0">
         {/* Product list */}
-        <Card className="bg-card w-72 shrink-0 flex flex-col">
+        <Card className="bg-card w-full md:w-72 shrink-0 flex flex-col max-h-52 md:max-h-none">
           <CardHeader className="pb-3 shrink-0">
             <CardTitle className="flex items-center gap-2 text-base">
               <BookOpen className="h-4 w-4 text-primary" />
@@ -154,7 +154,7 @@ export default function Recipes() {
         </Card>
 
         {/* Recipe editor */}
-        <Card className="bg-card flex-1 flex flex-col min-h-0">
+        <Card className="bg-card flex-1 flex flex-col min-h-0 min-h-[300px]">
           {!selectedProduct ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center space-y-3">
@@ -165,7 +165,7 @@ export default function Recipes() {
           ) : (
             <>
               <CardHeader className="shrink-0 border-b border-border">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <ChefHat className="h-5 w-5 text-primary" />
@@ -211,7 +211,8 @@ export default function Recipes() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-[1fr_160px_44px] gap-3 px-1 text-xs text-muted-foreground font-medium">
+                    {/* Column headers */}
+                    <div className="hidden sm:grid sm:grid-cols-[1fr_160px_44px] gap-3 px-1 text-xs text-muted-foreground font-medium">
                       <span>{t("rec_col_ingredient")}</span>
                       <span className="text-center">{t("rec_col_qty")}</span>
                       <span />
@@ -219,7 +220,7 @@ export default function Recipes() {
                     {draftItems.map((line, idx) => {
                       const invItem = inventoryItems?.find(i => i.id === line.inventoryItemId);
                       return (
-                        <div key={idx} className="grid grid-cols-[1fr_160px_44px] gap-3 items-center">
+                        <div key={idx} className="grid grid-cols-[1fr_auto_44px] sm:grid-cols-[1fr_160px_44px] gap-2 sm:gap-3 items-center">
                           <select
                             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm text-right"
                             value={line.inventoryItemId}
@@ -229,16 +230,16 @@ export default function Recipes() {
                               <option key={i.id} value={i.id}>{dn(i, lang)}</option>
                             ))}
                           </select>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1">
                             <Input
                               type="number"
                               min="0"
                               step="0.001"
-                              className="w-24 text-center"
+                              className="w-16 sm:w-24 text-center"
                               value={line.quantityUsed}
                               onChange={e => handleChangeQty(idx, e.target.value)}
                             />
-                            <span className="text-xs text-muted-foreground w-10 shrink-0">{invItem?.unit ?? ""}</span>
+                            <span className="text-xs text-muted-foreground w-8 sm:w-10 shrink-0">{invItem?.unit ?? ""}</span>
                           </div>
                           <Button
                             variant="ghost"

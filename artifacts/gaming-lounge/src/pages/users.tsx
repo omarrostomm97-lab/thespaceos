@@ -67,12 +67,6 @@ export default function Users() {
   const activeUsers   = users.filter(u => u.isActive);
   const inactiveUsers = users.filter(u => !u.isActive);
 
-  const roleLabel = (role: string) => {
-    const r = ROLES[role];
-    if (!r) return role;
-    return lang === "ar" ? r.ar : r.en;
-  };
-
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!createForm.name || !createForm.email || !createForm.password) {
@@ -172,9 +166,9 @@ export default function Users() {
             </p>
           </div>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="gap-2">
+        <Button onClick={() => setShowCreate(true)} className="gap-2 shrink-0">
           <UserPlus className="h-4 w-4" />
-          {lang === "ar" ? "موظف جديد" : "New Staff"}
+          <span className="hidden sm:inline">{lang === "ar" ? "موظف جديد" : "New Staff"}</span>
         </Button>
       </div>
 
@@ -184,7 +178,7 @@ export default function Users() {
           const count = activeUsers.filter(u => u.role === role).length;
           return (
             <div key={role} className="card-base rounded-xl px-4 py-3 flex items-center gap-3">
-              <div className={cn("w-2 h-2 rounded-full", role === "owner" ? "bg-amber-400" : role === "manager" ? "bg-blue-400" : role === "cashier" ? "bg-emerald-400" : "bg-orange-400")} />
+              <div className={cn("w-2 h-2 rounded-full shrink-0", role === "owner" ? "bg-amber-400" : role === "manager" ? "bg-blue-400" : role === "cashier" ? "bg-emerald-400" : "bg-orange-400")} />
               <div>
                 <p className="text-xs text-muted-foreground">{lang === "ar" ? info.ar : info.en}</p>
                 <p className="text-lg font-bold tabular-nums">{count}</p>
@@ -208,80 +202,84 @@ export default function Users() {
           </div>
         ) : (
           <StaggerChildren className="rounded-xl border border-border overflow-hidden bg-card">
-            <table className="w-full text-sm" dir={dir}>
-              <thead className="bg-secondary/60 text-muted-foreground text-xs uppercase">
-                <tr>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "الاسم" : "Name"}</th>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "البريد" : "Email"}</th>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "الدور" : "Role"}</th>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "الحالة" : "Status"}</th>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "إجراءات" : "Actions"}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activeUsers.map(u => {
-                  const roleInfo = ROLES[u.role];
-                  const isSelf = u.id === currentUser?.id;
-                  return (
-                    <motion.tr key={u.id} variants={staggerItemVariants} className="border-t border-border hover:bg-secondary/30 transition-colors">
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
-                            {(u.nameAr || u.name).charAt(0).toUpperCase()}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" dir={dir}>
+                <thead className="bg-secondary/60 text-muted-foreground text-xs uppercase">
+                  <tr>
+                    <th className="px-4 md:px-5 py-3 text-start">{lang === "ar" ? "الاسم" : "Name"}</th>
+                    <th className="px-4 md:px-5 py-3 text-start hidden md:table-cell">{lang === "ar" ? "البريد" : "Email"}</th>
+                    <th className="px-4 md:px-5 py-3 text-start">{lang === "ar" ? "الدور" : "Role"}</th>
+                    <th className="px-4 md:px-5 py-3 text-start hidden sm:table-cell">{lang === "ar" ? "الحالة" : "Status"}</th>
+                    <th className="px-4 md:px-5 py-3 text-start">{lang === "ar" ? "إجراءات" : "Actions"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeUsers.map(u => {
+                    const roleInfo = ROLES[u.role];
+                    const isSelf = u.id === currentUser?.id;
+                    return (
+                      <motion.tr key={u.id} variants={staggerItemVariants} className="border-t border-border hover:bg-secondary/30 transition-colors">
+                        <td className="px-4 md:px-5 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                              {(u.nameAr || u.name).charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-semibold">{u.nameAr || u.name}</p>
+                              {u.nameAr && u.name && <p className="text-[10px] text-muted-foreground">{u.name}</p>}
+                              {/* Email shown inline on mobile */}
+                              <p className="text-[10px] text-muted-foreground font-mono md:hidden truncate max-w-[130px]">{u.email}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-semibold">{u.nameAr || u.name}</p>
-                            {u.nameAr && u.name && <p className="text-[10px] text-muted-foreground">{u.name}</p>}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs text-muted-foreground" dir="ltr">{u.email}</td>
-                      <td className="px-5 py-3">
-                        {roleInfo ? (
-                          <Badge className={cn("text-[10px] border", roleInfo.color)}>{lang === "ar" ? roleInfo.ar : roleInfo.en}</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px]">{u.role}</Badge>
-                        )}
-                      </td>
-                      <td className="px-5 py-3">
-                        <span className="flex items-center gap-1.5 text-xs text-emerald-500 font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          {lang === "ar" ? "نشط" : "Active"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 gap-1.5 text-xs"
-                            onClick={() => {
-                              setEditState({ userId: u.id, name: u.name, nameAr: u.nameAr ?? "", role: u.role, password: "" });
-                              setShowEditPassword(false);
-                            }}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                            {lang === "ar" ? "تعديل" : "Edit"}
-                          </Button>
-                          {!isSelf && (
+                        </td>
+                        <td className="px-4 md:px-5 py-3 font-mono text-xs text-muted-foreground hidden md:table-cell" dir="ltr">{u.email}</td>
+                        <td className="px-4 md:px-5 py-3">
+                          {roleInfo ? (
+                            <Badge className={cn("text-[10px] border", roleInfo.color)}>{lang === "ar" ? roleInfo.ar : roleInfo.en}</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">{u.role}</Badge>
+                          )}
+                        </td>
+                        <td className="px-4 md:px-5 py-3 hidden sm:table-cell">
+                          <span className="flex items-center gap-1.5 text-xs text-emerald-500 font-medium">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                            {lang === "ar" ? "نشط" : "Active"}
+                          </span>
+                        </td>
+                        <td className="px-4 md:px-5 py-3">
+                          <div className="flex items-center gap-1">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="h-8 gap-1.5 text-xs text-destructive hover:bg-destructive/10"
-                              onClick={() => handleDeactivate(u.id, u.nameAr || u.name)}
-                              disabled={deactivateMut.isPending}
+                              className="h-8 gap-1.5 text-xs"
+                              onClick={() => {
+                                setEditState({ userId: u.id, name: u.name, nameAr: u.nameAr ?? "", role: u.role, password: "" });
+                                setShowEditPassword(false);
+                              }}
                             >
-                              <UserX className="h-3.5 w-3.5" />
-                              {lang === "ar" ? "إيقاف" : "Deactivate"}
+                              <Pencil className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">{lang === "ar" ? "تعديل" : "Edit"}</span>
                             </Button>
-                          )}
-                        </div>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                            {!isSelf && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDeactivate(u.id, u.nameAr || u.name)}
+                                disabled={deactivateMut.isPending}
+                                title={lang === "ar" ? "إيقاف" : "Deactivate"}
+                              >
+                                <UserX className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </motion.tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </StaggerChildren>
         )}
       </div>
@@ -294,62 +292,69 @@ export default function Users() {
             {lang === "ar" ? `الموظفون الموقوفون (${inactiveUsers.length})` : `Deactivated Staff (${inactiveUsers.length})`}
           </h2>
           <div className="rounded-xl border border-border overflow-hidden bg-card opacity-70">
-            <table className="w-full text-sm" dir={dir}>
-              <thead className="bg-secondary/60 text-muted-foreground text-xs uppercase">
-                <tr>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "الاسم" : "Name"}</th>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "البريد" : "Email"}</th>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "الدور" : "Role"}</th>
-                  <th className="px-5 py-3 text-start">{lang === "ar" ? "إجراءات" : "Actions"}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inactiveUsers.map(u => {
-                  const roleInfo = ROLES[u.role];
-                  return (
-                    <tr key={u.id} className="border-t border-border">
-                      <td className="px-5 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground shrink-0">
-                            {(u.nameAr || u.name).charAt(0).toUpperCase()}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" dir={dir}>
+                <thead className="bg-secondary/60 text-muted-foreground text-xs uppercase">
+                  <tr>
+                    <th className="px-4 md:px-5 py-3 text-start">{lang === "ar" ? "الاسم" : "Name"}</th>
+                    <th className="px-4 md:px-5 py-3 text-start hidden md:table-cell">{lang === "ar" ? "البريد" : "Email"}</th>
+                    <th className="px-4 md:px-5 py-3 text-start">{lang === "ar" ? "الدور" : "Role"}</th>
+                    <th className="px-4 md:px-5 py-3 text-start">{lang === "ar" ? "إجراءات" : "Actions"}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inactiveUsers.map(u => {
+                    const roleInfo = ROLES[u.role];
+                    return (
+                      <tr key={u.id} className="border-t border-border">
+                        <td className="px-4 md:px-5 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground shrink-0">
+                              {(u.nameAr || u.name).charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-medium text-muted-foreground line-through">{u.nameAr || u.name}</p>
+                              <p className="text-[10px] text-muted-foreground font-mono md:hidden truncate max-w-[130px]">{u.email}</p>
+                            </div>
                           </div>
-                          <p className="font-medium text-muted-foreground line-through">{u.nameAr || u.name}</p>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3 font-mono text-xs text-muted-foreground" dir="ltr">{u.email}</td>
-                      <td className="px-5 py-3">
-                        {roleInfo ? (
-                          <span className="text-xs text-muted-foreground">{lang === "ar" ? roleInfo.ar : roleInfo.en}</span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">{u.role}</span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-1.5 text-xs text-emerald-500 hover:bg-emerald-500/10"
-                          onClick={() => handleActivate(u.id, u.nameAr || u.name)}
-                          disabled={activateMut.isPending}
-                        >
-                          <UserCheck className="h-3.5 w-3.5" />
-                          {activateMut.isPending
-                            ? (lang === "ar" ? "جاري التفعيل..." : "Activating...")
-                            : (lang === "ar" ? "إعادة تفعيل" : "Reactivate")}
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td className="px-4 md:px-5 py-3 font-mono text-xs text-muted-foreground hidden md:table-cell" dir="ltr">{u.email}</td>
+                        <td className="px-4 md:px-5 py-3">
+                          {roleInfo ? (
+                            <span className="text-xs text-muted-foreground">{lang === "ar" ? roleInfo.ar : roleInfo.en}</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">{u.role}</span>
+                          )}
+                        </td>
+                        <td className="px-4 md:px-5 py-3">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 gap-1.5 text-xs text-emerald-500 hover:bg-emerald-500/10"
+                            onClick={() => handleActivate(u.id, u.nameAr || u.name)}
+                            disabled={activateMut.isPending}
+                          >
+                            <UserCheck className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">
+                              {activateMut.isPending
+                                ? (lang === "ar" ? "جاري التفعيل..." : "Activating...")
+                                : (lang === "ar" ? "إعادة تفعيل" : "Reactivate")}
+                            </span>
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
       {/* Create Dialog */}
       <Dialog open={showCreate} onOpenChange={v => { setShowCreate(v); if (!v) { setCreateForm(BLANK_CREATE); setShowPassword(false); } }}>
-        <DialogContent className="max-w-md" dir={dir}>
+        <DialogContent className="max-w-md max-h-[90dvh] overflow-y-auto" dir={dir}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserPlus className="h-4 w-4 text-primary" />
@@ -357,7 +362,7 @@ export default function Users() {
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4 py-2">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">{lang === "ar" ? "الاسم (إنجليزي) *" : "Name (English) *"}</Label>
                 <Input
@@ -449,7 +454,7 @@ export default function Users() {
 
       {/* Edit Dialog */}
       <Dialog open={!!editState} onOpenChange={v => { if (!v) { setEditState(null); setShowEditPassword(false); } }}>
-        <DialogContent className="max-w-md" dir={dir}>
+        <DialogContent className="max-w-md max-h-[90dvh] overflow-y-auto" dir={dir}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Pencil className="h-4 w-4 text-primary" />
@@ -458,7 +463,7 @@ export default function Users() {
           </DialogHeader>
           {editState && (
             <form onSubmit={handleSaveEdit} className="space-y-4 py-2">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs">{lang === "ar" ? "الاسم (إنجليزي)" : "Name (English)"}</Label>
                   <Input

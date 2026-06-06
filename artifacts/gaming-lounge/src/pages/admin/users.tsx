@@ -152,7 +152,7 @@ export default function AdminUsers() {
   };
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-3">
@@ -258,7 +258,8 @@ export default function AdminUsers() {
           المستخدمون النشطون ({activeUsers.length})
         </h3>
         <div className="bg-card rounded-lg border border-border overflow-hidden">
-          <table className="w-full text-sm text-right">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-right min-w-[480px]">
             <thead className="bg-secondary text-muted-foreground uppercase text-xs">
               <tr>
                 <th className="px-6 py-4">الاسم</th>
@@ -421,6 +422,7 @@ export default function AdminUsers() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 
@@ -428,7 +430,8 @@ export default function AdminUsers() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-muted-foreground">المستخدمون غير النشطين ({inactiveUsers.length})</h3>
           <div className="bg-card rounded-lg border border-border overflow-hidden opacity-60">
-            <table className="w-full text-sm text-right">
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm text-right min-w-[380px]">
               <thead className="bg-secondary text-muted-foreground uppercase text-xs">
                 <tr>
                   <th className="px-6 py-4">الاسم</th>
@@ -468,6 +471,7 @@ export default function AdminUsers() {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}

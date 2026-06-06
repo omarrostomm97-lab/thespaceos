@@ -177,10 +177,10 @@ export default function Inventory() {
   }
 
   return (
-    <div className="p-8 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 md:p-8 space-y-6">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">{t("inv_title")}</h2>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">{t("inv_title")}</h2>
           <p className="text-muted-foreground mt-1">
             {items?.length ?? 0} {t("inv_item_count_suffix")}
             {lowStockCount > 0 && (
@@ -189,9 +189,10 @@ export default function Inventory() {
           </p>
         </div>
         {isManager && (
-          <Button onClick={openAddItem} className="gap-2">
+          <Button onClick={openAddItem} className="gap-2 shrink-0">
             <Plus className="h-4 w-4" />
-            {t("inv_add_item_btn")}
+            <span className="hidden sm:inline">{t("inv_add_item_btn")}</span>
+            <span className="sm:hidden">{t("inv_add_item_btn")}</span>
           </Button>
         )}
       </div>
@@ -201,7 +202,7 @@ export default function Inventory() {
           placeholder={t("inv_search_placeholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
+          className="max-w-xs flex-1 min-w-[160px]"
         />
         {showLowOnly && (
           <button
@@ -216,77 +217,92 @@ export default function Inventory() {
       </div>
 
       <div className="bg-card rounded-lg border border-border overflow-hidden">
-        <table className="w-full text-sm text-right">
-          <thead className="bg-secondary text-muted-foreground text-xs uppercase">
-            <tr>
-              <th className="px-5 py-3">{t("inv_col_item")}</th>
-              <th className="px-5 py-3">{t("inv_col_unit")}</th>
-              <th className="px-5 py-3">{t("inv_col_stock")}</th>
-              <th className="px-5 py-3">{t("inv_col_min")}</th>
-              <th className="px-5 py-3">{t("inv_col_status")}</th>
-              <th className="px-5 py-3 text-left">{t("inv_col_actions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredItems.map((item) => {
-              const isLow = item.currentStock <= (item.minStockLevel ?? 0);
-              return (
-                <tr key={item.id} className={`border-b border-border/50 hover:bg-secondary/20 ${isLow ? "bg-destructive/5" : ""}`}>
-                  <td className="px-5 py-3 font-medium">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <p>{dn(item, lang)}</p>
-                        {item.nameAr && <p className="text-xs text-muted-foreground">{item.name}</p>}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-right">
+            <thead className="bg-secondary text-muted-foreground text-xs uppercase">
+              <tr>
+                <th className="px-4 md:px-5 py-3">{t("inv_col_item")}</th>
+                <th className="px-4 md:px-5 py-3 hidden md:table-cell">{t("inv_col_unit")}</th>
+                <th className="px-4 md:px-5 py-3">{t("inv_col_stock")}</th>
+                <th className="px-4 md:px-5 py-3 hidden md:table-cell">{t("inv_col_min")}</th>
+                <th className="px-4 md:px-5 py-3 hidden sm:table-cell">{t("inv_col_status")}</th>
+                <th className="px-4 md:px-5 py-3">{t("inv_col_actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((item) => {
+                const isLow = item.currentStock <= (item.minStockLevel ?? 0);
+                return (
+                  <tr key={item.id} className={`border-b border-border/50 hover:bg-secondary/20 ${isLow ? "bg-destructive/5" : ""}`}>
+                    <td className="px-4 md:px-5 py-3 font-medium">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <div>
+                          <p>{dn(item, lang)}</p>
+                          {item.nameAr && <p className="text-xs text-muted-foreground">{item.name}</p>}
+                          {/* Inline status for mobile when status column is hidden */}
+                          <div className="sm:hidden mt-0.5">
+                            {isLow ? (
+                              <span className="text-xs text-destructive font-medium flex items-center gap-0.5">
+                                <AlertTriangle className="h-3 w-3" />
+                                {t("inv_status_low")}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-emerald-500">{t("inv_status_ok")}</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">{item.unit}</td>
-                  <td className={`px-5 py-3 font-mono font-bold text-base ${isLow ? "text-destructive" : "text-foreground"}`}>
-                    {item.currentStock}
-                  </td>
-                  <td className="px-5 py-3 text-muted-foreground">{item.minStockLevel ?? "—"}</td>
-                  <td className="px-5 py-3">
-                    {isLow ? (
-                      <Badge variant="destructive" className="gap-1">
-                        <AlertTriangle className="h-3 w-3" />
-                        {t("inv_status_low")}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-emerald-500/50 text-emerald-500">{t("inv_status_ok")}</Badge>
-                    )}
-                  </td>
-                  <td className="px-5 py-3 text-left">
-                    <div className="flex gap-1 justify-end">
-                      <Button variant="outline" size="sm" className="gap-1 h-8" onClick={() => openMovement(item)}>
-                        <ArrowUpDown className="h-3 w-3" />
-                        {t("inv_movement_btn")}
-                      </Button>
-                      {isManager && (
-                        <>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditItem(item)}>
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteConfirm({ id: item.id, name: dn(item, lang) })}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </>
+                    </td>
+                    <td className="px-4 md:px-5 py-3 text-muted-foreground hidden md:table-cell">{item.unit}</td>
+                    <td className={`px-4 md:px-5 py-3 font-mono font-bold text-base ${isLow ? "text-destructive" : "text-foreground"}`}>
+                      {item.currentStock}
+                      {/* Inline unit for mobile when unit column is hidden */}
+                      <span className="text-xs text-muted-foreground font-normal ms-1 md:hidden">{item.unit}</span>
+                    </td>
+                    <td className="px-4 md:px-5 py-3 text-muted-foreground hidden md:table-cell">{item.minStockLevel ?? "—"}</td>
+                    <td className="px-4 md:px-5 py-3 hidden sm:table-cell">
+                      {isLow ? (
+                        <Badge variant="destructive" className="gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          {t("inv_status_low")}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-emerald-500/50 text-emerald-500">{t("inv_status_ok")}</Badge>
                       )}
-                    </div>
+                    </td>
+                    <td className="px-4 md:px-5 py-3">
+                      <div className="flex gap-1 justify-end">
+                        <Button variant="outline" size="sm" className="gap-1 h-8" onClick={() => openMovement(item)}>
+                          <ArrowUpDown className="h-3 w-3" />
+                          <span className="hidden sm:inline">{t("inv_movement_btn")}</span>
+                        </Button>
+                        {isManager && (
+                          <>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditItem(item)}>
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteConfirm({ id: item.id, name: dn(item, lang) })}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filteredItems.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
+                    {search ? t("inv_no_results") : t("inv_empty")}
                   </td>
                 </tr>
-              );
-            })}
-            {filteredItems.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
-                  {search ? t("inv_no_results") : t("inv_empty")}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Add/Edit Item Dialog */}
@@ -304,7 +320,7 @@ export default function Inventory() {
               <Label>{t("inv_name_en_label")}</Label>
               <Input value={itemForm.name} onChange={(e) => setItemForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Pepsi Cans" dir="ltr" />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1.5">
                 <Label>{t("inv_unit_label")}</Label>
                 <Input value={itemForm.unit} onChange={(e) => setItemForm(f => ({ ...f, unit: e.target.value }))} placeholder="pcs" dir="ltr" />

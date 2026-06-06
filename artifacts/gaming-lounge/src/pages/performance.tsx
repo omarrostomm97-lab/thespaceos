@@ -57,9 +57,9 @@ export default function Performance() {
   const totalRevenue = sorted.reduce((s, e) => s + (e.revenue ?? 0), 0);
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-primary">أداء الموظفين</h2>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">أداء الموظفين</h2>
         <p className="text-muted-foreground mt-1">مقارنة أداء الفريق بناءً على الطلبات والجلسات والإيرادات</p>
       </div>
 
@@ -126,13 +126,13 @@ export default function Performance() {
       {/* Sortable Table */}
       <Card className="bg-card">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-primary" />
               تفاصيل الأداء
             </CardTitle>
-            <div className="flex gap-2 text-sm">
-              <span className="text-muted-foreground">ترتيب حسب:</span>
+            <div className="flex flex-wrap gap-2 text-sm">
+              <span className="text-muted-foreground self-center">ترتيب حسب:</span>
               {(["ordersHandled", "sessionsStarted", "revenue"] as SortKey[]).map(key => (
                 <button
                   key={key}
@@ -156,15 +156,15 @@ export default function Performance() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm min-w-[440px]">
                 <thead>
                   <tr className="border-b border-border text-muted-foreground">
                     <th className="text-right py-3 px-4 font-medium">#</th>
                     <th className="text-right py-3 px-4 font-medium">الموظف</th>
-                    <th className="text-right py-3 px-4 font-medium">الدور</th>
+                    <th className="text-right py-3 px-4 font-medium hidden sm:table-cell">الدور</th>
                     <th className="text-right py-3 px-4 font-medium">الطلبات</th>
                     <th className="text-right py-3 px-4 font-medium">الجلسات</th>
-                    <th className="text-right py-3 px-4 font-medium">الإيرادات المُعالجة</th>
+                    <th className="text-right py-3 px-4 font-medium">الإيرادات</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -173,13 +173,18 @@ export default function Performance() {
                       <td className="py-3 px-4 text-muted-foreground">{idx + 1}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold">
+                          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-bold shrink-0">
                             {emp.userName.charAt(0)}
                           </div>
-                          <span className="font-medium">{emp.userName}</span>
+                          <div>
+                            <span className="font-medium">{emp.userName}</span>
+                            <div className="sm:hidden">
+                              <Badge variant="outline" className="text-[10px] mt-0.5">{ROLE_LABELS[emp.role ?? ""] ?? emp.role}</Badge>
+                            </div>
+                          </div>
                         </div>
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-4 hidden sm:table-cell">
                         <Badge variant="outline">{ROLE_LABELS[emp.role ?? ""] ?? emp.role}</Badge>
                       </td>
                       <td className="py-3 px-4">
