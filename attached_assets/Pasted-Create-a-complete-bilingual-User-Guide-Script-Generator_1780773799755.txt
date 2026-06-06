@@ -1,0 +1,199 @@
+Create a complete bilingual User Guide Script Generator for Gaming Lounge OS.
+
+IMPORTANT:
+Do not create the guide manually only. Build the feature inside the app.
+
+The system should generate professional user guide scripts in both English and Arabic for every function, page, button, and workflow in Gaming Lounge OS.
+
+The output should be used later to create instruction videos.
+
+Requirements:
+
+1. Add a new page called:
+   User Guide Scripts
+
+Route:
+/user-guide-scripts
+
+2. The page should include guide sections for all current modules:
+
+- Dashboard
+- Sessions
+- Assets / Devices
+- POS
+- Orders
+- Kitchen Display System
+- QR Ordering
+- Payments
+- Products
+- Categories
+- Inventory
+- Expenses
+- Revenue
+- Shifts
+- Users
+- Roles & Permissions
+- Audit Logs
+- Settings
+- Reports
+
+3. For each module create bilingual content:
+
+English:
+
+- Module Overview
+- Who uses this module
+- Step-by-step instructions
+- Button explanations
+- Field explanations
+- Common mistakes
+- Best practices
+- Video script
+- Screen actions
+
+Arabic:
+
+- شرح الموديول
+- من يستخدم هذا الموديول
+- خطوات الاستخدام
+- شرح الأزرار
+- شرح الحقول
+- الأخطاء الشائعة
+- أفضل الممارسات
+- سكريبت الفيديو
+- حركة الشاشة المطلوبة
+
+4. Each guide should follow this structure:
+
+Module Name
+
+English Guide:
+Overview:
+Steps:
+Buttons:
+Fields:
+Best Practices:
+Common Mistakes:
+
+Arabic Guide:
+نظرة عامة:
+الخطوات:
+الأزرار:
+الحقول:
+أفضل الممارسات:
+الأخطاء الشائعة:
+
+Video Script:
+Scene 1:
+Voiceover English:
+Voiceover Arabic:
+Screen Action:
+
+Scene 2:
+Voiceover English:
+Voiceover Arabic:
+Screen Action:
+
+Scene 3:
+Voiceover English:
+Voiceover Arabic:
+Screen Action:
+
+5. Add filters:
+
+- Search by module name
+
+- Filter by role:
+  Owner
+  Manager
+  Cashier
+  Buffet Worker
+
+- Filter by language:
+  English
+  Arabic
+  Both
+
+6. Add export buttons:
+
+- Export All as PDF
+- Export All as DOCX
+- Export English Only
+- Export Arabic Only
+- Export Video Scripts Only
+
+7. Add a professional UI:
+
+- Modern clean layout
+- Cards for each module
+- Expand / collapse sections
+- Copy button for each script
+- Arabic text should be RTL
+- English text should be LTR
+- Use existing app styling and components
+
+8. Create ready-made script content for every existing module based on the current actual system features.
+
+9. The generated guide should explain real user actions, for example:
+
+Sessions:
+
+- How to start a session
+- How to pause a session
+- How to resume a session
+- How to end a session
+- How billing is calculated
+- How to attach orders to a session
+
+POS:
+
+- How to create an order
+- How to add products
+- How to apply discount request
+- How owner approves or rejects discount
+- How to send order to KDS
+- How to complete payment
+
+Inventory:
+
+- How to add stock
+- How stock movement works
+- How recipes deduct inventory automatically
+- How to monitor low stock
+
+Shifts:
+
+- How cashier opens shift
+- How cashier closes shift
+- How cash reconciliation works
+- How owner reviews shift summary
+
+Payments:
+
+- How to record cash payment
+- How to record InstaPay payment
+- How to record Visa payment
+- How owner verifies payments
+
+Expenses:
+
+- How to add expenses
+- How to categorize expenses
+- How to track profit after expenses
+
+Users:
+
+- How owner creates users
+- How roles work
+- How permissions limit access
+
+10. Make the content professional enough to be used for onboarding real PlayStation lounge owners and staff.
+
+11. Do not remove or break existing pages, routes, APIs, database schema, authentication, tenant logic, or permissions.
+
+12. After implementation, provide a summary of:
+
+- Files changed
+- New route added
+- Export method used
+- How to test it

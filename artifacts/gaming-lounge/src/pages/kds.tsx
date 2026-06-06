@@ -70,7 +70,7 @@ const URGENCY_STYLES: Record<UrgencyTier, {
     headerBg:   "bg-destructive/10",
     headerBorder: "border-destructive/20",
     timerText:  "text-destructive",
-    ring: "ring-1 ring-destructive/40",
+    ring: "ring-2 ring-destructive/50 animate-pulse",
   },
 };
 
@@ -508,6 +508,40 @@ export default function Kds() {
           </div>
         </div>
 
+        {/* ── Ready for pickup (middle) ── */}
+        <div className="flex-1 flex flex-col bg-card rounded-xl border border-border overflow-hidden min-h-0">
+          <div className="h-12 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center px-3 shrink-0">
+            <PackageCheck className="h-4 w-4 text-emerald-500 me-2 shrink-0" />
+            <h2 className="text-base font-black text-emerald-500">جاهز للاستلام ({readyOrders.length})</h2>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2.5 space-y-3">
+            {readyOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-sm gap-2">
+                <PackageCheck className="h-10 w-10 opacity-20" />
+                <span>لا توجد طلبات جاهزة</span>
+              </div>
+            ) : (
+              <AnimatePresence mode="popLayout">
+                {readyOrders.map(order => (
+                  <motion.div
+                    key={order.id}
+                    layout
+                    initial={{ opacity: 0, y: -12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                  >
+                    <KdsCard
+                      order={order}
+                      isNew={newIds.has(order.id)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            )}
+          </div>
+        </div>
+
         {/* ── Preparing ── */}
         <div className="flex-1 flex flex-col bg-card rounded-xl border border-border overflow-hidden min-h-0">
           <div className="h-12 bg-amber-500/10 border-b border-amber-500/20 flex items-center px-3 shrink-0">
@@ -539,40 +573,6 @@ export default function Kds() {
                       actionIcon={<Check className="me-2 h-4 w-4" />}
                       onAction={() => handleUpdateStatus(order.id, "ready")}
                       isActionPending={updateStatus.isPending}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            )}
-          </div>
-        </div>
-
-        {/* ── Ready for pickup ── */}
-        <div className="flex-1 flex flex-col bg-card rounded-xl border border-border overflow-hidden min-h-0">
-          <div className="h-12 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center px-3 shrink-0">
-            <PackageCheck className="h-4 w-4 text-emerald-500 me-2 shrink-0" />
-            <h2 className="text-base font-black text-emerald-500">جاهز للاستلام ({readyOrders.length})</h2>
-          </div>
-          <div className="flex-1 overflow-y-auto p-2.5 space-y-3">
-            {readyOrders.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-40 text-muted-foreground text-sm gap-2">
-                <PackageCheck className="h-10 w-10 opacity-20" />
-                <span>لا توجد طلبات جاهزة</span>
-              </div>
-            ) : (
-              <AnimatePresence mode="popLayout">
-                {readyOrders.map(order => (
-                  <motion.div
-                    key={order.id}
-                    layout
-                    initial={{ opacity: 0, y: -12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                  >
-                    <KdsCard
-                      order={order}
-                      isNew={newIds.has(order.id)}
                     />
                   </motion.div>
                 ))}
