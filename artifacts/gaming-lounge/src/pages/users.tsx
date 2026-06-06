@@ -18,7 +18,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang } from "@/hooks/use-language";
 import type { UserInputRole, UserUpdateRole } from "@workspace/api-client-react";
-import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
+import { motion } from "framer-motion";
+import { FadeIn, StaggerChildren, staggerItemVariants } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
 const ROLES: Record<string, { ar: string; en: string; color: string }> = {
@@ -50,7 +51,7 @@ export default function Users() {
   const { t, dir, lang } = useLang();
   const { user: currentUser } = useAuth();
   const queryClient = useQueryClient();
-  const { data: users = [], isLoading } = useListUsers({ query: { refetchInterval: 30000 } });
+  const { data: users = [], isLoading } = useListUsers({ query: { refetchInterval: 30000 } as any });
 
   const createUser   = useCreateUser();
   const updateUser   = useUpdateUser();
@@ -222,7 +223,7 @@ export default function Users() {
                   const roleInfo = ROLES[u.role];
                   const isSelf = u.id === currentUser?.id;
                   return (
-                    <StaggerItem key={u.id} tag="tr" className="border-t border-border hover:bg-secondary/30 transition-colors">
+                    <motion.tr key={u.id} variants={staggerItemVariants} className="border-t border-border hover:bg-secondary/30 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-sm font-bold text-primary shrink-0">
@@ -276,7 +277,7 @@ export default function Users() {
                           )}
                         </div>
                       </td>
-                    </StaggerItem>
+                    </motion.tr>
                   );
                 })}
               </tbody>

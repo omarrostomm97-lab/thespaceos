@@ -36,11 +36,11 @@ export default function Discounts() {
 
   const { data: pending = [], isLoading: pendingLoading, refetch: refetchPending } = useListDiscountRequests(
     { status: "pending" },
-    { query: { refetchInterval: 20000 } }
+    { query: { refetchInterval: 20000 } as any }
   );
   const { data: history = [], isLoading: historyLoading, refetch: refetchHistory } = useListDiscountRequests(
     { status: "history" },
-    { query: { enabled: tab === "history", refetchInterval: 60000 } }
+    { query: { enabled: tab === "history", refetchInterval: 60000 } as any }
   );
 
   const approveMut = useApproveDiscountRequest();
@@ -213,7 +213,7 @@ export default function Discounts() {
                         </div>
                         <div>
                           <p className="text-muted-foreground">{t("discount_after")}</p>
-                          <p className="font-bold text-emerald-500">{EGP(req.discountedAmount)}</p>
+                          <p className="font-bold text-emerald-500">{EGP(req.discountedAmount ?? 0)}</p>
                         </div>
                       </div>
                     )}

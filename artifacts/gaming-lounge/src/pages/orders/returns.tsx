@@ -20,12 +20,12 @@ export default function OrderReturns() {
 
   const { data: pendingRequests = [], isLoading: pendingLoading, refetch: refetchPending } = useListReturnRequests(
     { status: "pending" },
-    { query: { refetchInterval: 30000 } }
+    { query: { refetchInterval: 30000 } as any }
   );
 
   const { data: historyRequests = [], isLoading: historyLoading, refetch: refetchHistory } = useListReturnRequests(
     { status: "history" },
-    { query: { enabled: tab === "history", refetchInterval: 60000 } }
+    { query: { enabled: tab === "history", refetchInterval: 60000 } as any }
   );
 
   const approveReturn = useApproveItemReturn();
@@ -173,7 +173,7 @@ export default function OrderReturns() {
                         </div>
                       </div>
                       <div className="text-end shrink-0">
-                        <p className="text-base font-bold text-emerald-500">{EGP((req.returnQuantity ?? req.quantity) * req.unitPrice)}</p>
+                        <p className="text-base font-bold text-emerald-500">{EGP((req.returnQuantity ?? req.quantity) * (req.unitPrice ?? 0))}</p>
                         <p className="text-xs text-muted-foreground">{req.returnQuantity ?? req.quantity}×</p>
                       </div>
                     </div>

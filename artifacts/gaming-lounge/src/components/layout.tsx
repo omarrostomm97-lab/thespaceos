@@ -82,14 +82,15 @@ export function Layout({ children }: LayoutProps) {
   const { alerts, dismiss } = useBookingAlerts();
 
   const isMgmt = user?.role && MGMT_ROLES.has(user.role);
-  const { data: returnRequests } = useListReturnRequests({
-    query: { enabled: !!isMgmt, refetchInterval: 30000, staleTime: 15000 }
-  });
+  const { data: returnRequests } = useListReturnRequests(
+    { status: "pending" } as any,
+    { query: { enabled: !!isMgmt, refetchInterval: 30000, staleTime: 15000 } as any }
+  );
   const pendingReturnsCount = returnRequests?.length ?? 0;
 
   const { data: pendingDiscounts } = useListDiscountRequests(
     { status: "pending" },
-    { query: { enabled: !!isMgmt, refetchInterval: 30000, staleTime: 15000 } }
+    { query: { enabled: !!isMgmt, refetchInterval: 30000, staleTime: 15000 } as any }
   );
   const pendingDiscountsCount = pendingDiscounts?.length ?? 0;
 

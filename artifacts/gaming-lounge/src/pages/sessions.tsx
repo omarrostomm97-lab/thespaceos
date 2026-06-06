@@ -72,7 +72,7 @@ export default function Sessions() {
 
   const { data: historySessions, isLoading: historyLoading } = useListSessions(
     undefined,
-    { query: { enabled: tab === "history", refetchInterval: 15000 } }
+    { query: { enabled: tab === "history", refetchInterval: 15000 } as any }
   );
   const endedSessions = (historySessions ?? [])
     .filter(s => s.status === "ended" || s.status === "cancelled")
@@ -146,7 +146,7 @@ export default function Sessions() {
   // Fetch existing discount requests for the open checkout session
   const { data: sessionDiscounts = [] } = useGetSessionDiscounts(
     checkout?.sessionId ?? 0,
-    { query: { enabled: !!checkout?.sessionId, refetchInterval: 10000 } }
+    { query: { enabled: !!checkout?.sessionId, refetchInterval: 10000 } as any }
   );
 
   const pendingDiscount = sessionDiscounts.find(d => d.status === "pending");
