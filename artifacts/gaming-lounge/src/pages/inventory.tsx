@@ -43,25 +43,25 @@ interface MovementForm {
 const emptyItemForm = (): ItemForm => ({ name: "", nameAr: "", unit: "pcs", currentStock: "0", minStockLevel: "10" });
 const emptyMovementForm = (): MovementForm => ({ type: "purchase", quantity: "", reason: "" });
 
-const MOVEMENT_TYPES = [
-  { value: "purchase", label: "إضافة مخزون (شراء)" },
-  { value: "sale", label: "بيع (خصم)" },
-  { value: "waste", label: "هالك أو تالف" },
-  { value: "adjustment", label: "تعديل يدوي" },
-];
-
 export default function Inventory() {
   const { user } = useAuth();
-  const { dir } = useLang();
+  const { t, dir } = useLang();
   const queryClient = useQueryClient();
   const isManager = MGMT_ROLES.includes(user?.role ?? "");
   const searchStr = useSearch();
   const [, setLocation] = useLocation();
 
+  const MOVEMENT_TYPES = [
+    { value: "purchase", label: t("inv_move_purchase") },
+    { value: "sale",     label: t("inv_move_sale") },
+    { value: "waste",    label: t("inv_move_waste") },
+    { value: "adjustment", label: t("inv_move_adjustment") },
+  ];
+
   const { data: items, isLoading } = useListInventoryItems();
 
-  const createItem = useCreateInventoryItem();
-  const updateItem = useUpdateInventoryItem();
+  const createItem    = useCreateInventoryItem();
+  const updateItem    = useUpdateInventoryItem();
   const deleteItemMut = useDeleteInventoryItem();
   const createMovement = useCreateInventoryMovement();
 
@@ -95,7 +95,7 @@ export default function Inventory() {
   };
 
   const saveItem = async () => {
-    if (!itemForm.name || !itemForm.unit) { toast.error("أدخل الاسم والوحدة"); return; }
+    if (!itemForm.name || !itemForm.unit) { toast.error(t("inv_name_unit_required")); return; }
     const payload = {
       name: itemForm.name,
       nameAr: itemForm.nameAr || undefined,
@@ -106,15 +106,15 @@ export default function Inventory() {
     try {
       if (itemDialog.editing) {
         await updateItem.mutateAsync({ itemId: itemDialog.editing.id, data: payload });
-        toast.success("تم تحديث الصنف");
+        toast.success(t("inv_item_updated_ok"));
       } else {
         await createItem.mutateAsync({ data: payload });
-        toast.success("تم إضافة الصنف");
+        toast.success(t("inv_item_added_ok"));
       }
       setItemDialog({ open: false, editing: null });
       refresh();
     } catch {
-      toast.error("حدث خطأ");
+      toast.error(t("inv_item_error"));
     }
   };
 
@@ -124,9 +124,9 @@ export default function Inventory() {
   };
 
   const saveMovement = async () => {
-    if (!movementDialog.itemId || !movementForm.quantity) { toast.error("أدخل الكمية"); return; }
+    if (!movementDialog.itemId || !movementForm.quantity) { toast.error(t("inv_qty_required")); return; }
     const qty = parseFloat(movementForm.quantity);
-    if (isNaN(qty) || qty <= 0) { toast.error("أدخل كمية صحيحة"); return; }
+    if (isNaN(qty) || qty <= 0) { toast.error(t("inv_qty_invalid")); return; }
     try {
       await createMovement.mutateAsync({
         data: {
@@ -136,11 +136,11 @@ export default function Inventory() {
           reason: movementForm.reason || undefined,
         }
       });
-      toast.success("تم تسجيل حركة المخزون");
+      toast.success(t("inv_movement_ok"));
       setMovementDialog({ open: false, itemId: null, itemName: "" });
       refresh();
     } catch {
-      toast.error("حدث خطأ");
+      toast.error(t("inv_item_error"));
     }
   };
 
@@ -148,16 +148,17 @@ export default function Inventory() {
     if (!deleteConfirm) return;
     try {
       await deleteItemMut.mutateAsync({ itemId: deleteConfirm.id });
-      toast.success("تم حذف الصنف");
+      toast.success(t("inv_deleted_ok"));
       setDeleteConfirm(null);
       refresh();
     } catch {
-      toast.error("حدث خطأ أثناء الحذف");
+      toast.error(t("inv_delete_error"));
     }
   };
 
+  const q = search.toLowerCase();
   const filteredItems = items?.filter(item => {
-    if (search && !(item.nameAr || item.name).toLowerCase().includes(search.toLowerCase())) return false;
+    if (q && !item.nameAr?.toLowerCase().includes(q) && !item.name?.toLowerCase().includes(q)) return false;
     if (showLowOnly && item.currentStock > (item.minStockLevel ?? 0)) return false;
     return true;
   }) ?? [];
@@ -178,25 +179,25 @@ export default function Inventory() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-primary">المخزون</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-primary">{t("inv_title")}</h2>
           <p className="text-muted-foreground mt-1">
-            {items?.length ?? 0} صنف
+            {items?.length ?? 0} {t("inv_item_count_suffix")}
             {lowStockCount > 0 && (
-              <span className="text-destructive font-medium me-2"> · {lowStockCount} تحت الحد الأدنى</span>
+              <span className="text-destructive font-medium me-2"> · {lowStockCount} {t("inv_low_stock_suffix")}</span>
             )}
           </p>
         </div>
         {isManager && (
           <Button onClick={openAddItem} className="gap-2">
             <Plus className="h-4 w-4" />
-            إضافة صنف
+            {t("inv_add_item_btn")}
           </Button>
         )}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          placeholder="بحث عن صنف..."
+          placeholder={t("inv_search_placeholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs"
@@ -207,7 +208,7 @@ export default function Inventory() {
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-destructive/15 text-destructive border border-destructive/30 hover:bg-destructive/25 transition-colors"
           >
             <AlertTriangle className="h-3 w-3" />
-            عرض المنخفض فقط
+            {t("inv_show_low_only")}
             <X className="h-3 w-3" />
           </button>
         )}
@@ -217,12 +218,12 @@ export default function Inventory() {
         <table className="w-full text-sm text-right">
           <thead className="bg-secondary text-muted-foreground text-xs uppercase">
             <tr>
-              <th className="px-5 py-3">الصنف</th>
-              <th className="px-5 py-3">الوحدة</th>
-              <th className="px-5 py-3">الرصيد الحالي</th>
-              <th className="px-5 py-3">الحد الأدنى</th>
-              <th className="px-5 py-3">الحالة</th>
-              <th className="px-5 py-3 text-left">إجراءات</th>
+              <th className="px-5 py-3">{t("inv_col_item")}</th>
+              <th className="px-5 py-3">{t("inv_col_unit")}</th>
+              <th className="px-5 py-3">{t("inv_col_stock")}</th>
+              <th className="px-5 py-3">{t("inv_col_min")}</th>
+              <th className="px-5 py-3">{t("inv_col_status")}</th>
+              <th className="px-5 py-3 text-left">{t("inv_col_actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -248,17 +249,17 @@ export default function Inventory() {
                     {isLow ? (
                       <Badge variant="destructive" className="gap-1">
                         <AlertTriangle className="h-3 w-3" />
-                        نقص
+                        {t("inv_status_low")}
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="border-emerald-500/50 text-emerald-500">متوفر</Badge>
+                      <Badge variant="outline" className="border-emerald-500/50 text-emerald-500">{t("inv_status_ok")}</Badge>
                     )}
                   </td>
                   <td className="px-5 py-3 text-left">
                     <div className="flex gap-1 justify-end">
                       <Button variant="outline" size="sm" className="gap-1 h-8" onClick={() => openMovement(item)}>
                         <ArrowUpDown className="h-3 w-3" />
-                        حركة
+                        {t("inv_movement_btn")}
                       </Button>
                       {isManager && (
                         <>
@@ -279,7 +280,7 @@ export default function Inventory() {
             {filteredItems.length === 0 && (
               <tr>
                 <td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">
-                  {search ? "لا توجد نتائج مطابقة" : "لا توجد أصناف في المخزون"}
+                  {search ? t("inv_no_results") : t("inv_empty")}
                 </td>
               </tr>
             )}
@@ -291,38 +292,38 @@ export default function Inventory() {
       <Dialog open={itemDialog.open} onOpenChange={(open) => !isSavingItem && setItemDialog({ open, editing: null })}>
         <DialogContent className="max-w-md" dir={dir}>
           <DialogHeader>
-            <DialogTitle>{itemDialog.editing ? "تعديل الصنف" : "إضافة صنف جديد"}</DialogTitle>
+            <DialogTitle>{itemDialog.editing ? t("inv_edit_title") : t("inv_add_title")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label>الاسم بالعربي *</Label>
+              <Label>{t("inv_name_ar_label")}</Label>
               <Input value={itemForm.nameAr} onChange={(e) => setItemForm(f => ({ ...f, nameAr: e.target.value }))} placeholder="مثال: علب بيبسي" />
             </div>
             <div className="space-y-1.5">
-              <Label>الاسم بالإنجليزي *</Label>
+              <Label>{t("inv_name_en_label")}</Label>
               <Input value={itemForm.name} onChange={(e) => setItemForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Pepsi Cans" dir="ltr" />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="space-y-1.5">
-                <Label>الوحدة *</Label>
+                <Label>{t("inv_unit_label")}</Label>
                 <Input value={itemForm.unit} onChange={(e) => setItemForm(f => ({ ...f, unit: e.target.value }))} placeholder="pcs" dir="ltr" />
               </div>
               <div className="space-y-1.5">
-                <Label>الرصيد الحالي</Label>
+                <Label>{t("inv_stock_label")}</Label>
                 <Input type="number" step="1" min="0" value={itemForm.currentStock}
                   onChange={(e) => setItemForm(f => ({ ...f, currentStock: e.target.value }))} dir="ltr" />
               </div>
               <div className="space-y-1.5">
-                <Label>الحد الأدنى</Label>
+                <Label>{t("inv_min_label")}</Label>
                 <Input type="number" step="1" min="0" value={itemForm.minStockLevel}
                   onChange={(e) => setItemForm(f => ({ ...f, minStockLevel: e.target.value }))} dir="ltr" />
               </div>
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setItemDialog({ open: false, editing: null })} disabled={isSavingItem}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setItemDialog({ open: false, editing: null })} disabled={isSavingItem}>{t("cancel")}</Button>
             <Button onClick={saveItem} disabled={isSavingItem}>
-              {isSavingItem ? "جاري الحفظ..." : itemDialog.editing ? "حفظ التعديلات" : "إضافة الصنف"}
+              {isSavingItem ? t("saving") : itemDialog.editing ? t("save_changes") : t("inv_add_confirm_btn")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -334,38 +335,38 @@ export default function Inventory() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowUpDown className="h-4 w-4" />
-              تسجيل حركة مخزون
+              {t("inv_movement_dialog_title")}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <p className="text-sm text-muted-foreground bg-secondary/50 px-3 py-2 rounded">الصنف: <strong>{movementDialog.itemName}</strong></p>
+            <p className="text-sm text-muted-foreground bg-secondary/50 px-3 py-2 rounded">{t("inv_movement_item_prefix")} <strong>{movementDialog.itemName}</strong></p>
             <div className="space-y-1.5">
-              <Label>نوع الحركة *</Label>
+              <Label>{t("inv_movement_type_label")}</Label>
               <Select value={movementForm.type} onValueChange={(v) => setMovementForm(f => ({ ...f, type: v }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MOVEMENT_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                  {MOVEMENT_TYPES.map((mt) => (
+                    <SelectItem key={mt.value} value={mt.value}>{mt.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>الكمية *</Label>
+              <Label>{t("inv_movement_qty_label")}</Label>
               <Input type="number" step="1" min="1" value={movementForm.quantity}
                 onChange={(e) => setMovementForm(f => ({ ...f, quantity: e.target.value }))} placeholder="0" dir="ltr" />
             </div>
             <div className="space-y-1.5">
-              <Label>السبب / ملاحظة</Label>
-              <Input value={movementForm.reason} onChange={(e) => setMovementForm(f => ({ ...f, reason: e.target.value }))} placeholder="اختياري" />
+              <Label>{t("inv_movement_reason_label")}</Label>
+              <Input value={movementForm.reason} onChange={(e) => setMovementForm(f => ({ ...f, reason: e.target.value }))} placeholder={t("inv_movement_reason_placeholder")} />
             </div>
           </div>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setMovementDialog({ open: false, itemId: null, itemName: "" })} disabled={createMovement.isPending}>إلغاء</Button>
+            <Button variant="outline" onClick={() => setMovementDialog({ open: false, itemId: null, itemName: "" })} disabled={createMovement.isPending}>{t("cancel")}</Button>
             <Button onClick={saveMovement} disabled={createMovement.isPending}>
-              {createMovement.isPending ? "جاري التسجيل..." : "تسجيل"}
+              {createMovement.isPending ? t("inv_movement_recording") : t("inv_movement_record_btn")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -375,13 +376,13 @@ export default function Inventory() {
       <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <AlertDialogContent dir={dir}>
           <AlertDialogHeader>
-            <AlertDialogTitle>حذف الصنف</AlertDialogTitle>
-            <AlertDialogDescription>هل أنت متأكد من حذف "<strong>{deleteConfirm?.name}</strong>" من المخزون؟ لا يمكن التراجع عن هذا الإجراء.</AlertDialogDescription>
+            <AlertDialogTitle>{t("inv_delete_dialog_title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("inv_delete_dialog_body")} "<strong>{deleteConfirm?.name}</strong>" {t("inv_delete_dialog_suffix")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              {deleteItemMut.isPending ? "جاري الحذف..." : "حذف"}
+              {deleteItemMut.isPending ? t("inv_deleting") : t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

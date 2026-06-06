@@ -343,13 +343,13 @@ function MobileHeroCard({
   const animated = useCountUp(total, 1000);
   return (
     <div className="relative overflow-hidden rounded-3xl p-5 shadow-xl"
-         style={{ background: "linear-gradient(135deg, hsl(211, 100%, 47%) 0%, hsl(211, 100%, 38%) 55%, #1d4ed8 100%)", boxShadow: "0 20px 40px -8px hsl(211 100% 47% / 0.35)" }}>
-      <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/2 -translate-x-1/2" />
+         style={{ background: "linear-gradient(135deg, hsl(211, 100%, 47%) 0%, hsl(211, 100%, 38%) 55%, #1d4ed8 100%)", boxShadow: "0 20px 40px -8px rgba(0, 108, 224, 0.35)" }}>
+      <div className="absolute top-0 right-0 w-40 h-40 rounded-full -translate-y-1/2 translate-x-1/2" style={{ background: "rgba(255,255,255,0.05)" }} />
+      <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full translate-y-1/2 -translate-x-1/2" style={{ background: "rgba(255,255,255,0.05)" }} />
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-1.5 bg-white/15 rounded-full px-2.5 py-1">
+          <div className="flex items-center gap-1.5 rounded-full px-2.5 py-1" style={{ background: "rgba(255,255,255,0.15)" }}>
             <span className="relative flex h-1.5 w-1.5">
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75 live-dot" />
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -377,21 +377,21 @@ function MobileHeroCard({
         {/* 3-bucket split (only when source=all) */}
         {source === "all" && (
           <div className="flex items-center gap-2">
-            <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
+            <div className="flex-1 rounded-xl px-2.5 py-2" style={{ background: "rgba(255,255,255,0.10)" }}>
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-xs">🎮</span>
                 <span className="text-[9px] text-white/60 font-medium leading-tight">{t("dash_time_short")}</span>
               </div>
               <p className="text-xs font-bold text-white tabular">{gamingRevenue.toFixed(2)}</p>
             </div>
-            <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
+            <div className="flex-1 rounded-xl px-2.5 py-2" style={{ background: "rgba(255,255,255,0.10)" }}>
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-xs">🛒</span>
                 <span className="text-[9px] text-white/60 font-medium leading-tight">{t("dash_orders_short")}</span>
               </div>
               <p className="text-xs font-bold text-white tabular">{roomOrderRevenue.toFixed(2)}</p>
             </div>
-            <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
+            <div className="flex-1 rounded-xl px-2.5 py-2" style={{ background: "rgba(255,255,255,0.10)" }}>
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-xs">🍽️</span>
                 <span className="text-[9px] text-white/60 font-medium leading-tight">{t("dash_pos_short")}</span>

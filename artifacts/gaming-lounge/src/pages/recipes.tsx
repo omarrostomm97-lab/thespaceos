@@ -15,11 +15,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BookOpen, ChefHat, Plus, Trash2, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useLang } from "@/hooks/use-language";
 
 type DraftLine = { inventoryItemId: number; quantityUsed: string };
 
 export default function Recipes() {
   const queryClient = useQueryClient();
+  const { t } = useLang();
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [draftItems, setDraftItems] = useState<DraftLine[]>([]);
   const [isDirty, setIsDirty] = useState(false);
@@ -39,7 +41,6 @@ export default function Recipes() {
     query: { queryKey: getListInventoryItemsQueryKey() }
   });
 
-  // Sync draft whenever the loaded recipe changes (product selection or fresh fetch)
   useEffect(() => {
     if (recipeItems !== undefined && !isDirty) {
       setDraftItems(recipeItems.map(i => ({
@@ -61,16 +62,15 @@ export default function Recipes() {
       queryClient.invalidateQueries({ queryKey: getListProductsWithRecipesQueryKey() });
       queryClient.invalidateQueries({ queryKey: getGetProductRecipeQueryKey(selectedProductId ?? 0) });
       setIsDirty(false);
-      toast.success("تم حفظ الوصفة بنجاح");
+      toast.success(t("rec_save_ok"));
     },
-    onError: () => toast.error("حدث خطأ أثناء حفظ الوصفة"),
+    onError: () => toast.error(t("rec_save_error")),
   });
 
   const selectedProduct = products?.find(p => p.id === selectedProductId);
 
   const handleSelectProduct = (p: ProductWithRecipe) => {
     if (isDirty) {
-      // reset dirty state so the effect can sync the new product's recipe
       setIsDirty(false);
       setDraftItems([]);
     }
@@ -81,7 +81,7 @@ export default function Recipes() {
     if (!inventoryItems?.length) return;
     const usedIds = new Set(draftItems.map(i => i.inventoryItemId));
     const next = inventoryItems.find(i => !usedIds.has(i.id));
-    if (!next) { toast.info("تم إضافة كل عناصر المخزون بالفعل"); return; }
+    if (!next) { toast.info(t("rec_all_added")); return; }
     setDraftItems(prev => [...prev, { inventoryItemId: next.id, quantityUsed: "1" }]);
     setIsDirty(true);
   };
@@ -112,8 +112,8 @@ export default function Recipes() {
   return (
     <div className="p-8 space-y-6 h-full flex flex-col">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight text-primary">الوصفات</h2>
-        <p className="text-muted-foreground mt-1">حدد مكونات كل منتج لتفعيل خصم المخزون التلقائي عند التسليم</p>
+        <h2 className="text-3xl font-bold tracking-tight text-primary">{t("rec_title")}</h2>
+        <p className="text-muted-foreground mt-1">{t("rec_subtitle")}</p>
       </div>
 
       <div className="flex gap-6 flex-1 min-h-0">
@@ -122,13 +122,13 @@ export default function Recipes() {
           <CardHeader className="pb-3 shrink-0">
             <CardTitle className="flex items-center gap-2 text-base">
               <BookOpen className="h-4 w-4 text-primary" />
-              المنتجات ({products?.length ?? 0})
+              {t("rec_products_panel")} ({products?.length ?? 0})
             </CardTitle>
           </CardHeader>
           <CardContent className="flex-1 overflow-y-auto p-2">
             <div className="space-y-1">
               {!products?.length && (
-                <p className="text-center text-sm text-muted-foreground py-6">لا توجد منتجات</p>
+                <p className="text-center text-sm text-muted-foreground py-6">{t("rec_no_products")}</p>
               )}
               {products?.map(p => (
                 <button
@@ -158,7 +158,7 @@ export default function Recipes() {
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center space-y-3">
                 <ChefHat className="h-12 w-12 mx-auto opacity-25" />
-                <p>اختر منتجاً من القائمة لتعديل وصفته</p>
+                <p>{t("rec_select_hint")}</p>
               </div>
             </div>
           ) : (
@@ -172,8 +172,8 @@ export default function Recipes() {
                     </CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
                       {selectedProduct.hasRecipe
-                        ? `${selectedProduct.recipeItemCount} مكون مُضاف`
-                        : "لا توجد وصفة — سيتم إنشاؤها عند الحفظ"}
+                        ? `${selectedProduct.recipeItemCount} ${t("rec_ingredient_count_suffix")}`
+                        : t("rec_no_recipe")}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -184,7 +184,7 @@ export default function Recipes() {
                       disabled={!inventoryItems?.length}
                     >
                       <Plus className="h-4 w-4 ms-1" />
-                      إضافة مكون
+                      {t("rec_add_ingredient")}
                     </Button>
                     <Button
                       onClick={() => saveMutation.mutate({ productId: selectedProductId!, items: draftItems })}
@@ -192,7 +192,7 @@ export default function Recipes() {
                       disabled={saveMutation.isPending || !isDirty}
                     >
                       <Save className="h-4 w-4 ms-1" />
-                      حفظ الوصفة
+                      {t("rec_save_recipe")}
                     </Button>
                   </div>
                 </div>
@@ -206,13 +206,13 @@ export default function Recipes() {
                 ) : draftItems.length === 0 ? (
                   <div className="text-center py-12 border border-dashed border-border rounded-lg text-muted-foreground">
                     <ChefHat className="h-8 w-8 mx-auto mb-2 opacity-25" />
-                    <p className="text-sm">لا توجد مكونات — اضغط "إضافة مكون" للبدء</p>
+                    <p className="text-sm">{t("rec_no_ingredients")}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     <div className="grid grid-cols-[1fr_160px_44px] gap-3 px-1 text-xs text-muted-foreground font-medium">
-                      <span>المكون (من المخزون)</span>
-                      <span className="text-center">الكمية لكل وحدة مباعة</span>
+                      <span>{t("rec_col_ingredient")}</span>
+                      <span className="text-center">{t("rec_col_qty")}</span>
                       <span />
                     </div>
                     {draftItems.map((line, idx) => {
@@ -253,7 +253,7 @@ export default function Recipes() {
 
                     {isDirty && (
                       <div className="mt-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-md text-sm text-amber-600 dark:text-amber-400">
-                        توجد تغييرات غير محفوظة — اضغط "حفظ الوصفة" لتطبيقها
+                        {t("rec_unsaved_warning")}
                       </div>
                     )}
                   </div>

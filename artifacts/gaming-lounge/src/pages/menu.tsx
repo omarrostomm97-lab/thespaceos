@@ -170,9 +170,9 @@ export default function Menu() {
     try {
       await generateMenuQr.mutateAsync();
       await refetchQr();
-      toast.success("QR code generated!");
+      toast.success(t("menu_qr_generated_ok"));
     } catch {
-      toast.error("Failed to generate QR code");
+      toast.error(t("menu_qr_error"));
     }
   };
 
@@ -245,7 +245,7 @@ export default function Menu() {
               ) : (
                 <div className="w-[164px] h-[164px] bg-secondary rounded-xl border border-dashed border-border flex flex-col items-center justify-center gap-2 text-muted-foreground">
                   <QrCode className="h-10 w-10 opacity-30" />
-                  <span className="text-xs">No QR yet</span>
+                  <span className="text-xs">{t("menu_qr_no_qr")}</span>
                 </div>
               )}
             </div>
@@ -255,10 +255,10 @@ export default function Menu() {
               <div>
                 <h3 className="font-bold text-lg flex items-center gap-2">
                   <QrCode className="h-5 w-5 text-primary" />
-                  Walk-in Menu QR Code
+                  {t("menu_qr_title")}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Display this QR code at your venue entrance. Customers scan it to view your full menu in English — no ordering, display only.
+                  {t("menu_qr_desc")}
                 </p>
               </div>
 
@@ -292,13 +292,13 @@ export default function Menu() {
                   variant={menuUrl ? "outline" : "default"}
                 >
                   <RefreshCw className={`h-4 w-4 ${generateMenuQr.isPending ? "animate-spin" : ""}`} />
-                  {menuUrl ? "Regenerate QR" : "Generate QR Code"}
+                  {menuUrl ? t("menu_qr_regenerate") : t("menu_qr_generate")}
                 </Button>
                 {menuUrl && (
                   <>
                     <Button variant="outline" onClick={handleDownloadQr} className="gap-2">
                       <Download className="h-4 w-4" />
-                      Download PNG
+                      {t("menu_qr_download")}
                     </Button>
                     <Button variant="outline" onClick={() => {
                       const params = new URLSearchParams({
@@ -310,7 +310,7 @@ export default function Menu() {
                       window.open(`${window.location.origin}${base}/print-qr?${params}`, "_blank");
                     }} className="gap-2">
                       <Printer className="h-4 w-4" />
-                      Print QR Card
+                      {t("menu_qr_print")}
                     </Button>
                   </>
                 )}
@@ -318,7 +318,7 @@ export default function Menu() {
 
               {menuUrl && (
                 <p className="text-xs text-muted-foreground">
-                  Regenerating creates a new URL — update any printed QR codes after regenerating.
+                  {t("menu_qr_update_note")}
                 </p>
               )}
             </div>
