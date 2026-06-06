@@ -450,9 +450,10 @@ export default function Dashboard() {
   const { data: shiftsData, isLoading: isLoadingShifts } = useGetDashboardShifts({ period } as any);
 
   const canSeeFinance = ["platform_owner", "owner", "manager"].includes(user?.role ?? "");
-  const { data: financeOverview } = useGetFinanceOverview({
-    query: { enabled: canSeeFinance },
-  });
+  const { data: financeOverview } = useGetFinanceOverview(
+    undefined,
+    { query: { enabled: canSeeFinance } as any },
+  );
 
   if (isLoadingSummary || isLoadingSessions) return <DashboardSkeleton />;
 

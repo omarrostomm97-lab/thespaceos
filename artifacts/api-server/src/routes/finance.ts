@@ -25,7 +25,7 @@ function parseDateRange(period: string, now: Date): { from: Date; to: Date } {
   if (period === "today") return { from, to };
   if (period === "week") { from.setDate(from.getDate() - 6); return { from, to }; }
   if (period === "month") { from.setDate(from.getDate() - 29); return { from, to }; }
-  // custom: from=YYYY-MM-DD&to=YYYY-MM-DD handled by caller
+  if (period === "quarter") { from.setDate(from.getDate() - 89); return { from, to }; }
   return { from, to };
 }
 

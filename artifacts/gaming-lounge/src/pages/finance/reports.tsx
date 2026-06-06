@@ -25,18 +25,11 @@ export default function FinanceReports() {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
 
-  const now = new Date();
-  const periodFrom =
-    period === "week"    ? new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6).toISOString().slice(0, 10) :
-    period === "month"   ? new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10) :
-    new Date(now.getFullYear(), now.getMonth() - 2, 1).toISOString().slice(0, 10);
-  const periodTo = now.toISOString().slice(0, 10);
-
-  const { data: daily, isLoading: dailyLoading } = useGetFinanceDailySummary({ date: selectedDate }, { query: { enabled: tab === "daily" } });
-  const { data: pl, isLoading: plLoading } = useGetFinanceProfitLoss({ from: periodFrom, to: periodTo }, { query: { enabled: tab === "profitloss" } });
-  const { data: expReport, isLoading: expLoading } = useGetFinanceExpensesReport({ from: periodFrom, to: periodTo }, { query: { enabled: tab === "expenses" } });
-  const { data: cashflow, isLoading: cfLoading } = useGetFinanceCashFlow({ from: periodFrom, to: periodTo }, { query: { enabled: tab === "cashflow" } });
-  const { data: shifts, isLoading: shiftsLoading } = useGetFinanceShiftDifferences({ from: periodFrom, to: periodTo }, { query: { enabled: tab === "shifts" } });
+  const { data: daily, isLoading: dailyLoading } = useGetFinanceDailySummary({ date: selectedDate }, { query: { enabled: tab === "daily" } as any });
+  const { data: pl, isLoading: plLoading } = useGetFinanceProfitLoss({ period }, { query: { enabled: tab === "profitloss" } as any });
+  const { data: expReport, isLoading: expLoading } = useGetFinanceExpensesReport({ period }, { query: { enabled: tab === "expenses" } as any });
+  const { data: cashflow, isLoading: cfLoading } = useGetFinanceCashFlow({ period }, { query: { enabled: tab === "cashflow" } as any });
+  const { data: shifts, isLoading: shiftsLoading } = useGetFinanceShiftDifferences({ period }, { query: { enabled: tab === "shifts" } as any });
 
   const TABS: { id: ReportTab; label: string }[] = [
     { id: "profitloss", label: t("finance_report_profit_loss") },

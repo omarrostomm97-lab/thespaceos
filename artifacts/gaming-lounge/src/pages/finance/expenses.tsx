@@ -92,14 +92,14 @@ export default function FinanceExpenses() {
 
   const markPaid = (id: number) => {
     updateTx.mutate(
-      { id, data: { status: "paid" } as any },
+      { transactionId: id, data: { status: "paid" } as any },
       { onSuccess: () => qc.invalidateQueries({ queryKey: ["listFinanceTransactions"] }) }
     );
   };
 
   const handleDelete = (id: number) => {
     deleteTx.mutate(
-      { id },
+      { transactionId: id },
       {
         onSuccess: () => {
           qc.invalidateQueries({ queryKey: ["listFinanceTransactions"] });
