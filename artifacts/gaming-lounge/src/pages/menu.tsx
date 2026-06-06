@@ -430,7 +430,7 @@ export default function Menu() {
 
       {/* Add/Edit Product Dialog */}
       <Dialog open={productDialog.open} onOpenChange={(open) => !isSavingProduct && setProductDialog({ open, editing: null })}>
-        <DialogContent className="max-w-md" dir={dir}>
+        <DialogContent className="max-w-md max-h-[90dvh] overflow-y-auto" dir={dir}>
           <DialogHeader>
             <DialogTitle>{productDialog.editing ? t("edit_product_title") : t("add_product_title")}</DialogTitle>
           </DialogHeader>
@@ -472,7 +472,7 @@ export default function Menu() {
 
       {/* Add/Edit Category Dialog */}
       <Dialog open={categoryDialog.open} onOpenChange={(open) => !isSavingCategory && setCategoryDialog({ open, editing: null })}>
-        <DialogContent className="max-w-sm" dir={dir}>
+        <DialogContent className="max-w-sm max-h-[90dvh] overflow-y-auto" dir={dir}>
           <DialogHeader>
             <DialogTitle>{categoryDialog.editing ? t("edit_category_title") : t("add_category_title")}</DialogTitle>
           </DialogHeader>

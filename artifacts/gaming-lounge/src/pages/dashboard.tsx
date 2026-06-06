@@ -1783,7 +1783,7 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="overflow-x-auto -mx-4 md:mx-0">
-                  <table className="w-full text-sm min-w-[560px]">
+                  <table className="w-full text-sm min-w-[460px]">
                     <thead>
                       <tr className="border-b border-border">
                         <th className={`pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium ${lang==="ar"?"text-right":"text-left"}`}>

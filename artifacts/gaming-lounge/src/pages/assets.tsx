@@ -433,7 +433,7 @@ export default function Assets() {
             <div className="h-4 w-36 rounded-lg bg-muted skeleton-shimmer" />
           </div>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
           {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-64 rounded-2xl skeleton-shimmer" />)}
         </div>
       </div>
@@ -546,7 +546,7 @@ export default function Assets() {
 
         {/* ── Asset grid ── */}
         {assets && assets.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
             {assets.map((asset, i) => (
               <motion.div
                 key={asset.id}
