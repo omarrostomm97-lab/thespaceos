@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetDashboardSummary,
@@ -8,9 +9,11 @@ import {
   useGetDashboardRooms,
   useGetDashboardShifts,
   useGetFinanceOverview,
+  useListOrders,
   getGetDashboardSummaryQueryKey,
   getListActiveSessionsQueryKey,
 } from "@workspace/api-client-react";
+import type { Order } from "@workspace/api-client-react";
 import {
   Gamepad2, Receipt, AlertTriangle, Clock, ShoppingCart,
   Activity, Monitor, TrendingUp, Utensils, Bell, Plus,
@@ -94,6 +97,170 @@ function CustomTooltip({ active, payload, label }: any) {
           {typeof item.value === "number" ? item.value.toFixed(2) : item.value} {t("egp_label")}
         </p>
       ))}
+    </div>
+  );
+}
+
+/* ─── Quick-view Popover ─────────────────────────────── */
+function QuickPopover({ children, content, className }: {
+  children: React.ReactNode;
+  content: React.ReactNode;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [rect, setRect] = useState<DOMRect | null>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const showTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const lpTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const show = () => {
+    clearTimeout(hideTimer.current);
+    if (triggerRef.current) setRect(triggerRef.current.getBoundingClientRect());
+    setOpen(true);
+  };
+  const hide = (delay = 140) => {
+    clearTimeout(showTimer.current);
+    clearTimeout(lpTimer.current);
+    hideTimer.current = setTimeout(() => setOpen(false), delay);
+  };
+
+  const popStyle: React.CSSProperties = rect ? {
+    position: "fixed",
+    left: Math.max(8, Math.min(rect.left, window.innerWidth - 280)),
+    top: rect.top - 10,
+    transform: "translateY(-100%)",
+    zIndex: 9999,
+    width: 264,
+  } : { position: "fixed", opacity: 0 };
+
+  return (
+    <div
+      ref={triggerRef}
+      className={className}
+      onMouseEnter={() => { clearTimeout(hideTimer.current); showTimer.current = setTimeout(show, 180); }}
+      onMouseLeave={() => { clearTimeout(showTimer.current); hide(); }}
+      onPointerDown={(e) => {
+        if (e.pointerType === "touch") {
+          lpTimer.current = setTimeout(show, 520);
+        }
+      }}
+      onPointerUp={() => clearTimeout(lpTimer.current)}
+      onPointerCancel={() => { clearTimeout(lpTimer.current); hide(0); }}
+      onContextMenu={(e) => { if (open) e.preventDefault(); }}
+    >
+      {children}
+      {createPortal(
+        <AnimatePresence>
+          {open && rect && (
+            <motion.div
+              key="qv-pop"
+              style={popStyle}
+              initial={{ opacity: 0, y: "calc(-100% + 8px)", scale: 0.96 }}
+              animate={{ opacity: 1, y: "-100%", scale: 1 }}
+              exit={{ opacity: 0, y: "calc(-100% + 8px)", scale: 0.96 }}
+              transition={{ duration: 0.14, ease: "easeOut" }}
+              onMouseEnter={() => clearTimeout(hideTimer.current)}
+              onMouseLeave={() => hide()}
+            >
+              {content}
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+/* ─── Session Popover Content ────────────────────────── */
+function SessionPopoverContent({ session, t, lang, egp }: {
+  session: { id: number; assetName?: string | null; assetNameAr?: string | null; status: string; currentMinutes: number; currentCost: number };
+  t: (k: any) => string;
+  lang: string;
+  egp: string;
+}) {
+  const name = lang === "ar"
+    ? (session.assetNameAr || session.assetName)
+    : (session.assetName || session.assetNameAr);
+  const h = Math.floor(session.currentMinutes / 60);
+  const m = session.currentMinutes % 60;
+  return (
+    <div className="bg-popover border border-border rounded-2xl shadow-2xl p-4">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <p className="text-sm font-bold truncate">{name}</p>
+        <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+          session.status === "active" ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
+        }`}>
+          {session.status === "active" ? t("dash_session_active") : t("dash_session_paused")}
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <p className="text-[10px] text-muted-foreground mb-0.5">{t("elapsed_time")}</p>
+          <p className="text-sm font-semibold tabular-nums">
+            {h}{t("dash_hour_short")} {m}{t("dash_minute_short")}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] text-muted-foreground mb-0.5">{t("current_cost")}</p>
+          <p className="text-sm font-semibold text-emerald-500 tabular-nums">
+            {session.currentCost.toFixed(2)} <span className="text-[10px] text-muted-foreground font-normal">{egp}</span>
+          </p>
+        </div>
+      </div>
+      <Link href={`/sessions/${session.id}`}
+        className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+        {t("qv_open_link")} <ArrowRight className="h-3 w-3" />
+      </Link>
+    </div>
+  );
+}
+
+/* ─── Pending Orders Popover Content ─────────────────── */
+function PendingOrdersPopoverContent({ orders, t, lang, egp }: {
+  orders: Order[];
+  t: (k: any) => string;
+  lang: string;
+  egp: string;
+}) {
+  const top3 = orders.slice(0, 3);
+  return (
+    <div className="bg-popover border border-border rounded-2xl shadow-2xl p-4">
+      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+        {t("qv_top_pending")}
+      </p>
+      {top3.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-1">{t("qv_no_pending")}</p>
+      ) : (
+        <div className="space-y-2.5 mb-3">
+          {top3.map((order) => {
+            const assetLabel = lang === "ar"
+              ? (order.assetNameAr || order.assetName)
+              : (order.assetName || order.assetNameAr);
+            return (
+              <div key={order.id} className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold">
+                    {t("qv_order_label")} #{order.id}
+                    {assetLabel ? <span className="text-muted-foreground font-normal"> — {assetLabel}</span> : null}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {order.items.length} {t("qv_items_suffix")}
+                  </p>
+                </div>
+                <p className="text-xs font-bold text-amber-500 shrink-0 tabular-nums">
+                  {order.totalAmount.toFixed(2)} <span className="text-[10px] text-muted-foreground font-normal">{egp}</span>
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <Link href="/orders"
+        className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+        {t("qv_open_link")} <ArrowRight className="h-3 w-3" />
+      </Link>
     </div>
   );
 }
@@ -455,6 +622,11 @@ export default function Dashboard() {
   const { data: roomsData } = useGetDashboardRooms({ period } as any);
   const { data: shiftsData, isLoading: isLoadingShifts } = useGetDashboardShifts({ period } as any);
 
+  const { data: pendingOrdersList } = useListOrders(
+    { status: "pending" as any },
+    { query: { queryKey: ["/api/orders", "pending"], refetchInterval: 15000 } as any },
+  );
+
   const canSeeFinance = ["platform_owner", "owner", "manager"].includes(user?.role ?? "");
   const { data: financeOverview } = useGetFinanceOverview(
     undefined,
@@ -779,10 +951,22 @@ export default function Dashboard() {
             compact={isMobile} href="/payments" />
         </StaggerItem>
         <StaggerItem>
-          <KpiCard label={t("kpi_pending_orders")} value={summary?.pendingOrders ?? 0}
-            subtitle={t("dash_need_action")}
-            icon={ShoppingCart} iconClass="bg-amber-500/15 text-amber-500"
-            compact={isMobile} href="/orders" />
+          <QuickPopover
+            className="h-full"
+            content={
+              <PendingOrdersPopoverContent
+                orders={pendingOrdersList ?? []}
+                t={t}
+                lang={lang}
+                egp={egp}
+              />
+            }
+          >
+            <KpiCard label={t("kpi_pending_orders")} value={summary?.pendingOrders ?? 0}
+              subtitle={t("dash_need_action")}
+              icon={ShoppingCart} iconClass="bg-amber-500/15 text-amber-500"
+              compact={isMobile} href="/orders" />
+          </QuickPopover>
         </StaggerItem>
         <StaggerItem>
           <KpiCard label={t("kpi_low_stock")} value={summary?.lowStockAlerts ?? 0}
@@ -980,58 +1164,69 @@ export default function Dashboard() {
               <>
                 <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 md:hidden scrollbar-hide snap-x snap-mandatory">
                   {activeSessions?.map((session, i) => (
-                    <Link key={session.id} href={`/sessions/${session.id}`} className="shrink-0 w-[calc(50%-6px)] min-w-[148px] snap-start block">
-                      <motion.div
-                        initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="bg-secondary/60 rounded-2xl p-3.5 border border-border/60 cursor-pointer hover:bg-secondary/80 transition-colors h-full">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
-                            <Gamepad2 className="h-3.5 w-3.5 text-primary" />
+                    <QuickPopover
+                      key={session.id}
+                      className="shrink-0 w-[calc(50%-6px)] min-w-[148px] snap-start"
+                      content={<SessionPopoverContent session={session} t={t} lang={lang} egp={egp} />}
+                    >
+                      <Link href={`/sessions/${session.id}`} className="block">
+                        <motion.div
+                          initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.05 }}
+                          className="bg-secondary/60 rounded-2xl p-3.5 border border-border/60 cursor-pointer hover:bg-secondary/80 transition-colors h-full">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                              <Gamepad2 className="h-3.5 w-3.5 text-primary" />
+                            </div>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              session.status === "active" ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
+                            }`}>
+                              {session.status === "active" ? t("dash_session_active") : t("dash_session_paused")}
+                            </span>
                           </div>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            session.status === "active" ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
-                          }`}>
-                            {session.status === "active" ? t("dash_session_active") : t("dash_session_paused")}
-                          </span>
-                        </div>
-                        <p className="text-sm font-bold leading-tight truncate mb-1">
-                          {lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}
-                        </p>
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-2.5">
-                          <Clock className="h-3 w-3" />
-                          <span>
-                            {Math.floor(session.currentMinutes / 60)}{t("dash_hour_short")} {session.currentMinutes % 60}{t("dash_minute_short")}
-                          </span>
-                        </div>
-                        <p className="text-base font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
-                      </motion.div>
-                    </Link>
+                          <p className="text-sm font-bold leading-tight truncate mb-1">
+                            {lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}
+                          </p>
+                          <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-2.5">
+                            <Clock className="h-3 w-3" />
+                            <span>
+                              {Math.floor(session.currentMinutes / 60)}{t("dash_hour_short")} {session.currentMinutes % 60}{t("dash_minute_short")}
+                            </span>
+                          </div>
+                          <p className="text-base font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
+                        </motion.div>
+                      </Link>
+                    </QuickPopover>
                   ))}
                 </div>
 
                 <div className="hidden md:block space-y-0">
                   {activeSessions?.slice(0,5).map((session, i) => (
-                    <Link key={session.id} href={`/sessions/${session.id}`} className="block">
-                      <motion.div
-                        initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.04 }}
-                        className="flex items-center justify-between py-3.5 border-b border-border/40 last:border-0 cursor-pointer hover:bg-secondary/30 rounded-lg px-2 -mx-2 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-primary/12 flex items-center justify-center shrink-0">
-                            <Gamepad2 className="h-4 w-4 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold">{lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}</p>
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                              <Clock className="h-3 w-3" />
-                              <span>{Math.floor(session.currentMinutes/60)}{t("dash_hour_short")} {session.currentMinutes%60}{t("dash_minute_short")}</span>
+                    <QuickPopover
+                      key={session.id}
+                      content={<SessionPopoverContent session={session} t={t} lang={lang} egp={egp} />}
+                    >
+                      <Link href={`/sessions/${session.id}`} className="block">
+                        <motion.div
+                          initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.04 }}
+                          className="flex items-center justify-between py-3.5 border-b border-border/40 last:border-0 cursor-pointer hover:bg-secondary/30 rounded-lg px-2 -mx-2 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-primary/12 flex items-center justify-center shrink-0">
+                              <Gamepad2 className="h-4 w-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold">{lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}</p>
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                                <Clock className="h-3 w-3" />
+                                <span>{Math.floor(session.currentMinutes/60)}{t("dash_hour_short")} {session.currentMinutes%60}{t("dash_minute_short")}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <p className="text-sm font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
-                      </motion.div>
-                    </Link>
+                          <p className="text-sm font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
+                        </motion.div>
+                      </Link>
+                    </QuickPopover>
                   ))}
                 </div>
               </>

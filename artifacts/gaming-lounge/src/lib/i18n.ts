@@ -658,6 +658,13 @@ const translations = {
     dash_hour_short: "س",
     dash_minute_short: "د",
 
+    /* ── Quick-view popover ── */
+    qv_open_link: "فتح",
+    qv_order_label: "طلب",
+    qv_items_suffix: "عناصر",
+    qv_no_pending: "لا طلبات معلقة",
+    qv_top_pending: "أحدث الطلبات المعلقة",
+
     /* ── Dashboard quick actions ── */
     dash_qa_pos: "نقطة البيع",
     dash_qa_kitchen: "المطبخ",
@@ -1436,6 +1443,13 @@ const translations = {
     dash_buffet_rev: "Buffet Rev.",
     dash_need_action: "Need action",
     dash_stock_alerts: "Stock alerts",
+
+    /* ── Quick-view popover ── */
+    qv_open_link: "Open",
+    qv_order_label: "Order",
+    qv_items_suffix: "items",
+    qv_no_pending: "No pending orders",
+    qv_top_pending: "Pending orders",
 
     /* ── Dashboard finance snapshot ── */
     dash_finance_snapshot: "Finance Snapshot",
