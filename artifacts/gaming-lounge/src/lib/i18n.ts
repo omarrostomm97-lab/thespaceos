@@ -603,6 +603,114 @@ const translations = {
     sessions_no_delivered_orders: "لا توجد طلبات مسلمة",
     sessions_billed_mins_placeholder: "اتركها فارغة لاستخدام الخصم بالنسبة أو المبلغ",
     sessions_total_after_discount: "الإجمالي بعد الخصم",
+
+    /* ── Dashboard filters ── */
+    filter_sheet_title: "الفلاتر",
+    filter_clear_all: "مسح الكل",
+    filter_source: "المصدر",
+    filter_payment_method: "طريقة الدفع",
+    filter_apply: "تطبيق الفلاتر",
+    filter_label: "تصفية:",
+    filter_payment_short: "طريقة الدفع",
+    filter_clear: "مسح",
+    filter_all: "الكل",
+    filter_source_gaming: "ألعاب",
+    filter_source_buffet: "بوفيه",
+    filter_method_cash: "كاش",
+    filter_method_instapay: "انستاباي",
+    filter_method_visa: "فيزا",
+
+    /* ── Dashboard revenue buckets ── */
+    dash_live: "مباشر",
+    dash_gaming_revenue: "إيرادات الألعاب",
+    dash_buffet_revenue: "إيرادات البوفيه",
+    dash_total_revenue: "إجمالي الإيرادات",
+    dash_time_short: "وقت",
+    dash_orders_short: "طلبات",
+    dash_pos_short: "بوفيه",
+    dash_gaming_time: "وقت الألعاب",
+    dash_room_orders: "طلبات الغرف",
+    dash_buffet_pos: "بوفيه / POS",
+    dash_buffet_pos_short: "بوفيه/POS",
+
+    /* ── Dashboard header badges ── */
+    dash_active_sessions_badge: "جلسة نشطة",
+    dash_pending_badge: "طلب معلق",
+
+    /* ── Dashboard KPI subtitles ── */
+    dash_devices_suffix: "أجهزة",
+    dash_gaming_rev: "إيرادات الألعاب",
+    dash_buffet_rev: "إيرادات البوفيه",
+    dash_need_action: "تحتاج تنفيذ",
+    dash_stock_alerts: "تنبيهات المخزون",
+
+    /* ── Dashboard finance snapshot ── */
+    dash_finance_snapshot: "لمحة مالية",
+    dash_finance_details: "التفاصيل",
+    dash_month_income: "دخل الشهر",
+    dash_month_expenses: "مصاريف الشهر",
+    dash_net_profit: "صافي الربح",
+    dash_cash_balance: "رصيد الخزينة",
+
+    /* ── Dashboard session status ── */
+    dash_session_active: "نشطة",
+    dash_session_paused: "موقوفة",
+    dash_hour_short: "س",
+    dash_minute_short: "د",
+
+    /* ── Dashboard quick actions ── */
+    dash_qa_pos: "نقطة البيع",
+    dash_qa_kitchen: "المطبخ",
+
+    /* ── Dashboard sales tab ── */
+    dash_daily_revenue: "توزيع الإيرادات اليومية",
+    dash_payment_methods: "توزيع طرق الدفع",
+    dash_cash_method: "نقداً",
+    dash_instapay_method: "إنستاباي",
+    dash_visa_method: "فيزا / ماستر",
+
+    /* ── Dashboard shifts tab ── */
+    dash_shifts_count: "عدد الورديات",
+    dash_sessions_total: "إجمالي الجلسات",
+    dash_orders_total: "إجمالي الطلبات",
+    dash_no_shifts: "لا توجد ورديات في هذه الفترة",
+    dash_cashier: "كاشير",
+    dash_shift_live: "مفتوحة",
+    dash_now: "الآن",
+    dash_total_revenue_label: "إجمالي الإيرادات",
+    dash_sessions_label: "الجلسات",
+    dash_orders_label: "الطلبات",
+    dash_balanced: "مطابق",
+
+    /* ── Dashboard details tab ── */
+    dash_no_completed_sessions: "لا توجد جلسات منتهية",
+    dash_sessions_unit: "جلسة",
+    dash_no_orders: "لا توجد طلبات",
+    dash_grand_total: "الإجمالي الكلي",
+    dash_room_overview: "نظرة الغرف",
+    dash_no_room_data: "لا توجد بيانات للغرف",
+    dash_col_room: "الغرفة",
+    dash_col_sessions: "الجلسات",
+    dash_col_time: "الوقت",
+    dash_col_orders: "طلبات",
+    dash_col_total: "الإجمالي",
+    dash_room_available: "متاح",
+    dash_room_busy: "مشغول",
+    dash_today: "اليوم",
+    dash_yesterday: "أمس",
+    dash_day_sun: "أحد",
+    dash_day_mon: "إثن",
+    dash_day_tue: "ثلا",
+    dash_day_wed: "أرب",
+    dash_day_thu: "خمي",
+    dash_day_fri: "جمع",
+    dash_day_sat: "سبت",
+
+    /* ── Dashboard mobile nav ── */
+    mob_nav_home: "الرئيسية",
+
+    /* ── Assets page ── */
+    asset_history_tab: "السجل",
   },
   en: {
     /* ── Brand ── */
@@ -1206,6 +1314,114 @@ const translations = {
     sessions_no_delivered_orders: "No delivered orders",
     sessions_billed_mins_placeholder: "Leave empty to use % or fixed discount",
     sessions_total_after_discount: "Total after discount",
+
+    /* ── Dashboard filters ── */
+    filter_sheet_title: "Filters",
+    filter_clear_all: "Clear all",
+    filter_source: "Source",
+    filter_payment_method: "Payment Method",
+    filter_apply: "Apply Filters",
+    filter_label: "Filter:",
+    filter_payment_short: "Payment",
+    filter_clear: "Clear",
+    filter_all: "All",
+    filter_source_gaming: "Gaming",
+    filter_source_buffet: "Buffet",
+    filter_method_cash: "Cash",
+    filter_method_instapay: "Insta",
+    filter_method_visa: "Visa",
+
+    /* ── Dashboard revenue buckets ── */
+    dash_live: "Live",
+    dash_gaming_revenue: "Gaming Revenue",
+    dash_buffet_revenue: "Buffet Revenue",
+    dash_total_revenue: "Total Revenue",
+    dash_time_short: "Time",
+    dash_orders_short: "Orders",
+    dash_pos_short: "POS",
+    dash_gaming_time: "Gaming Time",
+    dash_room_orders: "Room Orders",
+    dash_buffet_pos: "Buffet / POS",
+    dash_buffet_pos_short: "POS/Buffet",
+
+    /* ── Dashboard header badges ── */
+    dash_active_sessions_badge: "active sessions",
+    dash_pending_badge: "pending",
+
+    /* ── Dashboard KPI subtitles ── */
+    dash_devices_suffix: "devices",
+    dash_gaming_rev: "Gaming Rev.",
+    dash_buffet_rev: "Buffet Rev.",
+    dash_need_action: "Need action",
+    dash_stock_alerts: "Stock alerts",
+
+    /* ── Dashboard finance snapshot ── */
+    dash_finance_snapshot: "Finance Snapshot",
+    dash_finance_details: "Details",
+    dash_month_income: "Month Income",
+    dash_month_expenses: "Month Expenses",
+    dash_net_profit: "Net Profit",
+    dash_cash_balance: "Cash Balance",
+
+    /* ── Dashboard session status ── */
+    dash_session_active: "Active",
+    dash_session_paused: "Paused",
+    dash_hour_short: "h",
+    dash_minute_short: "m",
+
+    /* ── Dashboard quick actions ── */
+    dash_qa_pos: "POS",
+    dash_qa_kitchen: "Kitchen",
+
+    /* ── Dashboard sales tab ── */
+    dash_daily_revenue: "Daily Revenue",
+    dash_payment_methods: "Payment Methods",
+    dash_cash_method: "Cash",
+    dash_instapay_method: "InstaPay",
+    dash_visa_method: "Visa",
+
+    /* ── Dashboard shifts tab ── */
+    dash_shifts_count: "Shifts",
+    dash_sessions_total: "Sessions",
+    dash_orders_total: "Orders",
+    dash_no_shifts: "No shifts in this period",
+    dash_cashier: "Cashier",
+    dash_shift_live: "Live",
+    dash_now: "Now",
+    dash_total_revenue_label: "Total Revenue",
+    dash_sessions_label: "Sessions",
+    dash_orders_label: "Orders",
+    dash_balanced: "Balanced",
+
+    /* ── Dashboard details tab ── */
+    dash_no_completed_sessions: "No completed sessions",
+    dash_sessions_unit: "sessions",
+    dash_no_orders: "No orders",
+    dash_grand_total: "Grand Total",
+    dash_room_overview: "Room Overview",
+    dash_no_room_data: "No room data",
+    dash_col_room: "Room",
+    dash_col_sessions: "Sessions",
+    dash_col_time: "Time",
+    dash_col_orders: "Orders",
+    dash_col_total: "Total",
+    dash_room_available: "Available",
+    dash_room_busy: "Busy",
+    dash_today: "Today",
+    dash_yesterday: "Yest.",
+    dash_day_sun: "Sun",
+    dash_day_mon: "Mon",
+    dash_day_tue: "Tue",
+    dash_day_wed: "Wed",
+    dash_day_thu: "Thu",
+    dash_day_fri: "Fri",
+    dash_day_sat: "Sat",
+
+    /* ── Dashboard mobile nav ── */
+    mob_nav_home: "Home",
+
+    /* ── Assets page ── */
+    asset_history_tab: "History",
   },
 } as const;
 

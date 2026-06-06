@@ -202,7 +202,7 @@ function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t
                 <Link href={`/assets/${asset.id}/history`}>
                   <button
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all duration-150"
-                    title={lang === "ar" ? "السجل" : "History"}
+                    title={t("asset_history_tab")}
                   >
                     <History className="h-3.5 w-3.5" />
                   </button>

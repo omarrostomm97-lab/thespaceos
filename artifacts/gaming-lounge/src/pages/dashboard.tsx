@@ -67,13 +67,15 @@ function useIsMobile() {
 const DAY_AR = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 const DAY_EN = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-function dayLabel(dateStr: string, lang: "ar"|"en") {
+const DAY_KEYS = ["dash_day_sun","dash_day_mon","dash_day_tue","dash_day_wed","dash_day_thu","dash_day_fri","dash_day_sat"] as const;
+
+function dayLabel(dateStr: string, t: (k: any) => string) {
   const d = new Date(dateStr + "T12:00:00");
   const today = new Date(); today.setHours(0,0,0,0);
   const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
-  if (diff === 0)  return lang === "ar" ? "اليوم" : "Today";
-  if (diff === -1) return lang === "ar" ? "أمس"   : "Yest.";
-  return lang === "ar" ? DAY_AR[d.getDay()] : DAY_EN[d.getDay()];
+  if (diff === 0)  return t("dash_today");
+  if (diff === -1) return t("dash_yesterday");
+  return t(DAY_KEYS[d.getDay()]);
 }
 
 const ASSET_ICON: Record<string, string> = {
@@ -171,13 +173,13 @@ function PillGroup<T extends string>({
 
 /* ─── Mobile Filter Sheet ────────────────────────────── */
 function FilterSheet({
-  open, onClose, source, setSource, method, setMethod, lang,
+  open, onClose, source, setSource, method, setMethod, t,
   sourceOptions, methodOptions,
 }: {
   open: boolean; onClose: () => void;
   source: Source; setSource: (v: Source) => void;
   method: PayMethod; setMethod: (v: PayMethod) => void;
-  lang: "ar" | "en";
+  t: (key: any) => string;
   sourceOptions: { id: Source; label: string; icon?: React.ReactNode }[];
   methodOptions: { id: PayMethod; label: string; icon?: React.ReactNode }[];
 }) {
@@ -205,12 +207,12 @@ function FilterSheet({
 
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3">
-              <p className="text-base font-bold">{lang === "ar" ? "الفلاتر" : "Filters"}</p>
+              <p className="text-base font-bold">{t("filter_sheet_title")}</p>
               <div className="flex items-center gap-2">
                 {(source !== "all" || method !== "all") && (
                   <button onClick={() => { setSource("all"); setMethod("all"); }}
                     className="text-xs text-primary font-medium hover:underline">
-                    {lang === "ar" ? "مسح الكل" : "Clear all"}
+                    {t("filter_clear_all")}
                   </button>
                 )}
                 <button onClick={onClose}
@@ -224,7 +226,7 @@ function FilterSheet({
               {/* Source */}
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-3">
-                  {lang === "ar" ? "المصدر" : "Source"}
+                  {t("filter_source")}
                 </p>
                 <div className="grid grid-cols-3 gap-2">
                   {sourceOptions.map((opt) => (
@@ -249,7 +251,7 @@ function FilterSheet({
               {/* Payment Method */}
               <div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mb-3">
-                  {lang === "ar" ? "طريقة الدفع" : "Payment Method"}
+                  {t("filter_payment_method")}
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {methodOptions.map((opt) => (
@@ -274,7 +276,7 @@ function FilterSheet({
               {/* Done */}
               <motion.button whileTap={{ scale: 0.97 }} onClick={onClose}
                 className="w-full bg-primary text-white font-bold py-3.5 rounded-2xl text-sm">
-                {lang === "ar" ? "تطبيق الفلاتر" : "Apply Filters"}
+                {t("filter_apply")}
               </motion.button>
             </div>
           </motion.div>
@@ -285,20 +287,20 @@ function FilterSheet({
 }
 
 /* ─── Mobile Bottom Nav ──────────────────────────────── */
-function MobileBottomNav({ tab, setTab, lang, pendingOrders }: {
-  tab: Tab; setTab: (t: Tab) => void; lang: "ar"|"en"; pendingOrders: number;
+function MobileBottomNav({ tab, setTab, t, pendingOrders }: {
+  tab: Tab; setTab: (t: Tab) => void; t: (key: any) => string; pendingOrders: number;
 }) {
   const tabs = [
-    { id: "overview" as Tab, labelAr: "الرئيسية", labelEn: "Home",    Icon: LayoutDashboard },
-    { id: "sales"    as Tab, labelAr: "المبيعات",  labelEn: "Sales",   Icon: BarChart2 },
-    { id: "details"  as Tab, labelAr: "التفصيل",   labelEn: "Details", Icon: List },
-    { id: "shifts"   as Tab, labelAr: "الورديات",  labelEn: "Shifts",  Icon: Clock },
+    { id: "overview" as Tab, labelKey: "mob_nav_home", Icon: LayoutDashboard },
+    { id: "sales"    as Tab, labelKey: "tab_sales",    Icon: BarChart2 },
+    { id: "details"  as Tab, labelKey: "tab_details",  Icon: List },
+    { id: "shifts"   as Tab, labelKey: "tab_shifts",   Icon: Clock },
   ];
   return (
     <div className="fixed bottom-0 inset-x-0 z-40 md:hidden bg-card border-t border-border"
          style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div className="flex items-center justify-around pt-1 pb-2">
-        {tabs.map(({ id, labelAr, labelEn, Icon }) => {
+        {tabs.map(({ id, labelKey, Icon }) => {
           const active = tab === id;
           return (
             <button key={id} onClick={() => setTab(id)}
@@ -316,7 +318,7 @@ function MobileBottomNav({ tab, setTab, lang, pendingOrders }: {
               <span className={`text-[10px] font-semibold transition-colors duration-200 ${
                 active ? "text-primary" : "text-muted-foreground"
               }`}>
-                {lang === "ar" ? labelAr : labelEn}
+                {t(labelKey)}
               </span>
               {active && (
                 <motion.div layoutId="bottom-nav-indicator"
@@ -333,10 +335,10 @@ function MobileBottomNav({ tab, setTab, lang, pendingOrders }: {
 
 /* ─── Mobile Hero Revenue Card ───────────────────────── */
 function MobileHeroCard({
-  total, gamingRevenue, roomOrderRevenue, buffetRevenue, source, openShift, lang, periodLabel,
+  total, gamingRevenue, roomOrderRevenue, buffetRevenue, source, openShift, t, periodLabel,
 }: {
   total: number; gamingRevenue: number; roomOrderRevenue: number; buffetRevenue: number;
-  source: Source; openShift: boolean; lang: "ar"|"en"; periodLabel: string;
+  source: Source; openShift: boolean; t: (key: any) => string; periodLabel: string;
 }) {
   const animated = useCountUp(total, 1000);
   return (
@@ -353,16 +355,16 @@ function MobileHeroCard({
               <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
             </span>
             <span className="text-[11px] font-semibold text-white/90">
-              {lang === "ar" ? "مباشر" : "Live"}
+              {t("dash_live")}
             </span>
           </div>
           <Receipt className="h-4 w-4 text-white/50" />
         </div>
 
         <p className="text-[11px] text-white/65 uppercase tracking-wider font-medium mb-1">
-          {source === "gaming" ? (lang === "ar" ? "إيرادات الألعاب" : "Gaming Revenue")
-           : source === "buffet" ? (lang === "ar" ? "إيرادات البوفيه" : "Buffet Revenue")
-           : (lang === "ar" ? `إجمالي الإيرادات · ${periodLabel}` : `Total Revenue · ${periodLabel}`)}
+          {source === "gaming" ? t("dash_gaming_revenue")
+           : source === "buffet" ? t("dash_buffet_revenue")
+           : `${t("dash_total_revenue")} · ${periodLabel}`}
         </p>
         <div className="flex items-end gap-2 mb-4">
           <span className="text-[44px] font-bold text-white leading-none tabular"
@@ -378,21 +380,21 @@ function MobileHeroCard({
             <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-xs">🎮</span>
-                <span className="text-[9px] text-white/60 font-medium leading-tight">{lang === "ar" ? "وقت" : "Time"}</span>
+                <span className="text-[9px] text-white/60 font-medium leading-tight">{t("dash_time_short")}</span>
               </div>
               <p className="text-xs font-bold text-white tabular">{gamingRevenue.toFixed(2)}</p>
             </div>
             <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-xs">🛒</span>
-                <span className="text-[9px] text-white/60 font-medium leading-tight">{lang === "ar" ? "طلبات" : "Orders"}</span>
+                <span className="text-[9px] text-white/60 font-medium leading-tight">{t("dash_orders_short")}</span>
               </div>
               <p className="text-xs font-bold text-white tabular">{roomOrderRevenue.toFixed(2)}</p>
             </div>
             <div className="flex-1 bg-white/10 rounded-xl px-2.5 py-2">
               <div className="flex items-center gap-1 mb-0.5">
                 <span className="text-xs">🍽️</span>
-                <span className="text-[9px] text-white/60 font-medium leading-tight">{lang === "ar" ? "بوفيه" : "POS"}</span>
+                <span className="text-[9px] text-white/60 font-medium leading-tight">{t("dash_pos_short")}</span>
               </div>
               <p className="text-xs font-bold text-white tabular">{buffetRevenue.toFixed(2)}</p>
             </div>
@@ -460,7 +462,7 @@ export default function Dashboard() {
 
   const revenueKey = t("kpi_revenue_today");
   const dailyChartData = (revenueStats?.dailyBreakdown ?? []).map(d => ({
-    day: dayLabel(d.date, lang),
+    day: dayLabel(d.date, t),
     [revenueKey]: d.total,
   }));
 
@@ -479,16 +481,16 @@ export default function Dashboard() {
   };
 
   const SOURCE_OPTIONS = [
-    { id: "all"    as Source, label: lang === "ar" ? "الكل"   : "All",    icon: "🔘" },
-    { id: "gaming" as Source, label: lang === "ar" ? "ألعاب"  : "Gaming", icon: "🎮" },
-    { id: "buffet" as Source, label: lang === "ar" ? "بوفيه"  : "Buffet", icon: "🍽️" },
+    { id: "all"    as Source, label: t("filter_all"),           icon: "🔘" },
+    { id: "gaming" as Source, label: t("filter_source_gaming"), icon: "🎮" },
+    { id: "buffet" as Source, label: t("filter_source_buffet"), icon: "🍽️" },
   ];
 
   const METHOD_OPTIONS = [
-    { id: "all"      as PayMethod, label: lang === "ar" ? "الكل"    : "All",    icon: "💰" },
-    { id: "cash"     as PayMethod, label: lang === "ar" ? "كاش"     : "Cash",   icon: "💵" },
-    { id: "instapay" as PayMethod, label: lang === "ar" ? "انستاباي": "Insta",  icon: "📱" },
-    { id: "visa"     as PayMethod, label: lang === "ar" ? "فيزا"    : "Visa",   icon: "💳" },
+    { id: "all"      as PayMethod, label: t("filter_all"),           icon: "💰" },
+    { id: "cash"     as PayMethod, label: t("filter_method_cash"),     icon: "💵" },
+    { id: "instapay" as PayMethod, label: t("filter_method_instapay"), icon: "📱" },
+    { id: "visa"     as PayMethod, label: t("filter_method_visa"),     icon: "💳" },
   ];
 
   const hasFilters = source !== "all" || method !== "all";
@@ -608,13 +610,13 @@ export default function Dashboard() {
                     <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
                       style={{ background: "rgba(23,201,100,0.1)", color: "#17c964", border: "1px solid rgba(23,201,100,0.2)" }}>
                       <span className="w-1 h-1 rounded-full bg-emerald-500 live-dot" />
-                      {summary.activeSessions ?? 0} {lang === "ar" ? "جلسة نشطة" : "active sessions"}
+                      {summary.activeSessions ?? 0} {t("dash_active_sessions_badge")}
                     </span>
                   )}
                   {(summary?.pendingOrders ?? 0) > 0 && (
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                       style={{ background: "rgba(245,165,36,0.1)", color: "#f5a524", border: "1px solid rgba(245,165,36,0.2)" }}>
-                      {summary!.pendingOrders} {lang === "ar" ? "طلب معلق" : "pending"}
+                      {summary!.pendingOrders} {t("dash_pending_badge")}
                     </span>
                   )}
                 </div>
@@ -719,16 +721,16 @@ export default function Dashboard() {
           style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground shrink-0">
             <Filter className="h-3.5 w-3.5" />
-            <span className="font-medium">{lang === "ar" ? "تصفية:" : "Filter:"}</span>
+            <span className="font-medium">{t("filter_label")}</span>
           </div>
           <PillGroup options={SOURCE_OPTIONS} value={source} onChange={v => setSource(v as Source)}
-            label={lang === "ar" ? "المصدر" : "Source"} />
+            label={t("filter_source")} />
           <PillGroup options={METHOD_OPTIONS} value={method} onChange={v => setMethod(v as PayMethod)}
-            label={lang === "ar" ? "طريقة الدفع" : "Payment"} />
+            label={t("filter_payment_short")} />
           {hasFilters && (
             <button onClick={() => { setSource("all"); setMethod("all"); }}
               className="text-xs text-primary hover:underline">
-              {lang === "ar" ? "مسح" : "Clear"}
+              {t("filter_clear")}
             </button>
           )}
         </div>
@@ -748,7 +750,7 @@ export default function Dashboard() {
           buffetRevenue={revenueStats?.orderRevenue ?? 0}
           source={source}
           openShift={summary?.openShift ?? false}
-          lang={lang}
+          t={t}
           periodLabel={PERIOD_LABELS[period]}
         />
       </div>
@@ -757,14 +759,14 @@ export default function Dashboard() {
       <StaggerChildren className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <StaggerItem>
           <KpiCard label={t("kpi_active_sessions")} value={summary?.activeSessions ?? 0}
-            subtitle={`${summary?.occupiedAssets ?? 0}/${summary?.totalAssets ?? 0} ${lang === "ar" ? "أجهزة" : "devices"}`}
+            subtitle={`${summary?.occupiedAssets ?? 0}/${summary?.totalAssets ?? 0} ${t("dash_devices_suffix")}`}
             icon={Gamepad2} iconClass="bg-primary/15 text-primary" isLive compact={isMobile} />
         </StaggerItem>
         <StaggerItem>
           <KpiCard
             label={
-              source === "gaming" ? (lang === "ar" ? "إيرادات الألعاب" : "Gaming Rev.")
-              : source === "buffet" ? (lang === "ar" ? "إيرادات البوفيه" : "Buffet Rev.")
+              source === "gaming" ? t("dash_gaming_rev")
+              : source === "buffet" ? t("dash_buffet_rev")
               : t("kpi_revenue_today")
             }
             value={revenueStats?.total ?? 0}
@@ -775,13 +777,13 @@ export default function Dashboard() {
         </StaggerItem>
         <StaggerItem>
           <KpiCard label={t("kpi_pending_orders")} value={summary?.pendingOrders ?? 0}
-            subtitle={lang === "ar" ? "تحتاج تنفيذ" : "Need action"}
+            subtitle={t("dash_need_action")}
             icon={ShoppingCart} iconClass="bg-amber-500/15 text-amber-500"
             compact={isMobile} />
         </StaggerItem>
         <StaggerItem>
           <KpiCard label={t("kpi_low_stock")} value={summary?.lowStockAlerts ?? 0}
-            subtitle={lang === "ar" ? "تنبيهات المخزون" : "Stock alerts"}
+            subtitle={t("dash_stock_alerts")}
             icon={AlertTriangle} iconClass="bg-red-500/15 text-red-500"
             compact={isMobile}
             href="/inventory?low=1" />
@@ -797,7 +799,7 @@ export default function Dashboard() {
                 <Gamepad2 className="h-5 w-5 text-emerald-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{lang === "ar" ? `وقت الألعاب — ${PERIOD_LABELS[period]}` : `Gaming Time — ${PERIOD_LABELS[period]}`}</p>
+                <p className="text-xs text-muted-foreground">{`${t("dash_gaming_time")} — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-emerald-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
                   {(revenueStats.sessionRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
                 </p>
@@ -810,7 +812,7 @@ export default function Dashboard() {
                 <ShoppingCart className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{lang === "ar" ? `طلبات الغرف — ${PERIOD_LABELS[period]}` : `Room Orders — ${PERIOD_LABELS[period]}`}</p>
+                <p className="text-xs text-muted-foreground">{`${t("dash_room_orders")} — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-primary tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
                   {(revenueStats.roomOrderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
                 </p>
@@ -823,7 +825,7 @@ export default function Dashboard() {
                 <Utensils className="h-5 w-5 text-orange-500" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">{lang === "ar" ? `بوفيه / POS — ${PERIOD_LABELS[period]}` : `Buffet / POS — ${PERIOD_LABELS[period]}`}</p>
+                <p className="text-xs text-muted-foreground">{`${t("dash_buffet_pos")} — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-orange-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
                   {(revenueStats.orderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
                 </p>
@@ -913,21 +915,21 @@ export default function Dashboard() {
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Gamepad2 className="h-3.5 w-3.5 text-emerald-500" />
-                  <span className="text-xs text-muted-foreground">{lang === "ar" ? "وقت الألعاب" : "Gaming Time"}</span>
+                  <span className="text-xs text-muted-foreground">{t("dash_gaming_time")}</span>
                 </div>
                 <span className="text-xs font-bold text-emerald-500 tabular">{(revenueStats?.sessionRevenue ?? 0).toFixed(2)} ج.م</span>
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="h-3.5 w-3.5 text-primary" />
-                  <span className="text-xs text-muted-foreground">{lang === "ar" ? "طلبات الغرف" : "Room Orders"}</span>
+                  <span className="text-xs text-muted-foreground">{t("dash_room_orders")}</span>
                 </div>
                 <span className="text-xs font-bold text-primary tabular">{(revenueStats?.roomOrderRevenue ?? 0).toFixed(2)} ج.م</span>
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Utensils className="h-3.5 w-3.5 text-orange-500" />
-                  <span className="text-xs text-muted-foreground">{lang === "ar" ? "بوفيه / POS" : "Buffet / POS"}</span>
+                  <span className="text-xs text-muted-foreground">{t("dash_buffet_pos")}</span>
                 </div>
                 <span className="text-xs font-bold text-orange-500 tabular">{(revenueStats?.orderRevenue ?? 0).toFixed(2)} ج.م</span>
               </div>
@@ -980,7 +982,7 @@ export default function Dashboard() {
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           session.status === "active" ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
                         }`}>
-                          {session.status === "active" ? (lang === "ar" ? "نشطة" : "Active") : (lang === "ar" ? "موقوفة" : "Paused")}
+                          {session.status === "active" ? t("dash_session_active") : t("dash_session_paused")}
                         </span>
                       </div>
                       <p className="text-sm font-bold leading-tight truncate mb-1">
@@ -989,7 +991,7 @@ export default function Dashboard() {
                       <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-2.5">
                         <Clock className="h-3 w-3" />
                         <span>
-                          {Math.floor(session.currentMinutes / 60)}{lang === "ar" ? "س" : "h"} {session.currentMinutes % 60}{lang === "ar" ? "د" : "m"}
+                          {Math.floor(session.currentMinutes / 60)}{t("dash_hour_short")} {session.currentMinutes % 60}{t("dash_minute_short")}
                         </span>
                       </div>
                       <p className="text-base font-bold text-emerald-500">{session.currentCost.toFixed(2)} ج.م</p>
@@ -1011,7 +1013,7 @@ export default function Dashboard() {
                           <p className="text-sm font-semibold">{session.assetNameAr || session.assetName}</p>
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                             <Clock className="h-3 w-3" />
-                            <span>{Math.floor(session.currentMinutes/60)}{lang==="ar"?"س":"h"} {session.currentMinutes%60}{lang==="ar"?"د":"m"}</span>
+                            <span>{Math.floor(session.currentMinutes/60)}{t("dash_hour_short")} {session.currentMinutes%60}{t("dash_minute_short")}</span>
                           </div>
                         </div>
                       </div>
@@ -1036,10 +1038,10 @@ export default function Dashboard() {
           <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5">{t("quick_actions")}</p>
           <div className="grid grid-cols-2 gap-2.5">
             {[
-              { href:"/pos",    Icon:Monitor,      label: lang==="ar"?"نقطة البيع":"POS",     cls:"bg-primary/10 border-primary/25 text-primary hover:bg-primary/15" },
-              { href:"/assets", Icon:Gamepad2,     label: lang==="ar"?"الغرف":"Rooms",   cls:"bg-secondary border-border hover:bg-secondary/70" },
-              { href:"/kds",    Icon:ChefHat,      label: lang==="ar"?"المطبخ":"Kitchen",    cls:"bg-secondary border-border hover:bg-secondary/70" },
-              { href:"/orders", Icon:ShoppingCart, label: lang==="ar"?"الطلبات":"Orders",    cls:"bg-secondary border-border hover:bg-secondary/70" },
+              { href:"/pos",    Icon:Monitor,      label: t("dash_qa_pos"),    cls:"bg-primary/10 border-primary/25 text-primary hover:bg-primary/15" },
+              { href:"/assets", Icon:Gamepad2,     label: t("qa_devices"),     cls:"bg-secondary border-border hover:bg-secondary/70" },
+              { href:"/kds",    Icon:ChefHat,      label: t("dash_qa_kitchen"),cls:"bg-secondary border-border hover:bg-secondary/70" },
+              { href:"/orders", Icon:ShoppingCart, label: t("qa_orders"),      cls:"bg-secondary border-border hover:bg-secondary/70" },
             ].map(({ href, Icon, label, cls }) => (
               <Link key={href} href={href}>
                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
@@ -1059,11 +1061,11 @@ export default function Dashboard() {
         <div className="mt-2">
           <div className="flex items-center justify-between mb-2.5">
             <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-              {lang === "ar" ? "لمحة مالية" : "Finance Snapshot"}
+              {t("dash_finance_snapshot")}
             </p>
             <Link href="/finance">
               <span className="flex items-center gap-1 text-xs font-semibold text-[#17c964] hover:opacity-80 transition cursor-pointer">
-                {lang === "ar" ? "التفاصيل" : "Details"}
+                {t("dash_finance_details")}
                 <ArrowRight className="h-3 w-3" />
               </span>
             </Link>
@@ -1072,28 +1074,28 @@ export default function Dashboard() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
               {[
                 {
-                  label: lang === "ar" ? "دخل الشهر" : "Month Income",
+                  label: t("dash_month_income"),
                   value: financeOverview.incomeMonth ?? 0,
                   icon: TrendingUp,
                   color: "text-emerald-500",
                   bg: "bg-emerald-500/10",
                 },
                 {
-                  label: lang === "ar" ? "مصاريف الشهر" : "Month Expenses",
+                  label: t("dash_month_expenses"),
                   value: financeOverview.expensesMonth ?? 0,
                   icon: TrendingDown,
                   color: "text-red-500",
                   bg: "bg-red-500/10",
                 },
                 {
-                  label: lang === "ar" ? "صافي الربح" : "Net Profit",
+                  label: t("dash_net_profit"),
                   value: financeOverview.profitMonth ?? 0,
                   icon: DollarSign,
                   color: (financeOverview.profitMonth ?? 0) >= 0 ? "text-[#17c964]" : "text-red-500",
                   bg: (financeOverview.profitMonth ?? 0) >= 0 ? "bg-[#17c964]/10" : "bg-red-500/10",
                 },
                 {
-                  label: lang === "ar" ? "رصيد الخزينة" : "Cash Balance",
+                  label: t("dash_cash_balance"),
                   value: financeOverview.cashAvailable ?? 0,
                   icon: Wallet,
                   color: "text-cyan-500",
@@ -1130,10 +1132,10 @@ export default function Dashboard() {
     <div className="space-y-4 md:space-y-6">
       <StaggerChildren className="grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-4">
         {[
-          { label: lang==="ar"?"إجمالي الإيرادات":"Total Revenue",  value:revenueStats?.total??0,            color:"text-primary",      Icon:Receipt },
-          { label: lang==="ar"?"وقت الألعاب":"Gaming Time",          value:revenueStats?.sessionRevenue??0,   color:"text-emerald-500",  Icon:Gamepad2 },
-          { label: lang==="ar"?"طلبات الغرف":"Room Orders",          value:revenueStats?.roomOrderRevenue??0, color:"text-primary",      Icon:ShoppingCart },
-          { label: lang==="ar"?"بوفيه / POS":"Buffet / POS",         value:revenueStats?.orderRevenue??0,     color:"text-orange-500",   Icon:Utensils },
+          { label: t("dash_total_revenue"),  value:revenueStats?.total??0,            color:"text-primary",      Icon:Receipt },
+          { label: t("dash_gaming_time"),     value:revenueStats?.sessionRevenue??0,   color:"text-emerald-500",  Icon:Gamepad2 },
+          { label: t("dash_room_orders"),     value:revenueStats?.roomOrderRevenue??0, color:"text-primary",      Icon:ShoppingCart },
+          { label: t("dash_buffet_pos"),      value:revenueStats?.orderRevenue??0,     color:"text-orange-500",   Icon:Utensils },
         ].map((stat) => (
           <StaggerItem key={stat.label}>
             <HoverCard>
@@ -1148,7 +1150,7 @@ export default function Dashboard() {
                   <p className={`text-2xl md:text-3xl font-bold tabular ${stat.color}`} style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
                     {stat.value.toFixed(2)}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{lang==="ar"?"جنيه مصري":"EGP"}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t("egp_label")}</p>
                 </div>
               </div>
             </HoverCard>
@@ -1161,7 +1163,7 @@ export default function Dashboard() {
         <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 overflow-hidden">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"توزيع الإيرادات اليومية":"Daily Revenue"}</h3>
+              <h3 className="text-sm md:text-base font-semibold">{t("dash_daily_revenue")}</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">{PERIOD_LABELS[period]}</p>
             </div>
             <p className="text-base md:text-lg font-bold text-primary">{(revenueStats?.total??0).toFixed(2)} ج.م</p>
@@ -1185,15 +1187,15 @@ export default function Dashboard() {
       {/* Payment breakdown */}
       <HoverCard>
         <div className="bg-card border border-card-border rounded-2xl p-4 md:p-6 overflow-hidden">
-          <h3 className="text-sm md:text-base font-semibold mb-4">{lang==="ar"?"توزيع طرق الدفع":"Payment Methods"}</h3>
+          <h3 className="text-sm md:text-base font-semibold mb-4">{t("dash_payment_methods")}</h3>
           {totalPayments === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-6">{t("no_data")}</p>
           ) : (
             <div className="space-y-4">
               {[
-                { name:lang==="ar"?"نقداً":"Cash",          key:"cash",     value:paymentBreakdown?.cash??0,     color:"#006FEE", Icon:Banknote },
-                { name:lang==="ar"?"إنستاباي":"InstaPay",   key:"instapay", value:paymentBreakdown?.instapay??0, color:"#17c964", Icon:Smartphone },
-                { name:lang==="ar"?"فيزا / ماستر":"Visa",   key:"visa",     value:paymentBreakdown?.visa??0,     color:"#f5a524", Icon:CreditCard },
+                { name:t("dash_cash_method"),     key:"cash",     value:paymentBreakdown?.cash??0,     color:"#006FEE", Icon:Banknote },
+                { name:t("dash_instapay_method"), key:"instapay", value:paymentBreakdown?.instapay??0, color:"#17c964", Icon:Smartphone },
+                { name:t("dash_visa_method"),     key:"visa",     value:paymentBreakdown?.visa??0,     color:"#f5a524", Icon:CreditCard },
               ].map(d => (
                 <div key={d.key}>
                   <div className="flex justify-between items-center mb-1.5">
@@ -1252,10 +1254,10 @@ export default function Dashboard() {
         {/* Summary strip */}
         <StaggerChildren className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4">
           {[
-            { label: lang==="ar"?"عدد الورديات":"Shifts",         value: shifts.length,                  isFloat:false, color:"text-primary",     Icon:Clock },
-            { label: lang==="ar"?"إجمالي الإيرادات":"Revenue",    value: totalRevenue,                   isFloat:true,  color:"text-emerald-500", Icon:Receipt },
-            { label: lang==="ar"?"إجمالي الجلسات":"Sessions",     value: totalSessions,                  isFloat:false, color:"text-primary",     Icon:Gamepad2 },
-            { label: lang==="ar"?"إجمالي الطلبات":"Orders",       value: totalOrders,                    isFloat:false, color:"text-orange-500",  Icon:ShoppingCart },
+            { label: t("dash_shifts_count"),   value: shifts.length,  isFloat:false, color:"text-primary",     Icon:Clock },
+            { label: t("dash_total_revenue"),  value: totalRevenue,   isFloat:true,  color:"text-emerald-500", Icon:Receipt },
+            { label: t("dash_sessions_total"), value: totalSessions,  isFloat:false, color:"text-primary",     Icon:Gamepad2 },
+            { label: t("dash_orders_total"),   value: totalOrders,    isFloat:false, color:"text-orange-500",  Icon:ShoppingCart },
           ].map(stat => (
             <StaggerItem key={stat.label}>
               <HoverCard>
@@ -1284,7 +1286,7 @@ export default function Dashboard() {
         ) : shifts.length === 0 ? (
           <div className="rounded-2xl border border-border bg-card p-16 text-center">
             <Clock className="h-10 w-10 mx-auto mb-3 opacity-20" />
-            <p className="text-muted-foreground text-sm">{lang==="ar"?"لا توجد ورديات في هذه الفترة":"No shifts in this period"}</p>
+            <p className="text-muted-foreground text-sm">{t("dash_no_shifts")}</p>
           </div>
         ) : (
           <div className="space-y-3 md:space-y-4">
@@ -1303,19 +1305,19 @@ export default function Dashboard() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-sm">{shift.userName ?? (lang==="ar"?"كاشير":"Cashier")}</p>
+                            <p className="font-semibold text-sm">{shift.userName ?? t("dash_cashier")}</p>
                             {isOpen && (
                               <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-semibold">
                                 <span className="relative flex h-1.5 w-1.5">
                                   <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 live-dot" />
                                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                                 </span>
-                                {lang==="ar"?"مفتوحة":"Live"}
+                                {t("dash_shift_live")}
                               </span>
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {fmtDate(shift.openedAt as unknown as string)} · {fmtTime(shift.openedAt as unknown as string)} → {isOpen ? (lang==="ar"?"الآن":"Now") : fmtTime(shift.closedAt as unknown as string)}
+                            {fmtDate(shift.openedAt as unknown as string)} · {fmtTime(shift.openedAt as unknown as string)} → {isOpen ? t("dash_now") : fmtTime(shift.closedAt as unknown as string)}
                             <span className="ms-2 text-primary/70">{fmtDuration(shift.durationMinutes)}</span>
                           </p>
                         </div>
@@ -1324,30 +1326,30 @@ export default function Dashboard() {
                         <p className="text-lg md:text-xl font-bold text-primary tabular" style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
                           {shift.totalRevenue.toFixed(2)} <span className="text-sm opacity-60">ج.م</span>
                         </p>
-                        <p className="text-[11px] text-muted-foreground">{lang==="ar"?"إجمالي الإيرادات":"Total Revenue"}</p>
+                        <p className="text-[11px] text-muted-foreground">{t("dash_total_revenue_label")}</p>
                       </div>
                     </div>
 
                     {/* Revenue 3-bucket + session/order counts */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
                       <div className="bg-emerald-500/8 rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-emerald-600 font-medium mb-0.5">{lang==="ar"?"وقت الألعاب":"Gaming Time"}</p>
+                        <p className="text-[10px] text-emerald-600 font-medium mb-0.5">{t("dash_gaming_time")}</p>
                         <p className="text-sm font-bold text-emerald-500 tabular">{shift.gamingRevenue.toFixed(2)} ج.م</p>
                       </div>
                       <div className="bg-primary/8 rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-primary font-medium mb-0.5">{lang==="ar"?"طلبات الغرف":"Room Orders"}</p>
+                        <p className="text-[10px] text-primary font-medium mb-0.5">{t("dash_room_orders")}</p>
                         <p className="text-sm font-bold text-primary tabular">{shift.roomOrderRevenue.toFixed(2)} ج.م</p>
                       </div>
                       <div className="bg-orange-500/8 rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-orange-500 font-medium mb-0.5">{lang==="ar"?"بوفيه/POS":"POS/Buffet"}</p>
+                        <p className="text-[10px] text-orange-500 font-medium mb-0.5">{t("dash_buffet_pos_short")}</p>
                         <p className="text-sm font-bold text-orange-500 tabular">{shift.posRevenue.toFixed(2)} ج.م</p>
                       </div>
                       <div className="bg-secondary rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{lang==="ar"?"الجلسات":"Sessions"}</p>
+                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t("dash_sessions_label")}</p>
                         <p className="text-sm font-bold tabular">{shift.sessionCount}</p>
                       </div>
                       <div className="bg-secondary rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{lang==="ar"?"الطلبات":"Orders"}</p>
+                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t("dash_orders_label")}</p>
                         <p className="text-sm font-bold tabular">{shift.orderCount}</p>
                       </div>
                     </div>
@@ -1380,7 +1382,7 @@ export default function Dashboard() {
                       )}
                       {shift.status === "closed" && diff === 0 && (
                         <span className="ms-auto flex items-center gap-1 text-emerald-500 text-[11px] font-semibold">
-                          <Check className="h-3 w-3" /> {lang==="ar"?"مطابق":"Balanced"}
+                          <Check className="h-3 w-3" /> {t("dash_balanced")}
                         </span>
                       )}
                     </div>
@@ -1403,7 +1405,7 @@ export default function Dashboard() {
     byCategory: any[]; total: number; color: string;
   }) {
     if (byCategory.length === 0) {
-      return <p className="text-sm text-muted-foreground text-center py-6">{lang==="ar"?"لا توجد طلبات":"No orders"}</p>;
+      return <p className="text-sm text-muted-foreground text-center py-6">{t("dash_no_orders")}</p>;
     }
     return (
       <div className="space-y-4">
@@ -1461,12 +1463,12 @@ export default function Dashboard() {
                       <div className="w-8 h-8 rounded-xl bg-emerald-500/15 flex items-center justify-center">
                         <Gamepad2 className="h-4 w-4 text-emerald-500" />
                       </div>
-                      <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"وقت الألعاب":"Gaming Time"}</h3>
+                      <h3 className="text-sm md:text-base font-semibold">{t("dash_gaming_time")}</h3>
                     </div>
                     <span className="text-base md:text-lg font-bold text-emerald-500">{(breakdown?.gaming.total??0).toFixed(2)} ج.م</span>
                   </div>
                   {(breakdown?.gaming.byType.length ?? 0) === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-6">{lang==="ar"?"لا توجد جلسات منتهية":"No completed sessions"}</p>
+                    <p className="text-sm text-muted-foreground text-center py-6">{t("dash_no_completed_sessions")}</p>
                   ) : (
                     <div>
                       {breakdown!.gaming.byType.map((item: any) => (
@@ -1474,7 +1476,7 @@ export default function Dashboard() {
                           <span className="text-xl">{ASSET_ICON_MAP[item.type]??"🕹️"}</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium">{item.typeAr}</p>
-                            <p className="text-xs text-muted-foreground">{item.sessions} {lang==="ar"?"جلسة":"sessions"}</p>
+                            <p className="text-xs text-muted-foreground">{item.sessions} {t("dash_sessions_unit")}</p>
                           </div>
                           <div className="text-end">
                             <p className="text-sm font-bold text-emerald-500">{item.total.toFixed(2)} ج.م</p>
@@ -1499,7 +1501,7 @@ export default function Dashboard() {
                       <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
                         <ShoppingCart className="h-4 w-4 text-primary" />
                       </div>
-                      <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"طلبات الغرف":"Room Orders"}</h3>
+                      <h3 className="text-sm md:text-base font-semibold">{t("dash_room_orders")}</h3>
                     </div>
                     <span className="text-base md:text-lg font-bold text-primary">{((breakdown as any)?.roomOrders?.total??0).toFixed(2)} ج.م</span>
                   </div>
@@ -1521,7 +1523,7 @@ export default function Dashboard() {
                       <div className="w-8 h-8 rounded-xl bg-orange-500/15 flex items-center justify-center">
                         <Utensils className="h-4 w-4 text-orange-500" />
                       </div>
-                      <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"بوفيه / POS":"Buffet / POS"}</h3>
+                      <h3 className="text-sm md:text-base font-semibold">{t("dash_buffet_pos")}</h3>
                     </div>
                     <span className="text-base md:text-lg font-bold text-orange-500">{(breakdown?.buffet.total??0).toFixed(2)} ج.م</span>
                   </div>
@@ -1538,7 +1540,7 @@ export default function Dashboard() {
           {/* Grand total */}
           <div className="rounded-2xl bg-primary/8 border border-primary/20 px-4 md:px-6 py-4 md:py-5 flex items-center justify-between">
             <div>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">{lang==="ar"?"الإجمالي الكلي":"Grand Total"}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">{t("dash_grand_total")}</p>
               <p className="text-sm font-semibold mt-0.5">
                 {PERIOD_LABELS[period]}
                 {source !== "all" && <span className="ms-2 text-primary text-xs">· {SOURCE_OPTIONS.find(s=>s.id===source)?.label}</span>}
@@ -1557,14 +1559,14 @@ export default function Dashboard() {
                 <div className="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
                   <Monitor className="h-4 w-4 text-primary" />
                 </div>
-                <h3 className="text-sm md:text-base font-semibold">{lang==="ar"?"نظرة الغرف":"Room Overview"}</h3>
+                <h3 className="text-sm md:text-base font-semibold">{t("dash_room_overview")}</h3>
                 <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">{PERIOD_LABELS[period]}</span>
               </div>
 
               {!roomsData || roomsData.length === 0 ? (
                 <div className="text-center py-10 text-muted-foreground text-sm">
                   <Monitor className="h-8 w-8 mx-auto mb-3 opacity-20" />
-                  {lang==="ar"?"لا توجد بيانات للغرف":"No room data"}
+                  {t("dash_no_room_data")}
                 </div>
               ) : (
                 <div className="overflow-x-auto -mx-4 md:mx-0">
@@ -1572,22 +1574,22 @@ export default function Dashboard() {
                     <thead>
                       <tr className="border-b border-border">
                         <th className={`pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium ${lang==="ar"?"text-right":"text-left"}`}>
-                          {lang==="ar"?"الغرفة":"Room"}
+                          {t("dash_col_room")}
                         </th>
                         <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
-                          {lang==="ar"?"الجلسات":"Sessions"}
+                          {t("dash_col_sessions")}
                         </th>
                         <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
-                          {lang==="ar"?"الوقت":"Time"}
+                          {t("dash_col_time")}
                         </th>
                         <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
-                          {lang==="ar"?"وقت الألعاب":"Gaming Time"}
+                          {t("dash_gaming_time")}
                         </th>
                         <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
-                          {lang==="ar"?"طلبات":"Orders"}
+                          {t("dash_col_orders")}
                         </th>
                         <th className="pb-3 text-[11px] uppercase tracking-wide text-muted-foreground font-medium text-end">
-                          {lang==="ar"?"الإجمالي":"Total"}
+                          {t("dash_col_total")}
                         </th>
                       </tr>
                     </thead>
@@ -1610,8 +1612,8 @@ export default function Dashboard() {
                                       : "bg-amber-500/10 text-amber-500"
                                   }`}>
                                     {room.assetStatus === "available"
-                                      ? (lang==="ar"?"متاح":"Available")
-                                      : (lang==="ar"?"مشغول":"Busy")}
+                                      ? t("dash_room_available")
+                                      : t("dash_room_busy")}
                                   </span>
                                 </div>
                               </Link>
@@ -1637,7 +1639,7 @@ export default function Dashboard() {
                     </tbody>
                     <tfoot>
                       <tr className="border-t-2 border-border">
-                        <td className="pt-3 text-xs font-bold text-muted-foreground">{lang==="ar"?"الإجمالي":"Total"}</td>
+                        <td className="pt-3 text-xs font-bold text-muted-foreground">{t("dash_col_total")}</td>
                         <td className="pt-3 text-end tabular-nums font-bold text-muted-foreground">
                           {roomsData.reduce((s,r) => s+r.sessionCount,0)}
                         </td>
@@ -1680,13 +1682,13 @@ export default function Dashboard() {
         open={filterOpen} onClose={() => setFilterOpen(false)}
         source={source} setSource={setSource}
         method={method} setMethod={setMethod}
-        lang={lang}
+        t={t}
         sourceOptions={SOURCE_OPTIONS}
         methodOptions={METHOD_OPTIONS}
       />
 
       {/* Mobile bottom nav */}
-      <MobileBottomNav tab={tab} setTab={setTab} lang={lang} pendingOrders={summary?.pendingOrders ?? 0} />
+      <MobileBottomNav tab={tab} setTab={setTab} t={t} pendingOrders={summary?.pendingOrders ?? 0} />
 
       {/* Main content */}
       <div className="p-4 md:p-8" style={{ paddingBottom: "calc(7rem + env(safe-area-inset-bottom, 0px))" }}>
