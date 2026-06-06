@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShiftGate } from "@/components/shift-gate";
 import { useLang } from "@/hooks/use-language";
+import { dn } from "@/lib/display";
 
 interface CartItem {
   product: any;
@@ -37,7 +38,7 @@ type PaymentMethod = "cash" | "instapay" | "visa";
 type OrderMode = "direct" | "session";
 
 export default function Pos() {
-  const { t, dir } = useLang();
+  const { t, dir, lang } = useLang();
 
   const PAYMENT_METHODS: { id: PaymentMethod; label: string; sublabel: string; icon: React.ReactNode; color: string }[] = [
     { id: "cash",     label: t("pay_cash"),     sublabel: t("pos_cash_sublabel"),    icon: <Banknote className="h-5 w-5" />,  color: "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600" },
@@ -370,7 +371,7 @@ export default function Pos() {
                 onClick={() => setActiveCategory(cat.id)}
                 className="h-10 md:h-12 px-4 md:px-6 text-base md:text-lg font-medium"
               >
-                {cat.nameAr || cat.name}
+                {dn(cat, lang)}
               </Button>
             ))}
           </div>
@@ -401,10 +402,10 @@ export default function Pos() {
                   )}
                 </span>
                 <span className="font-bold text-xs md:text-sm text-center leading-tight line-clamp-2 px-1">
-                  {product.nameAr || product.name}
+                  {dn(product, lang)}
                 </span>
                 <span className="text-primary font-bold text-sm md:text-base">
-                  {product.price} ج.م
+                  {product.price} {t("egp_label")}
                 </span>
               </Button>
             ))}
@@ -438,8 +439,8 @@ export default function Pos() {
             cart.map(item => (
               <div key={item.product.id} className="flex items-center justify-between p-2.5 md:p-3 bg-background border border-border rounded-lg">
                 <div className="flex-1 min-w-0 me-2">
-                  <p className="font-bold text-sm md:text-base truncate">{item.product.nameAr || item.product.name}</p>
-                  <p className="text-primary font-medium text-xs md:text-sm">{(item.product.price * item.quantity).toFixed(2)} ج.م</p>
+                  <p className="font-bold text-sm md:text-base truncate">{dn(item.product, lang)}</p>
+                  <p className="text-primary font-medium text-xs md:text-sm">{(item.product.price * item.quantity).toFixed(2)} {t("egp_label")}</p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Button variant="outline" size="icon" className="h-7 w-7 md:h-8 md:w-8 text-base" onClick={() => adjustQty(item.product.id, -1)}>−</Button>
@@ -460,7 +461,7 @@ export default function Pos() {
           {!lastDirectOrder && (
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground text-base md:text-lg">{t("pos_total_label")}</span>
-              <span className="font-bold text-2xl md:text-3xl text-emerald-500">{total.toFixed(2)} ج.م</span>
+              <span className="font-bold text-2xl md:text-3xl text-emerald-500">{total.toFixed(2)} {t("egp_label")}</span>
             </div>
           )}
 
@@ -502,14 +503,14 @@ export default function Pos() {
                       <Receipt className="h-3.5 w-3.5 text-emerald-500" />
                       {t("order_receipt_label")} #{lastDirectOrder.id}
                     </span>
-                    <span className="text-sm font-bold text-emerald-500">{lastDirectOrder.total.toFixed(2)} ج.م</span>
+                    <span className="text-sm font-bold text-emerald-500">{lastDirectOrder.total.toFixed(2)} {t("egp_label")}</span>
                   </div>
 
                   {/* Receipt items */}
                   <div className="space-y-1 bg-background rounded-xl border border-border px-3 py-2 max-h-28 overflow-y-auto">
                     {lastDirectOrder.items.map(item => (
                       <div key={item.product.id} className="flex items-center justify-between text-xs">
-                        <span className="text-foreground truncate me-2">{item.product.nameAr || item.product.name}</span>
+                        <span className="text-foreground truncate me-2">{dn(item.product, lang)}</span>
                         <span className="text-muted-foreground shrink-0">
                           {item.quantity} × {item.product.price.toFixed(2)}
                         </span>
@@ -702,7 +703,7 @@ export default function Pos() {
                           <div className="flex items-center gap-2 min-w-0">
                             <span className={`h-2 w-2 rounded-full shrink-0 ${isPaused ? "bg-amber-400" : "bg-emerald-500"}`} />
                             <span className="font-bold truncate text-foreground">
-                              {session.assetNameAr || session.assetName || `${t("session_label")} #${session.id}`}
+                              {(lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)) || `${t("session_label")} #${session.id}`}
                             </span>
                             <span className={`text-xs shrink-0 ${isPaused ? "text-amber-500" : "text-emerald-500"}`}>
                               {isPaused ? t("pos_status_paused") : t("pos_status_playing")}
@@ -710,7 +711,7 @@ export default function Pos() {
                           </div>
                           <div className="flex items-center gap-2 shrink-0 ms-2">
                             <span className="text-xs text-muted-foreground font-mono">
-                              {(session.totalCost ?? session.currentCost ?? 0).toFixed(2)} ج.م
+                              {(session.totalCost ?? session.currentCost ?? 0).toFixed(2)} {t("egp_label")}
                             </span>
                             {isSelected && <Check className="h-4 w-4 text-primary shrink-0" />}
                           </div>

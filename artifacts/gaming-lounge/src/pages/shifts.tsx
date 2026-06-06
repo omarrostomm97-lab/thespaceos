@@ -7,8 +7,10 @@ import { Clock, Wallet, CheckSquare, AlertCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useLang } from "@/hooks/use-language";
 
 export default function Shifts() {
+  const { t } = useLang();
   const queryClient = useQueryClient();
   const { data: currentShift, isLoading: isLoadingCurrent, isError: isCurrentShiftError } = useGetCurrentShift({
     query: { queryKey: getGetCurrentShiftQueryKey(), refetchInterval: 15000 }
@@ -115,12 +117,12 @@ export default function Shifts() {
                 <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 space-y-3">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">النقدية الافتتاحية</span>
-                    <span className="font-mono">{currentShift.openingCash.toFixed(2)} ج.م</span>
+                    <span className="font-mono">{currentShift.openingCash.toFixed(2)} {t("egp_label")}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm pt-2 border-t border-primary/20">
                     <span className="text-muted-foreground">إجمالي النقدية (كل الخدمات)</span>
                     <span className="font-mono text-primary">
-                      {((currentShift.expectedCash ?? 0) - currentShift.openingCash).toFixed(2)} ج.م
+                      {((currentShift.expectedCash ?? 0) - currentShift.openingCash).toFixed(2)} {t("egp_label")}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-lg font-bold pt-2 border-t border-primary/20">
@@ -128,7 +130,7 @@ export default function Shifts() {
                       <span className="text-primary">النقدية المتوقعة بالدرج</span>
                       <p className="text-xs font-normal text-muted-foreground mt-0.5">افتتاحية + جلسات + بوفيه + كل الخدمات</p>
                     </div>
-                    <span className="font-mono text-emerald-500">{(currentShift.expectedCash ?? 0).toFixed(2)} ج.م</span>
+                    <span className="font-mono text-emerald-500">{(currentShift.expectedCash ?? 0).toFixed(2)} {t("egp_label")}</span>
                   </div>
                 </div>
 

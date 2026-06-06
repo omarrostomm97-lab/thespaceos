@@ -5,6 +5,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, ShoppingCart, Gamepad2, Receipt, TrendingUp } from "lucide-react";
+import { useLang } from "@/hooks/use-language";
 import {
   BarChart,
   Bar,
@@ -27,6 +28,7 @@ const ROLE_LABELS: Record<string, string> = {
 type SortKey = "ordersHandled" | "sessionsStarted" | "revenue";
 
 export default function Performance() {
+  const { t } = useLang();
   const [sortBy, setSortBy] = useState<SortKey>("revenue");
 
   const { data: employees, isLoading } = useGetEmployeePerformance({
@@ -87,7 +89,7 @@ export default function Performance() {
             <Receipt className="h-4 w-4 text-emerald-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalRevenue.toFixed(2)} ج.م</div>
+            <div className="text-3xl font-bold">{totalRevenue.toFixed(2)} {t("egp_label")}</div>
           </CardContent>
         </Card>
       </div>
@@ -192,7 +194,7 @@ export default function Performance() {
                       </td>
                       <td className="py-3 px-4">
                         <span className={`font-bold ${sortBy === "revenue" ? "text-emerald-500" : ""}`}>
-                          {(emp.revenue ?? 0).toFixed(2)} ج.م
+                          {(emp.revenue ?? 0).toFixed(2)} {t("egp_label")}
                         </span>
                       </td>
                     </tr>

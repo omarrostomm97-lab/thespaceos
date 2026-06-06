@@ -207,7 +207,59 @@ router.get("/finance/categories", requireAuth, requireTenant, async (req, res) =
   try {
     const tenantId = req.user!.tenantId!;
     const { type } = req.query as Record<string, string>;
-    let q = db.select().from(financeCategoriesTable).where(eq(financeCategoriesTable.tenantId, tenantId));
+
+    // Lazy seed: if tenant has no system categories yet, seed defaults now
+    const existing = await db.select({ id: financeCategoriesTable.id }).from(financeCategoriesTable)
+      .where(and(eq(financeCategoriesTable.tenantId, tenantId), eq(financeCategoriesTable.isSystem, true)))
+      .limit(1);
+    if (existing.length === 0) {
+      const expenseCategories = [
+        { name: "Electricity", nameAr: "الكهرباء", color: "#f59e0b", icon: "⚡" },
+        { name: "Internet", nameAr: "الإنترنت", color: "#3b82f6", icon: "🌐" },
+        { name: "Rent", nameAr: "الإيجار", color: "#8b5cf6", icon: "🏠" },
+        { name: "Salaries", nameAr: "الرواتب", color: "#10b981", icon: "💼" },
+        { name: "Maintenance", nameAr: "الصيانة", color: "#f97316", icon: "🔧" },
+        { name: "Device Repair", nameAr: "إصلاح الأجهزة", color: "#ef4444", icon: "🛠️" },
+        { name: "Stock Purchase", nameAr: "شراء المخزون", color: "#06b6d4", icon: "📦" },
+        { name: "Cleaning", nameAr: "التنظيف", color: "#84cc16", icon: "🧹" },
+        { name: "Marketing", nameAr: "التسويق", color: "#ec4899", icon: "📣" },
+        { name: "Software", nameAr: "البرمجيات", color: "#6366f1", icon: "💻" },
+        { name: "Taxes", nameAr: "الضرائب", color: "#64748b", icon: "📋" },
+        { name: "Other", nameAr: "أخرى", color: "#94a3b8", icon: "📌" },
+      ];
+      for (const c of expenseCategories) {
+        await db.insert(financeCategoriesTable).values({ tenantId, ...c, type: "expense", isSystem: true });
+      }
+      const incomeCategories = [
+        { name: "Gaming Sessions", nameAr: "جلسات الألعاب", color: "#3b82f6", icon: "🎮" },
+        { name: "Cafe Orders", nameAr: "طلبات الكافيه", color: "#f97316", icon: "☕" },
+        { name: "Room Orders", nameAr: "طلبات الغرف", color: "#8b5cf6", icon: "🍔" },
+        { name: "Private Bookings", nameAr: "الحجوزات الخاصة", color: "#10b981", icon: "📅" },
+        { name: "Manual Income", nameAr: "دخل يدوي", color: "#06b6d4", icon: "💵" },
+        { name: "Other Income", nameAr: "دخل أخرى", color: "#94a3b8", icon: "📌" },
+      ];
+      for (const c of incomeCategories) {
+        await db.insert(financeCategoriesTable).values({ tenantId, ...c, type: "income", isSystem: true });
+      }
+      await db.insert(financeCategoriesTable).values([
+        { tenantId, name: "Owner Capital", nameAr: "رأس مال المالك", type: "capital", color: "#10b981", icon: "💰", isSystem: true },
+        { tenantId, name: "Partner Contribution", nameAr: "مساهمة شريك", type: "capital", color: "#6366f1", icon: "🤝", isSystem: true },
+        { tenantId, name: "Owner Withdrawal", nameAr: "سحب المالك", type: "withdrawal", color: "#ef4444", icon: "💸", isSystem: true },
+        { tenantId, name: "Partner Withdrawal", nameAr: "سحب الشريك", type: "withdrawal", color: "#f59e0b", icon: "💸", isSystem: true },
+      ]);
+      // Also seed default accounts if none exist
+      const existingAccounts = await db.select({ id: financeAccountsTable.id }).from(financeAccountsTable)
+        .where(eq(financeAccountsTable.tenantId, tenantId)).limit(1);
+      if (existingAccounts.length === 0) {
+        await db.insert(financeAccountsTable).values([
+          { tenantId, name: "Cash", nameAr: "كاش", type: "cash", isDefault: true, openingBalance: "0", currentBalance: "0" },
+          { tenantId, name: "Bank", nameAr: "بنك", type: "bank", openingBalance: "0", currentBalance: "0" },
+          { tenantId, name: "InstaPay / Wallet", nameAr: "انستاباي / محفظة", type: "wallet", openingBalance: "0", currentBalance: "0" },
+          { tenantId, name: "Card Machine", nameAr: "ماكينة كارت", type: "card_processor", openingBalance: "0", currentBalance: "0" },
+        ]);
+      }
+    }
+
     const rows = await db.select().from(financeCategoriesTable)
       .where(and(
         eq(financeCategoriesTable.tenantId, tenantId),

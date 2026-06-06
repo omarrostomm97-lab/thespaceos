@@ -84,13 +84,14 @@ const ASSET_ICON: Record<string, string> = {
 
 /* ─── Tooltip ────────────────────────────────────────── */
 function CustomTooltip({ active, payload, label }: any) {
+  const { t } = useLang();
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-popover border border-border rounded-xl px-3.5 py-2.5 shadow-2xl">
       <p className="text-xs text-muted-foreground mb-1 font-medium">{label}</p>
       {payload.map((item: any, i: number) => (
         <p key={i} className="text-sm font-bold" style={{ color: item.color || "#006FEE" }}>
-          {typeof item.value === "number" ? item.value.toFixed(2) : item.value} ج.م
+          {typeof item.value === "number" ? item.value.toFixed(2) : item.value} {t("egp_label")}
         </p>
       ))}
     </div>
@@ -105,6 +106,7 @@ interface KpiCardProps {
   href?: string;
 }
 function KpiCard({ label, value, subtitle, icon: Icon, iconClass, isLive, isFloat, compact, href }: KpiCardProps) {
+  const { t } = useLang();
   const animated = useCountUp(value);
   const display = isFloat ? animated.toFixed(2) : Math.round(animated).toLocaleString();
   const inner = (
@@ -124,7 +126,7 @@ function KpiCard({ label, value, subtitle, icon: Icon, iconClass, isLive, isFloa
              style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
             {display}
           </p>
-          {isFloat && <span className={`text-muted-foreground block ${compact ? "text-[11px] mt-0.5" : "text-sm mt-1"}`}>ج.م</span>}
+          {isFloat && <span className={`text-muted-foreground block ${compact ? "text-[11px] mt-0.5" : "text-sm mt-1"}`}>{t("egp_label")}</span>}
           {subtitle && <p className={`text-muted-foreground mt-1.5 leading-relaxed ${compact ? "text-[10px]" : "text-xs"}`}>{subtitle}</p>}
         </div>
         <div className={`rounded-xl flex items-center justify-center shrink-0 ${iconClass} ${compact ? "w-9 h-9" : "w-10 h-10"}`}>
@@ -371,7 +373,7 @@ function MobileHeroCard({
                 style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
             {animated.toFixed(2)}
           </span>
-          <span className="text-white/60 text-lg mb-1.5">ج.م</span>
+          <span className="text-white/60 text-lg mb-1.5">{t("egp_label")}</span>
         </div>
 
         {/* 3-bucket split (only when source=all) */}
@@ -435,6 +437,7 @@ export default function Dashboard() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { t, lang } = useLang();
+  const egp = t("egp_label");
 
   const revenueParams   = { period, source, method } as any;
   const breakdownParams = { period, source } as any;
@@ -638,7 +641,7 @@ export default function Dashboard() {
                     style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
                     {heroRevenue.toFixed(2)}
                   </span>
-                  <span className="text-xs text-primary/50 font-medium">ج.م</span>
+                  <span className="text-xs text-primary/50 font-medium">{egp}</span>
                 </div>
               )}
               <button className="relative w-9 h-9 rounded-xl border border-border flex items-center justify-center text-muted-foreground hover:bg-secondary transition-colors" aria-label="notifications">
@@ -801,7 +804,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-muted-foreground">{`${t("dash_gaming_time")} — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-emerald-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(revenueStats.sessionRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                  {(revenueStats.sessionRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
                 </p>
               </div>
             </div>
@@ -814,7 +817,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-muted-foreground">{`${t("dash_room_orders")} — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-primary tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(revenueStats.roomOrderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                  {(revenueStats.roomOrderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
                 </p>
               </div>
             </div>
@@ -827,7 +830,7 @@ export default function Dashboard() {
               <div>
                 <p className="text-xs text-muted-foreground">{`${t("dash_buffet_pos")} — ${PERIOD_LABELS[period]}`}</p>
                 <p className="text-2xl font-bold text-orange-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(revenueStats.orderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">ج.م</span>
+                  {(revenueStats.orderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
                 </p>
               </div>
             </div>
@@ -850,7 +853,7 @@ export default function Dashboard() {
               </div>
               <div className="text-end">
                 <p className="text-[10px] text-muted-foreground">{t("total")}</p>
-                <p className="text-base md:text-lg font-bold text-primary">{(revenueStats?.total ?? 0).toFixed(2)} ج.م</p>
+                <p className="text-base md:text-lg font-bold text-primary">{(revenueStats?.total ?? 0).toFixed(2)} {egp}</p>
               </div>
             </div>
             {isLoadingRevenue ? (
@@ -917,21 +920,21 @@ export default function Dashboard() {
                   <Gamepad2 className="h-3.5 w-3.5 text-emerald-500" />
                   <span className="text-xs text-muted-foreground">{t("dash_gaming_time")}</span>
                 </div>
-                <span className="text-xs font-bold text-emerald-500 tabular">{(revenueStats?.sessionRevenue ?? 0).toFixed(2)} ج.م</span>
+                <span className="text-xs font-bold text-emerald-500 tabular">{(revenueStats?.sessionRevenue ?? 0).toFixed(2)} {egp}</span>
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="h-3.5 w-3.5 text-primary" />
                   <span className="text-xs text-muted-foreground">{t("dash_room_orders")}</span>
                 </div>
-                <span className="text-xs font-bold text-primary tabular">{(revenueStats?.roomOrderRevenue ?? 0).toFixed(2)} ج.م</span>
+                <span className="text-xs font-bold text-primary tabular">{(revenueStats?.roomOrderRevenue ?? 0).toFixed(2)} {egp}</span>
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <Utensils className="h-3.5 w-3.5 text-orange-500" />
                   <span className="text-xs text-muted-foreground">{t("dash_buffet_pos")}</span>
                 </div>
-                <span className="text-xs font-bold text-orange-500 tabular">{(revenueStats?.orderRevenue ?? 0).toFixed(2)} ج.م</span>
+                <span className="text-xs font-bold text-orange-500 tabular">{(revenueStats?.orderRevenue ?? 0).toFixed(2)} {egp}</span>
               </div>
             </div>
           </div>
@@ -986,7 +989,7 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <p className="text-sm font-bold leading-tight truncate mb-1">
-                        {session.assetNameAr || session.assetName}
+                        {lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}
                       </p>
                       <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-2.5">
                         <Clock className="h-3 w-3" />
@@ -994,7 +997,7 @@ export default function Dashboard() {
                           {Math.floor(session.currentMinutes / 60)}{t("dash_hour_short")} {session.currentMinutes % 60}{t("dash_minute_short")}
                         </span>
                       </div>
-                      <p className="text-base font-bold text-emerald-500">{session.currentCost.toFixed(2)} ج.م</p>
+                      <p className="text-base font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -1010,7 +1013,7 @@ export default function Dashboard() {
                           <Gamepad2 className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold">{session.assetNameAr || session.assetName}</p>
+                          <p className="text-sm font-semibold">{lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}</p>
                           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                             <Clock className="h-3 w-3" />
                             <span>{Math.floor(session.currentMinutes/60)}{t("dash_hour_short")} {session.currentMinutes%60}{t("dash_minute_short")}</span>
@@ -1018,7 +1021,7 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2.5">
-                        <p className="text-sm font-bold text-emerald-500">{session.currentCost.toFixed(2)} ج.م</p>
+                        <p className="text-sm font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
                         <Link href={`/sessions/${session.id}`}>
                           <span className="text-xs border border-border/80 rounded-lg px-2.5 py-1 text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
                             {t("manage")}
@@ -1109,7 +1112,7 @@ export default function Dashboard() {
                   <div className="min-w-0">
                     <p className="text-[10px] text-muted-foreground leading-tight truncate">{label}</p>
                     <p className={`text-sm font-bold tabular-nums ${color}`}>
-                      {parseFloat(String(value)).toFixed(0)} <span className="text-[10px] font-normal text-muted-foreground">ج.م</span>
+                      {parseFloat(String(value)).toFixed(0)} <span className="text-[10px] font-normal text-muted-foreground">{egp}</span>
                     </p>
                   </div>
                 </div>
@@ -1166,7 +1169,7 @@ export default function Dashboard() {
               <h3 className="text-sm md:text-base font-semibold">{t("dash_daily_revenue")}</h3>
               <p className="text-[11px] text-muted-foreground mt-0.5">{PERIOD_LABELS[period]}</p>
             </div>
-            <p className="text-base md:text-lg font-bold text-primary">{(revenueStats?.total??0).toFixed(2)} ج.م</p>
+            <p className="text-base md:text-lg font-bold text-primary">{(revenueStats?.total??0).toFixed(2)} {egp}</p>
           </div>
           {dailyChartData.length === 0 ? (
             <div className="h-[180px] flex items-center justify-center text-muted-foreground text-sm">{t("no_data")}</div>
@@ -1204,7 +1207,7 @@ export default function Dashboard() {
                       <span className="text-sm font-medium">{d.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold">{d.value.toFixed(2)} ج.م</span>
+                      <span className="text-sm font-bold">{d.value.toFixed(2)} {egp}</span>
                       <span className="text-xs text-muted-foreground w-8 text-end">
                         {totalPayments > 0 ? Math.round((d.value/totalPayments)*100) : 0}%
                       </span>
@@ -1269,7 +1272,7 @@ export default function Dashboard() {
                     <p className="text-[11px] text-muted-foreground">{stat.label}</p>
                     <p className={`text-xl font-bold tabular ${stat.color}`} style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
                       {stat.isFloat ? (stat.value as number).toFixed(2) : stat.value}
-                      {stat.isFloat && <span className="text-sm opacity-60 ms-1">ج.م</span>}
+                      {stat.isFloat && <span className="text-sm opacity-60 ms-1">{egp}</span>}
                     </p>
                   </div>
                 </div>
@@ -1324,7 +1327,7 @@ export default function Dashboard() {
                       </div>
                       <div className="text-end shrink-0">
                         <p className="text-lg md:text-xl font-bold text-primary tabular" style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
-                          {shift.totalRevenue.toFixed(2)} <span className="text-sm opacity-60">ج.م</span>
+                          {shift.totalRevenue.toFixed(2)} <span className="text-sm opacity-60">{egp}</span>
                         </p>
                         <p className="text-[11px] text-muted-foreground">{t("dash_total_revenue_label")}</p>
                       </div>
@@ -1334,15 +1337,15 @@ export default function Dashboard() {
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
                       <div className="bg-emerald-500/8 rounded-xl px-3 py-2">
                         <p className="text-[10px] text-emerald-600 font-medium mb-0.5">{t("dash_gaming_time")}</p>
-                        <p className="text-sm font-bold text-emerald-500 tabular">{shift.gamingRevenue.toFixed(2)} ج.م</p>
+                        <p className="text-sm font-bold text-emerald-500 tabular">{shift.gamingRevenue.toFixed(2)} {egp}</p>
                       </div>
                       <div className="bg-primary/8 rounded-xl px-3 py-2">
                         <p className="text-[10px] text-primary font-medium mb-0.5">{t("dash_room_orders")}</p>
-                        <p className="text-sm font-bold text-primary tabular">{shift.roomOrderRevenue.toFixed(2)} ج.م</p>
+                        <p className="text-sm font-bold text-primary tabular">{shift.roomOrderRevenue.toFixed(2)} {egp}</p>
                       </div>
                       <div className="bg-orange-500/8 rounded-xl px-3 py-2">
                         <p className="text-[10px] text-orange-500 font-medium mb-0.5">{t("dash_buffet_pos_short")}</p>
-                        <p className="text-sm font-bold text-orange-500 tabular">{shift.posRevenue.toFixed(2)} ج.م</p>
+                        <p className="text-sm font-bold text-orange-500 tabular">{shift.posRevenue.toFixed(2)} {egp}</p>
                       </div>
                       <div className="bg-secondary rounded-xl px-3 py-2">
                         <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t("dash_sessions_label")}</p>
@@ -1359,25 +1362,25 @@ export default function Dashboard() {
                       {shift.cashPayments > 0 && (
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <Banknote className="h-3.5 w-3.5" />
-                          <span className="tabular">{shift.cashPayments.toFixed(2)} ج.م</span>
+                          <span className="tabular">{shift.cashPayments.toFixed(2)} {egp}</span>
                         </span>
                       )}
                       {shift.instapayPayments > 0 && (
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <Smartphone className="h-3.5 w-3.5" />
-                          <span className="tabular">{shift.instapayPayments.toFixed(2)} ج.م</span>
+                          <span className="tabular">{shift.instapayPayments.toFixed(2)} {egp}</span>
                         </span>
                       )}
                       {shift.visaPayments > 0 && (
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <CreditCard className="h-3.5 w-3.5" />
-                          <span className="tabular">{shift.visaPayments.toFixed(2)} ج.م</span>
+                          <span className="tabular">{shift.visaPayments.toFixed(2)} {egp}</span>
                         </span>
                       )}
                       {hasDiff && (
                         <span className={`ms-auto flex items-center gap-1 font-semibold px-2 py-0.5 rounded-full text-[11px] ${diff > 0 ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"}`}>
                           <AlertTriangle className="h-3 w-3" />
-                          {diff > 0 ? "+" : ""}{diff.toFixed(2)} ج.م
+                          {diff > 0 ? "+" : ""}{diff.toFixed(2)} {egp}
                         </span>
                       )}
                       {shift.status === "closed" && diff === 0 && (
@@ -1413,22 +1416,22 @@ export default function Dashboard() {
           <div key={cat.categoryId ?? "__none__"}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className={`text-sm font-bold ${color}`}>{cat.categoryNameAr||cat.categoryName}</span>
+                <span className={`text-sm font-bold ${color}`}>{lang === "ar" ? (cat.categoryNameAr || cat.categoryName) : (cat.categoryName || cat.categoryNameAr)}</span>
                 {total > 0 && (
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full bg-current/10 ${color}`}>
                     {Math.round(((cat.total ?? 0)/total)*100)}%
                   </span>
                 )}
               </div>
-              <span className={`text-sm font-bold ${color}`}>{(cat.total ?? 0).toFixed(2)} ج.م</span>
+              <span className={`text-sm font-bold ${color}`}>{(cat.total ?? 0).toFixed(2)} {egp}</span>
             </div>
             <div className={`space-y-1.5 ps-3 border-s-2`} style={{ borderColor: "currentColor", opacity: 1 }}>
               {(cat.products ?? []).map((p: any) => (
                 <div key={p.productId} className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground truncate">
-                    {p.nameAr||p.name}<span className="ms-1 opacity-50">×{p.quantity}</span>
+                    {lang === "ar" ? (p.nameAr || p.name) : (p.name || p.nameAr)}<span className="ms-1 opacity-50">×{p.quantity}</span>
                   </span>
-                  <span className="font-medium ms-2 whitespace-nowrap">{(p.total ?? 0).toFixed(2)} ج.م</span>
+                  <span className="font-medium ms-2 whitespace-nowrap">{(p.total ?? 0).toFixed(2)} {egp}</span>
                 </div>
               ))}
             </div>
@@ -1465,7 +1468,7 @@ export default function Dashboard() {
                       </div>
                       <h3 className="text-sm md:text-base font-semibold">{t("dash_gaming_time")}</h3>
                     </div>
-                    <span className="text-base md:text-lg font-bold text-emerald-500">{(breakdown?.gaming.total??0).toFixed(2)} ج.م</span>
+                    <span className="text-base md:text-lg font-bold text-emerald-500">{(breakdown?.gaming.total??0).toFixed(2)} {egp}</span>
                   </div>
                   {(breakdown?.gaming.byType.length ?? 0) === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-6">{t("dash_no_completed_sessions")}</p>
@@ -1479,7 +1482,7 @@ export default function Dashboard() {
                             <p className="text-xs text-muted-foreground">{item.sessions} {t("dash_sessions_unit")}</p>
                           </div>
                           <div className="text-end">
-                            <p className="text-sm font-bold text-emerald-500">{item.total.toFixed(2)} ج.م</p>
+                            <p className="text-sm font-bold text-emerald-500">{item.total.toFixed(2)} {egp}</p>
                             {breakdown!.gaming.total > 0 && (
                               <p className="text-[11px] text-muted-foreground">{Math.round((item.total/breakdown!.gaming.total)*100)}%</p>
                             )}
@@ -1503,7 +1506,7 @@ export default function Dashboard() {
                       </div>
                       <h3 className="text-sm md:text-base font-semibold">{t("dash_room_orders")}</h3>
                     </div>
-                    <span className="text-base md:text-lg font-bold text-primary">{((breakdown as any)?.roomOrders?.total??0).toFixed(2)} ج.م</span>
+                    <span className="text-base md:text-lg font-bold text-primary">{((breakdown as any)?.roomOrders?.total??0).toFixed(2)} {egp}</span>
                   </div>
                   <CategoryBreakdown
                     byCategory={(breakdown as any)?.roomOrders?.byCategory ?? []}
@@ -1525,7 +1528,7 @@ export default function Dashboard() {
                       </div>
                       <h3 className="text-sm md:text-base font-semibold">{t("dash_buffet_pos")}</h3>
                     </div>
-                    <span className="text-base md:text-lg font-bold text-orange-500">{(breakdown?.buffet.total??0).toFixed(2)} ج.م</span>
+                    <span className="text-base md:text-lg font-bold text-orange-500">{(breakdown?.buffet.total??0).toFixed(2)} {egp}</span>
                   </div>
                   <CategoryBreakdown
                     byCategory={breakdown?.buffet.byCategory ?? []}
@@ -1548,7 +1551,7 @@ export default function Dashboard() {
             </div>
             <span className="text-3xl md:text-4xl font-bold text-primary tabular" style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
               {(breakdown?.grandTotal??0).toFixed(2)}
-              <span className="text-lg md:text-xl text-primary/60 ms-1">ج.م</span>
+              <span className="text-lg md:text-xl text-primary/60 ms-1">{egp}</span>
             </span>
           </div>
 
@@ -1625,13 +1628,13 @@ export default function Dashboard() {
                               {room.totalMinutes > 0 ? durationStr : "-"}
                             </td>
                             <td className="py-3 text-end tabular-nums text-emerald-500 font-medium">
-                              {room.gamingRevenue > 0 ? `${room.gamingRevenue.toFixed(2)} ج.م` : "-"}
+                              {room.gamingRevenue > 0 ? `${room.gamingRevenue.toFixed(2)} ${egp}` : "-"}
                             </td>
                             <td className="py-3 text-end tabular-nums text-primary font-medium">
-                              {room.roomOrderRevenue > 0 ? `${room.roomOrderRevenue.toFixed(2)} ج.م` : "-"}
+                              {room.roomOrderRevenue > 0 ? `${room.roomOrderRevenue.toFixed(2)} ${egp}` : "-"}
                             </td>
                             <td className="py-3 text-end tabular-nums font-bold">
-                              {room.totalRevenue > 0 ? `${room.totalRevenue.toFixed(2)} ج.م` : "-"}
+                              {room.totalRevenue > 0 ? `${room.totalRevenue.toFixed(2)} ${egp}` : "-"}
                             </td>
                           </tr>
                         );
@@ -1651,13 +1654,13 @@ export default function Dashboard() {
                           })()}
                         </td>
                         <td className="pt-3 text-end tabular-nums font-bold text-emerald-500">
-                          {roomsData.reduce((s,r) => s+r.gamingRevenue,0).toFixed(2)} ج.م
+                          {roomsData.reduce((s,r) => s+r.gamingRevenue,0).toFixed(2)} {egp}
                         </td>
                         <td className="pt-3 text-end tabular-nums font-bold text-primary">
-                          {roomsData.reduce((s,r) => s+r.roomOrderRevenue,0).toFixed(2)} ج.م
+                          {roomsData.reduce((s,r) => s+r.roomOrderRevenue,0).toFixed(2)} {egp}
                         </td>
                         <td className="pt-3 text-end tabular-nums font-bold text-foreground">
-                          {roomsData.reduce((s,r) => s+r.totalRevenue,0).toFixed(2)} ج.م
+                          {roomsData.reduce((s,r) => s+r.totalRevenue,0).toFixed(2)} {egp}
                         </td>
                       </tr>
                     </tfoot>

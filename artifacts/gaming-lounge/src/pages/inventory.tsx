@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import { Package, AlertTriangle, Plus, Pencil, Trash2, ArrowUpDown, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang } from "@/hooks/use-language";
+import { dn } from "@/lib/display";
 
 const MGMT_ROLES = ["platform_owner", "owner", "manager"];
 
@@ -45,7 +46,7 @@ const emptyMovementForm = (): MovementForm => ({ type: "purchase", quantity: "",
 
 export default function Inventory() {
   const { user } = useAuth();
-  const { t, dir } = useLang();
+  const { t, dir, lang } = useLang();
   const queryClient = useQueryClient();
   const isManager = MGMT_ROLES.includes(user?.role ?? "");
   const searchStr = useSearch();
@@ -120,7 +121,7 @@ export default function Inventory() {
 
   const openMovement = (item: { id: number; name: string; nameAr?: string | null }) => {
     setMovementForm(emptyMovementForm());
-    setMovementDialog({ open: true, itemId: item.id, itemName: item.nameAr || item.name });
+    setMovementDialog({ open: true, itemId: item.id, itemName: dn(item, lang) });
   };
 
   const saveMovement = async () => {
@@ -235,7 +236,7 @@ export default function Inventory() {
                     <div className="flex items-center gap-2">
                       <Package className="h-4 w-4 text-muted-foreground shrink-0" />
                       <div>
-                        <p>{item.nameAr || item.name}</p>
+                        <p>{dn(item, lang)}</p>
                         {item.nameAr && <p className="text-xs text-muted-foreground">{item.name}</p>}
                       </div>
                     </div>
@@ -267,7 +268,7 @@ export default function Inventory() {
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteConfirm({ id: item.id, name: item.nameAr || item.name })}>
+                            onClick={() => setDeleteConfirm({ id: item.id, name: dn(item, lang) })}>
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </>

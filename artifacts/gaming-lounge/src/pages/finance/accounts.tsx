@@ -11,7 +11,6 @@ import { Landmark, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const EGP = (n: number | string) => `${parseFloat(String(n)).toFixed(2)} ج.م`;
 
 const ACCOUNT_TYPE_ICONS: Record<string, string> = {
   cash: "💵", bank: "🏦", wallet: "📱", card: "💳", other: "🪙",
@@ -19,6 +18,7 @@ const ACCOUNT_TYPE_ICONS: Record<string, string> = {
 
 export default function FinanceAccounts() {
   const { t, lang } = useLang();
+  const EGP = (n: number | string) => `${parseFloat(String(n)).toFixed(2)} ${t("egp_label")}`;
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");

@@ -205,7 +205,7 @@ const translations = {
     pay_visa: "فيزا / بطاقة",
     session_ended_ok: "تم إنهاء الجلسة وتسجيل الدفع بنجاح",
     session_updated: "تم تحديث حالة الجلسة",
-    egp_label: "جنيه مصري",
+    egp_label: "ج.م",
 
     /* ── Session detail ── */
     session_label: "جلسة",

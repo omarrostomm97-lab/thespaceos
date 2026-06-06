@@ -74,7 +74,7 @@ export default function Discounts() {
     }
   };
 
-  const EGP = (n: number) => `${n.toFixed(2)} ج.م`;
+  const EGP = (n: number) => `${n.toFixed(2)} ${t("egp_label")}`;
 
   const statusBadge = (status: string) => {
     if (status === "pending") return <Badge className="bg-amber-500/20 text-amber-500 border border-amber-500/30 text-[10px]">{t("discount_pending_badge")}</Badge>;
@@ -84,7 +84,7 @@ export default function Discounts() {
 
   const typeLabel = (type: string) => type === "session_time" ? t("discount_type_session") : t("discount_type_order");
   const kindLabel = (kind: string, value: number) =>
-    kind === "percent" ? `${value}%` : `${value} ج.م`;
+    kind === "percent" ? `${value}%` : `${value} ${t("egp_label")}`;
 
   return (
     <FadeIn className="p-4 md:p-6 space-y-5 max-w-5xl mx-auto" dir={dir}>

@@ -32,6 +32,7 @@ import { Plus, Pencil, Trash2, Settings, UtensilsCrossed, QrCode, RefreshCw, Dow
 import { getProductEmoji } from "@/lib/product-emoji";
 import { useAuth } from "@/hooks/use-auth";
 import { useLang } from "@/hooks/use-language";
+import { dn } from "@/lib/display";
 
 const MGMT_ROLES = ["platform_owner", "owner", "manager"];
 
@@ -44,7 +45,7 @@ const emptyCategoryForm = (): CategoryForm => ({ name: "", nameAr: "" });
 export default function Menu() {
   const { user, impersonatedTenant } = useAuth();
   const venueName = impersonatedTenant?.name ?? user?.tenantName ?? "";
-  const { t, dir } = useLang();
+  const { t, dir, lang } = useLang();
   const queryClient = useQueryClient();
   const isManager = MGMT_ROLES.includes(user?.role ?? "");
 
@@ -333,7 +334,7 @@ export default function Menu() {
             const count = products?.filter(p => p.categoryId === cat.id).length ?? 0;
             return (
               <TabsTrigger key={cat.id} value={cat.id.toString()} className="min-w-[80px] h-9 group relative">
-                <span>{cat.nameAr || cat.name} ({count})</span>
+                <span>{dn(cat, lang)} ({count})</span>
                 {isManager && (
                   <span className="hidden group-hover:flex absolute -top-1.5 -start-1.5 gap-0.5">
                     <button
@@ -343,7 +344,7 @@ export default function Menu() {
                       <Pencil className="h-2.5 w-2.5" />
                     </button>
                     <button
-                      onClick={(e) => { e.stopPropagation(); setDeleteCategoryConfirm({ id: cat.id, name: cat.nameAr || cat.name }); }}
+                      onClick={(e) => { e.stopPropagation(); setDeleteCategoryConfirm({ id: cat.id, name: dn(cat, lang) }); }}
                       className="bg-secondary border border-border rounded p-0.5 hover:bg-destructive hover:text-destructive-foreground transition-colors"
                     >
                       <Trash2 className="h-2.5 w-2.5" />
@@ -385,12 +386,12 @@ export default function Menu() {
                           )}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-bold text-base leading-tight truncate">{product.nameAr || product.name}</h3>
+                          <h3 className="font-bold text-base leading-tight truncate">{dn(product, lang)}</h3>
                           {product.nameAr && <p className="text-xs text-muted-foreground truncate">{product.name}</p>}
                           <p className="text-xs text-muted-foreground mt-0.5">{product.categoryNameAr || product.categoryName || "—"}</p>
                         </div>
                       </div>
-                      <Badge variant="outline" className="font-bold text-sm bg-secondary shrink-0 ms-2">{product.price} ج.م</Badge>
+                      <Badge variant="outline" className="font-bold text-sm bg-secondary shrink-0 ms-2">{product.price} {t("egp_label")}</Badge>
                     </div>
 
                     <div className="flex items-center justify-between pt-3 border-t border-border/50">
@@ -412,7 +413,7 @@ export default function Menu() {
                           </Button>
                           <Button
                             variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteProductConfirm({ id: product.id, name: product.nameAr || product.name })}
+                            onClick={() => setDeleteProductConfirm({ id: product.id, name: dn(product, lang) })}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -454,7 +455,7 @@ export default function Menu() {
                 </SelectTrigger>
                 <SelectContent>
                   {categories?.map((cat) => (
-                    <SelectItem key={cat.id} value={String(cat.id)}>{cat.nameAr || cat.name}</SelectItem>
+                    <SelectItem key={cat.id} value={String(cat.id)}>{dn(cat, lang)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

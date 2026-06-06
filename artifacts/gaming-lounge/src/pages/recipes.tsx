@@ -16,12 +16,13 @@ import { Input } from "@/components/ui/input";
 import { BookOpen, ChefHat, Plus, Trash2, Save, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/hooks/use-language";
+import { dn } from "@/lib/display";
 
 type DraftLine = { inventoryItemId: number; quantityUsed: string };
 
 export default function Recipes() {
   const queryClient = useQueryClient();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [draftItems, setDraftItems] = useState<DraftLine[]>([]);
   const [isDirty, setIsDirty] = useState(false);
@@ -140,7 +141,7 @@ export default function Recipes() {
                       : "hover:bg-secondary text-foreground"
                   }`}
                 >
-                  <span className="truncate">{p.nameAr || p.name}</span>
+                  <span className="truncate">{dn(p, lang)}</span>
                   {p.hasRecipe ? (
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500 ms-2" />
                   ) : (
@@ -168,7 +169,7 @@ export default function Recipes() {
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <ChefHat className="h-5 w-5 text-primary" />
-                      {selectedProduct.nameAr || selectedProduct.name}
+                      {dn(selectedProduct, lang)}
                     </CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
                       {selectedProduct.hasRecipe
@@ -225,7 +226,7 @@ export default function Recipes() {
                             onChange={e => handleChangeItem(idx, parseInt(e.target.value))}
                           >
                             {inventoryItems?.map(i => (
-                              <option key={i.id} value={i.id}>{i.nameAr || i.name}</option>
+                              <option key={i.id} value={i.id}>{dn(i, lang)}</option>
                             ))}
                           </select>
                           <div className="flex items-center gap-1.5">

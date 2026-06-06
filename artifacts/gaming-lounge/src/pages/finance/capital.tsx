@@ -11,10 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { PiggyBank, Plus, Info } from "lucide-react";
 import { toast } from "sonner";
 
-const EGP = (n: number | string) => `${parseFloat(String(n)).toFixed(2)} ج.م`;
 
 export default function FinanceCapital() {
   const { t, lang } = useLang();
+  const EGP = (n: number | string) => `${parseFloat(String(n)).toFixed(2)} ${t("egp_label")}`;
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState("");

@@ -53,6 +53,7 @@ type DiscountKind = "percent" | "fixed";
 
 export default function Sessions() {
   const { t, dir, lang } = useLang();
+  const egp = t("egp_label");
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
 
@@ -246,7 +247,7 @@ export default function Sessions() {
     const amount = parseFloat(amountStr);
     if (isNaN(amount) || amount <= 0) { toast.error(t("amount_invalid")); return; }
     if (amount < effectiveTotalCost - 0.01) {
-      toast.error(`${t("amount_too_low_error")} (${effectiveTotalCost.toFixed(2)} ج.م)`);
+      toast.error(`${t("amount_too_low_error")} (${effectiveTotalCost.toFixed(2)} ${egp})`);
       return;
     }
 
@@ -369,7 +370,7 @@ export default function Sessions() {
                     </p>
                   </div>
                   <div className="text-end shrink-0">
-                    <p className="font-bold text-emerald-500 tabular-nums">{cost.toFixed(2)} <span className="text-xs text-muted-foreground">ج.م</span></p>
+                    <p className="font-bold text-emerald-500 tabular-nums">{cost.toFixed(2)} <span className="text-xs text-muted-foreground">{egp}</span></p>
                     <Link href={`/sessions/${s.id}`}>
                       <button className="text-xs text-primary hover:underline mt-0.5">{t("session_details_btn")}</button>
                     </Link>
@@ -443,7 +444,7 @@ export default function Sessions() {
                       <p className="text-xs text-muted-foreground mb-0.5">{t("total_cost_label")}</p>
                       <p className="text-2xl font-bold text-emerald-500 tabular-nums">
                         {((session as any).totalCost ?? session.currentCost).toFixed(2)}
-                        <span className="text-sm text-emerald-500/70 ms-1">ج.م</span>
+                        <span className="text-sm text-emerald-500/70 ms-1">{egp}</span>
                       </p>
                     </div>
                   </div>
@@ -525,11 +526,11 @@ export default function Sessions() {
                           <span className="font-medium">{UNDELIVERED_STATUS_LABELS[o.status] ?? o.status}</span>
                           {o.items && o.items.length > 0 && (
                             <span className="block text-xs">
-                              {o.items.map((item: any) => `${item.quantity}× ${item.productNameAr || item.productName}`).join("، ")}
+                              {o.items.map((item: any) => `${item.quantity}× ${lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr)}`).join("، ")}
                             </span>
                           )}
                         </span>
-                        <span className="font-semibold text-foreground shrink-0">{o.totalAmount.toFixed(2)} ج.م</span>
+                        <span className="font-semibold text-foreground shrink-0">{o.totalAmount.toFixed(2)} {egp}</span>
                       </li>
                     ))}
                   </ul>
@@ -635,7 +636,7 @@ export default function Sessions() {
                                   )}
                                 >
                                   <span>{t("discount_order_ref")} #{o.id}</span>
-                                  <span>{o.totalAmount.toFixed(2)} ج.م</span>
+                                  <span>{o.totalAmount.toFixed(2)} {egp}</span>
                                 </button>
                               ))}
                             </div>
@@ -675,7 +676,7 @@ export default function Sessions() {
                                     discountKind === dk ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
                                   )}
                                 >
-                                  {dk === "percent" ? "%" : "ج.م"}
+                                  {dk === "percent" ? "%" : egp}
                                 </button>
                               ))}
                             </div>
@@ -702,15 +703,15 @@ export default function Sessions() {
                           <p className="font-semibold text-emerald-600 mb-1">{t("discount_preview_label")}</p>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">{t("discount_original")}</span>
-                            <span className="line-through text-muted-foreground">{discountPreview.original.toFixed(2)} ج.م</span>
+                            <span className="line-through text-muted-foreground">{discountPreview.original.toFixed(2)} {egp}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">{t("discount_after")}</span>
-                            <span className="font-bold text-emerald-600">{discountPreview.after.toFixed(2)} ج.م</span>
+                            <span className="font-bold text-emerald-600">{discountPreview.after.toFixed(2)} {egp}</span>
                           </div>
                           <div className="flex justify-between border-t border-emerald-500/20 pt-1 mt-1">
                             <span className="font-semibold">{t("sessions_total_after_discount")}</span>
-                            <span className="font-bold text-emerald-600">{discountPreview.totalAfter.toFixed(2)} ج.م</span>
+                            <span className="font-bold text-emerald-600">{discountPreview.totalAfter.toFixed(2)} {egp}</span>
                           </div>
                         </div>
                       )}
@@ -763,7 +764,7 @@ export default function Sessions() {
 
               {/* Amount input */}
               <div className="space-y-2">
-                <Label htmlFor="amount">{t("received_amount")} (ج.م)</Label>
+                <Label htmlFor="amount">{t("received_amount")} ({egp})</Label>
                 <Input
                   id="amount"
                   type="number"
@@ -776,7 +777,7 @@ export default function Sessions() {
                 />
                 {parseFloat(amountStr) > effectiveTotalCost + 0.01 && (
                   <p className="text-sm text-amber-500 text-center">
-                    {t("change_due")}: {(parseFloat(amountStr) - effectiveTotalCost).toFixed(2)} ج.م
+                    {t("change_due")}: {(parseFloat(amountStr) - effectiveTotalCost).toFixed(2)} {egp}
                   </p>
                 )}
               </div>

@@ -14,13 +14,14 @@ import {
 } from "recharts";
 import { cn } from "@/lib/utils";
 
-const EGP = (n: number | string | null | undefined) =>
-  n != null ? `${parseFloat(String(n)).toFixed(2)} ج.م` : "0.00 ج.م";
-
 type ReportTab = "daily" | "profitloss" | "expenses" | "cashflow" | "shifts";
 
 export default function FinanceReports() {
   const { t, lang } = useLang();
+  const EGP = (n: number | string | null | undefined) => {
+    const egp = t("egp_label");
+    return n != null ? `${parseFloat(String(n)).toFixed(2)} ${egp}` : `0.00 ${egp}`;
+  };
   const [tab, setTab] = useState<ReportTab>("profitloss");
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
@@ -209,7 +210,7 @@ export default function FinanceReports() {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                  <Tooltip formatter={(v: number) => `${v.toFixed(2)} ج.م`} />
+                  <Tooltip formatter={(v: number) => `${v.toFixed(2)} ${t("egp_label")}`} />
                   <Area type="monotone" dataKey="income" stroke="#17c964" strokeWidth={2} fill="url(#cgIncome)" />
                   <Area type="monotone" dataKey="expenses" stroke="#f31260" strokeWidth={2} fill="url(#cgExpense)" />
                 </AreaChart>
@@ -239,7 +240,7 @@ export default function FinanceReports() {
                     </div>
                     <div className="text-end shrink-0">
                       <p className={cn("text-sm font-bold tabular", diff === 0 ? "text-emerald-500" : "text-amber-500")}>
-                        {diff === 0 ? t("finance_report_balanced") : `${diff > 0 ? "+" : ""}${diff.toFixed(2)} ج.م`}
+                        {diff === 0 ? t("finance_report_balanced") : `${diff > 0 ? "+" : ""}${diff.toFixed(2)} ${t("egp_label")}`}
                       </p>
                       <p className="text-xs text-muted-foreground">{s.status}</p>
                     </div>

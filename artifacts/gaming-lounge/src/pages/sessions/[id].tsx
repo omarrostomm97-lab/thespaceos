@@ -237,7 +237,7 @@ export default function SessionDetail() {
           <CardContent>
             <div className="text-center py-5 bg-secondary/30 rounded-xl border border-border/50">
               <p className="text-muted-foreground mb-1 text-sm">{t("total_cost_label")}</p>
-              <p className="text-4xl font-bold text-emerald-500 tabular-nums">{totalCost.toFixed(2)} ج.م</p>
+              <p className="text-4xl font-bold text-emerald-500 tabular-nums">{totalCost.toFixed(2)} {t("egp_label")}</p>
 
               {/* Breakdown */}
               {(ordersCost > 0 || isActive) && (
@@ -261,7 +261,7 @@ export default function SessionDetail() {
                     return (
                       <li key={o.id} className="flex justify-between text-muted-foreground">
                         <span>{statusLabel} — {(o.items as any[])?.map((i: any) => `${i.quantity}× ${lang === "ar" ? (i.productNameAr || i.productName) : (i.productName || i.productNameAr)}`).join("، ")}</span>
-                        <span className="font-semibold text-foreground shrink-0 ms-2">{o.totalAmount.toFixed(2)} ج.م</span>
+                        <span className="font-semibold text-foreground shrink-0 ms-2">{o.totalAmount.toFixed(2)} {t("egp_label")}</span>
                       </li>
                     );
                   })}
@@ -281,7 +281,7 @@ export default function SessionDetail() {
                         {payment.status === "verified" ? t("payment_confirmed") : t("payment_pending_badge")}
                       </Badge>
                     </div>
-                    <span className="font-bold">{payment.amount.toFixed(2)} ج.م</span>
+                    <span className="font-bold">{payment.amount.toFixed(2)} {t("egp_label")}</span>
                   </div>
                 ))}
               </div>
@@ -377,7 +377,7 @@ export default function SessionDetail() {
                             ? <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px]">{t("return_approved_badge")}</Badge>
                             : <Badge className="bg-destructive/20 text-destructive border border-destructive/30 text-[10px]">{t("return_rejected_badge")}</Badge>
                           }
-                          <p className="text-xs text-muted-foreground">{parseFloat(item.totalPrice).toFixed(2)} ج.م</p>
+                          <p className="text-xs text-muted-foreground">{parseFloat(item.totalPrice).toFixed(2)} {t("egp_label")}</p>
                         </div>
                       </div>
                     );
@@ -415,7 +415,7 @@ export default function SessionDetail() {
                             {order.status}
                           </Badge>
                         </div>
-                        <span className="font-bold text-emerald-500 text-sm">{order.totalAmount.toFixed(2)} ج.م</span>
+                        <span className="font-bold text-emerald-500 text-sm">{order.totalAmount.toFixed(2)} {t("egp_label")}</span>
                       </div>
 
                       {/* Items */}
@@ -444,7 +444,7 @@ export default function SessionDetail() {
                                 )}
                               </div>
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-sm text-muted-foreground">{parseFloat(item.totalPrice).toFixed(2)} ج.م</span>
+                                <span className="text-sm text-muted-foreground">{parseFloat(item.totalPrice).toFixed(2)} {t("egp_label")}</span>
                                 {canRequest && (
                                   <Button
                                     size="sm"

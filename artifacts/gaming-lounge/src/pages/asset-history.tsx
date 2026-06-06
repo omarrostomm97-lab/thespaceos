@@ -265,9 +265,9 @@ export default function AssetHistory() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: isAr ? "عدد الجلسات"   : "Sessions",        value: sessions.length,              unit: "" },
-          { label: isAr ? "إيراد الجلسات" : "Session Revenue",  value: sessionRevTotal.toFixed(2),   unit: " ج.م" },
+          { label: isAr ? "إيراد الجلسات" : "Session Revenue",  value: sessionRevTotal.toFixed(2),   unit: ` ${t("egp_label")}` },
           { label: isAr ? "عدد الطلبات"   : "Orders",          value: orders.length,                unit: "" },
-          { label: isAr ? "إيراد الطلبات" : "Order Revenue",    value: orderRevTotal.toFixed(2),     unit: " ج.م" },
+          { label: isAr ? "إيراد الطلبات" : "Order Revenue",    value: orderRevTotal.toFixed(2),     unit: ` ${t("egp_label")}` },
         ].map(k => (
           <div key={k.label} className="rounded-xl card-base p-4">
             <p className="text-xs text-muted-foreground mb-1">{k.label}</p>
@@ -319,7 +319,7 @@ export default function AssetHistory() {
                         {formatDuration(s.totalMinutes)}
                       </td>
                       <td className="px-4 py-3 font-bold text-emerald-500 tabular-nums whitespace-nowrap">
-                        {s.totalCollected > 0 ? `${s.totalCollected.toFixed(2)} ج.م` : "-"}
+                        {s.totalCollected > 0 ? `${s.totalCollected.toFixed(2)} ${t("egp_label")}` : "-"}
                       </td>
                       <td className="px-4 py-3">
                         {s.paymentMethod ? (
@@ -366,7 +366,7 @@ export default function AssetHistory() {
                 <div className="sm:w-36 shrink-0">
                   <p className="text-xs text-muted-foreground">{format(new Date(o.createdAt), "dd/MM/yyyy")}</p>
                   <p className="text-xs font-mono text-muted-foreground">{new Date(o.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
-                  <p className="text-lg font-bold text-emerald-500 mt-1 tabular-nums">{o.totalAmount.toFixed(2)} ج.م</p>
+                  <p className="text-lg font-bold text-emerald-500 mt-1 tabular-nums">{o.totalAmount.toFixed(2)} {t("egp_label")}</p>
                   <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                     <span className={`text-xs px-2 py-0.5 rounded-full border ${ORDER_STATUS_COLORS[o.status] ?? "bg-muted text-muted-foreground border-border"}`}>
                       {ORDER_STATUS_LABELS[o.status] ?? o.status}
@@ -382,7 +382,7 @@ export default function AssetHistory() {
                         <span className="text-foreground">
                           {item.quantity}× {isAr ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr)}
                         </span>
-                        <span className="text-muted-foreground tabular-nums">{item.totalPrice.toFixed(2)} ج.م</span>
+                        <span className="text-muted-foreground tabular-nums">{item.totalPrice.toFixed(2)} {t("egp_label")}</span>
                       </div>
                     ))}
                   </div>

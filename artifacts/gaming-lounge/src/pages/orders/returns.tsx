@@ -10,12 +10,11 @@ import { RotateCcw, CheckCircle, XCircle, User, Calendar, Clock, History } from 
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-const EGP = (n: number) => `${n.toFixed(2)} ج.م`;
-
 type Tab = "pending" | "history";
 
 export default function OrderReturns() {
   const { t, dir, lang } = useLang();
+  const EGP = (n: number) => `${n.toFixed(2)} ${t("egp_label")}`;
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("pending");
 

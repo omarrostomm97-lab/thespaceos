@@ -10,7 +10,7 @@ import { format } from "date-fns";
 import { useLang } from "@/hooks/use-language";
 
 export default function Orders() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const queryClient = useQueryClient();
 
   const { data: orders, isLoading } = useListOrders(undefined, {
@@ -105,15 +105,15 @@ export default function Orders() {
                           <div>{getStatusBadge(order.status)}</div>
                         </div>
                         <div className="text-2xl font-bold text-emerald-500">
-                          {order.totalAmount.toFixed(2)} ج.م
+                          {order.totalAmount.toFixed(2)} {t("egp_label")}
                         </div>
                       </div>
 
                       <div className="space-y-2 mt-4 bg-background p-4 rounded-lg border border-border/50">
                         {order.items.map((item, idx) => (
                           <div key={idx} className="flex justify-between items-center text-sm">
-                            <span className="font-medium">{item.quantity}x {item.productNameAr || item.productName}</span>
-                            <span className="text-muted-foreground">{item.totalPrice.toFixed(2)} ج.م</span>
+                            <span className="font-medium">{item.quantity}x {lang === "ar" ? (item.productNameAr || item.productName) : (item.productName || item.productNameAr)}</span>
+                            <span className="text-muted-foreground">{item.totalPrice.toFixed(2)} {t("egp_label")}</span>
                           </div>
                         ))}
                       </div>
@@ -164,8 +164,8 @@ export default function Orders() {
                     <td className="px-6 py-4 font-medium">#{order.id}</td>
                     <td className="px-6 py-4">{format(new Date(order.createdAt), "dd/MM/yyyy")} {new Date(order.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</td>
                     <td className="px-6 py-4">{order.source === "qr" ? "QR Menu" : "POS"}</td>
-                    <td className="px-6 py-4">{order.assetNameAr || order.assetName || "-"}</td>
-                    <td className="px-6 py-4 font-bold">{order.totalAmount.toFixed(2)} ج.م</td>
+                    <td className="px-6 py-4">{lang === "ar" ? (order.assetNameAr || order.assetName) : (order.assetName || order.assetNameAr) || "-"}</td>
+                    <td className="px-6 py-4 font-bold">{order.totalAmount.toFixed(2)} {t("egp_label")}</td>
                     <td className="px-6 py-4">{getStatusBadge(order.status)}</td>
                   </tr>
                 ))}

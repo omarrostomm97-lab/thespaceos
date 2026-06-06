@@ -12,8 +12,6 @@ import { Boxes, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const EGP = (n: number | string | null | undefined) =>
-  n != null ? `${parseFloat(String(n)).toFixed(2)} ج.م` : "—";
 
 const CONDITION_COLORS: Record<string, string> = {
   new: "text-emerald-500 bg-emerald-500/10",
@@ -25,6 +23,8 @@ const CONDITION_COLORS: Record<string, string> = {
 
 export default function FinanceAssets() {
   const { t, lang } = useLang();
+  const EGP = (n: number | string | null | undefined) =>
+    n != null ? `${parseFloat(String(n)).toFixed(2)} ${t("egp_label")}` : "—";
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);

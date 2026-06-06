@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Check, ShieldAlert, CreditCard, Banknote } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useLang } from "@/hooks/use-language";
 
 export default function Payments() {
+  const { t } = useLang();
   const queryClient = useQueryClient();
   const { data: payments, isLoading } = useListPayments();
   const verifyPayment = useVerifyPayment();
@@ -67,7 +69,7 @@ export default function Payments() {
                 </div>
                 
                 <div className="text-3xl font-bold text-foreground mb-4 font-mono">
-                  {payment.amount.toFixed(2)} ج.م
+                  {payment.amount.toFixed(2)} {t("egp_label")}
                 </div>
 
                 {payment.instapayReference && (

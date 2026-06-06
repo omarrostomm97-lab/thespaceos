@@ -12,10 +12,10 @@ import { TrendingUp, Plus, Gamepad2, ShoppingCart, Utensils, Banknote } from "lu
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const EGP = (n: number | string) => `${parseFloat(String(n)).toFixed(2)} ج.م`;
 
 export default function FinanceMoneyIn() {
   const { t, lang } = useLang();
+  const EGP = (n: number | string) => `${parseFloat(String(n)).toFixed(2)} ${t("egp_label")}`;
   const qc = useQueryClient();
   const [period, setPeriod] = useState<"today" | "week" | "month">("month");
   const [open, setOpen] = useState(false);
