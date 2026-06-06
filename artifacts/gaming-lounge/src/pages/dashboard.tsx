@@ -763,7 +763,7 @@ export default function Dashboard() {
         <StaggerItem>
           <KpiCard label={t("kpi_active_sessions")} value={summary?.activeSessions ?? 0}
             subtitle={`${summary?.occupiedAssets ?? 0}/${summary?.totalAssets ?? 0} ${t("dash_devices_suffix")}`}
-            icon={Gamepad2} iconClass="bg-primary/15 text-primary" isLive compact={isMobile} />
+            icon={Gamepad2} iconClass="bg-primary/15 text-primary" isLive compact={isMobile} href="/sessions" />
         </StaggerItem>
         <StaggerItem>
           <KpiCard
@@ -776,13 +776,13 @@ export default function Dashboard() {
             isFloat
             subtitle={PERIOD_LABELS[period]}
             icon={Receipt} iconClass="bg-emerald-500/15 text-emerald-500"
-            compact={isMobile} />
+            compact={isMobile} href="/payments" />
         </StaggerItem>
         <StaggerItem>
           <KpiCard label={t("kpi_pending_orders")} value={summary?.pendingOrders ?? 0}
             subtitle={t("dash_need_action")}
             icon={ShoppingCart} iconClass="bg-amber-500/15 text-amber-500"
-            compact={isMobile} />
+            compact={isMobile} href="/orders" />
         </StaggerItem>
         <StaggerItem>
           <KpiCard label={t("kpi_low_stock")} value={summary?.lowStockAlerts ?? 0}
@@ -797,43 +797,49 @@ export default function Dashboard() {
       {source === "all" && revenueStats !== undefined && (
         <div className="hidden md:grid gap-4 md:grid-cols-3">
           <HoverCard>
-            <div className="bg-card border border-emerald-500/15 rounded-xl p-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-                <Gamepad2 className="h-5 w-5 text-emerald-500" />
+            <Link href="/sessions" className="block">
+              <div className="bg-card border border-emerald-500/15 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:opacity-90 transition-opacity">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
+                  <Gamepad2 className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{`${t("dash_gaming_time")} — ${PERIOD_LABELS[period]}`}</p>
+                  <p className="text-2xl font-bold text-emerald-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                    {(revenueStats.sessionRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{`${t("dash_gaming_time")} — ${PERIOD_LABELS[period]}`}</p>
-                <p className="text-2xl font-bold text-emerald-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(revenueStats.sessionRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
-                </p>
-              </div>
-            </div>
+            </Link>
           </HoverCard>
           <HoverCard>
-            <div className="bg-card border border-primary/15 rounded-xl p-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                <ShoppingCart className="h-5 w-5 text-primary" />
+            <Link href="/orders" className="block">
+              <div className="bg-card border border-primary/15 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:opacity-90 transition-opacity">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <ShoppingCart className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{`${t("dash_room_orders")} — ${PERIOD_LABELS[period]}`}</p>
+                  <p className="text-2xl font-bold text-primary tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                    {(revenueStats.roomOrderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{`${t("dash_room_orders")} — ${PERIOD_LABELS[period]}`}</p>
-                <p className="text-2xl font-bold text-primary tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(revenueStats.roomOrderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
-                </p>
-              </div>
-            </div>
+            </Link>
           </HoverCard>
           <HoverCard>
-            <div className="bg-card border border-orange-500/15 rounded-xl p-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
-                <Utensils className="h-5 w-5 text-orange-500" />
+            <Link href="/orders" className="block">
+              <div className="bg-card border border-orange-500/15 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:opacity-90 transition-opacity">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
+                  <Utensils className="h-5 w-5 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">{`${t("dash_buffet_pos")} — ${PERIOD_LABELS[period]}`}</p>
+                  <p className="text-2xl font-bold text-orange-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+                    {(revenueStats.orderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{`${t("dash_buffet_pos")} — ${PERIOD_LABELS[period]}`}</p>
-                <p className="text-2xl font-bold text-orange-500 tabular" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-                  {(revenueStats.orderRevenue ?? 0).toFixed(2)} <span className="text-base opacity-60">{egp}</span>
-                </p>
-              </div>
-            </div>
+            </Link>
           </HoverCard>
         </div>
       )}
@@ -974,61 +980,58 @@ export default function Dashboard() {
               <>
                 <div className="flex gap-2.5 overflow-x-auto pb-2 -mx-4 px-4 md:hidden scrollbar-hide snap-x snap-mandatory">
                   {activeSessions?.map((session, i) => (
-                    <motion.div key={session.id}
-                      initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="shrink-0 w-[calc(50%-6px)] min-w-[148px] bg-secondary/60 rounded-2xl p-3.5 snap-start border border-border/60">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
-                          <Gamepad2 className="h-3.5 w-3.5 text-primary" />
+                    <Link key={session.id} href={`/sessions/${session.id}`} className="shrink-0 w-[calc(50%-6px)] min-w-[148px] snap-start block">
+                      <motion.div
+                        initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className="bg-secondary/60 rounded-2xl p-3.5 border border-border/60 cursor-pointer hover:bg-secondary/80 transition-colors h-full">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center">
+                            <Gamepad2 className="h-3.5 w-3.5 text-primary" />
+                          </div>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            session.status === "active" ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
+                          }`}>
+                            {session.status === "active" ? t("dash_session_active") : t("dash_session_paused")}
+                          </span>
                         </div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          session.status === "active" ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"
-                        }`}>
-                          {session.status === "active" ? t("dash_session_active") : t("dash_session_paused")}
-                        </span>
-                      </div>
-                      <p className="text-sm font-bold leading-tight truncate mb-1">
-                        {lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}
-                      </p>
-                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-2.5">
-                        <Clock className="h-3 w-3" />
-                        <span>
-                          {Math.floor(session.currentMinutes / 60)}{t("dash_hour_short")} {session.currentMinutes % 60}{t("dash_minute_short")}
-                        </span>
-                      </div>
-                      <p className="text-base font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
-                    </motion.div>
+                        <p className="text-sm font-bold leading-tight truncate mb-1">
+                          {lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}
+                        </p>
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground mb-2.5">
+                          <Clock className="h-3 w-3" />
+                          <span>
+                            {Math.floor(session.currentMinutes / 60)}{t("dash_hour_short")} {session.currentMinutes % 60}{t("dash_minute_short")}
+                          </span>
+                        </div>
+                        <p className="text-base font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
+                      </motion.div>
+                    </Link>
                   ))}
                 </div>
 
                 <div className="hidden md:block space-y-0">
                   {activeSessions?.slice(0,5).map((session, i) => (
-                    <motion.div key={session.id}
-                      initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.04 }}
-                      className="flex items-center justify-between py-3.5 border-b border-border/40 last:border-0">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-primary/12 flex items-center justify-center shrink-0">
-                          <Gamepad2 className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold">{lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}</p>
-                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                            <Clock className="h-3 w-3" />
-                            <span>{Math.floor(session.currentMinutes/60)}{t("dash_hour_short")} {session.currentMinutes%60}{t("dash_minute_short")}</span>
+                    <Link key={session.id} href={`/sessions/${session.id}`} className="block">
+                      <motion.div
+                        initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        className="flex items-center justify-between py-3.5 border-b border-border/40 last:border-0 cursor-pointer hover:bg-secondary/30 rounded-lg px-2 -mx-2 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-primary/12 flex items-center justify-center shrink-0">
+                            <Gamepad2 className="h-4 w-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold">{lang === "ar" ? (session.assetNameAr || session.assetName) : (session.assetName || session.assetNameAr)}</p>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                              <Clock className="h-3 w-3" />
+                              <span>{Math.floor(session.currentMinutes/60)}{t("dash_hour_short")} {session.currentMinutes%60}{t("dash_minute_short")}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2.5">
                         <p className="text-sm font-bold text-emerald-500">{session.currentCost.toFixed(2)} {egp}</p>
-                        <Link href={`/sessions/${session.id}`}>
-                          <span className="text-xs border border-border/80 rounded-lg px-2.5 py-1 text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
-                            {t("manage")}
-                          </span>
-                        </Link>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    </Link>
                   ))}
                 </div>
               </>
@@ -1082,6 +1085,7 @@ export default function Dashboard() {
                   icon: TrendingUp,
                   color: "text-emerald-500",
                   bg: "bg-emerald-500/10",
+                  href: "/finance/money-in",
                 },
                 {
                   label: t("dash_month_expenses"),
@@ -1089,6 +1093,7 @@ export default function Dashboard() {
                   icon: TrendingDown,
                   color: "text-red-500",
                   bg: "bg-red-500/10",
+                  href: "/finance/expenses",
                 },
                 {
                   label: t("dash_net_profit"),
@@ -1096,6 +1101,7 @@ export default function Dashboard() {
                   icon: DollarSign,
                   color: (financeOverview.profitMonth ?? 0) >= 0 ? "text-[#17c964]" : "text-red-500",
                   bg: (financeOverview.profitMonth ?? 0) >= 0 ? "bg-[#17c964]/10" : "bg-red-500/10",
+                  href: "/finance/reports",
                 },
                 {
                   label: t("dash_cash_balance"),
@@ -1103,19 +1109,22 @@ export default function Dashboard() {
                   icon: Wallet,
                   color: "text-cyan-500",
                   bg: "bg-cyan-500/10",
+                  href: "/finance/accounts",
                 },
-              ].map(({ label, value, icon: Icon, color, bg }) => (
-                <div key={label} className="card-base rounded-2xl p-3.5 flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
-                    <Icon className={`h-4 w-4 ${color}`} />
+              ].map(({ label, value, icon: Icon, color, bg, href }) => (
+                <Link key={label} href={href} className="block">
+                  <div className="card-base rounded-2xl p-3.5 flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity">
+                    <div className={`w-8 h-8 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
+                      <Icon className={`h-4 w-4 ${color}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] text-muted-foreground leading-tight truncate">{label}</p>
+                      <p className={`text-sm font-bold tabular-nums ${color}`}>
+                        {parseFloat(String(value)).toFixed(0)} <span className="text-[10px] font-normal text-muted-foreground">{egp}</span>
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground leading-tight truncate">{label}</p>
-                    <p className={`text-sm font-bold tabular-nums ${color}`}>
-                      {parseFloat(String(value)).toFixed(0)} <span className="text-[10px] font-normal text-muted-foreground">{egp}</span>
-                    </p>
-                  </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
@@ -1135,27 +1144,29 @@ export default function Dashboard() {
     <div className="space-y-4 md:space-y-6">
       <StaggerChildren className="grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-4">
         {[
-          { label: t("dash_total_revenue"),  value:revenueStats?.total??0,            color:"text-primary",      Icon:Receipt },
-          { label: t("dash_gaming_time"),     value:revenueStats?.sessionRevenue??0,   color:"text-emerald-500",  Icon:Gamepad2 },
-          { label: t("dash_room_orders"),     value:revenueStats?.roomOrderRevenue??0, color:"text-primary",      Icon:ShoppingCart },
-          { label: t("dash_buffet_pos"),      value:revenueStats?.orderRevenue??0,     color:"text-orange-500",   Icon:Utensils },
+          { label: t("dash_total_revenue"),  value:revenueStats?.total??0,            color:"text-primary",      Icon:Receipt,       href:"/payments" },
+          { label: t("dash_gaming_time"),     value:revenueStats?.sessionRevenue??0,   color:"text-emerald-500",  Icon:Gamepad2,      href:"/sessions" },
+          { label: t("dash_room_orders"),     value:revenueStats?.roomOrderRevenue??0, color:"text-primary",      Icon:ShoppingCart,  href:"/orders" },
+          { label: t("dash_buffet_pos"),      value:revenueStats?.orderRevenue??0,     color:"text-orange-500",   Icon:Utensils,      href:"/orders" },
         ].map((stat) => (
           <StaggerItem key={stat.label}>
             <HoverCard>
-              <div className="bg-card border border-card-border rounded-2xl p-4 md:p-5 flex items-center gap-4 md:block">
-                <div className="md:hidden">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${stat.color === "text-primary" ? "bg-primary/15" : stat.color === "text-emerald-500" ? "bg-emerald-500/15" : stat.color === "text-orange-500" ? "bg-orange-500/15" : "bg-primary/15"}`}>
-                    <stat.Icon className={`h-5 w-5 ${stat.color}`} />
+              <Link href={stat.href} className="block">
+                <div className="bg-card border border-card-border rounded-2xl p-4 md:p-5 flex items-center gap-4 md:block cursor-pointer hover:opacity-90 transition-opacity">
+                  <div className="md:hidden">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${stat.color === "text-primary" ? "bg-primary/15" : stat.color === "text-emerald-500" ? "bg-emerald-500/15" : stat.color === "text-orange-500" ? "bg-orange-500/15" : "bg-primary/15"}`}>
+                      <stat.Icon className={`h-5 w-5 ${stat.color}`} />
+                    </div>
+                  </div>
+                  <div className="flex-1 md:flex-none">
+                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground/75 font-medium md:mb-3">{stat.label}</p>
+                    <p className={`text-2xl md:text-3xl font-bold tabular ${stat.color}`} style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
+                      {stat.value.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t("egp_label")}</p>
                   </div>
                 </div>
-                <div className="flex-1 md:flex-none">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground/75 font-medium md:mb-3">{stat.label}</p>
-                  <p className={`text-2xl md:text-3xl font-bold tabular ${stat.color}`} style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
-                    {stat.value.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t("egp_label")}</p>
-                </div>
-              </div>
+              </Link>
             </HoverCard>
           </StaggerItem>
         ))}
@@ -1264,18 +1275,20 @@ export default function Dashboard() {
           ].map(stat => (
             <StaggerItem key={stat.label}>
               <HoverCard>
-                <div className="bg-card border border-card-border rounded-2xl p-4 flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${stat.color==="text-primary"?"bg-primary/15":stat.color==="text-emerald-500"?"bg-emerald-500/15":stat.color==="text-orange-500"?"bg-orange-500/15":"bg-primary/15"}`}>
-                    <stat.Icon className={`h-4 w-4 ${stat.color}`} />
+                <Link href="/shifts" className="block">
+                  <div className="bg-card border border-card-border rounded-2xl p-4 flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${stat.color==="text-primary"?"bg-primary/15":stat.color==="text-emerald-500"?"bg-emerald-500/15":stat.color==="text-orange-500"?"bg-orange-500/15":"bg-primary/15"}`}>
+                      <stat.Icon className={`h-4 w-4 ${stat.color}`} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                      <p className={`text-xl font-bold tabular ${stat.color}`} style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
+                        {stat.isFloat ? (stat.value as number).toFixed(2) : stat.value}
+                        {stat.isFloat && <span className="text-sm opacity-60 ms-1">{egp}</span>}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[11px] text-muted-foreground">{stat.label}</p>
-                    <p className={`text-xl font-bold tabular ${stat.color}`} style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
-                      {stat.isFloat ? (stat.value as number).toFixed(2) : stat.value}
-                      {stat.isFloat && <span className="text-sm opacity-60 ms-1">{egp}</span>}
-                    </p>
-                  </div>
-                </div>
+                </Link>
               </HoverCard>
             </StaggerItem>
           ))}
@@ -1299,7 +1312,8 @@ export default function Dashboard() {
               const hasDiff = diff !== 0 && shift.status === "closed";
               return (
                 <HoverCard key={shift.id}>
-                  <div className={`bg-card rounded-2xl p-4 md:p-5 border ${isOpen ? "border-emerald-500/30" : "border-card-border"}`}>
+                  <Link href="/shifts" className="block">
+                  <div className={`bg-card rounded-2xl p-4 md:p-5 border cursor-pointer hover:opacity-90 transition-opacity ${isOpen ? "border-emerald-500/30" : "border-card-border"}`}>
                     {/* Header row */}
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div className="flex items-center gap-3">
@@ -1390,6 +1404,7 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
+                  </Link>
                 </HoverCard>
               );
             })}
