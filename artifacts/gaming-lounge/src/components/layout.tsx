@@ -112,6 +112,15 @@ export function Layout({ children }: LayoutProps) {
 
   const hiddenTranslate = dir === "rtl" ? "max-md:translate-x-full" : "max-md:-translate-x-full";
 
+  // KDS gets the full screen — no sidebar, no top bar
+  if (location === "/kds") {
+    return (
+      <div className="h-screen overflow-hidden bg-background" dir={dir}>
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen bg-background" dir={dir}>
 
