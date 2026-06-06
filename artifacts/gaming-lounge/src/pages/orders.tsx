@@ -20,7 +20,7 @@ import { format } from "date-fns";
 import { useLang } from "@/hooks/use-language";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  ShoppingCart, Check, Clock, ChefHat, Package, X, Search,
+  ShoppingCart, Check, Clock, X, Search,
   ChevronDown, ChevronUp, RotateCcw, QrCode, Monitor,
   Loader2, Timer, User, CheckCircle2,
 } from "lucide-react";
@@ -143,18 +143,6 @@ function OrderCard({ order, lang, t, onCardClick, onStatusUpdate, onCancelClick,
       )}
 
       <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
-        {order.status === "pending" && (
-          <Button size="sm" className="flex-1 h-7 text-[11px] bg-amber-500 hover:bg-amber-600 text-black font-bold rounded-xl"
-            onClick={() => onStatusUpdate(order.id, "preparing")} disabled={isUpdating}>
-            <ChefHat className="h-3 w-3 me-1" /> {t("ord_mark_preparing")}
-          </Button>
-        )}
-        {order.status === "preparing" && (
-          <Button size="sm" className="flex-1 h-7 text-[11px] bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-xl"
-            onClick={() => onStatusUpdate(order.id, "ready")} disabled={isUpdating}>
-            <Package className="h-3 w-3 me-1" /> {t("ord_mark_ready")}
-          </Button>
-        )}
         {order.status === "ready" && (
           <Button size="sm" className="flex-1 h-7 text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl"
             onClick={() => onStatusUpdate(order.id, "delivered")} disabled={isUpdating}>
@@ -305,20 +293,8 @@ function OrderDrawer({
           </div>
 
           {/* Quick action buttons */}
-          {["pending","preparing","ready","delivered"].includes(order.status) && (
+          {["ready","delivered"].includes(order.status) && (
             <div className="flex gap-2 flex-wrap">
-              {order.status === "pending" && (
-                <Button size="sm" className="bg-amber-500 hover:bg-amber-600 text-black font-bold"
-                  onClick={() => onStatusUpdate(order.id, "preparing")} disabled={isUpdating}>
-                  <ChefHat className="h-3.5 w-3.5 me-1" /> {t("ord_mark_preparing")}
-                </Button>
-              )}
-              {order.status === "preparing" && (
-                <Button size="sm" className="bg-emerald-500 hover:bg-emerald-600 text-black font-bold"
-                  onClick={() => onStatusUpdate(order.id, "ready")} disabled={isUpdating}>
-                  <Package className="h-3.5 w-3.5 me-1" /> {t("ord_mark_ready")}
-                </Button>
-              )}
               {order.status === "ready" && (
                 <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                   onClick={() => onStatusUpdate(order.id, "delivered")} disabled={isUpdating}>
