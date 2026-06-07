@@ -49,6 +49,7 @@
   "dependencies": {
     "@heroui/react": "^3.1.0",
     "@heroui/styles": "^3.1.0",
+    "docx": "^9.7.1",
     "qrcode.react": "^4.2.0"
   }
 }

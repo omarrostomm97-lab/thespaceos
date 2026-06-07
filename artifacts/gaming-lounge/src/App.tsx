@@ -45,6 +45,7 @@ import FinanceWithdrawals from "@/pages/finance/withdrawals";
 import FinanceAccounts from "@/pages/finance/accounts";
 import FinanceAssets from "@/pages/finance/assets";
 import FinanceReports from "@/pages/finance/reports";
+import UserGuideScripts from "@/pages/user-guide-scripts";
 import { UserRole, ROUTE_ALLOWED_ROLES, defaultRedirect } from "@/lib/permissions";
 
 const queryClient = new QueryClient();
@@ -176,6 +177,10 @@ function Router() {
       </Route>
       <Route path="/finance/reports">
         <ProtectedPage path="/finance/reports"><FinanceReports /></ProtectedPage>
+      </Route>
+
+      <Route path="/user-guide-scripts">
+        <ProtectedPage path="/user-guide-scripts"><UserGuideScripts /></ProtectedPage>
       </Route>
 
       <Route component={NotFound} />

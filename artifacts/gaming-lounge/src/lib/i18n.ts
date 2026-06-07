@@ -454,6 +454,9 @@ const translations = {
     switch_to_arabic: "العربية",
 
     /* ── Finance Navigation ── */
+    nav_user_guide: "دليل المستخدم",
+
+    /* ── Finance Navigation ── */
     nav_finance_section: "المالية",
     nav_finance_overview: "نظرة عامة",
     nav_finance_expenses: "المصروفات",
@@ -851,6 +854,25 @@ const translations = {
     menu_qr_update_note: "تجديد الكود ينشئ رابطاً جديداً — حدّث أي كود مطبوع بعد التجديد.",
     menu_qr_generated_ok: "تم إنشاء كود QR بنجاح",
     menu_qr_error: "فشل إنشاء كود QR",
+
+    /* ── User Guide Scripts ── */
+    ug_page_title: "دليل المستخدم",
+    ug_page_subtitle: "دليل احترافي ثنائي اللغة لكل وحدة — للتدريب وإنتاج الفيديوهات التعليمية",
+    ug_search_placeholder: "ابحث عن وحدة...",
+    ug_filter_role: "الدور",
+    ug_filter_lang: "اللغة",
+    ug_role_all: "الكل",
+    ug_lang_both: "الاثنتان",
+    ug_lang_en: "إنجليزي",
+    ug_lang_ar: "عربي",
+    ug_export_all_pdf: "طباعة الكل",
+    ug_export_en_pdf: "طباعة (إنجليزي)",
+    ug_export_ar_pdf: "طباعة (عربي)",
+    ug_export_video_pdf: "طباعة السكريبت",
+    ug_export_docx: "تصدير DOCX",
+    ug_expand_all: "توسيع الكل",
+    ug_collapse_all: "طي الكل",
+    ug_modules_count: "وحدة",
   },
   en: {
     /* ── Brand ── */
@@ -875,6 +897,7 @@ const translations = {
     nav_users: "Users",
     nav_audit: "Audit Log",
     nav_settings: "Settings",
+    nav_user_guide: "User Guide Scripts",
 
     /* ── Sidebar ── */
     help: "Help & Information",
@@ -1702,6 +1725,25 @@ const translations = {
     menu_qr_update_note: "Regenerating creates a new URL — update any printed QR codes after regenerating.",
     menu_qr_generated_ok: "QR code generated!",
     menu_qr_error: "Failed to generate QR code",
+
+    /* ── User Guide Scripts ── */
+    ug_page_title: "User Guide Scripts",
+    ug_page_subtitle: "Bilingual professional guide for every module — for staff onboarding and video production",
+    ug_search_placeholder: "Search modules...",
+    ug_filter_role: "Role",
+    ug_filter_lang: "Language",
+    ug_role_all: "All Roles",
+    ug_lang_both: "Both",
+    ug_lang_en: "English",
+    ug_lang_ar: "Arabic",
+    ug_export_all_pdf: "Print All",
+    ug_export_en_pdf: "Print (English)",
+    ug_export_ar_pdf: "Print (Arabic)",
+    ug_export_video_pdf: "Print Scripts",
+    ug_export_docx: "Export DOCX",
+    ug_expand_all: "Expand All",
+    ug_collapse_all: "Collapse All",
+    ug_modules_count: "modules",
   },
 } as const;
 

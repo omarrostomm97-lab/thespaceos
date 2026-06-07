@@ -46,6 +46,7 @@ export const ROUTE_ALLOWED_ROLES: Record<string, UserRole[]> = {
   "/finance/accounts":    FINANCE_ROLES,
   "/finance/assets":      FINANCE_ROLES,
   "/finance/reports":     FINANCE_ROLES,
+  "/user-guide-scripts":  ["owner", "manager"],
 };
 
 export function canAccess(role: UserRole | undefined, routePath: string): boolean {

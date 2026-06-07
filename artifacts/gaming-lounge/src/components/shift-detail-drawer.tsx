@@ -1,0 +1,474 @@
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
+import { X, Banknote, CreditCard, Smartphone } from "lucide-react";
+import { Link } from "wouter";
+import { cn } from "@/lib/utils";
+
+/* ─── Types ─────────────────────────────────────────── */
+export type ShiftDrawerTab = "gaming" | "roomOrders" | "pos" | "sessions" | "orders";
+
+export interface ShiftMeta {
+  id: number;
+  userName: string | null;
+  openedAt: string;
+  closedAt: string | null;
+  status: string;
+  totalRevenue: number;
+  durationMinutes: number;
+  gamingRevenue: number;
+  roomOrderRevenue: number;
+  posRevenue: number;
+  sessionCount: number;
+  orderCount: number;
+}
+
+interface SessionItem {
+  id: number; assetId: number; assetName: string | null; assetNameAr: string | null;
+  status: string; startedAt: string; endedAt: string | null;
+  totalMinutes: number | null; totalCost: number | null;
+  payments: Array<{ method: string; amount: number }>;
+}
+
+interface OrderItem {
+  id: number; source: string; sessionId: number | null; assetId: number | null;
+  assetName: string | null; assetNameAr: string | null;
+  totalAmount: number; createdAt: string;
+  items: Array<{ productName: string; productNameAr: string | null; quantity: number; unitPrice: number; totalPrice: number }>;
+}
+
+interface ShiftSummaryData {
+  sessions: SessionItem[];
+  roomOrders: OrderItem[];
+  posOrders: OrderItem[];
+}
+
+/* ─── Fetch helper ──────────────────────────────────── */
+async function fetchShiftSummary(shiftId: number): Promise<ShiftSummaryData> {
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("gl_token") : null;
+  const res = await fetch(`/api/shifts/${shiftId}/summary`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Failed to load summary");
+  return res.json();
+}
+
+/* ─── Helpers ───────────────────────────────────────── */
+function fmtTime(iso: string, lang: string) {
+  return new Date(iso).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", {
+    hour: "2-digit", minute: "2-digit", hour12: true,
+  });
+}
+
+function fmtDuration(mins: number) {
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+const TAB_COLOR: Record<string, string> = {
+  emerald: "bg-emerald-500/15 text-emerald-500 border border-emerald-500/25",
+  blue:    "bg-primary/15 text-primary border border-primary/25",
+  orange:  "bg-orange-500/15 text-orange-500 border border-orange-500/25",
+  purple:  "bg-purple-500/15 text-purple-500 border border-purple-500/25",
+  slate:   "bg-muted text-foreground border border-border",
+};
+
+/* ─── Sessions list ─────────────────────────────────── */
+function SessionsList({ items, lang, egp }: { items: SessionItem[]; lang: string; egp: string }) {
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-14 text-muted-foreground">
+        <div className="text-3xl mb-2">🎮</div>
+        <p className="text-sm">{lang === "ar" ? "لا توجد جلسات" : "No sessions found"}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {items.map((s) => {
+        const name = lang === "ar" ? (s.assetNameAr || s.assetName) : (s.assetName || s.assetNameAr);
+        const totalPaid = s.payments.reduce((sum, p) => sum + p.amount, 0);
+        const cost = s.totalCost ?? totalPaid;
+        const isLive = s.status === "active" || s.status === "paused";
+        return (
+          <Link href={`/sessions/${s.id}`} key={s.id} className="block">
+            <div className="bg-card border border-card-border rounded-2xl p-4 hover:opacity-90 transition-opacity active:scale-[0.99] transition-transform">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-lg shrink-0">
+                    🎮
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold">{name || "—"}</p>
+                      {isLive && (
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {fmtTime(s.startedAt, lang)}
+                      {" → "}
+                      {s.endedAt ? fmtTime(s.endedAt, lang) : (lang === "ar" ? "الآن" : "Now")}
+                      {s.totalMinutes != null && (
+                        <span className="ms-2 text-primary/70 font-medium">{fmtDuration(s.totalMinutes)}</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-end shrink-0">
+                  <p className="text-base font-bold text-emerald-500 tabular-nums">
+                    {cost.toFixed(2)}
+                    <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
+                  </p>
+                  <span className={cn(
+                    "inline-block text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full mt-0.5",
+                    isLive ? "bg-emerald-500/10 text-emerald-500" :
+                    s.status === "cancelled" ? "bg-red-500/10 text-red-500" :
+                    "bg-muted text-muted-foreground"
+                  )}>
+                    {s.status}
+                  </span>
+                </div>
+              </div>
+
+              {s.payments.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-border/40">
+                  {s.payments.map((p, i) => (
+                    <span key={i} className="flex items-center gap-1 text-[10px] text-muted-foreground bg-muted/60 px-2 py-1 rounded-lg">
+                      {p.method === "cash" ? <Banknote className="h-3 w-3" /> :
+                       p.method === "visa" ? <CreditCard className="h-3 w-3" /> :
+                       <Smartphone className="h-3 w-3" />}
+                      <span className="tabular-nums">{p.amount.toFixed(2)} {egp}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Single order card ─────────────────────────────── */
+function OrderCard({ o, lang, egp }: { o: OrderItem; lang: string; egp: string }) {
+  const assetLabel = lang === "ar" ? (o.assetNameAr || o.assetName) : (o.assetName || o.assetNameAr);
+  const isRoom = o.sessionId !== null;
+  return (
+    <div className="bg-card border border-card-border rounded-2xl p-4">
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">{isRoom ? "🎯" : "🛒"}</span>
+          <div>
+            <p className="text-xs font-bold leading-tight">
+              {isRoom
+                ? (assetLabel || (lang === "ar" ? "غرفة" : "Room"))
+                : (lang === "ar" ? "بوفيه / POS" : "POS / Buffet")}
+            </p>
+            <p className="text-[10px] text-muted-foreground">{fmtTime(o.createdAt, lang)}</p>
+          </div>
+        </div>
+        <p className="text-base font-bold text-primary tabular-nums shrink-0">
+          {o.totalAmount.toFixed(2)}
+          <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
+        </p>
+      </div>
+      <div className="space-y-1.5 pt-2 border-t border-border/40">
+        {o.items.map((item, i) => {
+          const itemName = lang === "ar" ? (item.productNameAr || item.productName) : item.productName;
+          return (
+            <div key={i} className="flex items-center justify-between gap-2">
+              <span className="text-xs text-muted-foreground">
+                <span className="font-semibold text-primary/80">{item.quantity}×</span>{" "}
+                <span className="text-foreground">{itemName}</span>
+              </span>
+              <span className="text-[11px] tabular-nums text-muted-foreground shrink-0">
+                {item.totalPrice.toFixed(2)} {egp}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Orders list (with optional AM/PM grouping) ─────── */
+function OrdersList({ items, lang, egp, groupByAmPm = false }: {
+  items: OrderItem[]; lang: string; egp: string; groupByAmPm?: boolean;
+}) {
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-14 text-muted-foreground">
+        <div className="text-3xl mb-2">📦</div>
+        <p className="text-sm">{lang === "ar" ? "لا توجد طلبات" : "No orders found"}</p>
+      </div>
+    );
+  }
+
+  if (!groupByAmPm) {
+    return <div className="space-y-3">{items.map(o => <OrderCard key={o.id} o={o} lang={lang} egp={egp} />)}</div>;
+  }
+
+  const amOrders = items.filter(o => new Date(o.createdAt).getHours() < 12);
+  const pmOrders = items.filter(o => new Date(o.createdAt).getHours() >= 12);
+  const amTotal  = amOrders.reduce((s, o) => s + o.totalAmount, 0);
+  const pmTotal  = pmOrders.reduce((s, o) => s + o.totalAmount, 0);
+
+  return (
+    <div className="space-y-6">
+      {amOrders.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">🌅</span>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              {lang === "ar" ? "صباحاً — AM" : "Morning — AM"}
+            </p>
+            <div className="h-px flex-1 bg-border/50" />
+            <span className="text-[11px] font-bold tabular-nums text-orange-500">
+              {amTotal.toFixed(2)} {egp}
+            </span>
+          </div>
+          <div className="space-y-3">{amOrders.map(o => <OrderCard key={o.id} o={o} lang={lang} egp={egp} />)}</div>
+        </div>
+      )}
+      {pmOrders.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-base">🌆</span>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+              {lang === "ar" ? "مساءً — PM" : "Afternoon / Evening — PM"}
+            </p>
+            <div className="h-px flex-1 bg-border/50" />
+            <span className="text-[11px] font-bold tabular-nums text-primary">
+              {pmTotal.toFixed(2)} {egp}
+            </span>
+          </div>
+          <div className="space-y-3">{pmOrders.map(o => <OrderCard key={o.id} o={o} lang={lang} egp={egp} />)}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Main Drawer Component ─────────────────────────── */
+export default function ShiftDetailDrawer({
+  shiftId,
+  initialTab,
+  shiftMeta,
+  onClose,
+  lang,
+}: {
+  shiftId: number | null;
+  initialTab: ShiftDrawerTab;
+  shiftMeta: ShiftMeta | null;
+  onClose: () => void;
+  lang: string;
+}) {
+  const [activeTab, setActiveTab] = useState<ShiftDrawerTab>(initialTab);
+  const egp = lang === "ar" ? "ج.م" : "EGP";
+
+  useEffect(() => {
+    if (shiftId !== null) setActiveTab(initialTab);
+  }, [shiftId, initialTab]);
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["shift-summary", shiftId],
+    enabled: shiftId !== null,
+    queryFn: () => fetchShiftSummary(shiftId!),
+    staleTime: 30_000,
+  });
+
+  const TABS: Array<{ id: ShiftDrawerTab; labelEn: string; labelAr: string; icon: string; color: string }> = [
+    { id: "gaming",     labelEn: "Gaming Time",  labelAr: "وقت الجيم",   icon: "🎮", color: "emerald" },
+    { id: "roomOrders", labelEn: "Room Orders",  labelAr: "طلبات الغرف", icon: "🎯", color: "blue" },
+    { id: "pos",        labelEn: "POS / Buffet", labelAr: "البوفيه",     icon: "🛒", color: "orange" },
+    { id: "sessions",   labelEn: "Sessions",     labelAr: "الجلسات",     icon: "⏱️",  color: "purple" },
+    { id: "orders",     labelEn: "All Orders",   labelAr: "كل الطلبات",  icon: "📦", color: "slate" },
+  ];
+
+  const allOrders = data
+    ? [...data.roomOrders, ...data.posOrders].sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+    : [];
+
+  const isOpen = shiftId !== null;
+
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            className="fixed inset-0 bg-black/65 z-[60] backdrop-blur-[2px]"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={onClose}
+          />
+
+          {/* Sheet */}
+          <motion.div
+            className="fixed bottom-0 inset-x-0 z-[61] rounded-t-[28px] shadow-2xl flex flex-col overflow-hidden"
+            style={{ maxHeight: "92dvh", background: "hsl(var(--card))" }}
+            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 340, damping: 38 }}
+          >
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-2 shrink-0">
+              <div className="w-10 h-1 rounded-full bg-muted" />
+            </div>
+
+            {/* Shift meta header */}
+            {shiftMeta && (
+              <div className="px-5 pb-4 border-b border-border/50 shrink-0">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="min-w-0">
+                    <p className="font-bold text-[15px] truncate">
+                      {shiftMeta.userName || (lang === "ar" ? "كاشير" : "Cashier")}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {new Date(shiftMeta.openedAt).toLocaleString(lang === "ar" ? "ar-EG" : "en-US", {
+                        day: "numeric", month: "short",
+                        hour: "2-digit", minute: "2-digit", hour12: true,
+                      })}
+                      {shiftMeta.closedAt && (
+                        <>
+                          {" → "}
+                          {new Date(shiftMeta.closedAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", {
+                            hour: "2-digit", minute: "2-digit", hour12: true,
+                          })}
+                        </>
+                      )}
+                      {shiftMeta.status === "open" && (
+                        <span className="ms-2 text-emerald-500 font-semibold">
+                          {lang === "ar" ? "• مباشر" : "• Live"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="text-end">
+                      <p className="text-lg font-bold text-emerald-500 tabular-nums leading-none">
+                        {shiftMeta.totalRevenue.toFixed(2)}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{egp}</p>
+                    </div>
+                    <button
+                      onClick={onClose}
+                      className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"
+                    >
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Revenue breakdown row */}
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-emerald-500/8 rounded-xl px-3 py-2 text-center">
+                    <p className="text-[9px] text-emerald-600 font-semibold uppercase tracking-wide mb-0.5">
+                      {lang === "ar" ? "جيمنج" : "Gaming"}
+                    </p>
+                    <p className="text-sm font-bold text-emerald-500 tabular-nums">
+                      {shiftMeta.gamingRevenue.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="bg-primary/8 rounded-xl px-3 py-2 text-center">
+                    <p className="text-[9px] text-primary font-semibold uppercase tracking-wide mb-0.5">
+                      {lang === "ar" ? "غرف" : "Rooms"}
+                    </p>
+                    <p className="text-sm font-bold text-primary tabular-nums">
+                      {shiftMeta.roomOrderRevenue.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="bg-orange-500/8 rounded-xl px-3 py-2 text-center">
+                    <p className="text-[9px] text-orange-500 font-semibold uppercase tracking-wide mb-0.5">
+                      POS
+                    </p>
+                    <p className="text-sm font-bold text-orange-500 tabular-nums">
+                      {shiftMeta.posRevenue.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Tab bar */}
+            <div className="px-4 pt-3 pb-2 shrink-0">
+              <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+                {TABS.map((tab) => {
+                  const active = activeTab === tab.id;
+                  const label = lang === "ar" ? tab.labelAr : tab.labelEn;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0",
+                        active ? TAB_COLOR[tab.color] : "text-muted-foreground bg-muted/40 border border-transparent"
+                      )}
+                    >
+                      <span className="text-sm">{tab.icon}</span>
+                      {label}
+                      {/* Count badge */}
+                      {data && (
+                        <span className={cn(
+                          "text-[9px] font-bold px-1.5 py-0.5 rounded-full ms-0.5",
+                          active ? "bg-black/10" : "bg-muted text-muted-foreground"
+                        )}>
+                          {tab.id === "gaming" || tab.id === "sessions"
+                            ? data.sessions.length
+                            : tab.id === "roomOrders"
+                            ? data.roomOrders.length
+                            : tab.id === "pos"
+                            ? data.posOrders.length
+                            : allOrders.length}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Content area */}
+            <div
+              className="flex-1 overflow-y-auto px-4"
+              style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom, 0px))" }}
+            >
+              {isLoading ? (
+                <div className="space-y-3 pt-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-24 rounded-2xl bg-muted animate-pulse" />
+                  ))}
+                </div>
+              ) : (
+                <div className="pt-2">
+                  {(activeTab === "gaming" || activeTab === "sessions") && (
+                    <SessionsList items={data?.sessions ?? []} lang={lang} egp={egp} />
+                  )}
+                  {activeTab === "roomOrders" && (
+                    <OrdersList items={data?.roomOrders ?? []} lang={lang} egp={egp} />
+                  )}
+                  {activeTab === "pos" && (
+                    <OrdersList items={data?.posOrders ?? []} lang={lang} egp={egp} groupByAmPm />
+                  )}
+                  {activeTab === "orders" && (
+                    <OrdersList items={allOrders} lang={lang} egp={egp} />
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}

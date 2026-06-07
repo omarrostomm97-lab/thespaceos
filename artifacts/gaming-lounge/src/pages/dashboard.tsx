@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import ShiftDetailDrawer, { type ShiftDrawerTab, type ShiftMeta } from "@/components/shift-detail-drawer";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -601,6 +602,11 @@ export default function Dashboard() {
   const [method, setMethod] = useState<PayMethod>("all");
   const [tab, setTab]       = useState<Tab>("overview");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [drawerShift, setDrawerShift] = useState<{ shiftId: number; meta: ShiftMeta; tab: ShiftDrawerTab } | null>(null);
+
+  const openDrawer = (shift: ShiftMeta, tab: ShiftDrawerTab) => {
+    setDrawerShift({ shiftId: shift.id, meta: shift, tab });
+  };
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { t, lang } = useLang();
@@ -1463,14 +1469,14 @@ export default function Dashboard() {
         {/* Summary strip */}
         <StaggerChildren className="grid grid-cols-2 gap-3 md:gap-4 md:grid-cols-4">
           {[
-            { label: t("dash_shifts_count"),   value: shifts.length,  isFloat:false, color:"text-primary",     Icon:Clock },
-            { label: t("dash_total_revenue"),  value: totalRevenue,   isFloat:true,  color:"text-emerald-500", Icon:Receipt },
-            { label: t("dash_sessions_total"), value: totalSessions,  isFloat:false, color:"text-primary",     Icon:Gamepad2 },
-            { label: t("dash_orders_total"),   value: totalOrders,    isFloat:false, color:"text-orange-500",  Icon:ShoppingCart },
+            { label: t("dash_shifts_count"),   value: shifts.length,  isFloat:false, color:"text-primary",     Icon:Clock,         href:"/shifts" },
+            { label: t("dash_total_revenue"),  value: totalRevenue,   isFloat:true,  color:"text-emerald-500", Icon:Receipt,       href:"/payments" },
+            { label: t("dash_sessions_total"), value: totalSessions,  isFloat:false, color:"text-primary",     Icon:Gamepad2,      href:"/sessions" },
+            { label: t("dash_orders_total"),   value: totalOrders,    isFloat:false, color:"text-orange-500",  Icon:ShoppingCart,  href:"/orders" },
           ].map(stat => (
             <StaggerItem key={stat.label}>
               <HoverCard>
-                <Link href="/shifts" className="block">
+                <Link href={stat.href} className="block">
                   <div className="bg-card border border-card-border rounded-2xl p-4 flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${stat.color==="text-primary"?"bg-primary/15":stat.color==="text-emerald-500"?"bg-emerald-500/15":stat.color==="text-orange-500"?"bg-orange-500/15":"bg-primary/15"}`}>
                       <stat.Icon className={`h-4 w-4 ${stat.color}`} />
@@ -1505,69 +1511,126 @@ export default function Dashboard() {
               const isOpen = shift.status === "open";
               const diff = shift.difference ?? 0;
               const hasDiff = diff !== 0 && shift.status === "closed";
+
+              const shiftMeta: ShiftMeta = {
+                id: shift.id,
+                userName: shift.userName ?? null,
+                openedAt: shift.openedAt as unknown as string,
+                closedAt: shift.closedAt as unknown as string ?? null,
+                status: shift.status,
+                totalRevenue: shift.totalRevenue,
+                durationMinutes: shift.durationMinutes,
+                gamingRevenue: shift.gamingRevenue,
+                roomOrderRevenue: shift.roomOrderRevenue,
+                posRevenue: shift.posRevenue,
+                sessionCount: shift.sessionCount,
+                orderCount: shift.orderCount,
+              };
+
               return (
                 <HoverCard key={shift.id}>
-                  <Link href="/shifts" className="block">
-                  <div className={`bg-card rounded-2xl p-4 md:p-5 border cursor-pointer hover:opacity-90 transition-opacity ${isOpen ? "border-emerald-500/30" : "border-card-border"}`}>
-                    {/* Header row */}
-                    <div className="flex items-start justify-between gap-3 mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isOpen ? "bg-emerald-500/15" : "bg-secondary"}`}>
-                          <Clock className={`h-5 w-5 ${isOpen ? "text-emerald-500" : "text-muted-foreground"}`} />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-sm">{shift.userName ?? t("dash_cashier")}</p>
-                            {isOpen && (
-                              <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-semibold">
-                                <span className="relative flex h-1.5 w-1.5">
-                                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 live-dot" />
-                                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                </span>
-                                {t("dash_shift_live")}
-                              </span>
-                            )}
+                  <div className={`bg-card rounded-2xl border ${isOpen ? "border-emerald-500/30" : "border-card-border"}`}>
+
+                    {/* ── Clickable header → /shifts ── */}
+                    <Link href="/shifts" className="block p-4 md:p-5 pb-3 hover:opacity-80 transition-opacity cursor-pointer">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isOpen ? "bg-emerald-500/15" : "bg-secondary"}`}>
+                            <Clock className={`h-5 w-5 ${isOpen ? "text-emerald-500" : "text-muted-foreground"}`} />
                           </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            {fmtDate(shift.openedAt as unknown as string)} · {fmtTime(shift.openedAt as unknown as string)} → {isOpen ? t("dash_now") : fmtTime(shift.closedAt as unknown as string)}
-                            <span className="ms-2 text-primary/70">{fmtDuration(shift.durationMinutes)}</span>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-semibold text-sm">{shift.userName ?? t("dash_cashier")}</p>
+                              {isOpen && (
+                                <span className="flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-semibold">
+                                  <span className="relative flex h-1.5 w-1.5">
+                                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 live-dot" />
+                                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                  </span>
+                                  {t("dash_shift_live")}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {fmtDate(shift.openedAt as unknown as string)} · {fmtTime(shift.openedAt as unknown as string)} → {isOpen ? t("dash_now") : fmtTime(shift.closedAt as unknown as string)}
+                              <span className="ms-2 text-primary/70">{fmtDuration(shift.durationMinutes)}</span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-end shrink-0">
+                          <p className="text-lg md:text-xl font-bold text-primary tabular" style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
+                            {shift.totalRevenue.toFixed(2)} <span className="text-sm opacity-60">{egp}</span>
                           </p>
+                          <p className="text-[11px] text-muted-foreground">{t("dash_total_revenue_label")}</p>
                         </div>
                       </div>
-                      <div className="text-end shrink-0">
-                        <p className="text-lg md:text-xl font-bold text-primary tabular" style={{ fontFamily:"Inter, system-ui, sans-serif" }}>
-                          {shift.totalRevenue.toFixed(2)} <span className="text-sm opacity-60">{egp}</span>
+                    </Link>
+
+                    {/* ── Clickable stat tiles ── */}
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2 px-4 md:px-5 mb-3">
+                      {/* Gaming Time */}
+                      <button
+                        onClick={() => openDrawer(shiftMeta, "gaming")}
+                        className="bg-emerald-500/8 hover:bg-emerald-500/15 active:scale-95 rounded-xl px-3 py-2.5 text-start transition-all duration-150 group"
+                      >
+                        <p className="text-[10px] text-emerald-600 font-medium mb-0.5 flex items-center gap-1">
+                          {t("dash_gaming_time")}
+                          <span className="text-emerald-500/50 group-hover:text-emerald-500 transition-colors text-[8px]">↗</span>
                         </p>
-                        <p className="text-[11px] text-muted-foreground">{t("dash_total_revenue_label")}</p>
-                      </div>
-                    </div>
-
-                    {/* Revenue 3-bucket + session/order counts */}
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-3">
-                      <div className="bg-emerald-500/8 rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-emerald-600 font-medium mb-0.5">{t("dash_gaming_time")}</p>
                         <p className="text-sm font-bold text-emerald-500 tabular">{shift.gamingRevenue.toFixed(2)} {egp}</p>
-                      </div>
-                      <div className="bg-primary/8 rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-primary font-medium mb-0.5">{t("dash_room_orders")}</p>
+                      </button>
+
+                      {/* Room Orders */}
+                      <button
+                        onClick={() => openDrawer(shiftMeta, "roomOrders")}
+                        className="bg-primary/8 hover:bg-primary/15 active:scale-95 rounded-xl px-3 py-2.5 text-start transition-all duration-150 group"
+                      >
+                        <p className="text-[10px] text-primary font-medium mb-0.5 flex items-center gap-1">
+                          {t("dash_room_orders")}
+                          <span className="text-primary/40 group-hover:text-primary transition-colors text-[8px]">↗</span>
+                        </p>
                         <p className="text-sm font-bold text-primary tabular">{shift.roomOrderRevenue.toFixed(2)} {egp}</p>
-                      </div>
-                      <div className="bg-orange-500/8 rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-orange-500 font-medium mb-0.5">{t("dash_buffet_pos_short")}</p>
+                      </button>
+
+                      {/* POS/Buffet */}
+                      <button
+                        onClick={() => openDrawer(shiftMeta, "pos")}
+                        className="bg-orange-500/8 hover:bg-orange-500/15 active:scale-95 rounded-xl px-3 py-2.5 text-start transition-all duration-150 group"
+                      >
+                        <p className="text-[10px] text-orange-500 font-medium mb-0.5 flex items-center gap-1">
+                          {t("dash_buffet_pos_short")}
+                          <span className="text-orange-500/40 group-hover:text-orange-500 transition-colors text-[8px]">↗</span>
+                        </p>
                         <p className="text-sm font-bold text-orange-500 tabular">{shift.posRevenue.toFixed(2)} {egp}</p>
-                      </div>
-                      <div className="bg-secondary rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t("dash_sessions_label")}</p>
+                      </button>
+
+                      {/* Sessions */}
+                      <button
+                        onClick={() => openDrawer(shiftMeta, "sessions")}
+                        className="bg-secondary hover:bg-muted active:scale-95 rounded-xl px-3 py-2.5 text-start transition-all duration-150 group"
+                      >
+                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5 flex items-center gap-1">
+                          {t("dash_sessions_label")}
+                          <span className="text-muted-foreground/40 group-hover:text-muted-foreground transition-colors text-[8px]">↗</span>
+                        </p>
                         <p className="text-sm font-bold tabular">{shift.sessionCount}</p>
-                      </div>
-                      <div className="bg-secondary rounded-xl px-3 py-2">
-                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5">{t("dash_orders_label")}</p>
+                      </button>
+
+                      {/* Orders */}
+                      <button
+                        onClick={() => openDrawer(shiftMeta, "orders")}
+                        className="bg-secondary hover:bg-muted active:scale-95 rounded-xl px-3 py-2.5 text-start transition-all duration-150 group"
+                      >
+                        <p className="text-[10px] text-muted-foreground font-medium mb-0.5 flex items-center gap-1">
+                          {t("dash_orders_label")}
+                          <span className="text-muted-foreground/40 group-hover:text-muted-foreground transition-colors text-[8px]">↗</span>
+                        </p>
                         <p className="text-sm font-bold tabular">{shift.orderCount}</p>
-                      </div>
+                      </button>
                     </div>
 
-                    {/* Payment methods + cash reconciliation */}
-                    <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-border/50 text-xs">
+                    {/* ── Payment methods + reconciliation ── */}
+                    <div className="flex flex-wrap items-center gap-3 px-4 md:px-5 pb-4 pt-2 border-t border-border/50 text-xs">
                       {shift.cashPayments > 0 && (
                         <span className="flex items-center gap-1 text-muted-foreground">
                           <Banknote className="h-3.5 w-3.5" />
@@ -1599,7 +1662,6 @@ export default function Dashboard() {
                       )}
                     </div>
                   </div>
-                  </Link>
                 </HoverCard>
               );
             })}
@@ -1898,6 +1960,15 @@ export default function Dashboard() {
         t={t}
         sourceOptions={SOURCE_OPTIONS}
         methodOptions={METHOD_OPTIONS}
+      />
+
+      {/* Shift detail drawer */}
+      <ShiftDetailDrawer
+        shiftId={drawerShift?.shiftId ?? null}
+        initialTab={drawerShift?.tab ?? "gaming"}
+        shiftMeta={drawerShift?.meta ?? null}
+        onClose={() => setDrawerShift(null)}
+        lang={lang}
       />
 
       {/* Mobile bottom nav */}

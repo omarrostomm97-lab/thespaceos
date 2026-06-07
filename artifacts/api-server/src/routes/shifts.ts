@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { shiftsTable, usersTable, paymentsTable } from "@workspace/db";
-import { eq, and, gte } from "drizzle-orm";
+import { shiftsTable, usersTable, paymentsTable, sessionsTable, ordersTable, orderItemsTable, productsTable, assetsTable } from "@workspace/db";
+import { eq, and, gte, lte, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
 
@@ -117,6 +117,106 @@ router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, as
     res.json(fmtShift(updated, req.user!.name));
   } catch {
     res.status(500).json({ error: "Failed to close shift" });
+  }
+});
+
+/* ── GET /shifts/:shiftId/summary — drill-down data for a shift ── */
+router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
+  try {
+    const shiftId = parseInt(req.params.shiftId as string);
+    const [shift] = await db.select().from(shiftsTable)
+      .where(and(eq(shiftsTable.id, shiftId), eq(shiftsTable.tenantId, req.user!.tenantId!)))
+      .limit(1);
+    if (!shift) { res.status(404).json({ error: "Shift not found" }); return; }
+
+    const from = shift.openedAt;
+    const to = shift.closedAt ?? new Date();
+
+    /* Sessions within shift window */
+    const rawSessions = await db.select().from(sessionsTable)
+      .where(and(
+        eq(sessionsTable.tenantId, req.user!.tenantId!),
+        gte(sessionsTable.startedAt, from),
+        lte(sessionsTable.startedAt, to)
+      ))
+      .orderBy(sessionsTable.startedAt);
+
+    /* Orders within shift window (delivered/closed only) */
+    const rawOrders = await db.select().from(ordersTable)
+      .where(and(
+        eq(ordersTable.tenantId, req.user!.tenantId!),
+        gte(ordersTable.createdAt, from),
+        lte(ordersTable.createdAt, to),
+        inArray(ordersTable.status, ["delivered", "closed"])
+      ))
+      .orderBy(ordersTable.createdAt);
+
+    /* Format sessions with asset + payment info */
+    const sessions = await Promise.all(rawSessions.map(async (s) => {
+      const [asset] = await db.select({ name: assetsTable.name, nameAr: assetsTable.nameAr })
+        .from(assetsTable).where(eq(assetsTable.id, s.assetId)).limit(1);
+      const payments = await db.select({ method: paymentsTable.method, amount: paymentsTable.amount })
+        .from(paymentsTable)
+        .where(and(eq(paymentsTable.sessionId, s.id), eq(paymentsTable.status, "verified")));
+      return {
+        id: s.id,
+        assetId: s.assetId,
+        assetName: asset?.name ?? null,
+        assetNameAr: asset?.nameAr ?? null,
+        status: s.status,
+        startedAt: s.startedAt,
+        endedAt: s.endedAt,
+        totalMinutes: s.totalMinutes ? parseFloat(s.totalMinutes as string) : null,
+        totalCost: s.totalCost ? parseFloat(s.totalCost as string) : null,
+        payments: payments.map(p => ({ method: p.method, amount: parseFloat(p.amount as string) })),
+      };
+    }));
+
+    /* Format orders with items + asset info */
+    const orders = await Promise.all(rawOrders.map(async (o) => {
+      const items = await db.select({
+        productName: productsTable.name,
+        productNameAr: productsTable.nameAr,
+        quantity: orderItemsTable.quantity,
+        unitPrice: orderItemsTable.unitPrice,
+        totalPrice: orderItemsTable.totalPrice,
+      }).from(orderItemsTable)
+        .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
+        .where(eq(orderItemsTable.orderId, o.id));
+
+      let assetName = null, assetNameAr = null;
+      if (o.assetId) {
+        const [a] = await db.select({ name: assetsTable.name, nameAr: assetsTable.nameAr })
+          .from(assetsTable).where(eq(assetsTable.id, o.assetId)).limit(1);
+        assetName = a?.name ?? null; assetNameAr = a?.nameAr ?? null;
+      }
+
+      return {
+        id: o.id,
+        source: o.source,
+        sessionId: o.sessionId,
+        assetId: o.assetId,
+        assetName, assetNameAr,
+        totalAmount: parseFloat(o.totalAmount as string),
+        createdAt: o.createdAt,
+        items: items.map(i => ({
+          productName: i.productName ?? "—",
+          productNameAr: i.productNameAr ?? null,
+          quantity: i.quantity,
+          unitPrice: parseFloat(i.unitPrice as string),
+          totalPrice: parseFloat(i.totalPrice as string),
+        })),
+      };
+    }));
+
+    res.json({
+      sessions,
+      roomOrders: orders.filter(o => o.sessionId !== null),
+      posOrders:  orders.filter(o => o.sessionId === null),
+    });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to get shift summary" });
   }
 });
 
