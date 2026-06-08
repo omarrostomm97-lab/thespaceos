@@ -102,6 +102,16 @@ const translations = {
     footer_built_for: "Built For",
     footer_how: "How It Works",
     footer_demo: "Request Demo",
+
+    hero_badge: "Operations Management Platform",
+    kpi_sessions: "Active Sessions",
+    kpi_revenue: "Revenue Today",
+    kpi_orders: "Pending Orders",
+    kpi_staff: "Staff on Shift",
+    mockup_active: "Active",
+    form_error_required: "Required",
+    form_error_email: "Invalid email",
+    form_error_server: "Something went wrong. Please try again.",
   },
   ar: {
     nav_features: "الميزات",
@@ -204,6 +214,16 @@ const translations = {
     footer_built_for: "مناسب لـ",
     footer_how: "كيف يعمل",
     footer_demo: "طلب عرض",
+
+    hero_badge: "منصة إدارة العمليات",
+    kpi_sessions: "الجلسات النشطة",
+    kpi_revenue: "إيرادات اليوم",
+    kpi_orders: "طلبات معلقة",
+    kpi_staff: "موظفون في الوردية",
+    mockup_active: "نشط",
+    form_error_required: "مطلوب",
+    form_error_email: "البريد الإلكتروني غير صالح",
+    form_error_server: "حدث خطأ. حاول مرة أخرى.",
   },
 };
 

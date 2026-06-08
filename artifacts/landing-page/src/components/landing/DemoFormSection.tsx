@@ -17,13 +17,15 @@ const BUSINESS_TYPES = [
   { value: "other", labelKey: "bt_other" as TranslationKey },
 ] as const;
 
-export function DemoFormSection({ t, dir, lang }: DemoFormSectionProps) {
+type BusinessType = "gaming_lounge" | "coworking" | "cafe" | "restaurant" | "other";
+
+export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
     company: "",
-    businessType: "" as "gaming_lounge" | "coworking" | "cafe" | "restaurant" | "other" | "",
+    businessType: "" as BusinessType | "",
     city: "",
     _honey: "",
   });
@@ -34,12 +36,12 @@ export function DemoFormSection({ t, dir, lang }: DemoFormSectionProps) {
 
   function validate() {
     const errors: Record<string, string> = {};
-    if (!form.name.trim()) errors.name = "Required";
-    if (!form.email.includes("@")) errors.email = "Invalid email";
-    if (!form.phone.trim()) errors.phone = "Required";
-    if (!form.company.trim()) errors.company = "Required";
-    if (!form.businessType) errors.businessType = "Required";
-    if (!form.city.trim()) errors.city = "Required";
+    if (!form.name.trim()) errors.name = t("form_error_required");
+    if (!form.email.includes("@")) errors.email = t("form_error_email");
+    if (!form.phone.trim()) errors.phone = t("form_error_required");
+    if (!form.company.trim()) errors.company = t("form_error_required");
+    if (!form.businessType) errors.businessType = t("form_error_required");
+    if (!form.city.trim()) errors.city = t("form_error_required");
     return errors;
   }
 
@@ -52,13 +54,17 @@ export function DemoFormSection({ t, dir, lang }: DemoFormSectionProps) {
     }
     setFieldErrors({});
 
-    const { _honey, ...rest } = form;
     mutation.mutate(
       {
         data: {
-          ...rest,
-          businessType: rest.businessType as "gaming_lounge" | "coworking" | "cafe" | "restaurant" | "other",
-        },
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          company: form.company,
+          businessType: form.businessType as BusinessType,
+          city: form.city,
+          _honey: form._honey,
+        } as any,
       },
       {
         onSuccess: () => setSubmitted(true),
@@ -123,7 +129,7 @@ export function DemoFormSection({ t, dir, lang }: DemoFormSectionProps) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              {/* Honeypot */}
+              {/* Honeypot — hidden from humans, filled by bots */}
               <input
                 type="text"
                 name="_honey"
@@ -171,7 +177,7 @@ export function DemoFormSection({ t, dir, lang }: DemoFormSectionProps) {
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
                     className={inputClass}
-                    placeholder={lang === "ar" ? "+20 10 0000 0000" : "+20 10 0000 0000"}
+                    placeholder="+20 10 0000 0000"
                     style={{ color: "white" }}
                   />
                   {fieldErrors.phone && <p className="mt-1 text-xs text-red-400">{fieldErrors.phone}</p>}
@@ -196,7 +202,7 @@ export function DemoFormSection({ t, dir, lang }: DemoFormSectionProps) {
                   <label className={labelClass}>{t("form_business_type")}</label>
                   <select
                     value={form.businessType}
-                    onChange={(e) => setForm({ ...form, businessType: e.target.value as typeof form.businessType })}
+                    onChange={(e) => setForm({ ...form, businessType: e.target.value as BusinessType | "" })}
                     className={inputClass}
                     style={{ color: form.businessType ? "white" : "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.05)" }}
                   >
@@ -229,7 +235,7 @@ export function DemoFormSection({ t, dir, lang }: DemoFormSectionProps) {
 
               {mutation.isError && (
                 <p className="mt-4 text-sm text-red-400 text-center">
-                  Something went wrong. Please try again.
+                  {t("form_error_server")}
                 </p>
               )}
 

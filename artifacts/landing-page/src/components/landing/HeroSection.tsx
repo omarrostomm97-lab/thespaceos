@@ -7,6 +7,19 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ t, dir }: HeroSectionProps) {
+  const kpis = [
+    { labelKey: "kpi_sessions" as TranslationKey, value: "12", color: "#3b82f6" },
+    { labelKey: "kpi_revenue" as TranslationKey, value: "4,250", color: "#8b5cf6" },
+    { labelKey: "kpi_orders" as TranslationKey, value: "7", color: "#f59e0b" },
+    { labelKey: "kpi_staff" as TranslationKey, value: "5", color: "#10b981" },
+  ];
+
+  const sessions = [
+    { id: "#42", room: "PS4 Room 1" },
+    { id: "#41", room: "PC Station 3" },
+    { id: "#40", room: "Billiard 2" },
+  ];
+
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden" style={{ backgroundColor: "#0f172a" }}>
       {/* Dot grid background */}
@@ -44,7 +57,7 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
             }}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-            Operations Management Platform
+            {t("hero_badge")}
           </motion.div>
 
           {/* Headline */}
@@ -55,14 +68,7 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
             className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight mb-6"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
-            {dir === "rtl" ? (
-              t("hero_headline")
-            ) : (
-              <>
-                One System.{" "}
-                <span className="gradient-text">Total Control.</span>
-              </>
-            )}
+            {t("hero_headline")}
           </motion.h1>
 
           {/* Subheadline */}
@@ -137,18 +143,13 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
               </div>
               {/* Dashboard preview */}
               <div className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                  { label: "Active Sessions", value: "12", color: "#3b82f6" },
-                  { label: "Revenue Today", value: "4,250", color: "#8b5cf6" },
-                  { label: "Pending Orders", value: "7", color: "#f59e0b" },
-                  { label: "Staff on Shift", value: "5", color: "#10b981" },
-                ].map((kpi) => (
+                {kpis.map((kpi) => (
                   <div
-                    key={kpi.label}
+                    key={kpi.labelKey}
                     className="rounded-xl p-4"
                     style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}
                   >
-                    <div className="text-xs mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>{kpi.label}</div>
+                    <div className="text-xs mb-2" style={{ color: "rgba(255,255,255,0.4)" }}>{t(kpi.labelKey)}</div>
                     <div className="text-xl font-bold" style={{ color: kpi.color, fontFamily: "'Space Grotesk', sans-serif" }}>
                       {kpi.value}
                     </div>
@@ -156,16 +157,18 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
                 ))}
               </div>
               <div className="px-5 pb-5 grid grid-cols-3 gap-3">
-                {["Session #42 · PS4 Room 1", "Session #41 · PC Station 3", "Session #40 · Billiard 2"].map((s, i) => (
+                {sessions.map((s) => (
                   <div
-                    key={i}
+                    key={s.id}
                     className="rounded-lg p-3"
                     style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}
                   >
-                    <div className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>{s}</div>
+                    <div className="text-xs mb-1" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      {t("kpi_sessions").split(" ")[0]} {s.id} · {s.room}
+                    </div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full bg-green-400" />
-                      <span className="text-xs text-green-400">Active</span>
+                      <span className="text-xs text-green-400">{t("mockup_active")}</span>
                     </div>
                   </div>
                 ))}

@@ -11,13 +11,6 @@ import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { DemoFormSection } from "@/components/landing/DemoFormSection";
 import { FooterSection } from "@/components/landing/FooterSection";
 
-import { setBaseUrl } from "@workspace/api-client-react";
-
-const APP_BASE = import.meta.env.BASE_URL || "/landing-page/";
-const API_URL = APP_BASE.replace(/\/$/, "").replace("/landing-page", "") + "/api";
-
-setBaseUrl(API_URL);
-
 export default function LandingPage() {
   const { t, lang, dir, toggleLang } = useLang();
 
@@ -28,7 +21,8 @@ export default function LandingPage() {
         : "The Space OS — One System. Total Control.";
   }, [lang]);
 
-  const appLoginUrl = APP_BASE.replace(/\/landing-page\/?$/, "/gaming-lounge/");
+  const base = import.meta.env.BASE_URL || "/landing-page/";
+  const appLoginUrl = base.replace(/\/landing-page\/?$/, "/gaming-lounge/");
 
   return (
     <div dir={dir} lang={lang}>
