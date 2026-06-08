@@ -1,0 +1,215 @@
+Updates to Apply to The Space OS Landing Page Plan
+
+1. Brand Positioning Update
+
+Replace references to:
+
+* “Venue Management System”
+* “Manage Any Venue Smarter”
+* “The OS for Every Venue”
+
+With:
+
+The Space OS
+The Operating System for Physical Businesses
+
+or
+
+The Space OS
+One System. Total Control.
+
+⸻
+
+2. Hero Section Update
+
+Replace current hero messaging with:
+
+Headline
+
+One System. Total Control.
+
+Subheadline
+
+Manage sessions, bookings, orders, staff, shifts, payments, and reports from one powerful platform.
+
+CTA Buttons
+
+Primary:
+Request a Demo
+
+Secondary:
+Explore Features
+
+Avoid:
+
+* Get Started Free
+* Free Trial
+* Pricing References
+
+Until pricing strategy is finalized.
+
+⸻
+
+3. Remove “Venue” Terminology
+
+Replace all occurrences of:
+
+* Venue
+* Venue Management
+* Managed Venue
+
+With:
+
+* Business
+* Space
+* Location
+* Operation
+* Workspace
+* Store
+
+Depending on context.
+
+⸻
+
+4. Rename “Who It’s For” Section
+
+Change section title from:
+
+Who It’s For
+
+To:
+
+Built For
+
+Cards:
+
+Gaming Lounges
+
+Manage sessions, devices, buffet orders, tournaments, and revenue.
+
+Coworking Spaces
+
+Handle bookings, memberships, meeting rooms, and check-ins.
+
+Cafés & Coffee Shops
+
+Manage POS, orders, staff, and daily operations.
+
+Restaurants
+
+Control tables, orders, kitchen workflow, and reporting.
+
+More Businesses
+
+Any business that manages customers, bookings, staff, or operations.
+
+⸻
+
+5. Add “Problems We Solve” Section
+
+Place directly below Hero or Social Proof.
+
+Cards:
+
+* Manual session tracking
+* Lost or missed orders
+* Poor staff accountability
+* Difficult shift management
+* No clear financial visibility
+* Owners cannot monitor remotely
+
+Headline:
+
+Stop Managing Operations Manually
+
+Subheadline:
+
+The Space OS centralizes everything in one dashboard.
+
+⸻
+
+6. Add “Why The Space OS” Section
+
+Headline:
+
+Why Businesses Choose The Space OS
+
+Cards:
+
+* Real-time operations dashboard
+* Arabic & English support
+* Multi-location ready
+* Staff roles & permissions
+* Sessions, POS, bookings & finance in one platform
+* Mobile-friendly management
+
+⸻
+
+7. Smart Redirect Update
+
+Remove:
+
+Automatic redirect when localStorage.thespaceos_was_logged_in === true
+
+Replace with:
+
+* Landing page always accessible
+* Login button redirects to application
+* Existing users can access login directly from navbar
+
+This prevents SEO issues and improves user experience.
+
+⸻
+
+8. Social Proof Update
+
+Replace:
+
+“Trusted by gaming lounges, coworking spaces, cafés, and restaurants across Egypt”
+
+With:
+
+Built for modern businesses that manage customers, bookings, staff, and daily operations.
+
+Since customer count and references are not yet established.
+
+⸻
+
+9. Future-Proof SEO Keywords
+
+Target keywords:
+
+English:
+
+* business management software
+* operations management software
+* gaming lounge management system
+* coworking space software
+* restaurant management software
+* booking management software
+* staff management software
+* POS and operations platform
+
+Arabic:
+
+* برنامج إدارة الأعمال
+* برنامج إدارة الكافيهات
+* برنامج إدارة المطاعم
+* برنامج إدارة البلايستيشن
+* برنامج إدارة مساحات العمل المشتركة
+* برنامج إدارة الحجوزات
+* برنامج إدارة الموظفين
+
+⸻
+
+10. Footer Slogan
+
+Replace:
+
+“Made for venues in Egypt 🇪🇬”
+
+With:
+
+Built in Egypt. Designed for growing businesses.
+
+This sounds more premium and scalable internationally.
