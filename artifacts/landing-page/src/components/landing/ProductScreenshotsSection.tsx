@@ -252,10 +252,10 @@ export function ProductScreenshotsSection({ t }: ProductScreenshotsSectionProps)
                 boxShadow: "0 2px 8px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.05)",
               }}
             >
-              {/* Mockup — dark, flush to top and sides, no extra padding */}
+              {/* Mockup — dark gradient header bleeding edge-to-edge */}
               <div
                 style={{
-                  background: "#0f172a",
+                  background: "linear-gradient(170deg, #141d2e 0%, #0f172a 60%, #111827 100%)",
                   borderBottom: `2px solid ${accent}`,
                 }}
               >

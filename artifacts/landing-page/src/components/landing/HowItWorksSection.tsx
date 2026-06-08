@@ -77,17 +77,34 @@ export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-8 relative">
-          {/* Connector line — fixed calculation: icon is w-20 (80px), center at 40px from column center */}
-          <div
+          {/* Connector — gradient dashed SVG line between icon centers */}
+          <svg
             className="absolute hidden lg:block pointer-events-none"
             style={{
-              top: "40px",
+              top: "29px",
               [dir === "rtl" ? "right" : "left"]: "calc(16.67% + 40px)",
               [dir === "rtl" ? "left" : "right"]: "calc(16.67% + 40px)",
-              height: "1.5px",
-              background: "linear-gradient(90deg, rgba(59,130,246,0.45) 0%, rgba(139,92,246,0.55) 50%, rgba(16,185,129,0.45) 100%)",
+              width: "calc(66.66% - 80px)",
+              height: "22px",
+              overflow: "visible",
             }}
-          />
+            preserveAspectRatio="none"
+          >
+            <defs>
+              <linearGradient id="connectorGrad" x1={dir === "rtl" ? "100%" : "0%"} y1="0%" x2={dir === "rtl" ? "0%" : "100%"} y2="0%">
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.6" />
+                <stop offset="50%" stopColor="#8b5cf6" stopOpacity="0.7" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0.6" />
+              </linearGradient>
+            </defs>
+            <line
+              x1="0" y1="11" x2="100%" y2="11"
+              stroke="url(#connectorGrad)"
+              strokeWidth="1.5"
+              strokeDasharray="6 5"
+              strokeLinecap="round"
+            />
+          </svg>
 
           {steps.map(({ num, titleKey, descKey, icon, color, glowColor, borderColor }, i) => (
             <motion.div

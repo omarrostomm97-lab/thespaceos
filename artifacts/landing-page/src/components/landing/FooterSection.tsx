@@ -123,10 +123,13 @@ export function FooterSection({ t, lang, toggleLang }: FooterSectionProps) {
           className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2"
           style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
         >
-          <p className="text-xs" style={{ color: "rgba(255,255,255,0.22)" }}>
+          <p
+            className="text-xs px-3 py-1 rounded-full"
+            style={{ color: "rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
             {t("footer_copyright")}
           </p>
-          <p className="text-xs whitespace-nowrap" style={{ color: "rgba(255,255,255,0.22)" }}>
+          <p className="text-xs whitespace-nowrap" style={{ color: "rgba(255,255,255,0.28)" }}>
             {t("footer_made_in")}
           </p>
         </div>

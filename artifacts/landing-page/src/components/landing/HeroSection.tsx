@@ -302,7 +302,7 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
             className="font-bold text-white leading-[1.06] tracking-tight mb-5"
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: "clamp(2.75rem, 6.5vw, 5rem)",
+              fontSize: "clamp(3rem, 6vw, 5rem)",
             }}
           >
             {t("hero_headline")}

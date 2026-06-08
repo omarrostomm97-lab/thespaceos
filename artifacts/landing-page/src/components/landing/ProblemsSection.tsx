@@ -106,6 +106,7 @@ export function ProblemsSection({ t }: ProblemsSectionProps) {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
               className="premium-card bg-white rounded-2xl p-7"
+              style={{ borderTop: "3px solid rgba(239,68,68,0.55)" }}
             >
               <div
                 className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
