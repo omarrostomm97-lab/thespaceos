@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.thespaceos.com/sitemap.xml
+Sitemap: https://thespaceos.com/sitemap.xml

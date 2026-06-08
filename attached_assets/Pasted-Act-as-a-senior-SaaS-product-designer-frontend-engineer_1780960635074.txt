@@ -1,0 +1,290 @@
+Act as a senior SaaS product designer, frontend engineer, SEO specialist, and QA tester.
+
+We need to completely improve the landing page for The Space OS at /landing-page.
+
+Current problems:
+
+1. UI looks basic and not premium.
+2. Some buttons/sections are not functioning.
+3. Mobile UI is very bad.
+4. The page does not strongly show the real product.
+5. Google cannot find “The Space OS” yet.
+
+Goal:
+Redesign the landing page into a premium SaaS landing page that feels like a serious business operations platform, not a generic space-themed template.
+
+Brand direction:
+The Space OS is The Operating System for Physical Businesses.
+Avoid making it look like astronomy, planets, rockets, or gaming-only.
+The design should feel like a mission control dashboard for business operations.
+
+Design references:
+Use a clean premium SaaS style inspired by Linear, Stripe, Notion, Monday.com, and modern B2B dashboards.
+
+Visual direction:
+
+* White/light-gray body.
+* Strong dark navy hero and footer.
+* Electric blue CTA.
+* Purple accents only in small highlights.
+* Minimal animations only.
+* No floating planets, rockets, excessive particles, or childish space graphics.
+* Use product screenshots as the main visual proof.
+* Make it feel like control, operations, analytics, and business management.
+
+Color palette:
+
+* Navy: #0f172a
+* White: #ffffff
+* Light gray: #f8fafc
+* Border gray: #e5e7eb
+* Primary blue: #3b82f6
+* Accent purple: #8b5cf6
+* Text dark: #111827
+* Muted text: #64748b
+
+Typography:
+
+* Headings: Space Grotesk
+* Body: Inter
+* Make font sizes responsive and clean.
+
+Important:
+Before redesigning the landing page, take real screenshots from the existing app pages that Replit can access.
+
+Use screenshots from these real pages if available:
+
+* Dashboard
+* Sessions
+* POS / Orders
+* KDS
+* Bookings if available
+* Finance / Reports
+* Staff / Users
+* Shifts
+
+If screenshots cannot be automatically captured, create high-quality mockup frames using real UI components/data already available in the app. Do not use generic fake SaaS illustrations.
+
+Place screenshots inside premium mockups:
+
+* Desktop dashboard mockup in the hero.
+* 3 smaller product cards below hero.
+* Mobile app-style preview if possible.
+* Use shadows, rounded corners, subtle borders, and realistic browser/device frames.
+
+Landing page structure:
+
+1. Navbar
+
+* Logo: The Space OS
+* Links: Product, Built For, Features, How It Works, Demo
+* Language toggle: EN / ع
+* Login button
+* Request Demo CTA
+* Sticky on scroll
+* Mobile hamburger menu must work perfectly
+
+2. Hero Section
+    Dark navy background.
+    Headline:
+    “One System. Total Control.”
+
+Subheadline:
+“Manage sessions, bookings, orders, staff, shifts, payments, and reports from one powerful platform.”
+
+Primary CTA:
+“Request a Demo”
+
+Secondary CTA:
+“Explore Features”
+
+Hero visual:
+Use a real screenshot from The Space OS dashboard inside a premium laptop/browser mockup.
+
+No 100vh forced layout on mobile.
+Mobile hero must be compact and clean.
+
+3. Problem Section
+    Headline:
+    “Stop Managing Operations Manually”
+
+Cards:
+
+* Manual session tracking
+* Lost or missed orders
+* Weak staff accountability
+* Difficult shift management
+* No clear financial visibility
+* Owners cannot monitor remotely
+
+4. Product Screenshots Section
+    Headline:
+    “See Your Business From One Dashboard”
+
+Show real product screenshots:
+
+* Live sessions
+* Orders/POS
+* Reports/finance
+* Staff/shifts
+
+Each screenshot should have a short benefit-focused caption.
+
+5. Built For Section
+    Do not use the word “venue”.
+
+Title:
+“Built For Different Business Types”
+
+Cards:
+
+* Gaming Lounges: Sessions, devices, buffet orders, and revenue.
+* Coworking Spaces: Bookings, memberships, meeting rooms, and check-ins.
+* Cafés & Coffee Shops: POS, orders, staff, and daily operations.
+* Restaurants: Tables, orders, kitchen workflow, and reporting.
+* More Businesses: Any business that manages customers, bookings, staff, or operations.
+
+6. Features Section
+    6 cards:
+
+* Sessions
+* POS & Orders
+* Kitchen Display
+* Bookings
+* Staff & Shifts
+* Reports & Finance
+
+Each card should include:
+
+* Icon
+* Short title
+* 1-line clear description
+* No long paragraphs
+
+7. How It Works Section
+    Dark section.
+    3 steps:
+8. Request a Demo
+9. Set Up Your Space
+10. Go Live
+
+Use “space” not “venue”.
+
+8. Demo Lead Form
+    Fields:
+
+* Name
+* Email
+* Phone
+* Business name
+* Business type dropdown:
+    * Gaming Lounge
+    * Coworking Space
+    * Café / Coffee Shop
+    * Restaurant
+    * Other
+* City
+* Message optional
+* Honeypot field for spam
+
+Submit to:
+POST /api/leads
+
+Show:
+
+* loading state
+* success state
+* validation errors
+* friendly error message if API fails
+
+9. Footer
+    Dark navy footer.
+    Text:
+    “Built in Egypt. Designed for growing businesses.”
+
+Include:
+
+* Logo
+* Product links
+* Contact/demo link
+* Social placeholders
+* Copyright
+
+Mobile requirements:
+
+* Design mobile-first.
+* Test at 375px, 390px, 430px, 768px, 1024px, desktop.
+* No horizontal scrolling.
+* Buttons should not overflow.
+* Cards should stack cleanly.
+* Header should not cover content.
+* Mobile menu must open/close correctly.
+* Add sticky bottom CTA on mobile:
+    “Request Demo”
+
+Functionality QA:
+Check and fix:
+
+* Navbar links scroll correctly.
+* Language toggle works.
+* RTL works for Arabic.
+* Mobile hamburger works.
+* Login button links to app login.
+* Request Demo buttons scroll to form.
+* Explore Features button scrolls to features.
+* Form submits correctly.
+* No console errors.
+* No broken imports.
+* No broken images.
+* No layout overflow.
+
+Smart redirect update:
+Remove any automatic redirect based on:
+localStorage.getItem(“thespaceos_was_logged_in”)
+
+Landing page must always be accessible.
+Only Login button should redirect to the app login page.
+
+SEO requirements:
+Fix SEO so Google can index the site.
+
+Add or verify:
+
+* Unique title:
+    “The Space OS — Business Operations Management Software”
+* Meta description around 155 characters:
+    “Manage sessions, bookings, orders, staff, shifts, payments, and reports with The Space OS — built for gaming lounges, coworking spaces, cafés, and restaurants.”
+* Canonical URL:
+    https://thespaceos.com/landing-page/
+* Open Graph tags
+* Twitter Card tags
+* JSON-LD SoftwareApplication schema
+* robots.txt allows crawlers
+* sitemap.xml includes:
+    * https://thespaceos.com/
+    * https://thespaceos.com/landing-page/
+    * English and Arabic versions if routes exist
+* Add hreflang tags for English and Arabic
+* Make sure there is no noindex meta tag
+* Make sure the production site returns 200 status
+* Make sure important content is visible in HTML and not hidden behind broken JS
+
+Also create:
+
+* /robots.txt
+* /sitemap.xml
+
+Robots.txt should allow all crawlers and point to sitemap:
+User-agent: *
+Allow: /
+Sitemap: https://thespaceos.com/sitemap.xml
+
+After implementation:
+Run a full QA pass and provide:
+
+1. What was changed
+2. What screenshots were used
+3. What functions were fixed
+4. Mobile test results
+5. SEO checklist results
+6. Any remaining issues

@@ -27,6 +27,7 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
     company: "",
     businessType: "" as BusinessType | "",
     city: "",
+    message: "",
     _honey: "",
   });
   const [submitted, setSubmitted] = useState(false);
@@ -66,70 +67,65 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
           _honey: form._honey,
         } as any,
       },
-      {
-        onSuccess: () => setSubmitted(true),
-      }
+      { onSuccess: () => setSubmitted(true) }
     );
   }
 
-  const inputClass = `
-    w-full px-4 py-3 rounded-xl text-sm text-white outline-none transition-all duration-200 bg-white/5 border border-white/10
-    focus:border-blue-500 focus:bg-white/8 placeholder-white/30
-  `.trim();
-
-  const labelClass = "block text-xs font-semibold mb-1.5 text-white/60 uppercase tracking-wide";
+  const inputBase =
+    "w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 border bg-white text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
+  const labelBase = "block text-xs font-semibold mb-1.5 text-slate-600 uppercase tracking-wide";
+  const errorBase = "mt-1 text-xs text-red-500";
 
   return (
-    <section id="demo" className="py-24" style={{ backgroundColor: "#0a1628" }}>
+    <section id="demo" className="py-20 sm:py-28 bg-white">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12"
+          className="text-center mb-10"
         >
           <h2
-            className="text-4xl sm:text-5xl font-bold text-white mb-4"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4"
             style={{ fontFamily: "'Space Grotesk', sans-serif" }}
           >
             {t("form_headline")}
           </h2>
-          <p className="text-slate-400 text-base leading-relaxed max-w-lg mx-auto">
+          <p className="text-slate-500 text-base leading-relaxed max-w-md mx-auto">
             {t("form_subheadline")}
           </p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 32 }}
+          initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="rounded-3xl p-8 sm:p-10"
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            boxShadow: "0 25px 50px rgba(0,0,0,0.3)",
-          }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="rounded-2xl p-6 sm:p-8 border border-slate-200"
+          style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}
         >
           {submitted ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="text-center py-10">
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+                style={{ background: "#f0fdf4", border: "2px solid #86efac" }}
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
               <h3
-                className="text-2xl font-bold text-white mb-2"
+                className="text-2xl font-bold text-slate-900 mb-2"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 {t("form_success_title")}
               </h3>
-              <p className="text-slate-400">{t("form_success_desc")}</p>
+              <p className="text-slate-500">{t("form_success_desc")}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              {/* Honeypot — hidden from humans, filled by bots */}
+              {/* Honeypot */}
               <input
                 type="text"
                 name="_honey"
@@ -140,110 +136,115 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
                 autoComplete="off"
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Name */}
                 <div>
-                  <label className={labelClass}>{t("form_name")}</label>
+                  <label className={labelBase}>{t("form_name")}</label>
                   <input
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className={inputClass}
-                    placeholder={lang === "ar" ? "اسمك الكامل" : "Your full name"}
-                    style={{ color: "white" }}
+                    className={`${inputBase} ${fieldErrors.name ? "border-red-400" : "border-slate-200"}`}
+                    placeholder={lang === "ar" ? "الاسم الكامل" : "Your full name"}
                   />
-                  {fieldErrors.name && <p className="mt-1 text-xs text-red-400">{fieldErrors.name}</p>}
+                  {fieldErrors.name && <p className={errorBase}>{fieldErrors.name}</p>}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className={labelClass}>{t("form_email")}</label>
+                  <label className={labelBase}>{t("form_email")}</label>
                   <input
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className={inputClass}
-                    placeholder={lang === "ar" ? "بريدك الإلكتروني" : "you@example.com"}
-                    style={{ color: "white" }}
+                    className={`${inputBase} ${fieldErrors.email ? "border-red-400" : "border-slate-200"}`}
+                    placeholder="you@example.com"
                   />
-                  {fieldErrors.email && <p className="mt-1 text-xs text-red-400">{fieldErrors.email}</p>}
+                  {fieldErrors.email && <p className={errorBase}>{fieldErrors.email}</p>}
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className={labelClass}>{t("form_phone")}</label>
+                  <label className={labelBase}>{t("form_phone")}</label>
                   <input
                     type="tel"
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    className={inputClass}
+                    className={`${inputBase} ${fieldErrors.phone ? "border-red-400" : "border-slate-200"}`}
                     placeholder="+20 10 0000 0000"
-                    style={{ color: "white" }}
                   />
-                  {fieldErrors.phone && <p className="mt-1 text-xs text-red-400">{fieldErrors.phone}</p>}
+                  {fieldErrors.phone && <p className={errorBase}>{fieldErrors.phone}</p>}
                 </div>
 
                 {/* Company */}
                 <div>
-                  <label className={labelClass}>{t("form_company")}</label>
+                  <label className={labelBase}>{t("form_company")}</label>
                   <input
                     type="text"
                     value={form.company}
                     onChange={(e) => setForm({ ...form, company: e.target.value })}
-                    className={inputClass}
-                    placeholder={lang === "ar" ? "اسم نشاطك التجاري" : "Your business name"}
-                    style={{ color: "white" }}
+                    className={`${inputBase} ${fieldErrors.company ? "border-red-400" : "border-slate-200"}`}
+                    placeholder={lang === "ar" ? "اسم النشاط التجاري" : "Your business name"}
                   />
-                  {fieldErrors.company && <p className="mt-1 text-xs text-red-400">{fieldErrors.company}</p>}
+                  {fieldErrors.company && <p className={errorBase}>{fieldErrors.company}</p>}
                 </div>
 
                 {/* Business Type */}
                 <div>
-                  <label className={labelClass}>{t("form_business_type")}</label>
+                  <label className={labelBase}>{t("form_business_type")}</label>
                   <select
                     value={form.businessType}
                     onChange={(e) => setForm({ ...form, businessType: e.target.value as BusinessType | "" })}
-                    className={inputClass}
-                    style={{ color: form.businessType ? "white" : "rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.05)" }}
+                    className={`${inputBase} ${fieldErrors.businessType ? "border-red-400" : "border-slate-200"}`}
+                    style={{ color: form.businessType ? "#0f172a" : "#94a3b8" }}
                   >
-                    <option value="" disabled style={{ color: "#64748b", background: "#1e293b" }}>
-                      {lang === "ar" ? "اختر نوع النشاط" : "Select type..."}
+                    <option value="" disabled>
+                      {lang === "ar" ? "اختر نوع النشاط" : "Select type…"}
                     </option>
                     {BUSINESS_TYPES.map(({ value, labelKey }) => (
-                      <option key={value} value={value} style={{ color: "white", background: "#1e293b" }}>
+                      <option key={value} value={value} style={{ color: "#0f172a" }}>
                         {t(labelKey)}
                       </option>
                     ))}
                   </select>
-                  {fieldErrors.businessType && <p className="mt-1 text-xs text-red-400">{fieldErrors.businessType}</p>}
+                  {fieldErrors.businessType && <p className={errorBase}>{fieldErrors.businessType}</p>}
                 </div>
 
                 {/* City */}
                 <div>
-                  <label className={labelClass}>{t("form_city")}</label>
+                  <label className={labelBase}>{t("form_city")}</label>
                   <input
                     type="text"
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    className={inputClass}
-                    placeholder={lang === "ar" ? "المدينة" : "Cairo, Alexandria..."}
-                    style={{ color: "white" }}
+                    className={`${inputBase} ${fieldErrors.city ? "border-red-400" : "border-slate-200"}`}
+                    placeholder={lang === "ar" ? "المدينة" : "Cairo, Alexandria…"}
                   />
-                  {fieldErrors.city && <p className="mt-1 text-xs text-red-400">{fieldErrors.city}</p>}
+                  {fieldErrors.city && <p className={errorBase}>{fieldErrors.city}</p>}
+                </div>
+
+                {/* Message — full width */}
+                <div className="sm:col-span-2">
+                  <label className={labelBase}>{t("form_message")}</label>
+                  <textarea
+                    rows={3}
+                    value={form.message}
+                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                    className={`${inputBase} resize-none border-slate-200`}
+                    placeholder={lang === "ar" ? "أي تفاصيل إضافية..." : "Any additional details…"}
+                  />
                 </div>
               </div>
 
               {mutation.isError && (
-                <p className="mt-4 text-sm text-red-400 text-center">
-                  {t("form_error_server")}
-                </p>
+                <p className="mt-4 text-sm text-red-500 text-center">{t("form_error_server")}</p>
               )}
 
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="mt-8 w-full py-4 rounded-xl text-base font-semibold text-white transition-all duration-200 hover:scale-[1.01] hover:shadow-blue-500/30 hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
-                style={{ background: mutation.isPending ? "#1d4ed8" : "#3b82f6" }}
+                className="mt-6 w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:bg-blue-600 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ background: "#3b82f6", boxShadow: "0 4px 16px rgba(59,130,246,0.3)" }}
               >
                 {mutation.isPending ? t("form_submitting") : t("form_submit")}
               </button>
