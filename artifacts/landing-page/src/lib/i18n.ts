@@ -110,7 +110,7 @@ const translations = {
     bt_other: "Other",
 
     footer_tagline: "Built in Egypt. Designed for growing businesses.",
-    footer_made_in: "Made with care in Egypt 🇪🇬",
+    footer_made_in: "Made with care in Egypt",
     footer_copyright: "© 2026 The Space OS. All rights reserved.",
     footer_features: "Features",
     footer_built_for: "Built For",
@@ -131,6 +131,13 @@ const translations = {
     w4: "Staff roles & permissions",
     w5: "Sessions, POS, bookings & finance in one platform",
     w6: "Mobile-friendly management",
+
+    eyebrow_problem: "THE PROBLEM",
+    eyebrow_product: "THE PRODUCT",
+    eyebrow_built_for: "WHO IT'S FOR",
+    eyebrow_features: "FEATURES",
+    eyebrow_how: "HOW IT WORKS",
+    eyebrow_demo: "GET STARTED",
   },
 
   ar: {
@@ -242,7 +249,7 @@ const translations = {
     bt_other: "أخرى",
 
     footer_tagline: "صُنع في مصر. مصمم للأعمال المتنامية.",
-    footer_made_in: "صُنع بعناية في مصر 🇪🇬",
+    footer_made_in: "صُنع بعناية في مصر",
     footer_copyright: "© 2026 The Space OS. جميع الحقوق محفوظة.",
     footer_features: "الميزات",
     footer_built_for: "مناسب لـ",
@@ -263,6 +270,13 @@ const translations = {
     w4: "أدوار وصلاحيات الموظفين",
     w5: "جلسات، POS، حجوزات، ومالية في منصة واحدة",
     w6: "إدارة متوافقة مع الجوال",
+
+    eyebrow_problem: "المشكلة",
+    eyebrow_product: "المنتج",
+    eyebrow_built_for: "مناسب لـ",
+    eyebrow_features: "الميزات",
+    eyebrow_how: "كيف يعمل",
+    eyebrow_demo: "ابدأ الآن",
   },
 };
 

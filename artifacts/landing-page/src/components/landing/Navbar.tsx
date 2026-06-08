@@ -55,15 +55,12 @@ export function Navbar({ t, lang, toggleLang, appLoginUrl = "/gaming-lounge/" }:
         <div className="flex items-center justify-between h-16 md:h-18">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
-              <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-                <circle cx="9" cy="9" r="4" stroke="white" strokeWidth="1.5" />
-                <path
-                  d="M9 2V1M9 17V16M2 9H1M17 9H16M4.2 4.2L3.5 3.5M14.5 14.5L13.8 13.8M13.8 4.2L14.5 3.5M3.5 14.5L4.2 13.8"
-                  stroke="white"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #3b82f6, #6366f1)" }}>
+              <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
+                <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
+                <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6" />
+                <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.6" />
+                <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
               </svg>
             </div>
             <span

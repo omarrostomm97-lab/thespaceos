@@ -38,14 +38,14 @@ img, svg, video {
 
 /* Dot grid background */
 @keyframes dot-pulse {
-  0%, 100% { opacity: 0.12; }
-  50% { opacity: 0.28; }
+  0%, 100% { opacity: 0.1; }
+  50% { opacity: 0.22; }
 }
 
 .dot-grid {
-  background-image: radial-gradient(circle, rgba(59, 130, 246, 0.5) 1px, transparent 1px);
-  background-size: 28px 28px;
-  animation: dot-pulse 5s ease-in-out infinite;
+  background-image: radial-gradient(circle, rgba(59, 130, 246, 0.55) 1px, transparent 1px);
+  background-size: 30px 30px;
+  animation: dot-pulse 6s ease-in-out infinite;
 }
 
 /* Gradient text */
@@ -56,21 +56,44 @@ img, svg, video {
   background-clip: text;
 }
 
-/* Card hover */
+/* Section eyebrow labels */
+.section-eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Premium card — used on all light-section cards */
+.premium-card {
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.05);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.premium-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08);
+}
+
+/* Legacy feature-card kept for any existing usage */
 .feature-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .feature-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-/* Navbar */
+/* Navbar scrolled state */
 .navbar-scrolled {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.07);
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.07), 0 2px 16px rgba(0,0,0,0.04);
 }
 
 /* RTL overrides */

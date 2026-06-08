@@ -86,9 +86,10 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-10"
         >
+          <p className="section-eyebrow text-blue-600 mb-3">{t("eyebrow_demo")}</p>
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
           >
             {t("form_headline")}
           </h2>

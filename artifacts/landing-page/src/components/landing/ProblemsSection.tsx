@@ -85,9 +85,10 @@ export function ProblemsSection({ t }: ProblemsSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-12 sm:mb-16"
         >
+          <p className="section-eyebrow text-red-500 mb-3">{t("eyebrow_problem")}</p>
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
           >
             {t("problems_headline")}
           </h2>
@@ -104,10 +105,12 @@ export function ProblemsSection({ t }: ProblemsSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="feature-card bg-white rounded-2xl p-6 border border-slate-200"
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
+              className="premium-card bg-white rounded-2xl p-7"
             >
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: "#fef2f2", color: "#ef4444" }}>
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
+                style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444" }}
+              >
                 {icon}
               </div>
               <h3

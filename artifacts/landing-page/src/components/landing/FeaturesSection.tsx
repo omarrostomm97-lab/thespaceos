@@ -97,9 +97,10 @@ export function FeaturesSection({ t }: FeaturesSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-12 sm:mb-16"
         >
+          <p className="section-eyebrow text-blue-600 mb-3">{t("eyebrow_features")}</p>
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
           >
             {t("features_headline")}
           </h2>
@@ -116,12 +117,12 @@ export function FeaturesSection({ t }: FeaturesSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="feature-card rounded-2xl p-6 border border-slate-200 bg-white"
-              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
+              className="premium-card bg-white rounded-2xl p-7"
+              style={{ borderTop: `3px solid ${color}22` }}
             >
               <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-                style={{ background: `${color}12`, border: `1px solid ${color}22`, color }}
+                className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
+                style={{ background: `${color}10`, border: `1px solid ${color}20`, color }}
               >
                 {icon}
               </div>

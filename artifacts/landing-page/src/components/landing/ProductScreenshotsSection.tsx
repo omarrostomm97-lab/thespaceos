@@ -13,14 +13,14 @@ function SessionsMockup({ t }: { t: (key: TranslationKey) => string }) {
     { id: "#S-039", device: "PS5 Room 2", time: "3h 00m", amount: "150 EGP", active: false },
   ];
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0b1120" }}>
+    <div>
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "12px", fontWeight: 600, fontFamily: "'Space Grotesk', sans-serif" }}>
           {t("ss_sessions")}
         </span>
         <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full" style={{ background: "rgba(16,185,129,0.15)" }}>
           <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          <span style={{ color: "#34d399", fontSize: "10px" }}>12 {t("mockup_active")}</span>
+          <span style={{ color: "#34d399", fontSize: "10px", fontWeight: 500 }}>12 {t("mockup_active")}</span>
         </div>
       </div>
       <div>
@@ -60,8 +60,8 @@ function OrdersMockup({ t }: { t: (key: TranslationKey) => string }) {
     { id: "#O-087", items: "3x Red Bull, 2x Pizza", table: "Session #41", status: "New", color: "#3b82f6" },
   ];
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0b1120" }}>
+    <div>
+      <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "12px", fontWeight: 600, fontFamily: "'Space Grotesk', sans-serif" }}>
           {t("ss_orders")}
         </span>
@@ -89,8 +89,8 @@ function OrdersMockup({ t }: { t: (key: TranslationKey) => string }) {
               <div className="truncate" style={{ color: "rgba(255,255,255,0.45)", fontSize: "10px" }}>{o.items}</div>
             </div>
             <div
-              className="flex-shrink-0 px-1.5 py-0.5 rounded text-xs"
-              style={{ background: `${o.color}18`, color: o.color, fontSize: "9px" }}
+              className="flex-shrink-0 px-1.5 py-0.5 rounded"
+              style={{ background: `${o.color}18`, color: o.color, fontSize: "9px", fontWeight: 500 }}
             >
               {o.status}
             </div>
@@ -105,8 +105,8 @@ function FinanceMockup({ t }: { t: (key: TranslationKey) => string }) {
   const bars = [65, 82, 55, 90, 70, 95, 78];
   const days = ["M", "T", "W", "T", "F", "S", "S"];
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0b1120" }}>
+    <div>
+      <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "12px", fontWeight: 600, fontFamily: "'Space Grotesk', sans-serif" }}>
           {t("ss_reports")}
         </span>
@@ -124,15 +124,14 @@ function FinanceMockup({ t }: { t: (key: TranslationKey) => string }) {
       </div>
       <div className="px-4 py-3">
         <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "9px", marginBottom: "8px" }}>Weekly Revenue</div>
-        <div className="flex items-end gap-1.5" style={{ height: "48px" }}>
+        <div className="flex items-end gap-1.5" style={{ height: "52px" }}>
           {bars.map((h, i) => (
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <div
                 className="w-full rounded-sm"
                 style={{
-                  height: `${(h / 100) * 44}px`,
-                  background: i === 5 ? "#3b82f6" : "rgba(59,130,246,0.25)",
-                  transition: "height 0.3s",
+                  height: `${(h / 100) * 48}px`,
+                  background: i === 5 ? "#3b82f6" : i === 3 ? "#8b5cf6" : "rgba(59,130,246,0.22)",
                 }}
               />
               <span style={{ color: "rgba(255,255,255,0.25)", fontSize: "8px" }}>{days[i]}</span>
@@ -152,8 +151,8 @@ function StaffMockup({ t }: { t: (key: TranslationKey) => string }) {
     { name: "Mona Tarek", role: "Cashier", status: "Off Shift", hours: "—", color: "#475569" },
   ];
   return (
-    <div className="rounded-xl overflow-hidden" style={{ background: "#111827", border: "1px solid rgba(255,255,255,0.08)" }}>
-      <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0b1120" }}>
+    <div>
+      <div className="px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "12px", fontWeight: 600, fontFamily: "'Space Grotesk', sans-serif" }}>
           {t("ss_staff")}
         </span>
@@ -167,7 +166,7 @@ function StaffMockup({ t }: { t: (key: TranslationKey) => string }) {
           >
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-white"
-              style={{ background: "rgba(59,130,246,0.25)", fontSize: "11px", fontWeight: 600 }}
+              style={{ background: "rgba(59,130,246,0.22)", fontSize: "11px", fontWeight: 600 }}
             >
               {s.name[0]}
             </div>
@@ -177,8 +176,8 @@ function StaffMockup({ t }: { t: (key: TranslationKey) => string }) {
             </div>
             <div style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", flexShrink: 0 }}>{s.hours}</div>
             <div
-              className="px-1.5 py-0.5 rounded text-xs flex-shrink-0"
-              style={{ background: `${s.color}18`, color: s.color, fontSize: "9px" }}
+              className="px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{ background: `${s.color}18`, color: s.color, fontSize: "9px", fontWeight: 500 }}
             >
               {s.status}
             </div>
@@ -227,9 +226,10 @@ export function ProductScreenshotsSection({ t }: ProductScreenshotsSectionProps)
           transition={{ duration: 0.5 }}
           className="text-center mb-12 sm:mb-16"
         >
+          <p className="section-eyebrow text-slate-500 mb-3">{t("eyebrow_product")}</p>
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
           >
             {t("ss_headline")}
           </h2>
@@ -246,29 +246,43 @@ export function ProductScreenshotsSection({ t }: ProductScreenshotsSectionProps)
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: i * 0.08 }}
-              className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-slate-300 transition-all duration-200"
-              style={{ boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}
+              className="bg-white rounded-2xl overflow-hidden"
+              style={{
+                border: "1px solid rgba(15,23,42,0.07)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.05)",
+              }}
             >
-              {/* Caption */}
-              <div className="px-5 py-4 flex items-start gap-3" style={{ borderBottom: "1px solid #f1f5f9" }}>
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ background: `${accent}15` }}
-                >
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: accent }} />
+              {/* Mockup — dark, flush to top and sides, no extra padding */}
+              <div
+                style={{
+                  background: "#0f172a",
+                  borderBottom: `2px solid ${accent}`,
+                }}
+              >
+                <div className="px-4 pt-4 pb-3">
+                  {mockup(t)}
                 </div>
+              </div>
+
+              {/* Caption — with colored left accent bar */}
+              <div
+                className="flex items-start gap-3 px-5 py-4"
+                style={{ borderLeft: `3px solid ${accent}` }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                  style={{ background: accent }}
+                />
                 <div>
                   <h3
-                    className="text-sm font-semibold text-slate-900"
+                    className="text-sm font-semibold text-slate-900 mb-0.5"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                   >
                     {t(titleKey)}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">{t(descKey)}</p>
+                  <p className="text-xs text-slate-500 leading-relaxed">{t(descKey)}</p>
                 </div>
               </div>
-              {/* Mockup */}
-              <div className="p-4">{mockup(t)}</div>
             </motion.div>
           ))}
         </div>
