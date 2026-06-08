@@ -2767,3 +2767,22 @@ export const GetFinanceShiftDifferencesResponseItem = zod.object({
 export const GetFinanceShiftDifferencesResponse = zod.array(GetFinanceShiftDifferencesResponseItem)
 
 
+/**
+ * @summary Submit a demo request (no auth required)
+ */
+
+
+
+
+
+
+export const CreateLeadBody = zod.object({
+  "name": zod.string().min(1),
+  "email": zod.string().email(),
+  "phone": zod.string().min(1),
+  "company": zod.string().min(1),
+  "businessType": zod.enum(['gaming_lounge', 'coworking', 'cafe', 'restaurant', 'other']),
+  "city": zod.string().min(1)
+})
+
+

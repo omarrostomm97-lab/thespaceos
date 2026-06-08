@@ -42,6 +42,8 @@ tags:
     description: Room bookings and reservations
   - name: finance
     description: Owner finance module
+  - name: leads
+    description: Marketing demo request leads
 
 paths:
   /healthz:
@@ -2429,6 +2431,32 @@ paths:
                 items:
                   $ref: "#/components/schemas/FinanceShiftDifference"
 
+  # ── LEADS ──────────────────────────────────────────────
+  /leads:
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Submit a demo request (no auth required)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadInput"
+      responses:
+        "201":
+          description: Lead created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -4288,3 +4316,48 @@ components:
       properties:
         reason:
           type: string
+
+    Lead:
+      type: object
+      required: [id, name, email, phone, company, businessType, city, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        company:
+          type: string
+        businessType:
+          type: string
+        city:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    LeadInput:
+      type: object
+      required: [name, email, phone, company, businessType, city]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          minLength: 1
+        company:
+          type: string
+          minLength: 1
+        businessType:
+          type: string
+          enum: [gaming_lounge, coworking, cafe, restaurant, other]
+        city:
+          type: string
+          minLength: 1

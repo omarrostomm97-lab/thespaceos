@@ -18,6 +18,7 @@ import bookingsRouter from "./bookings";
 import publicMenuRouter from "./publicMenu";
 import financeRouter from "./finance";
 import discountsRouter from "./discounts";
+import leadsRouter from "./leads";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(bookingsRouter);
 router.use(publicMenuRouter);
 router.use(financeRouter);
 router.use(discountsRouter);
+router.use(leadsRouter);
 
 export default router;

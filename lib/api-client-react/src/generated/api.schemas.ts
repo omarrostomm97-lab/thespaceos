@@ -1380,6 +1380,41 @@ export interface CancelDiscountInput {
   reason?: string;
 }
 
+export interface Lead {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  businessType: string;
+  city: string;
+  createdAt: string;
+}
+
+export type LeadInputBusinessType = typeof LeadInputBusinessType[keyof typeof LeadInputBusinessType];
+
+
+export const LeadInputBusinessType = {
+  gaming_lounge: 'gaming_lounge',
+  coworking: 'coworking',
+  cafe: 'cafe',
+  restaurant: 'restaurant',
+  other: 'other',
+} as const;
+
+export interface LeadInput {
+  /** @minLength 1 */
+  name: string;
+  email: string;
+  /** @minLength 1 */
+  phone: string;
+  /** @minLength 1 */
+  company: string;
+  businessType: LeadInputBusinessType;
+  /** @minLength 1 */
+  city: string;
+}
+
 export type RefreshTokenBody = {
   refreshToken: string;
 };
