@@ -68,14 +68,15 @@ img, svg, video {
 
 /* Premium card — used on all light-section cards */
 .premium-card {
+  background: #fafafa;
   border: 1px solid rgba(15, 23, 42, 0.07);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.05);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
   transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
 .premium-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06), 0 12px 40px rgba(0,0,0,0.08);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
 }
 
 /* Legacy feature-card kept for any existing usage */

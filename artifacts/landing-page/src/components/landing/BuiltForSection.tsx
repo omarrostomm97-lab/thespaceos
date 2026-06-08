@@ -97,7 +97,7 @@ export function BuiltForSection({ t }: BuiltForSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="premium-card bg-white rounded-2xl p-7 flex flex-col"
+              className="premium-card rounded-2xl p-7 flex flex-col"
               style={{ borderTop: `3px solid ${color}22` }}
             >
               <div
