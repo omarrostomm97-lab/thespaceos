@@ -77,7 +77,7 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
   const errorBase = "mt-1 text-xs text-red-500";
 
   return (
-    <section id="demo" className="py-20 sm:py-28 bg-white">
+    <section id="demo" className="py-20 sm:py-28 bg-white scroll-mt-20">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}

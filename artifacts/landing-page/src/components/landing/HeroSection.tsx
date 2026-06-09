@@ -34,7 +34,7 @@ function BrowserFrame({ src, alt }: { src: string; alt: string }) {
 
 export function HeroSection({ t, dir }: HeroSectionProps) {
   return (
-    <section className="relative overflow-hidden pt-24 pb-0 bg-[#0f172a]">
+    <section className="relative overflow-hidden pb-0 bg-[#0f172a]">
       {/* Dot grid */}
       <div className="absolute inset-0 dot-grid pointer-events-none opacity-[0.38]" />
 
@@ -48,7 +48,9 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
       <div className="absolute pointer-events-none top-[15%] -right-[6%] w-[420px] h-[420px] rounded-full blur-[48px] bg-[radial-gradient(circle,rgba(139,92,246,0.06)_0%,transparent_70%)]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl mx-auto text-center pt-14 sm:pt-20 pb-14 sm:pb-16">
+        {/* Spacer that clears the fixed navbar (h-16 mobile / md:h-18) + breathing room */}
+        <div className="h-24 sm:h-28" aria-hidden="true" />
+        <div className="max-w-3xl mx-auto text-center pb-14 sm:pb-16">
           {/* Badge */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
