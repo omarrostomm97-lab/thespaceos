@@ -1,21 +1,16 @@
 import { motion } from "framer-motion";
 import type { TranslationKey } from "@/lib/i18n";
-import dashboardImg from "@assets/dashboard_owner_screenshot_1780963787697.png";
 
 interface HeroSectionProps {
   t: (key: TranslationKey) => string;
   dir: string;
 }
 
+const dashboardImg = `${import.meta.env.BASE_URL}screenshots/dashboard.png`;
+
 function BrowserFrame({ src, alt }: { src: string; alt: string }) {
   return (
-    <div
-      className="rounded-2xl overflow-hidden border border-white/[0.09]"
-      style={{
-        boxShadow:
-          "0 48px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.07)",
-      }}
-    >
+    <div className="rounded-2xl overflow-hidden border border-white/[0.09] browser-frame">
       {/* Browser chrome */}
       <div className="flex items-center gap-3 px-4 h-10 bg-[#1a2035] border-b border-white/[0.07]">
         <div className="flex gap-1.5 flex-shrink-0">
@@ -52,7 +47,7 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
       {/* Dot grid */}
       <div className="absolute inset-0 dot-grid pointer-events-none opacity-[0.38]" />
 
-      {/* Radial gradient top */}
+      {/* Radial gradient — top accent */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -61,7 +56,7 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
         }}
       />
 
-      {/* Blue orb left */}
+      {/* Blue orb — left */}
       <div
         className="absolute pointer-events-none top-[10%] -left-[8%] w-[500px] h-[500px] rounded-full blur-[48px]"
         style={{
@@ -70,7 +65,7 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
         }}
       />
 
-      {/* Purple orb right */}
+      {/* Purple orb — right */}
       <div
         className="absolute pointer-events-none top-[15%] -right-[6%] w-[420px] h-[420px] rounded-full blur-[48px]"
         style={{
@@ -93,13 +88,12 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
             {t("hero_badge")}
           </motion.div>
 
-          {/* Headline */}
+          {/* Headline — clamp() font-size via Tailwind arbitrary value */}
           <motion.h1
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.08 }}
-            className="font-bold text-white leading-[1.06] tracking-tight mb-5"
-            style={{ fontSize: "clamp(3rem, 6vw, 5rem)" }}
+            className="font-bold text-white leading-[1.06] tracking-tight mb-5 text-[clamp(3rem,6vw,5rem)]"
           >
             {t("hero_headline")}
           </motion.h1>
@@ -175,9 +169,8 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
           />
           {/* Gradient fade into next section */}
           <div
-            className="absolute bottom-0 left-0 right-0 pointer-events-none"
+            className="absolute bottom-0 left-0 right-0 h-[140px] pointer-events-none"
             style={{
-              height: "140px",
               background:
                 "linear-gradient(to bottom, transparent 0%, rgba(15,23,42,0.6) 35%, #ffffff 100%)",
             }}

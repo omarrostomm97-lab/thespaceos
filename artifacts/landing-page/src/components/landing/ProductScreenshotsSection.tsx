@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import type { TranslationKey } from "@/lib/i18n";
-import dashboardImg from "@assets/dashboard_owner_screenshot_1780963787697.png";
-// @ts-ignore — filename contains commas; Vite resolves it correctly at runtime
-import sessionsImg from "@assets/ChatGPT_Image_Jun_9,_2026,_03_16_41_AM_1780964285641.png";
 
 interface ProductScreenshotsSectionProps {
   t: (key: TranslationKey) => string;
 }
+
+const base = import.meta.env.BASE_URL;
+const dashboardImg = `${base}screenshots/dashboard.png`;
+const sessionsImg = `${base}screenshots/sessions.png`;
 
 const screenshots: Array<{
   titleKey: TranslationKey;
@@ -74,14 +75,10 @@ export function ProductScreenshotsSection({
               transition={{ duration: 0.45, delay: i * 0.08 }}
               className="bg-white rounded-2xl overflow-hidden border border-slate-900/[0.07] shadow-[0_2px_8px_rgba(0,0,0,0.04),_0_8px_32px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform duration-200"
             >
-              {/* Real screenshot — dark header, crops to top 220px */}
+              {/* Real screenshot — static gradient bg via Tailwind arbitrary, dynamic accent border stays inline */}
               <div
-                className="overflow-hidden max-h-[220px]"
-                style={{
-                  background:
-                    "linear-gradient(170deg, #141d2e 0%, #0f172a 60%, #111827 100%)",
-                  borderBottom: `2px solid ${accent}`,
-                }}
+                className="overflow-hidden max-h-[220px] bg-[linear-gradient(170deg,#141d2e_0%,#0f172a_60%,#111827_100%)]"
+                style={{ borderBottom: `2px solid ${accent}` }}
               >
                 <img
                   src={src}
@@ -91,7 +88,7 @@ export function ProductScreenshotsSection({
                 />
               </div>
 
-              {/* Caption with colored left accent bar */}
+              {/* Caption — colored left accent bar (dynamic, must stay inline) */}
               <div
                 className="flex items-start gap-3 px-5 py-4"
                 style={{ borderLeft: `3px solid ${accent}` }}

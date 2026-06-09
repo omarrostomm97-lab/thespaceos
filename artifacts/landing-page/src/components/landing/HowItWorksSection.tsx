@@ -115,9 +115,8 @@ export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
               {/* Icon box with per-step glow */}
               <div className="relative mb-7">
                 <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center relative z-10"
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center relative z-10 bg-[linear-gradient(145deg,#1a2540,#141c2e)]"
                   style={{
-                    background: "linear-gradient(145deg, #1a2540, #141c2e)",
                     border: `1px solid ${borderColor}`,
                     color,
                     boxShadow: `0 0 0 6px ${glowColor}, 0 12px 40px rgba(0,0,0,0.35)`,
