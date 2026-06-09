@@ -21,8 +21,7 @@ export default function LandingPage() {
         : "The Space OS — Business Operations Management Software";
   }, [lang]);
 
-  const base = import.meta.env.BASE_URL || "/landing-page/";
-  const appLoginUrl = base.replace(/\/landing-page\/?$/, "/gaming-lounge/");
+  const appLoginUrl = "/gaming-lounge/login";
 
   return (
     <div dir={dir} lang={lang} className="min-h-screen overflow-x-hidden">

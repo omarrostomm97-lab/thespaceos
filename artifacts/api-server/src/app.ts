@@ -31,4 +31,9 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
 
+/* Root redirect → landing page */
+app.get("/", (_req, res) => {
+  res.redirect(301, "/landing-page/");
+});
+
 export default app;
