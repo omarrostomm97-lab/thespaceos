@@ -56,7 +56,7 @@ function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venu
           <Gamepad2 style={{ width: 16, height: 16, color: "white" }} />
         </div>
         <div style={{ position: "relative", color: "white", fontSize: 13, fontWeight: 700 }}>
-          {venueName || "Gaming Lounge"}
+          {venueName || "The Space OS"}
         </div>
       </div>
       <div style={{ padding: "22px 20px 16px", textAlign: "center", width: "100%" }}>
@@ -136,7 +136,7 @@ function CompactQrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: strin
           position: "relative", color: "white", fontSize: 10, fontWeight: 700,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}>
-          {venueName || "Gaming Lounge"}
+          {venueName || "The Space OS"}
         </span>
       </div>
 

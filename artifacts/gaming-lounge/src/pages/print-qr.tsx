@@ -136,7 +136,7 @@ export default function PrintQrPage() {
             </div>
             <div style={{ position: "relative" }}>
               <div style={{ color: "white", fontSize: 14, fontWeight: 700, letterSpacing: "0.02em" }}>
-                {venue || "Gaming Lounge"}
+                {venue || "The Space OS"}
               </div>
             </div>
           </div>

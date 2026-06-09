@@ -116,7 +116,7 @@ export const guideModules: ModuleGuide[] = [
       {
         scene: 1,
         voiceoverEN: "Welcome to The Space OS. Let's start with the Dashboard — your real-time command center.",
-        voiceoverAR: "مرحباً بك في نظام جيمينج لاونج. لنبدأ باللوحة الرئيسية — مركز القيادة في الوقت الفعلي.",
+        voiceoverAR: "مرحباً بك في ذا سبيس أو إس. لنبدأ باللوحة الرئيسية — مركز القيادة في الوقت الفعلي.",
         screenAction: "Show the full Dashboard page with all four KPI cards visible.",
       },
       {
@@ -1618,7 +1618,7 @@ export const guideModules: ModuleGuide[] = [
     },
     guideAR: {
       overview:
-        "يحتوي نظام جيمينج لاونج على خمسة أدوار: مالك النظام (مشرف النظام)، مالك (صاحب المركز)، مدير، كاشير، وعامل بوفيه. الأدوار ثابتة من قِبَل النظام — تُعيّن الدور المناسب عند إنشاء حساب مستخدم.",
+        "يحتوي ذا سبيس أو إس على خمسة أدوار: مالك النظام (مشرف النظام)، مالك (صاحب المركز)، مدير، كاشير، وعامل بوفيه. الأدوار ثابتة من قِبَل النظام — تُعيّن الدور المناسب عند إنشاء حساب مستخدم.",
       steps: [
         "افهم كل دور قبل إنشاء حسابات المستخدمين.",
         "مالك النظام — وصول كامل للنظام بما في ذلك إدارة المستأجرين (يستخدمه مزود البرنامج).",
@@ -1651,7 +1651,7 @@ export const guideModules: ModuleGuide[] = [
       {
         scene: 1,
         voiceoverEN: "The Space OS has five roles — each with exactly the access they need to do their job.",
-        voiceoverAR: "نظام جيمينج لاونج يحتوي خمسة أدوار — كل منها لديه بالضبط الوصول اللازم لأداء عمله.",
+        voiceoverAR: "ذا سبيس أو إس يحتوي خمسة أدوار — كل منها لديه بالضبط الوصول اللازم لأداء عمله.",
         screenAction: "Show a role comparison table or the user creation dialog with role dropdown.",
       },
       {
