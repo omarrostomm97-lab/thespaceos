@@ -2,7 +2,7 @@ import { useGetPublicMenu } from "@workspace/api-client-react";
 import { useParams } from "wouter";
 import { useState, useMemo } from "react";
 import { getProductEmoji } from "@/lib/product-emoji";
-import { Gamepad2, Search, X, ChevronRight } from "lucide-react";
+import { Search, X, ChevronRight } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const LOGO_FULL = `${BASE}/the-space-os-logo.png`;
@@ -43,10 +43,8 @@ export default function PublicMenuPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center gap-4">
-        <div className="relative">
-          <div className="h-16 w-16 rounded-full border-4 border-[#7c3aed]/30 border-t-[#7c3aed] animate-spin" />
-          <Gamepad2 className="absolute inset-0 m-auto h-6 w-6 text-[#7c3aed]" />
-        </div>
+        <div className="h-16 w-16 rounded-full border-4 border-[#7c3aed]/30 border-t-[#7c3aed] animate-spin" />
+        <img src={LOGO_FULL} alt="The Space OS" style={{ height: 22, width: "auto", objectFit: "contain", opacity: 0.7 }} />
         <p className="text-[#7c3aed]/70 text-sm tracking-widest uppercase">Loading Menu</p>
       </div>
     );
@@ -56,7 +54,7 @@ export default function PublicMenuPage() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center gap-6 p-8 text-center">
         <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 max-w-sm">
-          <Gamepad2 className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <img src={LOGO_FULL} alt="The Space OS" className="mx-auto mb-4" style={{ height: 32, width: "auto", objectFit: "contain" }} />
           <h1 className="text-xl font-bold text-white mb-2">Menu Not Found</h1>
           <p className="text-gray-500 text-sm">This QR code is invalid or the menu is no longer available.</p>
         </div>

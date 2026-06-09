@@ -4,7 +4,7 @@ import { useParams } from "wouter";
 import { useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "framer-motion";
 import {
-  Gamepad2, ShoppingCart, Plus, Minus, X, Search,
+  ShoppingCart, Plus, Minus, X, Search,
   ChevronLeft, CheckCircle2, Wifi, Clock, Lock, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -125,15 +125,15 @@ export default function QrMenu() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#08080f] flex flex-col items-center justify-center gap-5">
-        <motion.div
-          className="relative"
-          animate={{ scale: [1, 1.1, 1] }}
+        <div className="h-16 w-16 rounded-full border-4 border-[#7c3aed]/20 border-t-[#7c3aed]"
+          style={{ animation: "spin 1s linear infinite" }} />
+        <motion.img
+          src={LOGO_FULL}
+          alt="The Space OS"
+          animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-        >
-          <div className="h-20 w-20 rounded-full border-4 border-[#7c3aed]/20 border-t-[#7c3aed]"
-            style={{ animation: "spin 1s linear infinite" }} />
-          <Gamepad2 className="absolute inset-0 m-auto h-8 w-8 text-[#7c3aed]" />
-        </motion.div>
+          style={{ height: 24, width: "auto", objectFit: "contain" }}
+        />
         <p className="text-[#7c3aed]/60 text-xs tracking-[0.3em] uppercase">Loading Menu</p>
       </div>
     );
@@ -147,7 +147,7 @@ export default function QrMenu() {
           animate={{ scale: 1, opacity: 1 }}
           className="bg-red-500/10 border border-red-500/20 rounded-3xl p-10 max-w-xs"
         >
-          <Gamepad2 className="h-14 w-14 text-red-400 mx-auto mb-5" />
+          <img src={LOGO_FULL} alt="The Space OS" className="mx-auto mb-5" style={{ height: 36, width: "auto", objectFit: "contain" }} />
           <h1 className="text-xl font-bold text-white mb-2">Menu Not Found</h1>
           <p className="text-gray-500 text-sm leading-relaxed">This QR code is invalid or the session has ended.</p>
         </motion.div>
