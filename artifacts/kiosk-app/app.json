@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Gaming Lounge",
+    "name": "The Space OS",
     "slug": "kiosk-app",
     "version": "1.0.0",
     "orientation": "default",
@@ -30,7 +30,7 @@
       [
         "expo-router",
         {
-          "origin": "https://replit.com/"
+          "origin": "https://thespaceos.com/"
         }
       ],
       "expo-font",

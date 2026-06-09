@@ -436,7 +436,7 @@ export default function UserGuideScripts() {
     const modeLabel = { all: "Full Guide", en: "English Only", ar: "Arabic Only", video: "Video Scripts" }[mode];
     const html = `<!DOCTYPE html><html><head>
       <meta charset="utf-8">
-      <title>Gaming Lounge OS — User Guide (${modeLabel})</title>
+      <title>The Space OS — User Guide (${modeLabel})</title>
       <style>
         body { font-family: system-ui, -apple-system, Arial, sans-serif; color: #1a1a2e; margin: 0; padding: 24px; background: #fff; }
         @page { margin: 15mm; }
@@ -444,7 +444,7 @@ export default function UserGuideScripts() {
       </style>
     </head><body>
       <div style="margin-bottom:24px;padding-bottom:16px;border-bottom:3px solid #1a6fef">
-        <h1 style="margin:0;font-size:22px;font-weight:800;color:#1a1a2e">Gaming Lounge OS — User Guide</h1>
+        <h1 style="margin:0;font-size:22px;font-weight:800;color:#1a1a2e">The Space OS — User Guide</h1>
         <p style="margin:4px 0 0;color:#555;font-size:13px">${modeLabel} · ${filtered.length} modules · ${new Date().toLocaleDateString()}</p>
       </div>
       ${modulesHTML}
@@ -465,7 +465,7 @@ export default function UserGuideScripts() {
 
       children.push(
         new Paragraph({
-          text: "Gaming Lounge OS — User Guide",
+          text: "The Space OS — User Guide",
           heading: HeadingLevel.TITLE,
         })
       );

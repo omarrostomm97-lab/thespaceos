@@ -3,7 +3,7 @@ export type Lang = "ar" | "en";
 const translations = {
   ar: {
     /* ── Brand ── */
-    brand_name: "جيمينج لاونج",
+    brand_name: "ذا سبيس أو إس",
     brand_subtitle: "نظام الإدارة",
 
     /* ── Navigation ── */
@@ -37,7 +37,7 @@ const translations = {
     role_buffet_worker: "عامل بوفيه",
 
     /* ── Login ── */
-    login_system: "نظام جيمينج لاونج",
+    login_system: "ذا سبيس أو إس",
     login_subtitle: "تسجيل الدخول للوحة التحكم",
     email: "البريد الإلكتروني",
     password: "كلمة المرور",
@@ -876,7 +876,7 @@ const translations = {
   },
   en: {
     /* ── Brand ── */
-    brand_name: "Gaming Lounge",
+    brand_name: "The Space OS",
     brand_subtitle: "Management System",
 
     /* ── Navigation ── */
@@ -911,7 +911,7 @@ const translations = {
     role_buffet_worker: "Buffet Worker",
 
     /* ── Login ── */
-    login_system: "Gaming Lounge OS",
+    login_system: "The Space OS",
     login_subtitle: "Sign in to your dashboard",
     email: "Email Address",
     password: "Password",

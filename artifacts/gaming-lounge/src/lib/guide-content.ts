@@ -115,7 +115,7 @@ export const guideModules: ModuleGuide[] = [
     videoScript: [
       {
         scene: 1,
-        voiceoverEN: "Welcome to Gaming Lounge OS. Let's start with the Dashboard — your real-time command center.",
+        voiceoverEN: "Welcome to The Space OS. Let's start with the Dashboard — your real-time command center.",
         voiceoverAR: "مرحباً بك في نظام جيمينج لاونج. لنبدأ باللوحة الرئيسية — مركز القيادة في الوقت الفعلي.",
         screenAction: "Show the full Dashboard page with all four KPI cards visible.",
       },
@@ -1587,7 +1587,7 @@ export const guideModules: ModuleGuide[] = [
     roles: ["owner", "manager"],
     guideEN: {
       overview:
-        "Gaming Lounge OS has five roles: Platform Owner (system admin), Owner (venue owner), Manager, Cashier, and Buffet Worker. Roles are fixed by the system — you assign the appropriate role when creating a user account.",
+        "The Space OS has five roles: Platform Owner (system admin), Owner (venue owner), Manager, Cashier, and Buffet Worker. Roles are fixed by the system — you assign the appropriate role when creating a user account.",
       steps: [
         "Understand each role before creating user accounts.",
         "Platform Owner — full system access including tenant management (used by the software provider).",
@@ -1650,7 +1650,7 @@ export const guideModules: ModuleGuide[] = [
     videoScript: [
       {
         scene: 1,
-        voiceoverEN: "Gaming Lounge OS has five roles — each with exactly the access they need to do their job.",
+        voiceoverEN: "The Space OS has five roles — each with exactly the access they need to do their job.",
         voiceoverAR: "نظام جيمينج لاونج يحتوي خمسة أدوار — كل منها لديه بالضبط الوصول اللازم لأداء عمله.",
         screenAction: "Show a role comparison table or the user creation dialog with role dropdown.",
       },

@@ -240,8 +240,8 @@ export default function PrintQrPage() {
               POWERED BY
             </span>
             <img
-              src={`${import.meta.env.BASE_URL}gaming-lounge-os-logo.png`}
-              alt="Gaming Lounge OS"
+              src={`${import.meta.env.BASE_URL}the-space-os-logo.png`}
+              alt="The Space OS"
               style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover" }}
             />
           </div>

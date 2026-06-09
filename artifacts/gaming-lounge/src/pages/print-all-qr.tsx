@@ -6,7 +6,7 @@ import { Gamepad2, Printer, X, Loader2, LayoutGrid, Square } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const LOGO = `${BASE}/gaming-lounge-os-logo.png`;
+const LOGO = `${BASE}/the-space-os-logo.png`;
 
 type Layout = "single" | "compact";
 
@@ -98,7 +98,7 @@ function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venu
         display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
       }}>
         <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 9, letterSpacing: "0.08em" }}>POWERED BY</span>
-        <img src={LOGO} alt="Gaming Lounge OS" style={{ width: 44, height: 44, borderRadius: 9, objectFit: "cover" }} />
+        <img src={LOGO} alt="The Space OS" style={{ width: 44, height: 44, borderRadius: 9, objectFit: "cover" }} />
       </div>
     </div>
   );
@@ -189,7 +189,7 @@ function CompactQrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: strin
         display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
       }}>
         <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 7, letterSpacing: "0.08em" }}>POWERED BY</span>
-        <img src={LOGO} alt="Gaming Lounge OS" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "cover" }} />
+        <img src={LOGO} alt="The Space OS" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "cover" }} />
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { getProductEmoji } from "@/lib/product-emoji";
 import { Gamepad2, Search, X, ChevronRight } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const LOGO_FULL = `${BASE}/glos-logo-full.png`;
+const LOGO_FULL = `${BASE}/the-space-os-logo.png`;
 
 export default function PublicMenuPage() {
   const { token } = useParams<{ token: string }>();
@@ -203,7 +203,7 @@ export default function PublicMenuPage() {
           <div className="h-3 w-px bg-white/10" />
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-gray-700 uppercase tracking-[0.15em]">Powered by</span>
-            <img src={LOGO_FULL} alt="Gaming Lounge OS" className="h-5 w-auto object-contain opacity-60 rounded" />
+            <img src={LOGO_FULL} alt="The Space OS" className="h-5 w-auto object-contain opacity-60 rounded" />
           </div>
         </div>
       </footer>

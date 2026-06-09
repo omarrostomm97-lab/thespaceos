@@ -10,8 +10,8 @@ import {
 import { toast } from "sonner";
 
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const LOGO_FULL = `${BASE}/glos-logo-full.png`;
-const LOGO_ICON = `${BASE}/gaming-lounge-os-logo.png`;
+const LOGO_FULL = `${BASE}/the-space-os-logo.png`;
+const LOGO_ICON = `${BASE}/the-space-os-logo.png`;
 
 /* ─── Types ────────────────────────────────────────── */
 interface CartItem { product: any; quantity: number }
@@ -450,7 +450,7 @@ export default function QrMenu() {
         <div className="flex flex-col items-center gap-3 pt-6 pb-2">
           <div className="h-px w-24 bg-white/[0.06]" />
           <p className="text-[10px] text-gray-700 uppercase tracking-[0.18em]">Powered by</p>
-          <img src={LOGO_FULL} alt="Gaming Lounge OS" className="h-14 w-auto object-contain opacity-80 rounded-xl" />
+          <img src={LOGO_FULL} alt="The Space OS" className="h-14 w-auto object-contain opacity-80 rounded-xl" />
         </div>
       </main>
 
