@@ -11,7 +11,6 @@ const dashboardImg = `${import.meta.env.BASE_URL}screenshots/dashboard.png`;
 function BrowserFrame({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="rounded-2xl overflow-hidden border border-white/[0.09] browser-frame">
-      {/* Browser chrome */}
       <div className="flex items-center gap-3 px-4 h-10 bg-[#1a2035] border-b border-white/[0.07]">
         <div className="flex gap-1.5 flex-shrink-0">
           <div className="w-3 h-3 rounded-full bg-[#ff5f56]" />
@@ -19,14 +18,7 @@ function BrowserFrame({ src, alt }: { src: string; alt: string }) {
           <div className="w-3 h-3 rounded-full bg-[#27c840]" />
         </div>
         <div className="flex-1 mx-2 h-6 rounded-md flex items-center px-2.5 gap-2 bg-black/[0.28]">
-          <svg
-            width="10"
-            height="10"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="rgba(255,255,255,0.2)"
-            strokeWidth="2"
-          >
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
             <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" />
           </svg>
@@ -35,7 +27,6 @@ function BrowserFrame({ src, alt }: { src: string; alt: string }) {
           </span>
         </div>
       </div>
-      {/* Real screenshot */}
       <img src={src} alt={alt} className="w-full block" />
     </div>
   );
@@ -47,35 +38,16 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
       {/* Dot grid */}
       <div className="absolute inset-0 dot-grid pointer-events-none opacity-[0.38]" />
 
-      {/* Radial gradient — top accent */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 55% at 50% -5%, rgba(59,130,246,0.13) 0%, transparent 65%)",
-        }}
-      />
+      {/* Top radial accent */}
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_80%_55%_at_50%_-5%,rgba(59,130,246,0.13)_0%,transparent_65%)]" />
 
       {/* Blue orb — left */}
-      <div
-        className="absolute pointer-events-none top-[10%] -left-[8%] w-[500px] h-[500px] rounded-full blur-[48px]"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%)",
-        }}
-      />
+      <div className="absolute pointer-events-none top-[10%] -left-[8%] w-[500px] h-[500px] rounded-full blur-[48px] bg-[radial-gradient(circle,rgba(59,130,246,0.06)_0%,transparent_70%)]" />
 
       {/* Purple orb — right */}
-      <div
-        className="absolute pointer-events-none top-[15%] -right-[6%] w-[420px] h-[420px] rounded-full blur-[48px]"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%)",
-        }}
-      />
+      <div className="absolute pointer-events-none top-[15%] -right-[6%] w-[420px] h-[420px] rounded-full blur-[48px] bg-[radial-gradient(circle,rgba(139,92,246,0.06)_0%,transparent_70%)]" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Text block */}
         <div className="max-w-3xl mx-auto text-center pt-14 sm:pt-20 pb-14 sm:pb-16">
           {/* Badge */}
           <motion.div
@@ -88,7 +60,7 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
             {t("hero_badge")}
           </motion.div>
 
-          {/* Headline — clamp() font-size via Tailwind arbitrary value */}
+          {/* Headline — clamp via Tailwind arbitrary */}
           <motion.h1
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
@@ -120,23 +92,8 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-sm font-semibold rounded-xl text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 hover:scale-[1.02] active:scale-95 shadow-[0_4px_24px_rgba(59,130,246,0.38)]"
             >
               {t("hero_cta_primary")}
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path
-                  d={
-                    dir === "rtl"
-                      ? "M19 12H5M12 5l-7 7 7 7"
-                      : "M5 12h14M12 5l7 7-7 7"
-                  }
-                />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d={dir === "rtl" ? "M19 12H5M12 5l-7 7 7 7" : "M5 12h14M12 5l7 7-7 7"} />
               </svg>
             </a>
             <a
@@ -156,25 +113,10 @@ export function HeroSection({ t, dir }: HeroSectionProps) {
           className="relative max-w-6xl mx-auto"
         >
           {/* Glow behind frame */}
-          <div
-            className="absolute -inset-4 rounded-3xl pointer-events-none"
-            style={{
-              background:
-                "radial-gradient(ellipse 70% 50% at 50% 50%, rgba(59,130,246,0.12) 0%, transparent 70%)",
-            }}
-          />
-          <BrowserFrame
-            src={dashboardImg}
-            alt="The Space OS — Owner Dashboard"
-          />
+          <div className="absolute -inset-4 rounded-3xl pointer-events-none bg-[radial-gradient(ellipse_70%_50%_at_50%_50%,rgba(59,130,246,0.12)_0%,transparent_70%)]" />
+          <BrowserFrame src={dashboardImg} alt="The Space OS — Owner Dashboard" />
           {/* Gradient fade into next section */}
-          <div
-            className="absolute bottom-0 left-0 right-0 h-[140px] pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to bottom, transparent 0%, rgba(15,23,42,0.6) 35%, #ffffff 100%)",
-            }}
-          />
+          <div className="absolute bottom-0 left-0 right-0 h-[140px] pointer-events-none bg-[linear-gradient(to_bottom,transparent_0%,rgba(15,23,42,0.6)_35%,#ffffff_100%)]" />
         </motion.div>
       </div>
     </section>

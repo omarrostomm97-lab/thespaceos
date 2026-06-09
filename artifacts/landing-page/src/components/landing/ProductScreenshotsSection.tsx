@@ -54,7 +54,7 @@ export function ProductScreenshotsSection({
           transition={{ duration: 0.5 }}
           className="text-center mb-12 sm:mb-16"
         >
-          <p className="section-eyebrow text-slate-500 mb-3">
+          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-slate-500 mb-3">
             {t("eyebrow_product")}
           </p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">

@@ -5,11 +5,18 @@ interface FeaturesSectionProps {
   t: (key: TranslationKey) => string;
 }
 
-const features = [
+const features: Array<{
+  nameKey: TranslationKey;
+  descKey: TranslationKey;
+  topBorder: string;
+  iconBox: string;
+  icon: React.ReactNode;
+}> = [
   {
-    nameKey: "f1_name" as TranslationKey,
-    descKey: "f1_desc" as TranslationKey,
-    color: "#3b82f6",
+    nameKey: "f1_name",
+    descKey: "f1_desc",
+    topBorder: "[border-top:3px_solid_rgba(59,130,246,0.13)]",
+    iconBox: "bg-[rgba(59,130,246,0.06)] border-[rgba(59,130,246,0.13)] text-blue-500",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -18,9 +25,10 @@ const features = [
     ),
   },
   {
-    nameKey: "f5_name" as TranslationKey,
-    descKey: "f5_desc" as TranslationKey,
-    color: "#8b5cf6",
+    nameKey: "f5_name",
+    descKey: "f5_desc",
+    topBorder: "[border-top:3px_solid_rgba(139,92,246,0.13)]",
+    iconBox: "bg-[rgba(139,92,246,0.06)] border-[rgba(139,92,246,0.13)] text-violet-500",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -30,9 +38,10 @@ const features = [
     ),
   },
   {
-    nameKey: "f2_name" as TranslationKey,
-    descKey: "f2_desc" as TranslationKey,
-    color: "#f59e0b",
+    nameKey: "f2_name",
+    descKey: "f2_desc",
+    topBorder: "[border-top:3px_solid_rgba(245,158,11,0.13)]",
+    iconBox: "bg-[rgba(245,158,11,0.06)] border-[rgba(245,158,11,0.13)] text-amber-500",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8h1a4 4 0 010 8h-1" />
@@ -44,9 +53,10 @@ const features = [
     ),
   },
   {
-    nameKey: "f4_name" as TranslationKey,
-    descKey: "f4_desc" as TranslationKey,
-    color: "#06b6d4",
+    nameKey: "f4_name",
+    descKey: "f4_desc",
+    topBorder: "[border-top:3px_solid_rgba(6,182,212,0.13)]",
+    iconBox: "bg-[rgba(6,182,212,0.06)] border-[rgba(6,182,212,0.13)] text-cyan-500",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -60,9 +70,10 @@ const features = [
     ),
   },
   {
-    nameKey: "f_staff" as TranslationKey,
-    descKey: "f_staff_desc" as TranslationKey,
-    color: "#10b981",
+    nameKey: "f_staff",
+    descKey: "f_staff_desc",
+    topBorder: "[border-top:3px_solid_rgba(16,185,129,0.13)]",
+    iconBox: "bg-[rgba(16,185,129,0.06)] border-[rgba(16,185,129,0.13)] text-emerald-500",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
@@ -73,9 +84,10 @@ const features = [
     ),
   },
   {
-    nameKey: "f6_name" as TranslationKey,
-    descKey: "f6_desc" as TranslationKey,
-    color: "#ec4899",
+    nameKey: "f6_name",
+    descKey: "f6_desc",
+    topBorder: "[border-top:3px_solid_rgba(236,72,153,0.13)]",
+    iconBox: "bg-[rgba(236,72,153,0.06)] border-[rgba(236,72,153,0.13)] text-pink-500",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <line x1="18" y1="20" x2="18" y2="10" />
@@ -97,7 +109,9 @@ export function FeaturesSection({ t }: FeaturesSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-12 sm:mb-16"
         >
-          <p className="section-eyebrow text-blue-600 mb-3">{t("eyebrow_features")}</p>
+          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-blue-600 mb-3">
+            {t("eyebrow_features")}
+          </p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
             {t("features_headline")}
           </h2>
@@ -107,20 +121,16 @@ export function FeaturesSection({ t }: FeaturesSectionProps) {
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {features.map(({ icon, nameKey, descKey, color }, i) => (
+          {features.map(({ icon, nameKey, descKey, topBorder, iconBox }, i) => (
             <motion.div
               key={nameKey}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="premium-card rounded-2xl p-7"
-              style={{ borderTop: `3px solid ${color}22` }}
+              className={`bg-[#fafafa] border border-slate-900/[0.07] shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-[220ms] ease-in-out hover:-translate-y-[3px] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] rounded-2xl p-7 ${topBorder}`}
             >
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
-                style={{ background: `${color}10`, border: `1px solid ${color}20`, color }}
-              >
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 border ${iconBox}`}>
                 {icon}
               </div>
               <h3 className="text-base font-semibold text-slate-900 mb-2">

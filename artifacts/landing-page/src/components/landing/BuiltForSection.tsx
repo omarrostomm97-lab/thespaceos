@@ -5,11 +5,18 @@ interface BuiltForSectionProps {
   t: (key: TranslationKey) => string;
 }
 
-const audiences = [
+const audiences: Array<{
+  nameKey: TranslationKey;
+  descKey: TranslationKey;
+  topBorder: string;
+  iconBox: string;
+  icon: React.ReactNode;
+}> = [
   {
-    nameKey: "bf1_name" as TranslationKey,
-    descKey: "bf1_desc" as TranslationKey,
-    color: "#3b82f6",
+    nameKey: "bf1_name",
+    descKey: "bf1_desc",
+    topBorder: "[border-top:3px_solid_rgba(59,130,246,0.13)]",
+    iconBox: "bg-[rgba(59,130,246,0.06)] border-[rgba(59,130,246,0.13)] text-blue-500",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="3" width="20" height="14" rx="2" />
@@ -19,9 +26,10 @@ const audiences = [
     ),
   },
   {
-    nameKey: "bf2_name" as TranslationKey,
-    descKey: "bf2_desc" as TranslationKey,
-    color: "#06b6d4",
+    nameKey: "bf2_name",
+    descKey: "bf2_desc",
+    topBorder: "[border-top:3px_solid_rgba(6,182,212,0.13)]",
+    iconBox: "bg-[rgba(6,182,212,0.06)] border-[rgba(6,182,212,0.13)] text-cyan-500",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -30,9 +38,10 @@ const audiences = [
     ),
   },
   {
-    nameKey: "bf3_name" as TranslationKey,
-    descKey: "bf3_desc" as TranslationKey,
-    color: "#f59e0b",
+    nameKey: "bf3_name",
+    descKey: "bf3_desc",
+    topBorder: "[border-top:3px_solid_rgba(245,158,11,0.13)]",
+    iconBox: "bg-[rgba(245,158,11,0.06)] border-[rgba(245,158,11,0.13)] text-amber-500",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 8h1a4 4 0 010 8h-1" />
@@ -44,9 +53,10 @@ const audiences = [
     ),
   },
   {
-    nameKey: "bf4_name" as TranslationKey,
-    descKey: "bf4_desc" as TranslationKey,
-    color: "#10b981",
+    nameKey: "bf4_name",
+    descKey: "bf4_desc",
+    topBorder: "[border-top:3px_solid_rgba(16,185,129,0.13)]",
+    iconBox: "bg-[rgba(16,185,129,0.06)] border-[rgba(16,185,129,0.13)] text-emerald-500",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 11l19-9-9 19-2-8-8-2z" />
@@ -54,9 +64,10 @@ const audiences = [
     ),
   },
   {
-    nameKey: "bf5_name" as TranslationKey,
-    descKey: "bf5_desc" as TranslationKey,
-    color: "#8b5cf6",
+    nameKey: "bf5_name",
+    descKey: "bf5_desc",
+    topBorder: "[border-top:3px_solid_rgba(139,92,246,0.13)]",
+    iconBox: "bg-[rgba(139,92,246,0.06)] border-[rgba(139,92,246,0.13)] text-violet-500",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="2" />
@@ -77,7 +88,9 @@ export function BuiltForSection({ t }: BuiltForSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-12 sm:mb-16"
         >
-          <p className="section-eyebrow text-purple-600 mb-3">{t("eyebrow_built_for")}</p>
+          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-purple-600 mb-3">
+            {t("eyebrow_built_for")}
+          </p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
             {t("built_for_headline")}
           </h2>
@@ -87,20 +100,16 @@ export function BuiltForSection({ t }: BuiltForSectionProps) {
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
-          {audiences.map(({ icon, nameKey, descKey, color }, i) => (
+          {audiences.map(({ icon, nameKey, descKey, topBorder, iconBox }, i) => (
             <motion.div
               key={nameKey}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="premium-card rounded-2xl p-7 flex flex-col"
-              style={{ borderTop: `3px solid ${color}22` }}
+              className={`bg-[#fafafa] border border-slate-900/[0.07] shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-[220ms] ease-in-out hover:-translate-y-[3px] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] rounded-2xl p-7 flex flex-col ${topBorder}`}
             >
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
-                style={{ background: `${color}10`, border: `1px solid ${color}20`, color }}
-              >
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 border ${iconBox}`}>
                 {icon}
               </div>
               <h3 className="text-base font-semibold text-slate-900 mb-2">

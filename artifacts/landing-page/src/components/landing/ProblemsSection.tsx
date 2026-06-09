@@ -85,7 +85,7 @@ export function ProblemsSection({ t }: ProblemsSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-12 sm:mb-16"
         >
-          <p className="section-eyebrow text-red-500 mb-3">{t("eyebrow_problem")}</p>
+          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-red-500 mb-3">{t("eyebrow_problem")}</p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
             {t("problems_headline")}
           </h2>
@@ -102,7 +102,7 @@ export function ProblemsSection({ t }: ProblemsSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="premium-card rounded-2xl p-7 border-t-[3px] border-red-500/55"
+              className="bg-[#fafafa] border border-slate-900/[0.07] shadow-[0_8px_32px_rgba(0,0,0,0.08)] transition-all duration-[220ms] ease-in-out hover:-translate-y-[3px] hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)] rounded-2xl p-7 border-t-[3px] border-red-500/55"
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 bg-red-500/[0.08] text-red-500">
                 {icon}

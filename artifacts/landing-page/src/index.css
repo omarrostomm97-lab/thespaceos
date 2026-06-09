@@ -60,29 +60,6 @@ img, svg, video {
   background-clip: text;
 }
 
-/* Section eyebrow labels */
-.section-eyebrow {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-family: 'Inter', sans-serif;
-}
-
-/* Premium card — used on all light-section cards */
-.premium-card {
-  background: #fafafa;
-  border: 1px solid rgba(15, 23, 42, 0.07);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
-}
-
-.premium-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-}
-
 /* Legacy feature-card kept for any existing usage */
 .feature-card {
   transition: transform 0.2s ease, box-shadow 0.2s ease;

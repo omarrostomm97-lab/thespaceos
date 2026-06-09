@@ -86,7 +86,7 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-10"
         >
-          <p className="section-eyebrow text-blue-600 mb-3">{t("eyebrow_demo")}</p>
+          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-blue-600 mb-3">{t("eyebrow_demo")}</p>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
             {t("form_headline")}
           </h2>
