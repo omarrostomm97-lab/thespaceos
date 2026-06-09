@@ -1,0 +1,283 @@
+Stop making small spacing patches. The current landing page still feels like colored HTML with Tailwind classes. I want a real premium SaaS redesign.
+
+Important:
+Do not just increase padding, gaps, or card spacing.
+Rebuild the landing page UI properly using a complete design system.
+
+Goal:
+Make /landing-page look like a premium SaaS website similar in quality to Linear, Stripe, Notion, Monday.com, and modern B2B dashboards.
+
+The current problems:
+
+* Page feels flat and 2D.
+* Cards, text, screenshots, and sections feel like separate blocks without a strong visual system.
+* The layout lacks depth, hierarchy, and premium composition.
+* Mobile layout feels stacked but not designed.
+* Product screenshots are not being used strongly enough.
+* The hero does not create trust immediately.
+* Sections feel like basic HTML with colors, not a real designed landing page.
+
+Main instruction:
+Archive or ignore the current landing page structure and rebuild the UI section by section using Tailwind utility classes and a proper component system.
+
+Use Tailwind properly:
+
+* No inline styles unless absolutely necessary.
+* Use reusable components:
+    * Section
+    * Container
+    * Eyebrow
+    * HeadingBlock
+    * PremiumCard
+    * ScreenshotFrame
+    * CTAButton
+    * FeatureCard
+    * MobileStickyCTA
+* Use consistent spacing tokens.
+* Use consistent max-width containers.
+* Use consistent card radius, shadows, borders, and gradients.
+
+Design system:
+Colors:
+
+* Dark navy: #020617 and #0f172a
+* White: #ffffff
+* Light gray: #f8fafc
+* Border: #e5e7eb
+* Primary blue: #3b82f6
+* Accent blue: #0ea5e9
+* Accent purple: #8b5cf6
+* Green success: #10b981
+* Text dark: #0f172a
+* Muted text: #64748b
+
+Typography:
+
+* Headings: Space Grotesk
+* Body: Inter
+* Strong hierarchy:
+    * Hero headline must be large and bold.
+    * Section headlines must have clear spacing.
+    * Body text must be readable and not cramped.
+    * Avoid weak gray text contrast.
+
+Overall visual direction:
+The Space OS should feel like:
+
+* Mission control for business operations
+* Premium dashboard software
+* Serious business platform
+* Modern SaaS product
+
+It should NOT feel like:
+
+* A generic landing page template
+* A space/planet/rocket website
+* A gaming-only website
+* Flat cards on a colored background
+
+Landing page structure for this rebuild:
+
+1. Navbar
+
+* Sticky top.
+* Glass/blur style over hero.
+* Logo left: The Space OS.
+* Nav links: Product, Built For, Features, Demo.
+* Right side: Login + Request Demo.
+* Mobile hamburger must work perfectly.
+* Mobile menu should be full-width, clean, and not overlap.
+
+2. Hero Section
+    This is the most important section.
+
+Use the first attached real dashboard screenshot as the main hero visual.
+
+Hero layout desktop:
+
+* Left side: text and CTAs.
+* Right side: large premium product screenshot mockup.
+* Screenshot should be inside a browser/laptop-style frame.
+* Add subtle blue glow behind screenshot.
+* Add depth using shadow, border, gradient background, and perspective/scale.
+* Screenshot must look like a real product, not a flat image.
+
+Hero copy:
+Headline:
+“One System. Total Control.”
+
+Subheadline:
+“Manage sessions, bookings, orders, staff, shifts, payments, and reports from one powerful platform.”
+
+Primary CTA:
+“Request a Demo”
+
+Secondary CTA:
+“Explore Product”
+
+Add small trust line:
+“Built for gaming lounges, coworking spaces, cafés, restaurants, and growing businesses.”
+
+Hero design:
+
+* Dark navy background.
+* Subtle grid pattern.
+* Premium glow accents.
+* Do not use planets, rockets, or childish space elements.
+* Make the screenshot the hero of the design.
+
+Hero mobile:
+
+* Text first.
+* CTAs below text.
+* Screenshot below CTAs.
+* No 100vh forced height.
+* No horizontal overflow.
+* Buttons full width or clean 2-row layout.
+* Screenshot must be readable but not oversized.
+
+3. Product Screenshots Section
+    Use the dashboard screenshot and the sessions screenshot.
+
+Section title:
+“See Your Business From One Dashboard”
+
+Subtitle:
+“The Space OS gives owners and managers real-time visibility across sessions, orders, staff, shifts, and revenue.”
+
+Layout:
+
+* One large screenshot card for Dashboard.
+* One large screenshot card for Sessions.
+* Each inside a premium browser mockup.
+* Add labels:
+    * Dashboard Overview
+    * Live Sessions
+* Add 2-3 short benefit bullets beside or below each screenshot.
+* Screenshots must have depth, not appear pasted flat.
+
+4. Problem / Benefits Section
+    Title:
+    “Stop Running Operations Manually”
+
+Create 6 clean cards:
+
+* Manual session tracking
+* Lost or delayed orders
+* Weak staff accountability
+* Difficult shift control
+* No clear revenue visibility
+* Owner cannot monitor remotely
+
+But avoid making these cards look generic.
+Use:
+
+* Strong icons
+* Soft gradient card background
+* Proper internal spacing
+* Hover elevation
+* Clear typography hierarchy
+
+5. Built For Section
+    Do not use the word “venue”.
+
+Title:
+“Built for Different Business Types”
+
+Cards:
+
+* Gaming Lounges
+* Coworking Spaces
+* Cafés & Coffee Shops
+* Restaurants
+* More Businesses
+
+Each card should feel premium, with:
+
+* Icon
+* Clear title
+* Short description
+* Optional mini UI preview or screenshot crop if possible
+
+6. Demo Form Section
+    Make this look like a premium conversion section.
+
+Two-column desktop:
+Left:
+
+* Headline
+* Benefits of booking a demo
+* What the user will get
+
+Right:
+
+* Form card
+
+Fields:
+
+* Name
+* Email
+* Phone
+* Business name
+* Business type
+* City
+* Message optional
+
+Form card:
+
+* White card
+* Strong shadow
+* Rounded 2xl or 3xl
+* Clear labels
+* Good input height
+* Blue submit button
+* Loading state
+* Success state
+* Error state
+
+7. Footer
+    Dark footer.
+    Text:
+    “Built in Egypt. Designed for growing businesses.”
+
+Include:
+
+* Product
+* Built For
+* Demo
+* Login
+* Copyright
+
+Mobile requirements:
+Test and fix at:
+
+* 375px
+* 390px
+* 430px
+* 768px
+* 1024px
+* Desktop
+
+Mobile rules:
+
+* No horizontal scroll.
+* No overlapping.
+* Navbar must not cover hero.
+* Screenshot must fit container.
+* Cards must stack with enough spacing.
+* CTAs must be easy to tap.
+* Add sticky bottom CTA on mobile:
+    “Request Demo”
+
+Quality bar:
+Before finishing, take screenshots of:
+
+* Desktop full page
+* Desktop hero
+* Mobile hero
+* Mobile form
+* Mobile menu
+
+Then inspect them visually and fix anything that looks cramped, flat, overlapping, or unprofessional.
+
+Do not finish until the page looks like a real SaaS company website, not a basic Tailwind exercise.

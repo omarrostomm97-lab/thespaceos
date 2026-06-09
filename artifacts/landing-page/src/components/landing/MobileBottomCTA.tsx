@@ -6,13 +6,16 @@ interface MobileBottomCTAProps {
 
 export function MobileBottomCTA({ t }: MobileBottomCTAProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-slate-900/[0.97] backdrop-blur-md border-t border-white/[0.08] pb-[env(safe-area-inset-bottom,_0px)]">
-      <div className="px-4 py-3">
+    <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden">
+      <div className="bg-[#0a1628]/95 backdrop-blur-md border-t border-white/10 px-4 py-3 pb-[calc(12px+env(safe-area-inset-bottom,0px))]">
         <a
           href="#demo"
-          className="block w-full text-center py-3 rounded-xl text-sm font-semibold text-white bg-blue-500 shadow-lg shadow-blue-500/30 transition-all duration-200 active:scale-95"
+          className="flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 text-sm shadow-lg"
         >
-          {t("nav_request_demo")} →
+          {t("hero_cta_primary")}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
         </a>
       </div>
     </div>
