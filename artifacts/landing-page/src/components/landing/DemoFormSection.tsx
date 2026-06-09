@@ -87,10 +87,7 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
           className="text-center mb-10"
         >
           <p className="section-eyebrow text-blue-600 mb-3">{t("eyebrow_demo")}</p>
-          <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
-          >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
             {t("form_headline")}
           </h2>
           <p className="text-slate-500 text-base leading-relaxed max-w-md mx-auto">
@@ -103,36 +100,29 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="rounded-2xl p-6 sm:p-8 border border-slate-200"
-          style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}
+          className="rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-[0_8px_40px_rgba(0,0,0,0.08)]"
         >
           {submitted ? (
             <div className="text-center py-10">
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-                style={{ background: "#f0fdf4", border: "2px solid #86efac" }}
-              >
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5 bg-green-50 border-2 border-green-300">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
-              <h3
-                className="text-2xl font-bold text-slate-900 mb-2"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">
                 {t("form_success_title")}
               </h3>
               <p className="text-slate-500">{t("form_success_desc")}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              {/* Honeypot */}
+              {/* Honeypot — visually hidden from humans */}
               <input
                 type="text"
                 name="_honey"
                 value={form._honey}
                 onChange={(e) => setForm({ ...form, _honey: e.target.value })}
-                style={{ display: "none" }}
+                className="hidden"
                 tabIndex={-1}
                 autoComplete="off"
               />
@@ -196,14 +186,13 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
                   <select
                     value={form.businessType}
                     onChange={(e) => setForm({ ...form, businessType: e.target.value as BusinessType | "" })}
-                    className={`${inputBase} ${fieldErrors.businessType ? "border-red-400" : "border-slate-200"}`}
-                    style={{ color: form.businessType ? "#0f172a" : "#94a3b8" }}
+                    className={`${inputBase} ${fieldErrors.businessType ? "border-red-400" : "border-slate-200"} ${form.businessType ? "text-[#0f172a]" : "text-slate-400"}`}
                   >
                     <option value="" disabled>
                       {lang === "ar" ? "اختر نوع النشاط" : "Select type…"}
                     </option>
                     {BUSINESS_TYPES.map(({ value, labelKey }) => (
-                      <option key={value} value={value} style={{ color: "#0f172a" }}>
+                      <option key={value} value={value} className="text-[#0f172a]">
                         {t(labelKey)}
                       </option>
                     ))}
@@ -244,8 +233,7 @@ export function DemoFormSection({ t, lang }: DemoFormSectionProps) {
               <button
                 type="submit"
                 disabled={mutation.isPending}
-                className="mt-6 w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:bg-blue-600 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
-                style={{ background: "#3b82f6", boxShadow: "0 4px 16px rgba(59,130,246,0.3)" }}
+                className="mt-6 w-full py-3.5 rounded-xl text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 transition-all duration-200 active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed shadow-[0_4px_16px_rgba(59,130,246,0.3)]"
               >
                 {mutation.isPending ? t("form_submitting") : t("form_submit")}
               </button>

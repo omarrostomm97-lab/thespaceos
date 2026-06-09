@@ -55,7 +55,7 @@ export function Navbar({ t, lang, toggleLang, appLoginUrl = "/gaming-lounge/" }:
         <div className="flex items-center justify-between h-16 md:h-18">
           {/* Logo */}
           <a href="#" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #3b82f6, #6366f1)" }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-blue-500 to-indigo-500">
               <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
                 <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
                 <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6" />
@@ -63,10 +63,7 @@ export function Navbar({ t, lang, toggleLang, appLoginUrl = "/gaming-lounge/" }:
                 <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
               </svg>
             </div>
-            <span
-              className={`font-bold text-base tracking-tight transition-colors duration-300 ${logoColor}`}
-              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            >
+            <span className={`font-grotesk font-bold text-base tracking-tight transition-colors duration-300 ${logoColor}`}>
               The Space OS
             </span>
           </a>
@@ -100,8 +97,7 @@ export function Navbar({ t, lang, toggleLang, appLoginUrl = "/gaming-lounge/" }:
             </a>
             <a
               href="#demo"
-              className="text-sm font-semibold px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200"
-              style={{ boxShadow: scrolled ? "none" : "0 2px 12px rgba(59,130,246,0.3)" }}
+              className={`text-sm font-semibold px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 ${scrolled ? "" : "shadow-[0_2px_12px_rgba(59,130,246,0.3)]"}`}
             >
               {t("nav_request_demo")}
             </a>
@@ -122,15 +118,7 @@ export function Navbar({ t, lang, toggleLang, appLoginUrl = "/gaming-lounge/" }:
                 scrolled ? "text-slate-700 hover:bg-slate-100" : "text-white hover:bg-white/10"
               }`}
             >
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 {mobileOpen ? (
                   <>
                     <line x1="18" y1="6" x2="6" y2="18" />
@@ -157,8 +145,7 @@ export function Navbar({ t, lang, toggleLang, appLoginUrl = "/gaming-lounge/" }:
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.22, ease: "easeInOut" }}
-            className="md:hidden overflow-hidden"
-            style={{ background: "rgba(255,255,255,0.98)", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", borderTop: "1px solid #f1f5f9" }}
+            className="md:hidden overflow-hidden bg-white/[0.98] backdrop-blur-xl border-t border-slate-100"
           >
             <div className="px-4 py-3 space-y-1">
               {navLinks.map((link) => (

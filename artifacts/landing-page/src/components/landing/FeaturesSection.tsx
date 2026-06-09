@@ -98,10 +98,7 @@ export function FeaturesSection({ t }: FeaturesSectionProps) {
           className="text-center mb-12 sm:mb-16"
         >
           <p className="section-eyebrow text-blue-600 mb-3">{t("eyebrow_features")}</p>
-          <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
-          >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
             {t("features_headline")}
           </h2>
           <p className="text-slate-500 text-base max-w-lg mx-auto leading-relaxed">
@@ -126,10 +123,7 @@ export function FeaturesSection({ t }: FeaturesSectionProps) {
               >
                 {icon}
               </div>
-              <h3
-                className="text-base font-semibold text-slate-900 mb-2"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
+              <h3 className="text-base font-semibold text-slate-900 mb-2">
                 {t(nameKey)}
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed">{t(descKey)}</p>

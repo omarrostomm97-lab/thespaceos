@@ -86,10 +86,7 @@ export function ProblemsSection({ t }: ProblemsSectionProps) {
           className="text-center mb-12 sm:mb-16"
         >
           <p className="section-eyebrow text-red-500 mb-3">{t("eyebrow_problem")}</p>
-          <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
-          >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
             {t("problems_headline")}
           </h2>
           <p className="text-slate-500 text-base max-w-xl mx-auto leading-relaxed">
@@ -105,19 +102,12 @@ export function ProblemsSection({ t }: ProblemsSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="premium-card rounded-2xl p-7"
-              style={{ borderTop: "3px solid rgba(239,68,68,0.55)" }}
+              className="premium-card rounded-2xl p-7 border-t-[3px] border-red-500/55"
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center mb-5"
-                style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444" }}
-              >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 bg-red-500/[0.08] text-red-500">
                 {icon}
               </div>
-              <h3
-                className="text-base font-semibold text-slate-900 mb-2"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
+              <h3 className="text-base font-semibold text-slate-900 mb-2">
                 {t(titleKey)}
               </h3>
               <p className="text-sm text-slate-500 leading-relaxed">{t(descKey)}</p>

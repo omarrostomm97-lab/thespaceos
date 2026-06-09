@@ -55,7 +55,7 @@ const steps = [
 
 export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
   return (
-    <section id="how-it-works" className="py-20 sm:py-28" style={{ backgroundColor: "#0f172a" }}>
+    <section id="how-it-works" className="py-20 sm:py-28 bg-[#0f172a]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -65,10 +65,7 @@ export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
           className="text-center mb-16 sm:mb-20"
         >
           <p className="section-eyebrow text-blue-400 mb-3">{t("eyebrow_how")}</p>
-          <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.02em" }}
-          >
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 tracking-[-0.02em]">
             {t("how_headline")}
           </h2>
           <p className="text-slate-400 text-base max-w-lg mx-auto leading-relaxed">
@@ -77,7 +74,7 @@ export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-8 relative">
-          {/* Connector — gradient dashed SVG line between icon centers */}
+          {/* Dashed connector between icon centers — RTL-aware, must use inline style for dynamic property key */}
           <svg
             className="absolute hidden lg:block pointer-events-none"
             style={{
@@ -131,16 +128,16 @@ export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
                 {/* Step number badge */}
                 <div
                   className="absolute -top-2 -end-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white z-20"
-                  style={{ background: `linear-gradient(135deg, ${color}, ${color}cc)`, boxShadow: `0 2px 8px ${glowColor}` }}
+                  style={{
+                    background: `linear-gradient(135deg, ${color}, ${color}cc)`,
+                    boxShadow: `0 2px 8px ${glowColor}`,
+                  }}
                 >
                   {i + 1}
                 </div>
               </div>
 
-              <h3
-                className="text-xl font-bold text-white mb-3"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.01em" }}
-              >
+              <h3 className="text-xl font-bold text-white mb-3 tracking-[-0.01em]">
                 {t(titleKey)}
               </h3>
               <p className="text-slate-400 leading-relaxed text-sm max-w-xs">{t(descKey)}</p>

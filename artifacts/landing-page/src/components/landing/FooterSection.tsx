@@ -45,20 +45,14 @@ export function FooterSection({ t, lang, toggleLang }: FooterSectionProps) {
   ];
 
   return (
-    <footer
-      style={{ backgroundColor: "#0b1120", borderTop: "1px solid rgba(255,255,255,0.06)" }}
-      className="pb-20 sm:pb-0"
-    >
+    <footer className="bg-[#0b1120] border-t border-white/[0.06] pb-20 sm:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         {/* Top row: brand + links + actions */}
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
           {/* Brand */}
           <div className="flex flex-col gap-2.5 flex-shrink-0">
             <div className="flex items-center gap-2.5">
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #3b82f6, #6366f1)" }}
-              >
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-blue-500 to-indigo-500">
                 <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
                   <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
                   <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6" />
@@ -66,14 +60,11 @@ export function FooterSection({ t, lang, toggleLang }: FooterSectionProps) {
                   <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
                 </svg>
               </div>
-              <span
-                className="font-bold text-white text-base"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: "-0.01em" }}
-              >
+              <span className="font-grotesk font-bold text-white text-base tracking-[-0.01em]">
                 The Space OS
               </span>
             </div>
-            <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.32)", maxWidth: "200px" }}>
+            <p className="text-xs leading-relaxed text-white/30 max-w-[200px]">
               {t("footer_tagline")}
             </p>
           </div>
@@ -84,8 +75,7 @@ export function FooterSection({ t, lang, toggleLang }: FooterSectionProps) {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm transition-colors duration-200 hover:text-blue-400"
-                style={{ color: "rgba(255,255,255,0.42)" }}
+                className="text-sm text-white/40 transition-colors duration-200 hover:text-blue-400"
               >
                 {link.label}
               </a>
@@ -101,17 +91,15 @@ export function FooterSection({ t, lang, toggleLang }: FooterSectionProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={s.label}
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:bg-white/10"
-                style={{ color: "rgba(255,255,255,0.32)" }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 transition-all hover:bg-white/10"
               >
                 {s.icon}
               </a>
             ))}
-            <div style={{ width: "1px", height: "18px", background: "rgba(255,255,255,0.1)", margin: "0 4px" }} />
+            <div className="w-px h-[18px] bg-white/10 mx-1" />
             <button
               onClick={toggleLang}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors hover:bg-white/10"
-              style={{ color: "rgba(255,255,255,0.42)", border: "1px solid rgba(255,255,255,0.1)" }}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white/40 border border-white/10 transition-colors hover:bg-white/10"
             >
               {lang === "en" ? "عربي" : "English"}
             </button>
@@ -119,17 +107,11 @@ export function FooterSection({ t, lang, toggleLang }: FooterSectionProps) {
         </div>
 
         {/* Bottom row */}
-        <div
-          className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          <p
-            className="text-xs px-3 py-1 rounded-full"
-            style={{ color: "rgba(255,255,255,0.28)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
-          >
+        <div className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-white/[0.06]">
+          <p className="text-xs px-3 py-1 rounded-full text-white/[0.28] bg-white/[0.04] border border-white/[0.07]">
             {t("footer_copyright")}
           </p>
-          <p className="text-xs whitespace-nowrap" style={{ color: "rgba(255,255,255,0.28)" }}>
+          <p className="text-xs whitespace-nowrap text-white/[0.28]">
             {t("footer_made_in")}
           </p>
         </div>
