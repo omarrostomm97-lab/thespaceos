@@ -122,13 +122,25 @@ export default function Shifts() {
                   <div className="flex justify-between items-center text-sm pt-2 border-t border-primary/20">
                     <span className="text-muted-foreground">إجمالي النقدية (كل الخدمات)</span>
                     <span className="font-mono text-primary">
-                      {((currentShift.expectedCash ?? 0) - currentShift.openingCash).toFixed(2)} {t("egp_label")}
+                      {(((currentShift as any).grossCash ?? (currentShift.expectedCash ?? 0)) - currentShift.openingCash).toFixed(2)} {t("egp_label")}
                     </span>
                   </div>
+                  {(currentShift as any).withdrawalTotal > 0 && (
+                    <div className="flex justify-between items-center text-sm pt-2 border-t border-primary/20">
+                      <span className="text-destructive font-medium">💸 سحوبات المالك</span>
+                      <span className="font-mono text-destructive">
+                        -{(currentShift as any).withdrawalTotal.toFixed(2)} {t("egp_label")}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-lg font-bold pt-2 border-t border-primary/20">
                     <div>
                       <span className="text-primary">النقدية المتوقعة بالدرج</span>
-                      <p className="text-xs font-normal text-muted-foreground mt-0.5">افتتاحية + جلسات + بوفيه + كل الخدمات</p>
+                      <p className="text-xs font-normal text-muted-foreground mt-0.5">
+                        {(currentShift as any).withdrawalTotal > 0
+                          ? "افتتاحية + خدمات − سحوبات المالك"
+                          : "افتتاحية + جلسات + بوفيه + كل الخدمات"}
+                      </p>
                     </div>
                     <span className="font-mono text-emerald-500">{(currentShift.expectedCash ?? 0).toFixed(2)} {t("egp_label")}</span>
                   </div>

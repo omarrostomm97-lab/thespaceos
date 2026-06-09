@@ -4,12 +4,13 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Check, UtensilsCrossed, AlertCircle, QrCode, Monitor, User,
-  MessageSquare, Timer, Maximize2, Minimize2, ChefHat, PackageCheck,
+  MessageSquare, Timer, Maximize2, Minimize2, ChefHat, PackageCheck, LogOut,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "wouter";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -354,11 +355,21 @@ function StatsBar({
 
 export default function Kds() {
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const { data: orders, isLoading } = useListKdsOrders({
     query: { queryKey: getListKdsOrdersQueryKey(), refetchInterval: 3000 }
   });
 
   const updateStatus = useUpdateOrderStatus();
+
+  const handleExit = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      }
+    } catch {}
+    navigate("/");
+  };
 
   const seenIds = useRef<Set<number>>(new Set());
   const [alerting, setAlerting] = useState(false);
@@ -445,6 +456,16 @@ export default function Kds() {
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
+
+      {/* ── Exit button (fixed, low-profile) ── */}
+      <button
+        onClick={handleExit}
+        className="fixed top-[54px] start-3 z-50 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground bg-card/80 border border-border/60 hover:text-foreground hover:bg-card transition-colors backdrop-blur-sm shadow-sm"
+        title="خروج / Exit"
+      >
+        <LogOut className="h-3.5 w-3.5 shrink-0" />
+        <span className="hidden sm:inline">خروج</span>
+      </button>
 
       {/* ── Stats bar ── */}
       <StatsBar

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { shiftsTable, usersTable, paymentsTable, sessionsTable, ordersTable, orderItemsTable, productsTable, assetsTable } from "@workspace/db";
+import { shiftsTable, usersTable, paymentsTable, sessionsTable, ordersTable, orderItemsTable, productsTable, assetsTable, financeTransactionsTable } from "@workspace/db";
 import { eq, and, gte, lte, inArray } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
@@ -53,10 +53,18 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
         gte(paymentsTable.createdAt, shift.openedAt)
       ));
     const cashTotal = cashPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
-    const liveExpectedCash = parseFloat(shift.openingCash as string) + cashTotal;
+    const withdrawals = await db.select({ amount: financeTransactionsTable.amount })
+      .from(financeTransactionsTable)
+      .where(and(
+        eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+        eq(financeTransactionsTable.type, "owner_withdrawal"),
+        gte(financeTransactionsTable.createdAt, shift.openedAt)
+      ));
+    const withdrawalTotal = withdrawals.reduce((sum, w) => sum + parseFloat(w.amount as string), 0);
+    const liveExpectedCash = parseFloat(shift.openingCash as string) + cashTotal - withdrawalTotal;
     const formatted = fmtShift(shift, user?.name);
     formatted.expectedCash = liveExpectedCash;
-    res.json(formatted);
+    res.json({ ...formatted, withdrawalTotal, grossCash: parseFloat(shift.openingCash as string) + cashTotal });
   } catch {
     res.status(500).json({ error: "Failed to get current shift" });
   }
@@ -102,8 +110,17 @@ router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, as
         gte(paymentsTable.createdAt, shift.openedAt)
       ));
     const cashTotal = cashPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
+    const withdrawalRows = await db.select({ amount: financeTransactionsTable.amount })
+      .from(financeTransactionsTable)
+      .where(and(
+        eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+        eq(financeTransactionsTable.type, "owner_withdrawal"),
+        gte(financeTransactionsTable.createdAt, shift.openedAt)
+      ));
+    const withdrawalTotal = withdrawalRows.reduce((sum, w) => sum + parseFloat(w.amount as string), 0);
     const opening = parseFloat(shift.openingCash as string);
-    const expectedCash = opening + cashTotal;
+    const grossCash = opening + cashTotal;
+    const expectedCash = grossCash - withdrawalTotal;
     const difference = parseFloat(String(actualCash)) - expectedCash;
     const [updated] = await db.update(shiftsTable).set({
       status: "closed",
@@ -209,10 +226,34 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
       };
     }));
 
+    /* Withdrawals within shift window */
+    const withdrawalRows = await db.select({
+      id: financeTransactionsTable.id,
+      amount: financeTransactionsTable.amount,
+      title: financeTransactionsTable.title,
+      createdAt: financeTransactionsTable.createdAt,
+    }).from(financeTransactionsTable)
+      .where(and(
+        eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+        eq(financeTransactionsTable.type, "owner_withdrawal"),
+        gte(financeTransactionsTable.createdAt, from),
+        lte(financeTransactionsTable.createdAt, to)
+      ));
+    const withdrawalTotal = withdrawalRows.reduce((sum, w) => sum + parseFloat(w.amount as string), 0);
+
     res.json({
       sessions,
       roomOrders: orders.filter(o => o.sessionId !== null),
       posOrders:  orders.filter(o => o.sessionId === null),
+      withdrawals: {
+        total: withdrawalTotal,
+        items: withdrawalRows.map(w => ({
+          id: w.id,
+          amount: parseFloat(w.amount as string),
+          title: w.title,
+          createdAt: w.createdAt,
+        })),
+      },
     });
   } catch (e) {
     console.error(e);

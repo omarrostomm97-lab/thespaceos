@@ -38,10 +38,21 @@ interface OrderItem {
   items: Array<{ productName: string; productNameAr: string | null; quantity: number; unitPrice: number; totalPrice: number }>;
 }
 
+interface WithdrawalItem {
+  id: number;
+  amount: number;
+  title: string | null;
+  createdAt: string;
+}
+
 interface ShiftSummaryData {
   sessions: SessionItem[];
   roomOrders: OrderItem[];
   posOrders: OrderItem[];
+  withdrawals?: {
+    total: number;
+    items: WithdrawalItem[];
+  };
 }
 
 /* ─── Fetch helper ──────────────────────────────────── */
@@ -396,6 +407,19 @@ export default function ShiftDetailDrawer({
                     </p>
                   </div>
                 </div>
+
+                {/* Withdrawals deduction row */}
+                {data?.withdrawals && data.withdrawals.total > 0 && (
+                  <div className="mt-2 flex items-center justify-between bg-destructive/8 border border-destructive/20 rounded-xl px-3 py-2">
+                    <p className="text-[11px] font-semibold text-destructive">
+                      💸 {lang === "ar" ? "سحوبات المالك" : "Owner Withdrawals"}
+                    </p>
+                    <p className="text-sm font-bold text-destructive tabular-nums">
+                      -{data.withdrawals.total.toFixed(2)}
+                      <span className="text-[9px] font-normal ms-1">{egp}</span>
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
