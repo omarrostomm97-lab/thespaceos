@@ -17,7 +17,7 @@ const features: Array<{
   {
     nameKey: "f1_name",
     descKey: "f1_desc",
-    accentBg: "bg-blue-500/50",
+    accentBg: "bg-blue-500/60",
     iconBg: "bg-blue-500/10",
     iconBorder: "border-blue-500/20",
     iconColor: "text-blue-500",
@@ -30,7 +30,7 @@ const features: Array<{
   {
     nameKey: "f5_name",
     descKey: "f5_desc",
-    accentBg: "bg-violet-500/50",
+    accentBg: "bg-violet-500/60",
     iconBg: "bg-violet-500/10",
     iconBorder: "border-violet-500/20",
     iconColor: "text-violet-500",
@@ -43,7 +43,7 @@ const features: Array<{
   {
     nameKey: "f2_name",
     descKey: "f2_desc",
-    accentBg: "bg-amber-500/50",
+    accentBg: "bg-amber-500/60",
     iconBg: "bg-amber-500/10",
     iconBorder: "border-amber-500/20",
     iconColor: "text-amber-500",
@@ -56,7 +56,7 @@ const features: Array<{
   {
     nameKey: "f4_name",
     descKey: "f4_desc",
-    accentBg: "bg-cyan-500/50",
+    accentBg: "bg-cyan-500/60",
     iconBg: "bg-cyan-500/10",
     iconBorder: "border-cyan-500/20",
     iconColor: "text-cyan-500",
@@ -69,7 +69,7 @@ const features: Array<{
   {
     nameKey: "f_staff",
     descKey: "f_staff_desc",
-    accentBg: "bg-emerald-500/50",
+    accentBg: "bg-emerald-500/60",
     iconBg: "bg-emerald-500/10",
     iconBorder: "border-emerald-500/20",
     iconColor: "text-emerald-500",
@@ -82,7 +82,7 @@ const features: Array<{
   {
     nameKey: "f6_name",
     descKey: "f6_desc",
-    accentBg: "bg-pink-500/50",
+    accentBg: "bg-pink-500/60",
     iconBg: "bg-pink-500/10",
     iconBorder: "border-pink-500/20",
     iconColor: "text-pink-500",
@@ -96,27 +96,27 @@ const features: Array<{
 
 export function FeaturesSection({ t }: FeaturesSectionProps) {
   return (
-    <section id="features" className="py-20 sm:py-28 bg-white scroll-mt-20">
+    <section id="features" className="py-24 sm:py-32 bg-[#f8fafc] scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-16 sm:mb-20"
         >
-          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-blue-600 mb-3">
+          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-blue-600 mb-4">
             {t("eyebrow_features")}
           </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-5 tracking-[-0.02em]">
             {t("features_headline")}
           </h2>
-          <p className="text-slate-500 text-base max-w-lg mx-auto leading-relaxed">
+          <p className="text-slate-500 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
             {t("features_subheadline")}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map(({ icon, nameKey, descKey, accentBg, iconBg, iconBorder, iconColor }, i) => (
             <motion.div
               key={nameKey}
@@ -124,14 +124,13 @@ export function FeaturesSection({ t }: FeaturesSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="relative bg-white border border-slate-900/[0.07] shadow-md rounded-2xl p-7 overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+              className="relative bg-white border border-slate-900/[0.07] shadow-md rounded-2xl p-8 overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
             >
-              {/* Colored top accent stripe */}
-              <div className={`absolute inset-x-0 top-0 h-[3px] ${accentBg}`} />
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 border ${iconBg} ${iconBorder} ${iconColor}`}>
+              <div className={`absolute inset-x-0 top-0 h-[4px] ${accentBg}`} />
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-6 border ${iconBg} ${iconBorder} ${iconColor}`}>
                 {icon}
               </div>
-              <h3 className="text-base font-semibold text-slate-900 mb-2">{t(nameKey)}</h3>
+              <h3 className="text-base font-semibold text-slate-900 mb-3">{t(nameKey)}</h3>
               <p className="text-sm text-slate-500 leading-relaxed">{t(descKey)}</p>
             </motion.div>
           ))}

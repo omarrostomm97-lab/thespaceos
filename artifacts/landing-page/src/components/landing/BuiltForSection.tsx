@@ -17,7 +17,7 @@ const audiences: Array<{
   {
     nameKey: "bf1_name",
     descKey: "bf1_desc",
-    accentBg: "bg-blue-500/50",
+    accentBg: "bg-blue-500/60",
     iconBg: "bg-blue-500/10",
     iconBorder: "border-blue-500/20",
     iconColor: "text-blue-500",
@@ -30,7 +30,7 @@ const audiences: Array<{
   {
     nameKey: "bf2_name",
     descKey: "bf2_desc",
-    accentBg: "bg-cyan-500/50",
+    accentBg: "bg-cyan-500/60",
     iconBg: "bg-cyan-500/10",
     iconBorder: "border-cyan-500/20",
     iconColor: "text-cyan-500",
@@ -43,7 +43,7 @@ const audiences: Array<{
   {
     nameKey: "bf3_name",
     descKey: "bf3_desc",
-    accentBg: "bg-amber-500/50",
+    accentBg: "bg-amber-500/60",
     iconBg: "bg-amber-500/10",
     iconBorder: "border-amber-500/20",
     iconColor: "text-amber-500",
@@ -56,7 +56,7 @@ const audiences: Array<{
   {
     nameKey: "bf4_name",
     descKey: "bf4_desc",
-    accentBg: "bg-emerald-500/50",
+    accentBg: "bg-emerald-500/60",
     iconBg: "bg-emerald-500/10",
     iconBorder: "border-emerald-500/20",
     iconColor: "text-emerald-500",
@@ -69,7 +69,7 @@ const audiences: Array<{
   {
     nameKey: "bf5_name",
     descKey: "bf5_desc",
-    accentBg: "bg-violet-500/50",
+    accentBg: "bg-violet-500/60",
     iconBg: "bg-violet-500/10",
     iconBorder: "border-violet-500/20",
     iconColor: "text-violet-500",
@@ -83,27 +83,27 @@ const audiences: Array<{
 
 export function BuiltForSection({ t }: BuiltForSectionProps) {
   return (
-    <section id="built-for" className="py-20 sm:py-28 bg-[#f8fafc] scroll-mt-20">
+    <section id="built-for" className="py-24 sm:py-32 bg-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-16 sm:mb-20"
         >
-          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-purple-600 mb-3">
+          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-purple-600 mb-4">
             {t("eyebrow_built_for")}
           </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-5 tracking-[-0.02em]">
             {t("built_for_headline")}
           </h2>
-          <p className="text-slate-500 text-base max-w-lg mx-auto leading-relaxed">
+          <p className="text-slate-500 text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
             {t("built_for_subheadline")}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {audiences.map(({ icon, nameKey, descKey, accentBg, iconBg, iconBorder, iconColor }, i) => (
             <motion.div
               key={nameKey}
@@ -111,13 +111,13 @@ export function BuiltForSection({ t }: BuiltForSectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="relative bg-white border border-slate-900/[0.07] shadow-md rounded-2xl p-7 flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
+              className="relative bg-white border border-slate-900/[0.07] shadow-md rounded-2xl p-8 flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
             >
-              <div className={`absolute inset-x-0 top-0 h-[3px] ${accentBg}`} />
-              <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-5 border ${iconBg} ${iconBorder} ${iconColor}`}>
+              <div className={`absolute inset-x-0 top-0 h-[4px] ${accentBg}`} />
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-6 border ${iconBg} ${iconBorder} ${iconColor}`}>
                 {icon}
               </div>
-              <h3 className="text-base font-semibold text-slate-900 mb-2">{t(nameKey)}</h3>
+              <h3 className="text-base font-semibold text-slate-900 mb-3">{t(nameKey)}</h3>
               <p className="text-sm text-slate-500 leading-relaxed">{t(descKey)}</p>
             </motion.div>
           ))}

@@ -53,27 +53,27 @@ const screenshots: Array<{
 
 export function ProductScreenshotsSection({ t }: ProductScreenshotsSectionProps) {
   return (
-    <section id="product" className="py-20 sm:py-28 bg-[#f8fafc] scroll-mt-20">
+    <section id="product" className="py-24 sm:py-32 bg-[#f8fafc] scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-12 sm:mb-16"
+          className="text-center mb-16 sm:mb-20"
         >
-          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-slate-500 mb-3">
+          <p className="block text-[11px] font-bold tracking-[0.12em] uppercase text-slate-500 mb-4">
             {t("eyebrow_product")}
           </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-4 tracking-[-0.02em]">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-5 tracking-[-0.02em]">
             {t("ss_headline")}
           </h2>
-          <p className="text-slate-500 text-base max-w-xl mx-auto leading-relaxed">
+          <p className="text-slate-500 text-base sm:text-lg max-w-xl mx-auto leading-relaxed">
             {t("ss_subheadline")}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-7">
           {screenshots.map(({ titleKey, descKey, src, screenshotBorder, captionBorder, dotBg }, i) => (
             <motion.div
               key={titleKey}
@@ -83,8 +83,7 @@ export function ProductScreenshotsSection({ t }: ProductScreenshotsSectionProps)
               transition={{ duration: 0.45, delay: i * 0.08 }}
               className="bg-white rounded-2xl overflow-hidden border border-slate-900/[0.07] shadow-md hover:-translate-y-1 transition-transform duration-200"
             >
-              {/* Screenshot — dark bg + per-card accent bottom border */}
-              <div className={`overflow-hidden max-h-[220px] bg-[#0f172a] ${screenshotBorder}`}>
+              <div className={`overflow-hidden max-h-[240px] bg-[#0f172a] ${screenshotBorder}`}>
                 <img
                   src={src}
                   alt={t(titleKey)}
@@ -92,12 +91,10 @@ export function ProductScreenshotsSection({ t }: ProductScreenshotsSectionProps)
                   loading="lazy"
                 />
               </div>
-
-              {/* Caption — per-card accent left border */}
-              <div className={`flex items-start gap-3 px-5 py-4 ${captionBorder}`}>
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${dotBg}`} />
+              <div className={`flex items-start gap-4 px-6 py-5 ${captionBorder}`}>
+                <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1 ${dotBg}`} />
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-0.5">{t(titleKey)}</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-1.5">{t(titleKey)}</h3>
                   <p className="text-xs text-slate-500 leading-relaxed">{t(descKey)}</p>
                 </div>
               </div>
