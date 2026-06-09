@@ -5,12 +5,14 @@ import { useLang } from "@/hooks/use-language";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Gamepad2, Sun, Moon, Languages } from "lucide-react";
+import { Sun, Moon, Languages } from "lucide-react";
 import { defaultRedirect, UserRole } from "@/lib/permissions";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion } from "framer-motion";
+
+const LOGO = `${import.meta.env.BASE_URL}the-space-os-logo.png`;
 
 type LoginForm = { email: string; password: string };
 
@@ -96,16 +98,12 @@ export default function Login() {
         }}
       >
         <div className="flex flex-col items-center text-center space-y-2">
-          <div
-            className="h-16 w-16 rounded-2xl flex items-center justify-center mb-2"
-            style={{
-              background: "linear-gradient(135deg, rgba(0,111,238,0.18) 0%, rgba(51,142,247,0.1) 100%)",
-              border: "1px solid rgba(0,111,238,0.2)",
-              boxShadow: "0 0 24px rgba(0,111,238,0.12)",
-            }}
-          >
-            <Gamepad2 className="h-8 w-8 text-primary" />
-          </div>
+          <img
+            src={LOGO}
+            alt="The Space OS"
+            className="mb-2"
+            style={{ height: 64, width: "auto", objectFit: "contain" }}
+          />
           <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("login_system")}</h1>
           <p className="text-muted-foreground">{t("login_subtitle")}</p>
         </div>

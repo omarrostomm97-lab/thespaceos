@@ -73,8 +73,8 @@ export default function PublicMenuPage() {
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/5">
         <div className="px-4 pt-5 pb-3">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-[#7c3aed]/20 border border-[#7c3aed]/30 rounded-xl p-2.5">
-              <Gamepad2 className="h-5 w-5 text-[#7c3aed]" />
+            <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/30 rounded-xl p-2 flex items-center justify-center">
+              <img src={LOGO_FULL} alt="The Space OS" style={{ height: 22, width: "auto", objectFit: "contain" }} />
             </div>
             <div>
               <h1 className="font-bold text-lg leading-tight text-white">{tenant.name}</h1>

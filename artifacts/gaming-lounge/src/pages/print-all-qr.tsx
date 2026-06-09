@@ -48,13 +48,11 @@ function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venu
         display: "flex", alignItems: "center", gap: 10, position: "relative",
       }}>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%)" }} />
-        <div style={{
-          background: "rgba(255,255,255,0.15)", borderRadius: 10, width: 32, height: 32,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          backdropFilter: "blur(4px)", flexShrink: 0, position: "relative",
-        }}>
-          <Gamepad2 style={{ width: 16, height: 16, color: "white" }} />
-        </div>
+        <img
+          src={LOGO}
+          alt="The Space OS"
+          style={{ height: 24, width: "auto", objectFit: "contain", objectPosition: "left center", filter: "brightness(0) invert(1)", flexShrink: 0, position: "relative" }}
+        />
         <div style={{ position: "relative", color: "white", fontSize: 13, fontWeight: 700 }}>
           {venueName || "The Space OS"}
         </div>
@@ -126,12 +124,11 @@ function CompactQrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: strin
         display: "flex", alignItems: "center", gap: 7, position: "relative",
       }}>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%)" }} />
-        <div style={{
-          background: "rgba(255,255,255,0.15)", borderRadius: 6, width: 22, height: 22,
-          display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative",
-        }}>
-          <Gamepad2 style={{ width: 12, height: 12, color: "white" }} />
-        </div>
+        <img
+          src={LOGO}
+          alt="The Space OS"
+          style={{ height: 16, width: "auto", objectFit: "contain", objectPosition: "left center", filter: "brightness(0) invert(1)", flexShrink: 0, position: "relative" }}
+        />
         <span style={{
           position: "relative", color: "white", fontSize: 10, fontWeight: 700,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",

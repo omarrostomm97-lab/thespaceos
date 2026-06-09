@@ -57,6 +57,9 @@ const financeNavigation: NavItem[] = [
   { nameKey: "nav_finance_reports",      href: "/finance/reports",      icon: BarChart3,    routeKey: "/finance/reports" },
 ];
 
+const BASE_URL = import.meta.env.BASE_URL;
+const LOGO = `${BASE_URL}the-space-os-logo.png`;
+
 const FINANCE_ROLES = new Set(["platform_owner", "owner", "manager"]);
 
 const ROLE_KEY_MAP: Record<string, TranslationKey> = {
@@ -163,27 +166,15 @@ export function Layout({ children }: LayoutProps) {
 
         {/* ── Brand ── */}
         <div className="relative px-5 pt-6 pb-5 shrink-0">
-          <div className="flex items-center gap-3">
-            <div
-              className="relative w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
-                boxShadow: "0 0 16px rgba(0,111,238,0.4), 0 2px 8px rgba(0,0,0,0.25)",
-              }}
-            >
-              <Gamepad2 className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p
-                className="text-sm font-bold tracking-tight leading-none"
-                style={{ color: "var(--sb-text-active)" }}
-              >
-                {t("brand_name")}
-              </p>
-              <p className="text-[10px] font-medium tracking-wide mt-0.5" style={{ color: "var(--sb-text-inactive)" }}>
-                {t("brand_subtitle")}
-              </p>
-            </div>
+          <div className="flex flex-col gap-1">
+            <img
+              src={LOGO}
+              alt="The Space OS"
+              style={{ height: 32, width: "auto", objectFit: "contain", objectPosition: "left center" }}
+            />
+            <p className="text-[10px] font-medium tracking-wide" style={{ color: "var(--sb-text-inactive)" }}>
+              {t("brand_subtitle")}
+            </p>
           </div>
         </div>
 
@@ -539,16 +530,12 @@ export function Layout({ children }: LayoutProps) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2 mx-auto">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-              style={{ background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)", boxShadow: "0 0 10px rgba(0,111,238,0.35)" }}
-            >
-              <Gamepad2 className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-sm font-bold" style={{ color: "var(--sb-text-active)" }}>
-              {t("brand_name")}
-            </span>
+          <div className="flex items-center mx-auto">
+            <img
+              src={LOGO}
+              alt="The Space OS"
+              style={{ height: 26, width: "auto", objectFit: "contain", objectPosition: "left center" }}
+            />
           </div>
           {/* spacer matching hamburger width */}
           <div className="w-9" />

@@ -244,7 +244,7 @@ export default function QrMenu() {
             className="flex items-center gap-2 mb-4"
           >
             <div className="bg-[#7c3aed]/20 border border-[#7c3aed]/40 rounded-full px-3 py-1 flex items-center gap-1.5">
-              <Gamepad2 className="h-3.5 w-3.5 text-[#7c3aed]" />
+              <img src={LOGO_ICON} alt="" style={{ height: 14, width: "auto", objectFit: "contain" }} />
               <span className="text-[#a78bfa] text-xs font-semibold tracking-wide">Room Menu</span>
             </div>
             {/* Session pill */}

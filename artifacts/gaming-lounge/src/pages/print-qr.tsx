@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { QRCodeCanvas } from "qrcode.react";
-import { Gamepad2, Printer, X } from "lucide-react";
+import { Printer, X } from "lucide-react";
+
+const LOGO = `${import.meta.env.BASE_URL}the-space-os-logo.png`;
 
 export default function PrintQrPage() {
   const params = new URLSearchParams(window.location.search);
@@ -126,14 +128,11 @@ export default function PrintQrPage() {
               position: "absolute", inset: 0,
               background: "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%)",
             }} />
-            <div style={{
-              background: "rgba(255,255,255,0.15)", borderRadius: 10,
-              width: 36, height: 36,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              backdropFilter: "blur(4px)", flexShrink: 0, position: "relative",
-            }}>
-              <Gamepad2 style={{ width: 18, height: 18, color: "white" }} />
-            </div>
+            <img
+              src={LOGO}
+              alt="The Space OS"
+              style={{ height: 28, width: "auto", objectFit: "contain", objectPosition: "left center", filter: "brightness(0) invert(1)", flexShrink: 0, position: "relative" }}
+            />
             <div style={{ position: "relative" }}>
               <div style={{ color: "white", fontSize: 14, fontWeight: 700, letterSpacing: "0.02em" }}>
                 {venue || "The Space OS"}
