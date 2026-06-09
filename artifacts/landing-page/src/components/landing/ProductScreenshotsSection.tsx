@@ -13,37 +13,45 @@ const screenshots: Array<{
   titleKey: TranslationKey;
   descKey: TranslationKey;
   src: string;
-  accent: string;
+  screenshotBorder: string;
+  captionBorder: string;
+  dotBg: string;
 }> = [
   {
     titleKey: "ss_sessions",
     descKey: "ss_sessions_desc",
     src: sessionsImg,
-    accent: "#3b82f6",
+    screenshotBorder: "border-b-2 border-b-blue-500",
+    captionBorder: "border-l-[3px] border-l-blue-500",
+    dotBg: "bg-blue-500",
   },
   {
     titleKey: "ss_orders",
     descKey: "ss_orders_desc",
     src: dashboardImg,
-    accent: "#f59e0b",
+    screenshotBorder: "border-b-2 border-b-amber-500",
+    captionBorder: "border-l-[3px] border-l-amber-500",
+    dotBg: "bg-amber-500",
   },
   {
     titleKey: "ss_reports",
     descKey: "ss_reports_desc",
     src: dashboardImg,
-    accent: "#8b5cf6",
+    screenshotBorder: "border-b-2 border-b-violet-500",
+    captionBorder: "border-l-[3px] border-l-violet-500",
+    dotBg: "bg-violet-500",
   },
   {
     titleKey: "ss_staff",
     descKey: "ss_staff_desc",
     src: dashboardImg,
-    accent: "#10b981",
+    screenshotBorder: "border-b-2 border-b-emerald-500",
+    captionBorder: "border-l-[3px] border-l-emerald-500",
+    dotBg: "bg-emerald-500",
   },
 ];
 
-export function ProductScreenshotsSection({
-  t,
-}: ProductScreenshotsSectionProps) {
+export function ProductScreenshotsSection({ t }: ProductScreenshotsSectionProps) {
   return (
     <section id="product" className="py-20 sm:py-28 bg-[#f8fafc]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -66,20 +74,17 @@ export function ProductScreenshotsSection({
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
-          {screenshots.map(({ titleKey, descKey, src, accent }, i) => (
+          {screenshots.map(({ titleKey, descKey, src, screenshotBorder, captionBorder, dotBg }, i) => (
             <motion.div
               key={titleKey}
               initial={{ opacity: 0, y: 28 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.45, delay: i * 0.08 }}
-              className="bg-white rounded-2xl overflow-hidden border border-slate-900/[0.07] shadow-[0_2px_8px_rgba(0,0,0,0.04),_0_8px_32px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-transform duration-200"
+              className="bg-white rounded-2xl overflow-hidden border border-slate-900/[0.07] shadow-md hover:-translate-y-1 transition-transform duration-200"
             >
-              {/* Real screenshot — static gradient bg via Tailwind arbitrary, dynamic accent border stays inline */}
-              <div
-                className="overflow-hidden max-h-[220px] bg-[linear-gradient(170deg,#141d2e_0%,#0f172a_60%,#111827_100%)]"
-                style={{ borderBottom: `2px solid ${accent}` }}
-              >
+              {/* Screenshot — dark bg + per-card accent bottom border */}
+              <div className={`overflow-hidden max-h-[220px] bg-[#0f172a] ${screenshotBorder}`}>
                 <img
                   src={src}
                   alt={t(titleKey)}
@@ -88,22 +93,12 @@ export function ProductScreenshotsSection({
                 />
               </div>
 
-              {/* Caption — colored left accent bar (dynamic, must stay inline) */}
-              <div
-                className="flex items-start gap-3 px-5 py-4"
-                style={{ borderLeft: `3px solid ${accent}` }}
-              >
-                <div
-                  className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
-                  style={{ background: accent }}
-                />
+              {/* Caption — per-card accent left border */}
+              <div className={`flex items-start gap-3 px-5 py-4 ${captionBorder}`}>
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${dotBg}`} />
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 mb-0.5">
-                    {t(titleKey)}
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    {t(descKey)}
-                  </p>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-0.5">{t(titleKey)}</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed">{t(descKey)}</p>
                 </div>
               </div>
             </motion.div>

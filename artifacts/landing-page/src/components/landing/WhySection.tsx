@@ -16,7 +16,7 @@ const reasons: Array<{ icon: string; key: TranslationKey }> = [
 
 export function WhySection({ t }: WhySectionProps) {
   return (
-    <section className="py-24" style={{ backgroundColor: "#0f172a" }}>
+    <section className="py-24 bg-[#0f172a]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -25,10 +25,7 @@ export function WhySection({ t }: WhySectionProps) {
           transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2
-            className="text-4xl sm:text-5xl font-bold text-white"
-            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-          >
+          <h2 className="text-4xl sm:text-5xl font-bold text-white font-[Space_Grotesk,sans-serif]">
             {t("why_headline")}
           </h2>
         </motion.div>
@@ -41,19 +38,12 @@ export function WhySection({ t }: WhySectionProps) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.07 }}
-              className="flex items-center gap-4 p-5 rounded-2xl"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
+              className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.04] border border-white/[0.08]"
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0"
-                style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.2)" }}
-              >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 bg-blue-500/15 border border-blue-500/20">
                 {icon}
               </div>
-              <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.8)" }}>
+              <span className="text-sm font-medium text-white/80">
                 {t(key)}
               </span>
             </motion.div>

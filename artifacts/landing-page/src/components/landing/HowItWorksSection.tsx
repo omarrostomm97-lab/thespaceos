@@ -10,23 +10,25 @@ const steps: Array<{
   num: string;
   titleKey: TranslationKey;
   descKey: TranslationKey;
-  iconBox: string;
-  badgeClass: string;
+  iconBg: string;
+  iconBorder: string;
+  iconColor: string;
+  iconGlow: string;
+  badgeBg: string;
   icon: React.ReactNode;
 }> = [
   {
     num: "01",
     titleKey: "how1_title",
     descKey: "how1_desc",
-    iconBox: "text-blue-500 border border-[rgba(59,130,246,0.28)] shadow-[0_0_0_6px_rgba(59,130,246,0.22),_0_12px_40px_rgba(0,0,0,0.35)]",
-    badgeClass: "bg-[linear-gradient(135deg,#3b82f6,#3b82f6cc)] shadow-[0_2px_8px_rgba(59,130,246,0.22)]",
+    iconBg: "bg-blue-950",
+    iconBorder: "border-blue-500/30",
+    iconColor: "text-blue-400",
+    iconGlow: "shadow-blue-500/20",
+    badgeBg: "bg-blue-500",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="16" y1="13" x2="8" y2="13" />
-        <line x1="16" y1="17" x2="8" y2="17" />
-        <polyline points="10 9 9 9 8 9" />
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" />
       </svg>
     ),
   },
@@ -34,12 +36,14 @@ const steps: Array<{
     num: "02",
     titleKey: "how2_title",
     descKey: "how2_desc",
-    iconBox: "text-violet-500 border border-[rgba(139,92,246,0.28)] shadow-[0_0_0_6px_rgba(139,92,246,0.22),_0_12px_40px_rgba(0,0,0,0.35)]",
-    badgeClass: "bg-[linear-gradient(135deg,#8b5cf6,#8b5cf6cc)] shadow-[0_2px_8px_rgba(139,92,246,0.22)]",
+    iconBg: "bg-violet-950",
+    iconBorder: "border-violet-500/30",
+    iconColor: "text-violet-400",
+    iconGlow: "shadow-violet-500/20",
+    badgeBg: "bg-violet-500",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.07 4.93A10 10 0 114.93 19.07M19.07 4.93L20.49 3.51M19.07 4.93l-2.83 2.83" />
+        <circle cx="12" cy="12" r="3" /><path d="M19.07 4.93A10 10 0 114.93 19.07M19.07 4.93L20.49 3.51M19.07 4.93l-2.83 2.83" />
       </svg>
     ),
   },
@@ -47,8 +51,11 @@ const steps: Array<{
     num: "03",
     titleKey: "how3_title",
     descKey: "how3_desc",
-    iconBox: "text-emerald-500 border border-[rgba(16,185,129,0.28)] shadow-[0_0_0_6px_rgba(16,185,129,0.22),_0_12px_40px_rgba(0,0,0,0.35)]",
-    badgeClass: "bg-[linear-gradient(135deg,#10b981,#10b981cc)] shadow-[0_2px_8px_rgba(16,185,129,0.22)]",
+    iconBg: "bg-emerald-950",
+    iconBorder: "border-emerald-500/30",
+    iconColor: "text-emerald-400",
+    iconGlow: "shadow-emerald-500/20",
+    badgeBg: "bg-emerald-500",
     icon: (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
@@ -80,13 +87,9 @@ export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-8 relative">
-          {/* Dashed connector — static sizes in Tailwind; RTL left/right must stay inline (computed property key) */}
+          {/* Dashed connector — both left/right are same calc value; no inline style needed */}
           <svg
-            className="absolute hidden lg:block pointer-events-none top-[29px] h-[22px] overflow-visible w-[calc(66.66%_-_80px)]"
-            style={{
-              [dir === "rtl" ? "right" : "left"]: "calc(16.67% + 40px)",
-              [dir === "rtl" ? "left" : "right"]: "calc(16.67% + 40px)",
-            }}
+            className="absolute hidden lg:block pointer-events-none top-[29px] h-[22px] overflow-visible left-[calc(16.67%_+_40px)] right-[calc(16.67%_+_40px)] w-[calc(66.66%_-_80px)]"
             preserveAspectRatio="none"
           >
             <defs>
@@ -96,16 +99,10 @@ export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
                 <stop offset="100%" stopColor="#10b981" stopOpacity="0.6" />
               </linearGradient>
             </defs>
-            <line
-              x1="0" y1="11" x2="100%" y2="11"
-              stroke="url(#connectorGrad)"
-              strokeWidth="1.5"
-              strokeDasharray="6 5"
-              strokeLinecap="round"
-            />
+            <line x1="0" y1="11" x2="100%" y2="11" stroke="url(#connectorGrad)" strokeWidth="1.5" strokeDasharray="6 5" strokeLinecap="round" />
           </svg>
 
-          {steps.map(({ num, titleKey, descKey, icon, iconBox, badgeClass }, i) => (
+          {steps.map(({ num, titleKey, descKey, icon, iconBg, iconBorder, iconColor, iconGlow, badgeBg }, i) => (
             <motion.div
               key={num}
               initial={{ opacity: 0, y: 28 }}
@@ -115,17 +112,14 @@ export function HowItWorksSection({ t, dir }: HowItWorksSectionProps) {
               className="flex flex-col items-center text-center"
             >
               <div className="relative mb-7">
-                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center relative z-10 bg-[linear-gradient(145deg,#1a2540,#141c2e)] ${iconBox}`}>
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center relative z-10 border shadow-lg ${iconBg} ${iconBorder} ${iconColor} ${iconGlow}`}>
                   {icon}
                 </div>
-                <div className={`absolute -top-2 -end-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white z-20 ${badgeClass}`}>
+                <div className={`absolute -top-2 -end-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white z-20 shadow-md ${badgeBg}`}>
                   {i + 1}
                 </div>
               </div>
-
-              <h3 className="text-xl font-bold text-white mb-3 tracking-[-0.01em]">
-                {t(titleKey)}
-              </h3>
+              <h3 className="text-xl font-bold text-white mb-3 tracking-[-0.01em]">{t(titleKey)}</h3>
               <p className="text-slate-400 leading-relaxed text-sm max-w-xs">{t(descKey)}</p>
             </motion.div>
           ))}
