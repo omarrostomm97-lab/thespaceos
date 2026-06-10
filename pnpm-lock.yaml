@@ -166,9 +166,6 @@ importers:
       '@heroui/styles':
         specifier: ^3.1.0
         version: 3.1.0(tailwind-merge@3.5.0)(tailwindcss@4.3.0)
-      '@workspace/object-storage-web':
-        specifier: workspace:*
-        version: link:../../lib/object-storage-web
       docx:
         specifier: ^9.7.1
         version: 9.7.1

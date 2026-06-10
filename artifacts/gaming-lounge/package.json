@@ -47,7 +47,6 @@
     "zod": "catalog:"
   },
   "dependencies": {
-    "@workspace/object-storage-web": "workspace:*",
     "@heroui/react": "^3.1.0",
     "@heroui/styles": "^3.1.0",
     "docx": "^9.7.1",
