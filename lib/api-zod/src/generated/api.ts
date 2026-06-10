@@ -2421,6 +2421,9 @@ export const ListFinanceTransactionsResponseItem = zod.object({
   "vendorName": zod.string().nullish(),
   "receiptUrl": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "templateId": zod.number().nullish(),
+  "deductFromShift": zod.boolean().optional(),
+  "shiftId": zod.number().nullish(),
   "createdByUserId": zod.number().nullish(),
   "approvedByUserId": zod.number().nullish(),
   "categoryName": zod.string().nullish(),
@@ -2451,7 +2454,10 @@ export const CreateFinanceTransactionBody = zod.object({
   "referenceType": zod.string().nullish(),
   "referenceId": zod.string().nullish(),
   "vendorName": zod.string().nullish(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "templateId": zod.number().nullish(),
+  "deductFromShift": zod.boolean().optional(),
+  "shiftId": zod.number().nullish()
 })
 
 
@@ -2475,7 +2481,10 @@ export const UpdateFinanceTransactionBody = zod.object({
   "referenceType": zod.string().nullish(),
   "referenceId": zod.string().nullish(),
   "vendorName": zod.string().nullish(),
-  "notes": zod.string().nullish()
+  "notes": zod.string().nullish(),
+  "templateId": zod.number().nullish(),
+  "deductFromShift": zod.boolean().optional(),
+  "shiftId": zod.number().nullish()
 })
 
 export const UpdateFinanceTransactionResponse = zod.object({
@@ -2495,6 +2504,9 @@ export const UpdateFinanceTransactionResponse = zod.object({
   "vendorName": zod.string().nullish(),
   "receiptUrl": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "templateId": zod.number().nullish(),
+  "deductFromShift": zod.boolean().optional(),
+  "shiftId": zod.number().nullish(),
   "createdByUserId": zod.number().nullish(),
   "approvedByUserId": zod.number().nullish(),
   "categoryName": zod.string().nullish(),
@@ -2516,6 +2528,99 @@ export const DeleteFinanceTransactionParams = zod.object({
 })
 
 export const DeleteFinanceTransactionResponse = zod.object({
+  "message": zod.string()
+})
+
+
+/**
+ * @summary List expense templates
+ */
+export const ListExpenseTemplatesResponseItem = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "title": zod.string(),
+  "titleAr": zod.string().nullish(),
+  "amount": zod.string(),
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryNameAr": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "paymentMethod": zod.string().nullish(),
+  "frequency": zod.enum(['daily', 'weekly', 'monthly']),
+  "autoApply": zod.boolean(),
+  "isActive": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ListExpenseTemplatesResponse = zod.array(ListExpenseTemplatesResponseItem)
+
+
+/**
+ * @summary Create an expense template
+ */
+export const CreateExpenseTemplateBody = zod.object({
+  "title": zod.string(),
+  "titleAr": zod.string().nullish(),
+  "amount": zod.number(),
+  "categoryId": zod.number().nullish(),
+  "paymentMethod": zod.string().nullish(),
+  "frequency": zod.enum(['daily', 'weekly', 'monthly']).optional(),
+  "autoApply": zod.boolean().optional(),
+  "isActive": zod.boolean().optional(),
+  "notes": zod.string().nullish()
+})
+
+
+/**
+ * @summary Update an expense template
+ */
+export const UpdateExpenseTemplateParams = zod.object({
+  "templateId": zod.coerce.number()
+})
+
+export const UpdateExpenseTemplateBody = zod.object({
+  "title": zod.string(),
+  "titleAr": zod.string().nullish(),
+  "amount": zod.number(),
+  "categoryId": zod.number().nullish(),
+  "paymentMethod": zod.string().nullish(),
+  "frequency": zod.enum(['daily', 'weekly', 'monthly']).optional(),
+  "autoApply": zod.boolean().optional(),
+  "isActive": zod.boolean().optional(),
+  "notes": zod.string().nullish()
+})
+
+export const UpdateExpenseTemplateResponse = zod.object({
+  "id": zod.number(),
+  "tenantId": zod.number(),
+  "title": zod.string(),
+  "titleAr": zod.string().nullish(),
+  "amount": zod.string(),
+  "categoryId": zod.number().nullish(),
+  "categoryName": zod.string().nullish(),
+  "categoryNameAr": zod.string().nullish(),
+  "categoryColor": zod.string().nullish(),
+  "categoryIcon": zod.string().nullish(),
+  "paymentMethod": zod.string().nullish(),
+  "frequency": zod.enum(['daily', 'weekly', 'monthly']),
+  "autoApply": zod.boolean(),
+  "isActive": zod.boolean(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Delete an expense template
+ */
+export const DeleteExpenseTemplateParams = zod.object({
+  "templateId": zod.coerce.number()
+})
+
+export const DeleteExpenseTemplateResponse = zod.object({
   "message": zod.string()
 })
 
@@ -2714,6 +2819,9 @@ export const GetFinanceExpensesReportResponse = zod.object({
   "vendorName": zod.string().nullish(),
   "receiptUrl": zod.string().nullish(),
   "notes": zod.string().nullish(),
+  "templateId": zod.number().nullish(),
+  "deductFromShift": zod.boolean().optional(),
+  "shiftId": zod.number().nullish(),
   "createdByUserId": zod.number().nullish(),
   "approvedByUserId": zod.number().nullish(),
   "categoryName": zod.string().nullish(),

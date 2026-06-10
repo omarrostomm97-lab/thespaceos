@@ -1142,6 +1142,11 @@ export interface FinanceTransaction {
   /** @nullable */
   notes?: string | null;
   /** @nullable */
+  templateId?: number | null;
+  deductFromShift?: boolean;
+  /** @nullable */
+  shiftId?: number | null;
+  /** @nullable */
   createdByUserId?: number | null;
   /** @nullable */
   approvedByUserId?: number | null;
@@ -1183,6 +1188,73 @@ export interface FinanceTransactionInput {
   referenceId?: string | null;
   /** @nullable */
   vendorName?: string | null;
+  /** @nullable */
+  notes?: string | null;
+  /** @nullable */
+  templateId?: number | null;
+  deductFromShift?: boolean;
+  /** @nullable */
+  shiftId?: number | null;
+}
+
+export type ExpenseTemplateFrequency = typeof ExpenseTemplateFrequency[keyof typeof ExpenseTemplateFrequency];
+
+
+export const ExpenseTemplateFrequency = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+} as const;
+
+export interface ExpenseTemplate {
+  id: number;
+  tenantId: number;
+  title: string;
+  /** @nullable */
+  titleAr?: string | null;
+  amount: string;
+  /** @nullable */
+  categoryId?: number | null;
+  /** @nullable */
+  categoryName?: string | null;
+  /** @nullable */
+  categoryNameAr?: string | null;
+  /** @nullable */
+  categoryColor?: string | null;
+  /** @nullable */
+  categoryIcon?: string | null;
+  /** @nullable */
+  paymentMethod?: string | null;
+  frequency: ExpenseTemplateFrequency;
+  autoApply: boolean;
+  isActive: boolean;
+  /** @nullable */
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ExpenseTemplateInputFrequency = typeof ExpenseTemplateInputFrequency[keyof typeof ExpenseTemplateInputFrequency];
+
+
+export const ExpenseTemplateInputFrequency = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+} as const;
+
+export interface ExpenseTemplateInput {
+  title: string;
+  /** @nullable */
+  titleAr?: string | null;
+  amount: number;
+  /** @nullable */
+  categoryId?: number | null;
+  /** @nullable */
+  paymentMethod?: string | null;
+  frequency?: ExpenseTemplateInputFrequency;
+  autoApply?: boolean;
+  isActive?: boolean;
   /** @nullable */
   notes?: string | null;
 }

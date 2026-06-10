@@ -34,6 +34,11 @@ export interface FinanceTransaction {
   /** @nullable */
   notes?: string | null;
   /** @nullable */
+  templateId?: number | null;
+  deductFromShift?: boolean;
+  /** @nullable */
+  shiftId?: number | null;
+  /** @nullable */
   createdByUserId?: number | null;
   /** @nullable */
   approvedByUserId?: number | null;

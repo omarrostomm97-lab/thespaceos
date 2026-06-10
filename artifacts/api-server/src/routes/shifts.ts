@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { shiftsTable, usersTable, paymentsTable, sessionsTable, ordersTable, financeTransactionsTable } from "@workspace/db";
+import { shiftsTable, usersTable, paymentsTable, sessionsTable, ordersTable, financeTransactionsTable, expenseTemplatesTable } from "@workspace/db";
 import { eq, and, gte, lte, inArray, desc } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
@@ -113,7 +113,7 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
     const [user] = await db.select({ name: usersTable.name }).from(usersTable)
       .where(eq(usersTable.id, shift.userId)).limit(1);
 
-    const [allPayments, withdrawals] = await Promise.all([
+    const [allPayments, withdrawals, shiftExpensesRows] = await Promise.all([
       db.select({ amount: paymentsTable.amount, method: paymentsTable.method })
         .from(paymentsTable)
         .where(and(
@@ -128,6 +128,14 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
           eq(financeTransactionsTable.type, "owner_withdrawal"),
           gte(financeTransactionsTable.createdAt, shift.openedAt)
         )),
+      db.select({ amount: financeTransactionsTable.amount })
+        .from(financeTransactionsTable)
+        .where(and(
+          eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+          eq(financeTransactionsTable.type, "expense"),
+          eq(financeTransactionsTable.deductFromShift, true),
+          gte(financeTransactionsTable.createdAt, shift.openedAt)
+        )),
     ]);
 
     const cashIncome = allPayments.filter(p => p.method === "cash")
@@ -139,9 +147,10 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
     const totalIncome = cashIncome + visaIncome + walletIncome;
 
     const withdrawalTotal = withdrawals.reduce((s, w) => s + parseFloat(w.amount as string), 0);
+    const shiftExpenses = shiftExpensesRows.reduce((s, e) => s + parseFloat(e.amount as string), 0);
     const opening = parseFloat(shift.openingCash as string);
     const grossCash = opening + cashIncome;
-    const liveExpectedCash = grossCash - withdrawalTotal;
+    const liveExpectedCash = grossCash - withdrawalTotal - shiftExpenses;
 
     const formatted = fmtShift(shift, user?.name);
     formatted.expectedCash = liveExpectedCash;
@@ -149,7 +158,7 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
     res.json({
       ...formatted,
       cashIncome, visaIncome, walletIncome, totalIncome,
-      withdrawalTotal, grossCash,
+      withdrawalTotal, grossCash, shiftExpenses,
     });
   } catch (e) {
     console.error(e);
@@ -173,6 +182,46 @@ router.post("/shifts", requireAuth, requireTenant, CASHIER_UP, async (req, res) 
       status: "open",
     }).returning();
     await writeAuditLog({ user: req.user, action: "open_shift", entityType: "shift", entityId: shift.id });
+
+    // Auto-apply daily expense templates
+    try {
+      const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+      const templates = await db.select().from(expenseTemplatesTable)
+        .where(and(
+          eq(expenseTemplatesTable.tenantId, req.user!.tenantId!),
+          eq(expenseTemplatesTable.autoApply, true),
+          eq(expenseTemplatesTable.isActive, true),
+          eq(expenseTemplatesTable.frequency, "daily"),
+        ));
+      for (const tmpl of templates) {
+        const alreadyApplied = await db.select({ id: financeTransactionsTable.id })
+          .from(financeTransactionsTable)
+          .where(and(
+            eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+            eq(financeTransactionsTable.templateId, tmpl.id),
+            gte(financeTransactionsTable.createdAt, todayStart),
+          )).limit(1);
+        if (alreadyApplied.length === 0) {
+          await db.insert(financeTransactionsTable).values({
+            tenantId: req.user!.tenantId!,
+            type: "expense",
+            title: tmpl.title,
+            amount: tmpl.amount as string,
+            categoryId: tmpl.categoryId ?? null,
+            paymentMethod: tmpl.paymentMethod ?? "cash",
+            status: "paid",
+            templateId: tmpl.id,
+            deductFromShift: true,
+            shiftId: shift.id,
+            createdByUserId: req.user!.id,
+            transactionDate: new Date(),
+          });
+        }
+      }
+    } catch (tmplErr) {
+      console.error("Auto-apply templates error:", tmplErr);
+    }
+
     res.status(201).json(fmtShift(shift, req.user!.name));
   } catch {
     res.status(500).json({ error: "Failed to open shift" });

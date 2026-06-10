@@ -2215,6 +2215,80 @@ paths:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
 
+  /finance/expense-templates:
+    get:
+      operationId: listExpenseTemplates
+      tags: [finance]
+      summary: List expense templates
+      responses:
+        "200":
+          description: Expense templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ExpenseTemplate"
+    post:
+      operationId: createExpenseTemplate
+      tags: [finance]
+      summary: Create an expense template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseTemplateInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseTemplate"
+
+  /finance/expense-templates/{templateId}:
+    put:
+      operationId: updateExpenseTemplate
+      tags: [finance]
+      summary: Update an expense template
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExpenseTemplateInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExpenseTemplate"
+    delete:
+      operationId: deleteExpenseTemplate
+      tags: [finance]
+      summary: Delete an expense template
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponse"
+
   /finance/assets:
     get:
       operationId: listFinanceAssets
@@ -3967,6 +4041,12 @@ components:
           type: ["string", "null"]
         notes:
           type: ["string", "null"]
+        templateId:
+          type: ["integer", "null"]
+        deductFromShift:
+          type: boolean
+        shiftId:
+          type: ["integer", "null"]
         createdByUserId:
           type: ["integer", "null"]
         approvedByUserId:
@@ -4019,6 +4099,78 @@ components:
           type: ["string", "null"]
         vendorName:
           type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+        templateId:
+          type: ["integer", "null"]
+        deductFromShift:
+          type: boolean
+        shiftId:
+          type: ["integer", "null"]
+
+    ExpenseTemplate:
+      type: object
+      required: [id, tenantId, title, amount, frequency, autoApply, isActive, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        tenantId:
+          type: integer
+        title:
+          type: string
+        titleAr:
+          type: ["string", "null"]
+        amount:
+          type: string
+        categoryId:
+          type: ["integer", "null"]
+        categoryName:
+          type: ["string", "null"]
+        categoryNameAr:
+          type: ["string", "null"]
+        categoryColor:
+          type: ["string", "null"]
+        categoryIcon:
+          type: ["string", "null"]
+        paymentMethod:
+          type: ["string", "null"]
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly]
+        autoApply:
+          type: boolean
+        isActive:
+          type: boolean
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ExpenseTemplateInput:
+      type: object
+      required: [title, amount]
+      properties:
+        title:
+          type: string
+        titleAr:
+          type: ["string", "null"]
+        amount:
+          type: number
+        categoryId:
+          type: ["integer", "null"]
+        paymentMethod:
+          type: ["string", "null"]
+        frequency:
+          type: string
+          enum: [daily, weekly, monthly]
+        autoApply:
+          type: boolean
+        isActive:
+          type: boolean
         notes:
           type: ["string", "null"]
 

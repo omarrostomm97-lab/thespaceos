@@ -22,3 +22,4 @@ export * from "./finance-assets";
 export * from "./finance-asset-maintenance";
 export * from "./discount_requests";
 export * from "./leads";
+export * from "./expense-templates";

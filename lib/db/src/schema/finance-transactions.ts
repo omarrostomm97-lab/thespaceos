@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 import { tenantsTable } from "./tenants";
@@ -23,6 +23,9 @@ export const financeTransactionsTable = pgTable("finance_transactions", {
   vendorName: text("vendor_name"),
   receiptUrl: text("receipt_url"),
   notes: text("notes"),
+  templateId: integer("template_id"),
+  deductFromShift: boolean("deduct_from_shift").notNull().default(false),
+  shiftId: integer("shift_id"),
   createdByUserId: integer("created_by_user_id").references(() => usersTable.id),
   approvedByUserId: integer("approved_by_user_id").references(() => usersTable.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),

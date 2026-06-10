@@ -30,4 +30,9 @@ export interface FinanceTransactionInput {
   vendorName?: string | null;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  templateId?: number | null;
+  deductFromShift?: boolean;
+  /** @nullable */
+  shiftId?: number | null;
 }

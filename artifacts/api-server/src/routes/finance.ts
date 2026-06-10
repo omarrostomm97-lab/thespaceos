@@ -6,11 +6,14 @@ import {
   financeTransactionsTable,
   financeAssetsTable,
   financeAssetMaintenanceTable,
+  expenseTemplatesTable,
   paymentsTable,
   shiftsTable,
 } from "@workspace/db";
 import { eq, and, gte, lte, inArray, desc, sql, isNull } from "drizzle-orm";
-import { requireAuth, requireTenant } from "../lib/auth";
+import { requireAuth, requireTenant, requireRole } from "../lib/auth";
+
+const MGMT_UP = requireRole("platform_owner", "owner", "manager");
 
 const router = Router();
 
@@ -886,6 +889,123 @@ router.get("/finance/reports/cash-flow", requireAuth, requireTenant, async (req,
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to get cash flow report" });
+  }
+});
+
+/* ─── Expense Templates ───────────────────────────────────────── */
+
+function fmtTemplate(t: typeof expenseTemplatesTable.$inferSelect & { categoryName?: string | null; categoryNameAr?: string | null; categoryColor?: string | null; categoryIcon?: string | null }) {
+  return {
+    ...t,
+    amount: t.amount,
+    categoryName: t.categoryName ?? null,
+    categoryNameAr: t.categoryNameAr ?? null,
+    categoryColor: t.categoryColor ?? null,
+    categoryIcon: t.categoryIcon ?? null,
+  };
+}
+
+router.get("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const rows = await db
+      .select({
+        id: expenseTemplatesTable.id,
+        tenantId: expenseTemplatesTable.tenantId,
+        title: expenseTemplatesTable.title,
+        titleAr: expenseTemplatesTable.titleAr,
+        amount: expenseTemplatesTable.amount,
+        categoryId: expenseTemplatesTable.categoryId,
+        paymentMethod: expenseTemplatesTable.paymentMethod,
+        frequency: expenseTemplatesTable.frequency,
+        autoApply: expenseTemplatesTable.autoApply,
+        isActive: expenseTemplatesTable.isActive,
+        notes: expenseTemplatesTable.notes,
+        createdAt: expenseTemplatesTable.createdAt,
+        updatedAt: expenseTemplatesTable.updatedAt,
+        categoryName: financeCategoriesTable.name,
+        categoryNameAr: financeCategoriesTable.nameAr,
+        categoryColor: financeCategoriesTable.color,
+        categoryIcon: financeCategoriesTable.icon,
+      })
+      .from(expenseTemplatesTable)
+      .leftJoin(financeCategoriesTable, eq(expenseTemplatesTable.categoryId, financeCategoriesTable.id))
+      .where(eq(expenseTemplatesTable.tenantId, tenantId))
+      .orderBy(desc(expenseTemplatesTable.createdAt));
+    res.json(rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to list expense templates" });
+  }
+});
+
+router.post("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const { title, titleAr, amount, categoryId, paymentMethod, frequency, autoApply, isActive, notes } = req.body;
+    if (!title || amount === undefined) {
+      res.status(400).json({ error: "title and amount are required" }); return;
+    }
+    const [row] = await db.insert(expenseTemplatesTable).values({
+      tenantId,
+      title,
+      titleAr: titleAr ?? null,
+      amount: String(parseFloat(amount)),
+      categoryId: categoryId ?? null,
+      paymentMethod: paymentMethod ?? "cash",
+      frequency: frequency ?? "daily",
+      autoApply: autoApply ?? false,
+      isActive: isActive !== undefined ? isActive : true,
+      notes: notes ?? null,
+    }).returning();
+    res.status(201).json(row);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to create expense template" });
+  }
+});
+
+router.put("/finance/expense-templates/:templateId", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const templateId = parseInt(req.params.templateId);
+    const { title, titleAr, amount, categoryId, paymentMethod, frequency, autoApply, isActive, notes } = req.body;
+    const [existing] = await db.select().from(expenseTemplatesTable)
+      .where(and(eq(expenseTemplatesTable.id, templateId), eq(expenseTemplatesTable.tenantId, tenantId)))
+      .limit(1);
+    if (!existing) { res.status(404).json({ error: "Template not found" }); return; }
+    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    if (title !== undefined) updates.title = title;
+    if (titleAr !== undefined) updates.titleAr = titleAr;
+    if (amount !== undefined) updates.amount = String(parseFloat(amount));
+    if (categoryId !== undefined) updates.categoryId = categoryId;
+    if (paymentMethod !== undefined) updates.paymentMethod = paymentMethod;
+    if (frequency !== undefined) updates.frequency = frequency;
+    if (autoApply !== undefined) updates.autoApply = autoApply;
+    if (isActive !== undefined) updates.isActive = isActive;
+    if (notes !== undefined) updates.notes = notes;
+    const [updated] = await db.update(expenseTemplatesTable).set(updates as any)
+      .where(eq(expenseTemplatesTable.id, templateId)).returning();
+    res.json(updated);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to update expense template" });
+  }
+});
+
+router.delete("/finance/expense-templates/:templateId", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const templateId = parseInt(req.params.templateId);
+    const [existing] = await db.select().from(expenseTemplatesTable)
+      .where(and(eq(expenseTemplatesTable.id, templateId), eq(expenseTemplatesTable.tenantId, tenantId)))
+      .limit(1);
+    if (!existing) { res.status(404).json({ error: "Template not found" }); return; }
+    await db.delete(expenseTemplatesTable).where(eq(expenseTemplatesTable.id, templateId));
+    res.json({ message: "Deleted" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to delete expense template" });
   }
 });
 

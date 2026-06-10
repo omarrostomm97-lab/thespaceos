@@ -38,6 +38,8 @@ import type {
   DiscountRequest,
   EmployeePerformance,
   ErrorResponse,
+  ExpenseTemplate,
+  ExpenseTemplateInput,
   FinanceAccount,
   FinanceAccountInput,
   FinanceAsset,
@@ -7838,6 +7840,296 @@ export const useDeleteFinanceTransaction = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteFinanceTransactionMutationOptions(options));
+    }
+
+export const getListExpenseTemplatesUrl = () => {
+
+
+
+
+  return `/api/finance/expense-templates`
+}
+
+/**
+ * @summary List expense templates
+ */
+export const listExpenseTemplates = async ( options?: RequestInit): Promise<ExpenseTemplate[]> => {
+
+  return customFetch<ExpenseTemplate[]>(getListExpenseTemplatesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListExpenseTemplatesQueryKey = () => {
+    return [
+    `/api/finance/expense-templates`
+    ] as const;
+    }
+
+
+export const getListExpenseTemplatesQueryOptions = <TData = Awaited<ReturnType<typeof listExpenseTemplates>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listExpenseTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListExpenseTemplatesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listExpenseTemplates>>> = ({ signal }) => listExpenseTemplates({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listExpenseTemplates>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListExpenseTemplatesQueryResult = NonNullable<Awaited<ReturnType<typeof listExpenseTemplates>>>
+export type ListExpenseTemplatesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List expense templates
+ */
+
+export function useListExpenseTemplates<TData = Awaited<ReturnType<typeof listExpenseTemplates>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listExpenseTemplates>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListExpenseTemplatesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateExpenseTemplateUrl = () => {
+
+
+
+
+  return `/api/finance/expense-templates`
+}
+
+/**
+ * @summary Create an expense template
+ */
+export const createExpenseTemplate = async (expenseTemplateInput: ExpenseTemplateInput, options?: RequestInit): Promise<ExpenseTemplate> => {
+
+  return customFetch<ExpenseTemplate>(getCreateExpenseTemplateUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      expenseTemplateInput,)
+  }
+);}
+
+
+
+
+export const getCreateExpenseTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createExpenseTemplate>>, TError,{data: BodyType<ExpenseTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createExpenseTemplate>>, TError,{data: BodyType<ExpenseTemplateInput>}, TContext> => {
+
+const mutationKey = ['createExpenseTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createExpenseTemplate>>, {data: BodyType<ExpenseTemplateInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createExpenseTemplate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateExpenseTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof createExpenseTemplate>>>
+    export type CreateExpenseTemplateMutationBody = BodyType<ExpenseTemplateInput>
+    export type CreateExpenseTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create an expense template
+ */
+export const useCreateExpenseTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createExpenseTemplate>>, TError,{data: BodyType<ExpenseTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createExpenseTemplate>>,
+        TError,
+        {data: BodyType<ExpenseTemplateInput>},
+        TContext
+      > => {
+      return useMutation(getCreateExpenseTemplateMutationOptions(options));
+    }
+
+export const getUpdateExpenseTemplateUrl = (templateId: number,) => {
+
+
+
+
+  return `/api/finance/expense-templates/${templateId}`
+}
+
+/**
+ * @summary Update an expense template
+ */
+export const updateExpenseTemplate = async (templateId: number,
+    expenseTemplateInput: ExpenseTemplateInput, options?: RequestInit): Promise<ExpenseTemplate> => {
+
+  return customFetch<ExpenseTemplate>(getUpdateExpenseTemplateUrl(templateId),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      expenseTemplateInput,)
+  }
+);}
+
+
+
+
+export const getUpdateExpenseTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateExpenseTemplate>>, TError,{templateId: number;data: BodyType<ExpenseTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateExpenseTemplate>>, TError,{templateId: number;data: BodyType<ExpenseTemplateInput>}, TContext> => {
+
+const mutationKey = ['updateExpenseTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateExpenseTemplate>>, {templateId: number;data: BodyType<ExpenseTemplateInput>}> = (props) => {
+          const {templateId,data} = props ?? {};
+
+          return  updateExpenseTemplate(templateId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateExpenseTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof updateExpenseTemplate>>>
+    export type UpdateExpenseTemplateMutationBody = BodyType<ExpenseTemplateInput>
+    export type UpdateExpenseTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update an expense template
+ */
+export const useUpdateExpenseTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateExpenseTemplate>>, TError,{templateId: number;data: BodyType<ExpenseTemplateInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateExpenseTemplate>>,
+        TError,
+        {templateId: number;data: BodyType<ExpenseTemplateInput>},
+        TContext
+      > => {
+      return useMutation(getUpdateExpenseTemplateMutationOptions(options));
+    }
+
+export const getDeleteExpenseTemplateUrl = (templateId: number,) => {
+
+
+
+
+  return `/api/finance/expense-templates/${templateId}`
+}
+
+/**
+ * @summary Delete an expense template
+ */
+export const deleteExpenseTemplate = async (templateId: number, options?: RequestInit): Promise<MessageResponse> => {
+
+  return customFetch<MessageResponse>(getDeleteExpenseTemplateUrl(templateId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteExpenseTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteExpenseTemplate>>, TError,{templateId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteExpenseTemplate>>, TError,{templateId: number}, TContext> => {
+
+const mutationKey = ['deleteExpenseTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteExpenseTemplate>>, {templateId: number}> = (props) => {
+          const {templateId} = props ?? {};
+
+          return  deleteExpenseTemplate(templateId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteExpenseTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof deleteExpenseTemplate>>>
+
+    export type DeleteExpenseTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Delete an expense template
+ */
+export const useDeleteExpenseTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteExpenseTemplate>>, TError,{templateId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteExpenseTemplate>>,
+        TError,
+        {templateId: number},
+        TContext
+      > => {
+      return useMutation(getDeleteExpenseTemplateMutationOptions(options));
     }
 
 export const getListFinanceAssetsUrl = () => {
