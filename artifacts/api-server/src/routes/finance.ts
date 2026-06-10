@@ -368,18 +368,23 @@ router.put("/finance/accounts/:id", requireAuth, requireTenant, async (req, res)
 router.get("/finance/transactions", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const { period = "month", type, status, categoryId, accountId } = req.query as Record<string, string>;
+    const { period = "month", type, status, categoryId, accountId, from: fromParam, to: toParam } = req.query as Record<string, string>;
     const now = new Date();
 
     let from: Date;
-    if (period === "today") { from = new Date(now); from.setHours(0, 0, 0, 0); }
+    if (period === "custom" && fromParam) {
+      from = new Date(fromParam); from.setHours(0, 0, 0, 0);
+    } else if (period === "today") { from = new Date(now); from.setHours(0, 0, 0, 0); }
     else if (period === "week") { from = new Date(now); from.setDate(from.getDate() - 6); from.setHours(0, 0, 0, 0); }
     else { from = new Date(now); from.setDate(from.getDate() - 29); from.setHours(0, 0, 0, 0); }
+
+    const to: Date | null = period === "custom" && toParam ? new Date(new Date(toParam).setHours(23, 59, 59, 999)) : null;
 
     const conditions: any[] = [
       eq(financeTransactionsTable.tenantId, tenantId),
       gte(financeTransactionsTable.transactionDate, from),
     ];
+    if (to) conditions.push(lte(financeTransactionsTable.transactionDate, to));
     if (type) conditions.push(eq(financeTransactionsTable.type, type));
     if (status) conditions.push(eq(financeTransactionsTable.status, status));
     if (categoryId) conditions.push(eq(financeTransactionsTable.categoryId, parseInt(categoryId)));

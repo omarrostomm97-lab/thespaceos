@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useListFinanceTransactions,
@@ -20,12 +20,30 @@ import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   TrendingDown, Plus, Trash2, Check, ChevronDown, ChevronUp,
-  Receipt, RefreshCw, Pencil, Repeat, Play,
+  Receipt, RefreshCw, Pencil, Repeat, Play, Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 type ActiveTab = "expenses" | "recurring";
+type Period = "today" | "week" | "month" | "custom";
+
+function computeNextDue(frequency: string, applyDay: number | null | undefined, lastAppliedAt: string | null | undefined): string | null {
+  const now = new Date();
+  if (frequency === "daily") {
+    const next = new Date(now);
+    next.setDate(next.getDate() + 1);
+    next.setHours(0, 0, 0, 0);
+    return next.toISOString();
+  }
+  if (frequency === "monthly") {
+    const day = applyDay ?? (lastAppliedAt ? new Date(lastAppliedAt).getDate() : 1);
+    const next = new Date(now.getFullYear(), now.getMonth(), day);
+    if (next <= now) next.setMonth(next.getMonth() + 1);
+    return next.toISOString();
+  }
+  return null;
+}
 
 export default function FinanceExpenses() {
   const { t, lang } = useLang();
@@ -36,7 +54,11 @@ export default function FinanceExpenses() {
   const [tab, setTab] = useState<ActiveTab>("expenses");
 
   /* ── expenses tab state ── */
-  const [period, setPeriod] = useState<"today" | "week" | "month">("month");
+  const [period, setPeriod] = useState<Period>("month");
+  const [fromDate, setFromDate] = useState(() => {
+    const d = new Date(); d.setDate(d.getDate() - 29); return d.toISOString().slice(0, 10);
+  });
+  const [toDate, setToDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [expOpen, setExpOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [amount, setAmount] = useState("");
@@ -59,7 +81,7 @@ export default function FinanceExpenses() {
   const [tmplCatId, setTmplCatId] = useState("");
   const [tmplAccId, setTmplAccId] = useState("");
   const [tmplPayMethod, setTmplPayMethod] = useState("cash");
-  const [tmplFreq, setTmplFreq] = useState<"daily" | "weekly" | "monthly">("daily");
+  const [tmplFreq, setTmplFreq] = useState<"daily" | "monthly">("daily");
   const [tmplApplyDay, setTmplApplyDay] = useState("");
   const [tmplAutoApply, setTmplAutoApply] = useState(false);
   const [tmplDeductShift, setTmplDeductShift] = useState(true);
@@ -67,7 +89,12 @@ export default function FinanceExpenses() {
   const [tmplNotes, setTmplNotes] = useState("");
 
   /* ── data hooks ── */
-  const { data: txData, isLoading } = useListFinanceTransactions({ type: "expense", period });
+  const txParams = useMemo(() => ({
+    type: "expense" as const,
+    period,
+    ...(period === "custom" ? { from: fromDate, to: toDate } : {}),
+  }), [period, fromDate, toDate]);
+  const { data: txData, isLoading } = useListFinanceTransactions(txParams as any);
   const { data: catData } = useListFinanceCategories({ type: "expense" });
   const { data: accData } = useListFinanceAccounts();
   const { data: tmplData, isLoading: tmplLoading } = useListExpenseTemplates();
@@ -89,11 +116,8 @@ export default function FinanceExpenses() {
 
   const totalPaid = transactions.filter(tx => tx.status === "paid").reduce((s, tx) => s + parseFloat(tx.amount), 0);
   const totalPending = transactions.filter(tx => tx.status === "pending").reduce((s, tx) => s + parseFloat(tx.amount), 0);
-
-  /* ── shift-deducted expense total (from current shift's linked expenses) ── */
-  const shiftExpensesTotal = hasOpenShift
-    ? transactions.filter(tx => tx.deductFromShift && tx.status === "paid").reduce((s, tx) => s + parseFloat(tx.amount), 0)
-    : 0;
+  /* shift-deducted expenses in the current period */
+  const shiftDeductTotal = transactions.filter(tx => tx.deductFromShift && tx.status === "paid").reduce((s, tx) => s + parseFloat(tx.amount), 0);
 
   /* ── expense form helpers ── */
   const resetExpForm = () => {
@@ -169,7 +193,8 @@ export default function FinanceExpenses() {
     setTmplCatId(tmpl.categoryId ? String(tmpl.categoryId) : "");
     setTmplAccId(tmpl.accountId ? String(tmpl.accountId) : "");
     setTmplPayMethod(tmpl.paymentMethod ?? "cash");
-    setTmplFreq((tmpl.frequency as "daily" | "weekly" | "monthly") ?? "daily");
+    const freq = tmpl.frequency === "monthly" ? "monthly" : "daily";
+    setTmplFreq(freq);
     setTmplApplyDay(tmpl.applyDay ? String(tmpl.applyDay) : "");
     setTmplAutoApply(tmpl.autoApply);
     setTmplDeductShift(tmpl.deductFromShift);
@@ -180,7 +205,7 @@ export default function FinanceExpenses() {
 
   const handleSaveTmpl = () => {
     if (!tmplTitle || !tmplAmount || isNaN(parseFloat(tmplAmount))) return;
-    const applyDayInt = tmplFreq === "monthly" && tmplApplyDay ? parseInt(tmplApplyDay) : null;
+    const applyDayInt = tmplFreq === "monthly" && tmplApplyDay ? Math.min(28, Math.max(1, parseInt(tmplApplyDay))) : null;
     const payload = {
       title: tmplTitle,
       titleAr: tmplTitleAr || null,
@@ -265,7 +290,6 @@ export default function FinanceExpenses() {
   });
   const getFreqLabel = () => ({
     daily: t("tmpl_freq_daily"),
-    weekly: t("tmpl_freq_weekly"),
     monthly: t("tmpl_freq_monthly"),
   });
 
@@ -323,21 +347,38 @@ export default function FinanceExpenses() {
       {/* ══════════════════ EXPENSES TAB ══════════════════ */}
       {tab === "expenses" && (
         <>
-          <div className="flex gap-2">
-            {(["today", "week", "month"] as const).map(p => (
+          {/* Period filter */}
+          <div className="flex flex-wrap gap-2 items-center">
+            {(["today", "week", "month", "custom"] as Period[]).map(p => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-sm font-medium transition",
+                  "flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition",
                   period === p ? "bg-primary text-white" : "bg-secondary text-muted-foreground hover:bg-secondary/70"
                 )}
               >
-                {t(p === "today" ? "period_today" : p === "week" ? "period_week" : "period_month")}
+                {p === "custom" && <Calendar className="h-3 w-3" />}
+                {p === "today" ? t("period_today") : p === "week" ? t("period_week") : p === "month" ? t("period_month") : t("period_custom")}
               </button>
             ))}
           </div>
+          <AnimatePresence>
+            {period === "custom" && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex gap-2 items-center">
+                  <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} className={cn(inputCls, "flex-1")} />
+                  <span className="text-muted-foreground text-sm">→</span>
+                  <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} className={cn(inputCls, "flex-1")} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
+          {/* Summary cards */}
           <div className="grid grid-cols-2 gap-3">
             <div className="card-base rounded-2xl p-4">
               <p className="text-xs text-muted-foreground mb-1">{t("finance_total_paid")}</p>
@@ -347,13 +388,13 @@ export default function FinanceExpenses() {
               <p className="text-xs text-muted-foreground mb-1">{t("finance_total_pending")}</p>
               <p className="text-2xl font-bold text-amber-500 tabular">{EGP(totalPending)}</p>
             </div>
-            {hasOpenShift && shiftExpensesTotal > 0 && (
+            {shiftDeductTotal > 0 && (
               <div className="card-base rounded-2xl p-4 col-span-2 border border-orange-500/20">
                 <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                   <span className="inline-block w-2 h-2 rounded-full bg-orange-500" />
                   {t("shift_deduct_total")}
                 </p>
-                <p className="text-xl font-bold text-orange-500 tabular">{EGP(shiftExpensesTotal)}</p>
+                <p className="text-xl font-bold text-orange-500 tabular">{EGP(shiftDeductTotal)}</p>
               </div>
             )}
           </div>
@@ -470,7 +511,7 @@ export default function FinanceExpenses() {
               {templates.map(tmpl => {
                 const freqs = getFreqLabel();
                 const displayTitle = lang === "ar" ? (tmpl.titleAr || tmpl.title) : tmpl.title;
-                const isApplying = applyTmpl.isPending;
+                const nextDue = computeNextDue(tmpl.frequency, tmpl.applyDay, tmpl.lastAppliedAt);
                 return (
                   <StaggerItem key={tmpl.id}>
                     <div className="card-base rounded-2xl p-4">
@@ -506,18 +547,25 @@ export default function FinanceExpenses() {
                             {tmpl.frequency === "monthly" && tmpl.applyDay ? ` · ${t("tmpl_apply_day_label")}: ${tmpl.applyDay}` : ""}
                             {tmpl.categoryName ? ` · ${lang === "ar" ? tmpl.categoryNameAr ?? tmpl.categoryName : tmpl.categoryName}` : ""}
                           </p>
-                          {tmpl.lastAppliedAt && (
-                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                              {t("tmpl_last_applied")}: {new Date(tmpl.lastAppliedAt).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}
-                            </p>
-                          )}
+                          <div className="flex gap-3 mt-0.5">
+                            {tmpl.lastAppliedAt && (
+                              <p className="text-[10px] text-muted-foreground/60">
+                                {t("tmpl_last_applied")}: {new Date(tmpl.lastAppliedAt).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}
+                              </p>
+                            )}
+                            {nextDue && (
+                              <p className="text-[10px] text-muted-foreground/60">
+                                {t("tmpl_next_due")}: {new Date(nextDue).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}
+                              </p>
+                            )}
+                          </div>
                         </div>
                         <div className="flex flex-col items-end gap-2 shrink-0">
                           <p className="text-sm font-bold text-red-500 tabular">{EGP(tmpl.amount)}</p>
                           <div className="flex gap-1">
                             <button
                               onClick={() => handleApplyNow(tmpl.id)}
-                              disabled={isApplying}
+                              disabled={applyTmpl.isPending}
                               title={t("tmpl_apply_now")}
                               className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition text-emerald-600 disabled:opacity-50"
                             >

@@ -1202,7 +1202,6 @@ export type ExpenseTemplateFrequency = typeof ExpenseTemplateFrequency[keyof typ
 
 export const ExpenseTemplateFrequency = {
   daily: 'daily',
-  weekly: 'weekly',
   monthly: 'monthly',
 } as const;
 
@@ -1246,7 +1245,6 @@ export type ExpenseTemplateInputFrequency = typeof ExpenseTemplateInputFrequency
 
 export const ExpenseTemplateInputFrequency = {
   daily: 'daily',
-  weekly: 'weekly',
   monthly: 'monthly',
 } as const;
 
@@ -1696,6 +1694,8 @@ type?: string;
 status?: string;
 categoryId?: number;
 accountId?: number;
+from?: string;
+to?: string;
 };
 
 export type GetFinanceDailySummaryParams = {

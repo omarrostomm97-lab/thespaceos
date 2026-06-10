@@ -2401,7 +2401,9 @@ export const ListFinanceTransactionsQueryParams = zod.object({
   "type": zod.coerce.string().optional(),
   "status": zod.coerce.string().optional(),
   "categoryId": zod.coerce.number().optional(),
-  "accountId": zod.coerce.number().optional()
+  "accountId": zod.coerce.number().optional(),
+  "from": zod.date().optional(),
+  "to": zod.date().optional()
 })
 
 export const ListFinanceTransactionsResponseItem = zod.object({
@@ -2548,7 +2550,7 @@ export const ListExpenseTemplatesResponseItem = zod.object({
   "categoryColor": zod.string().nullish(),
   "categoryIcon": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
-  "frequency": zod.enum(['daily', 'weekly', 'monthly']),
+  "frequency": zod.enum(['daily', 'monthly']),
   "applyDay": zod.number().nullish(),
   "autoApply": zod.boolean(),
   "deductFromShift": zod.boolean(),
@@ -2571,7 +2573,7 @@ export const CreateExpenseTemplateBody = zod.object({
   "categoryId": zod.number().nullish(),
   "accountId": zod.number().nullish(),
   "paymentMethod": zod.string().nullish(),
-  "frequency": zod.enum(['daily', 'weekly', 'monthly']).optional(),
+  "frequency": zod.enum(['daily', 'monthly']).optional(),
   "applyDay": zod.number().nullish(),
   "autoApply": zod.boolean().optional(),
   "deductFromShift": zod.boolean().optional(),
@@ -2594,7 +2596,7 @@ export const UpdateExpenseTemplateBody = zod.object({
   "categoryId": zod.number().nullish(),
   "accountId": zod.number().nullish(),
   "paymentMethod": zod.string().nullish(),
-  "frequency": zod.enum(['daily', 'weekly', 'monthly']).optional(),
+  "frequency": zod.enum(['daily', 'monthly']).optional(),
   "applyDay": zod.number().nullish(),
   "autoApply": zod.boolean().optional(),
   "deductFromShift": zod.boolean().optional(),
@@ -2615,7 +2617,7 @@ export const UpdateExpenseTemplateResponse = zod.object({
   "categoryColor": zod.string().nullish(),
   "categoryIcon": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
-  "frequency": zod.enum(['daily', 'weekly', 'monthly']),
+  "frequency": zod.enum(['daily', 'monthly']),
   "applyDay": zod.number().nullish(),
   "autoApply": zod.boolean(),
   "deductFromShift": zod.boolean(),

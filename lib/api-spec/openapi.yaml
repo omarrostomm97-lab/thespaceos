@@ -2146,6 +2146,18 @@ paths:
           required: false
           schema:
             type: integer
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
       responses:
         "200":
           description: Transactions list
@@ -4157,7 +4169,7 @@ components:
           type: ["string", "null"]
         frequency:
           type: string
-          enum: [daily, weekly, monthly]
+          enum: [daily, monthly]
         applyDay:
           type: ["integer", "null"]
         autoApply:
@@ -4196,7 +4208,7 @@ components:
           type: ["string", "null"]
         frequency:
           type: string
-          enum: [daily, weekly, monthly]
+          enum: [daily, monthly]
         applyDay:
           type: ["integer", "null"]
         autoApply:

@@ -11,6 +11,5 @@ export type ExpenseTemplateInputFrequency = typeof ExpenseTemplateInputFrequency
 
 export const ExpenseTemplateInputFrequency = {
   daily: 'daily',
-  weekly: 'weekly',
   monthly: 'monthly',
 } as const;

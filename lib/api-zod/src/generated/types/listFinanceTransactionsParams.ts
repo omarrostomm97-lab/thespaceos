@@ -12,4 +12,6 @@ type?: string;
 status?: string;
 categoryId?: number;
 accountId?: number;
+from?: Date;
+to?: Date;
 };

@@ -11,6 +11,5 @@ export type ExpenseTemplateFrequency = typeof ExpenseTemplateFrequency[keyof typ
 
 export const ExpenseTemplateFrequency = {
   daily: 'daily',
-  weekly: 'weekly',
   monthly: 'monthly',
 } as const;
