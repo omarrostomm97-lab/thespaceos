@@ -1704,7 +1704,14 @@ export const ListShiftsResponseItem = zod.object({
   "difference": zod.number().nullish(),
   "differenceExplanation": zod.string().nullish(),
   "openedAt": zod.coerce.date(),
-  "closedAt": zod.coerce.date().nullish()
+  "closedAt": zod.coerce.date().nullish(),
+  "cashIncome": zod.number().nullish(),
+  "visaIncome": zod.number().nullish(),
+  "walletIncome": zod.number().nullish(),
+  "totalIncome": zod.number().nullish(),
+  "grossCash": zod.number().nullish(),
+  "withdrawalTotal": zod.number().nullish(),
+  "shiftExpenses": zod.number().nullish()
 })
 export const ListShiftsResponse = zod.array(ListShiftsResponseItem)
 
@@ -1731,7 +1738,14 @@ export const GetCurrentShiftResponse = zod.object({
   "difference": zod.number().nullish(),
   "differenceExplanation": zod.string().nullish(),
   "openedAt": zod.coerce.date(),
-  "closedAt": zod.coerce.date().nullish()
+  "closedAt": zod.coerce.date().nullish(),
+  "cashIncome": zod.number().nullish(),
+  "visaIncome": zod.number().nullish(),
+  "walletIncome": zod.number().nullish(),
+  "totalIncome": zod.number().nullish(),
+  "grossCash": zod.number().nullish(),
+  "withdrawalTotal": zod.number().nullish(),
+  "shiftExpenses": zod.number().nullish()
 })
 
 
@@ -1758,7 +1772,14 @@ export const CloseShiftResponse = zod.object({
   "difference": zod.number().nullish(),
   "differenceExplanation": zod.string().nullish(),
   "openedAt": zod.coerce.date(),
-  "closedAt": zod.coerce.date().nullish()
+  "closedAt": zod.coerce.date().nullish(),
+  "cashIncome": zod.number().nullish(),
+  "visaIncome": zod.number().nullish(),
+  "walletIncome": zod.number().nullish(),
+  "totalIncome": zod.number().nullish(),
+  "grossCash": zod.number().nullish(),
+  "withdrawalTotal": zod.number().nullish(),
+  "shiftExpenses": zod.number().nullish()
 })
 
 

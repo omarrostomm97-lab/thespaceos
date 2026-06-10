@@ -338,11 +338,13 @@ export default function ShiftDetailDrawer({
   shiftId,
   initialTab,
   shiftMeta,
+  isMgmt = true,
   onClose,
 }: {
   shiftId: number | null;
   initialTab: ShiftDrawerTab;
   shiftMeta: ShiftMeta | null;
+  isMgmt?: boolean;
   onClose: () => void;
 }) {
   const { t, lang } = useLang();
@@ -365,7 +367,7 @@ export default function ShiftDetailDrawer({
     { id: "roomOrders",  label: t("shift_tab_room_orders"), icon: "🎯", color: "blue",     count: () => data?.roomOrders.length ?? 0 },
     { id: "pos",         label: t("shift_tab_pos"),         icon: "🛒", color: "orange",   count: () => data?.posOrders.length ?? 0 },
     { id: "orders",      label: t("shift_tab_all_orders"),  icon: "📦", color: "slate",    count: () => allOrders.length },
-    { id: "withdrawals", label: t("shift_tab_withdrawals"), icon: "💸", color: "red",      count: () => data?.withdrawals?.items.length ?? 0 },
+    ...(isMgmt ? [{ id: "withdrawals" as ShiftDrawerTab, label: t("shift_tab_withdrawals"), icon: "💸", color: "red", count: () => data?.withdrawals?.items.length ?? 0 }] : []),
   ];
 
   const allOrders = data
@@ -443,36 +445,38 @@ export default function ShiftDetailDrawer({
                   </div>
                 </div>
 
-                {/* Revenue breakdown row */}
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-emerald-500/8 rounded-xl px-3 py-2 text-center">
-                    <p className="text-[9px] text-emerald-600 font-semibold uppercase tracking-wide mb-0.5">
-                      {t("shift_gaming_label")}
-                    </p>
-                    <p className="text-sm font-bold text-emerald-500 tabular-nums">
-                      {shiftMeta.gamingRevenue.toFixed(2)}
-                    </p>
+                {/* Revenue breakdown row — mgmt only */}
+                {isMgmt && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-emerald-500/8 rounded-xl px-3 py-2 text-center">
+                      <p className="text-[9px] text-emerald-600 font-semibold uppercase tracking-wide mb-0.5">
+                        {t("shift_gaming_label")}
+                      </p>
+                      <p className="text-sm font-bold text-emerald-500 tabular-nums">
+                        {shiftMeta.gamingRevenue.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="bg-primary/8 rounded-xl px-3 py-2 text-center">
+                      <p className="text-[9px] text-primary font-semibold uppercase tracking-wide mb-0.5">
+                        {t("shift_rooms_label")}
+                      </p>
+                      <p className="text-sm font-bold text-primary tabular-nums">
+                        {shiftMeta.roomOrderRevenue.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="bg-orange-500/8 rounded-xl px-3 py-2 text-center">
+                      <p className="text-[9px] text-orange-500 font-semibold uppercase tracking-wide mb-0.5">
+                        {t("shift_pos_short")}
+                      </p>
+                      <p className="text-sm font-bold text-orange-500 tabular-nums">
+                        {shiftMeta.posRevenue.toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="bg-primary/8 rounded-xl px-3 py-2 text-center">
-                    <p className="text-[9px] text-primary font-semibold uppercase tracking-wide mb-0.5">
-                      {t("shift_rooms_label")}
-                    </p>
-                    <p className="text-sm font-bold text-primary tabular-nums">
-                      {shiftMeta.roomOrderRevenue.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="bg-orange-500/8 rounded-xl px-3 py-2 text-center">
-                    <p className="text-[9px] text-orange-500 font-semibold uppercase tracking-wide mb-0.5">
-                      {t("shift_pos_short")}
-                    </p>
-                    <p className="text-sm font-bold text-orange-500 tabular-nums">
-                      {shiftMeta.posRevenue.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
+                )}
 
-                {/* Withdrawals deduction row */}
-                {((data?.withdrawals?.total ?? 0) > 0 || (shiftMeta.withdrawalTotal ?? 0) > 0) && (
+                {/* Withdrawals deduction row — mgmt only */}
+                {isMgmt && ((data?.withdrawals?.total ?? 0) > 0 || (shiftMeta.withdrawalTotal ?? 0) > 0) && (
                   <div className="mt-2 flex items-center justify-between bg-destructive/8 border border-destructive/20 rounded-xl px-3 py-2">
                     <p className="text-[11px] font-semibold text-destructive">
                       💸 {t("shift_owner_withdrawals")}
@@ -484,8 +488,8 @@ export default function ShiftDetailDrawer({
                   </div>
                 )}
 
-                {/* Reconciliation strip — only for closed shifts */}
-                {hasDifference && (
+                {/* Reconciliation strip — mgmt only, only for closed shifts */}
+                {isMgmt && hasDifference && (
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     <div className="bg-muted/60 rounded-xl px-3 py-2 text-center">
                       <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wide mb-0.5">

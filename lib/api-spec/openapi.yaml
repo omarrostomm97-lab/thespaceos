@@ -3494,6 +3494,20 @@ components:
         closedAt:
           type: ["string", "null"]
           format: date-time
+        cashIncome:
+          type: ["number", "null"]
+        visaIncome:
+          type: ["number", "null"]
+        walletIncome:
+          type: ["number", "null"]
+        totalIncome:
+          type: ["number", "null"]
+        grossCash:
+          type: ["number", "null"]
+        withdrawalTotal:
+          type: ["number", "null"]
+        shiftExpenses:
+          type: ["number", "null"]
 
     ShiftInput:
       type: object

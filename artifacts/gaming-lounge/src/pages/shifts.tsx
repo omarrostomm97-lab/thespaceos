@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useLang } from "@/hooks/use-language";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import {
   Banknote, CreditCard, Smartphone, Clock, TrendingUp, BarChart3,
@@ -35,6 +36,8 @@ function DiffBadge({ value, egp }: { value: number | null | undefined; egp: stri
 /* ─── main page ─────────────────────────────────────── */
 export default function Shifts() {
   const { t, lang } = useLang();
+  const { user } = useAuth();
+  const isMgmt = user?.role !== "cashier";
   const egp = lang === "ar" ? "ج.م" : "EGP";
   const queryClient = useQueryClient();
 
@@ -170,10 +173,11 @@ export default function Shifts() {
     : 0;
 
   /* ── CS: live income chips from current shift ── */
-  const cashIncome   = (currentShift as any)?.cashIncome   ?? 0;
-  const visaIncome   = (currentShift as any)?.visaIncome   ?? 0;
-  const walletIncome = (currentShift as any)?.walletIncome ?? 0;
-  const withdrawalTotal = (currentShift as any)?.withdrawalTotal ?? 0;
+  const cashIncome      = currentShift?.cashIncome      ?? 0;
+  const visaIncome      = currentShift?.visaIncome      ?? 0;
+  const walletIncome    = currentShift?.walletIncome    ?? 0;
+  const withdrawalTotal = currentShift?.withdrawalTotal ?? 0;
+  const shiftExpenses   = currentShift?.shiftExpenses   ?? 0;
 
   if ((isLoadingCurrent && !isCurrentError) || isLoadingList) {
     return (
@@ -193,45 +197,47 @@ export default function Shifts() {
         <p className="text-muted-foreground mt-1 text-sm">{t("shifts_mgmt_subtitle")}</p>
       </div>
 
-      {/* ── Stats strip ── */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
-          <div className="flex items-center gap-1.5 mb-1">
-            <BarChart3 className="h-3.5 w-3.5 text-primary" />
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-              {t("shifts_this_month")}
+      {/* ── Stats strip (mgmt only) ── */}
+      {isMgmt && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <BarChart3 className="h-3.5 w-3.5 text-primary" />
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                {t("shifts_this_month")}
+              </p>
+            </div>
+            <p className="text-2xl font-bold tabular-nums">{thisMonthClosed.length}</p>
+          </div>
+          <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                {t("shifts_revenue_month")}
+              </p>
+            </div>
+            <p className="text-lg font-bold text-emerald-500 tabular-nums">
+              {monthRevenue.toFixed(0)}
+              <span className="text-xs font-normal text-muted-foreground ms-1">{egp}</span>
             </p>
           </div>
-          <p className="text-2xl font-bold tabular-nums">{thisMonthClosed.length}</p>
-        </div>
-        <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
-          <div className="flex items-center gap-1.5 mb-1">
-            <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-              {t("shifts_revenue_month")}
+          <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                {t("shifts_avg_diff")}
+              </p>
+            </div>
+            <p className={cn(
+              "text-lg font-bold tabular-nums",
+              avgDiff < 0 ? "text-destructive" : avgDiff > 0 ? "text-emerald-500" : "text-muted-foreground"
+            )}>
+              {avgDiff > 0 ? "+" : ""}{avgDiff.toFixed(0)}
+              <span className="text-xs font-normal text-muted-foreground ms-1">{egp}</span>
             </p>
           </div>
-          <p className="text-lg font-bold text-emerald-500 tabular-nums">
-            {monthRevenue.toFixed(0)}
-            <span className="text-xs font-normal text-muted-foreground ms-1">{egp}</span>
-          </p>
         </div>
-        <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
-          <div className="flex items-center gap-1.5 mb-1">
-            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-              {t("shifts_avg_diff")}
-            </p>
-          </div>
-          <p className={cn(
-            "text-lg font-bold tabular-nums",
-            avgDiff < 0 ? "text-destructive" : avgDiff > 0 ? "text-emerald-500" : "text-muted-foreground"
-          )}>
-            {avgDiff > 0 ? "+" : ""}{avgDiff.toFixed(0)}
-            <span className="text-xs font-normal text-muted-foreground ms-1">{egp}</span>
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* ── Current shift card ── */}
       <div className="card-base rounded-3xl overflow-hidden">
@@ -337,41 +343,44 @@ export default function Shifts() {
                 </div>
               </div>
 
-              {/* Expected cash breakdown */}
-              <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 space-y-3">
+              {/* Receipt-style cash breakdown */}
+              <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 space-y-2.5">
+                {/* Opening float */}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">{t("shift_opening_cash")}</span>
-                  <span className="font-mono font-semibold">
-                    {currentShift.openingCash.toFixed(2)} {egp}
+                  <span className="font-mono font-semibold tabular-nums">
+                    +{currentShift.openingCash.toFixed(2)} {egp}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm border-t border-primary/15 pt-3">
-                  <span className="text-muted-foreground">{t("shift_total_income_all")}</span>
-                  <span className="font-mono text-primary font-semibold">
-                    +{((currentShift as any).grossCash
-                      ? (currentShift as any).grossCash - currentShift.openingCash
-                      : cashIncome
-                    ).toFixed(2)} {egp}
+                {/* Cash income */}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t("shift_receipt_cash_income")}</span>
+                  <span className="font-mono text-emerald-500 font-semibold tabular-nums">
+                    +{cashIncome.toFixed(2)} {egp}
                   </span>
                 </div>
+                {/* Owner withdrawals (hidden when 0) */}
                 {withdrawalTotal > 0 && (
-                  <div className="flex items-center justify-between text-sm border-t border-primary/15 pt-3">
-                    <span className="text-destructive font-medium">💸 {t("shift_withdrawals_deduction")}</span>
-                    <span className="font-mono text-destructive font-semibold">
-                      -{withdrawalTotal.toFixed(2)} {egp}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-destructive font-medium">{t("shift_withdrawals_deduction")}</span>
+                    <span className="font-mono text-destructive font-semibold tabular-nums">
+                      −{withdrawalTotal.toFixed(2)} {egp}
                     </span>
                   </div>
                 )}
-                <div className="flex items-center justify-between border-t border-primary/15 pt-3">
-                  <div>
-                    <p className="font-bold text-primary text-sm">{t("shift_expected_cash_label")}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {withdrawalTotal > 0
-                        ? t("shift_expected_formula_withdrawals")
-                        : t("shift_expected_formula_plain")}
-                    </p>
+                {/* Shift expenses (hidden when 0) */}
+                {shiftExpenses > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-orange-500 font-medium">{t("shift_receipt_expenses")}</span>
+                    <span className="font-mono text-orange-500 font-semibold tabular-nums">
+                      −{shiftExpenses.toFixed(2)} {egp}
+                    </span>
                   </div>
-                  <p className="text-lg font-bold text-emerald-500 font-mono tabular-nums">
+                )}
+                {/* Divider + Count this much */}
+                <div className="border-t-2 border-dashed border-primary/25 pt-3 flex items-center justify-between">
+                  <p className="font-bold text-primary text-sm">{t("shift_count_this")}</p>
+                  <p className="text-2xl font-bold text-emerald-500 font-mono tabular-nums">
                     {(currentShift.expectedCash ?? 0).toFixed(2)}
                     <span className="text-xs font-normal text-muted-foreground ms-1">{egp}</span>
                   </p>
@@ -421,39 +430,54 @@ export default function Shifts() {
       {/* ── Shift history table ── */}
       <div className="card-base rounded-3xl overflow-hidden">
         <div className="px-5 py-4 border-b border-border/50 flex items-center justify-between">
-          <h3 className="font-bold text-base">{t("shift_history_title")}</h3>
+          <h3 className="font-bold text-base">
+            {isMgmt ? t("shift_history_title") : t("shift_cashier_history_title")}
+          </h3>
           <span className="text-sm text-muted-foreground tabular-nums">{closedShifts.length}</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[560px]" dir={lang === "ar" ? "rtl" : "ltr"}>
+          <table className="w-full text-sm" dir={lang === "ar" ? "rtl" : "ltr"}
+            style={{ minWidth: isMgmt ? "560px" : "320px" }}>
             <thead>
               <tr className="border-b border-border/40 bg-muted/30">
-                <th className="px-4 py-3 text-start text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                  {t("shift_col_cashier")}
-                </th>
+                {isMgmt && (
+                  <th className="px-4 py-3 text-start text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                    {t("shift_col_cashier")}
+                  </th>
+                )}
                 <th className="px-4 py-3 text-start text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                   {t("shift_col_date")}
                 </th>
                 <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                  {t("shift_col_revenue")}
+                  {t("shift_col_sessions")}
                 </th>
                 <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                  {t("shift_col_expected")}
+                  {t("shift_col_orders")}
                 </th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                  {t("shift_col_actual")}
-                </th>
-                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                  {t("shift_col_diff")}
-                </th>
+                {isMgmt && (
+                  <>
+                    <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      {t("shift_col_revenue")}
+                    </th>
+                    <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      {t("shift_col_expected")}
+                    </th>
+                    <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      {t("shift_col_actual")}
+                    </th>
+                    <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      {t("shift_col_diff")}
+                    </th>
+                  </>
+                )}
                 <th className="w-10" />
               </tr>
             </thead>
             <tbody>
               {closedShifts.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground text-sm">
+                  <td colSpan={isMgmt ? 9 : 4} className="px-4 py-12 text-center text-muted-foreground text-sm">
                     {t("shift_no_history")}
                   </td>
                 </tr>
@@ -466,10 +490,12 @@ export default function Shifts() {
                     onClick={() => openDrawerForShift(shift)}
                     className="border-b border-border/30 hover:bg-muted/30 cursor-pointer transition-colors active:bg-muted/50 group"
                   >
-                    {/* Cashier */}
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-sm">{shift.userName || "—"}</p>
-                    </td>
+                    {/* Cashier — mgmt only */}
+                    {isMgmt && (
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-sm">{shift.userName || "—"}</p>
+                      </td>
+                    )}
 
                     {/* Date + duration */}
                     <td className="px-4 py-3">
@@ -487,36 +513,48 @@ export default function Shifts() {
                       </p>
                     </td>
 
-                    {/* Revenue */}
+                    {/* Sessions count */}
                     <td className="px-4 py-3 text-end">
-                      {(shift.totalRevenue ?? 0) > 0 ? (
-                        <span className="font-mono font-bold text-emerald-500 text-sm tabular-nums">
-                          {(shift.totalRevenue ?? 0).toFixed(2)}
-                          <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">—</span>
-                      )}
+                      <span className="text-sm tabular-nums text-muted-foreground">{shift.sessionCount ?? 0}</span>
                     </td>
 
-                    {/* Expected */}
+                    {/* Orders count */}
                     <td className="px-4 py-3 text-end">
-                      <span className="font-mono text-sm tabular-nums text-muted-foreground">
-                        {shift.expectedCash != null ? shift.expectedCash.toFixed(2) : "—"}
-                      </span>
+                      <span className="text-sm tabular-nums text-muted-foreground">{shift.orderCount ?? 0}</span>
                     </td>
 
-                    {/* Actual */}
-                    <td className="px-4 py-3 text-end">
-                      <span className="font-mono text-sm tabular-nums">
-                        {shift.actualCash != null ? shift.actualCash.toFixed(2) : "—"}
-                      </span>
-                    </td>
+                    {/* Revenue — mgmt only */}
+                    {isMgmt && (
+                      <td className="px-4 py-3 text-end">
+                        {(shift.totalRevenue ?? 0) > 0 ? (
+                          <span className="font-mono font-bold text-emerald-500 text-sm tabular-nums">
+                            {(shift.totalRevenue ?? 0).toFixed(2)}
+                            <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </td>
+                    )}
 
-                    {/* Difference */}
-                    <td className="px-4 py-3 text-end">
-                      <DiffBadge value={shift.difference} egp={egp} />
-                    </td>
+                    {/* Expected / Actual / Diff — mgmt only */}
+                    {isMgmt && (
+                      <>
+                        <td className="px-4 py-3 text-end">
+                          <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                            {shift.expectedCash != null ? shift.expectedCash.toFixed(2) : "—"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-end">
+                          <span className="font-mono text-sm tabular-nums">
+                            {shift.actualCash != null ? shift.actualCash.toFixed(2) : "—"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-end">
+                          <DiffBadge value={shift.difference} egp={egp} />
+                        </td>
+                      </>
+                    )}
 
                     {/* Arrow */}
                     <td className="px-3 py-3">
@@ -538,6 +576,7 @@ export default function Shifts() {
         shiftId={drawerShiftId}
         initialTab={drawerInitTab}
         shiftMeta={drawerMeta}
+        isMgmt={isMgmt}
         onClose={() => { setDrawerShiftId(null); setDrawerMeta(null); }}
       />
     </div>

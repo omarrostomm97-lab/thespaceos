@@ -24,8 +24,13 @@ const fmtShift = (s: typeof shiftsTable.$inferSelect, userName?: string | null) 
 router.get("/shifts", requireAuth, requireTenant, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
+    const isCashier = req.user!.role === "cashier";
+    const shiftsWhere = isCashier
+      ? and(eq(shiftsTable.tenantId, tenantId), eq(shiftsTable.userId, req.user!.id))
+      : eq(shiftsTable.tenantId, tenantId);
+
     const shifts = await db.select().from(shiftsTable)
-      .where(eq(shiftsTable.tenantId, tenantId))
+      .where(shiftsWhere)
       .orderBy(desc(shiftsTable.openedAt));
 
     if (shifts.length === 0) { res.json([]); return; }

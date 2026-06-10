@@ -772,6 +772,20 @@ export interface Shift {
   openedAt: string;
   /** @nullable */
   closedAt?: string | null;
+  /** @nullable */
+  cashIncome?: number | null;
+  /** @nullable */
+  visaIncome?: number | null;
+  /** @nullable */
+  walletIncome?: number | null;
+  /** @nullable */
+  totalIncome?: number | null;
+  /** @nullable */
+  grossCash?: number | null;
+  /** @nullable */
+  withdrawalTotal?: number | null;
+  /** @nullable */
+  shiftExpenses?: number | null;
 }
 
 export interface ShiftInput {
