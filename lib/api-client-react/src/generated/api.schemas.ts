@@ -754,6 +754,11 @@ export const ShiftStatus = {
   closed: 'closed',
 } as const;
 
+export type ShiftShiftExpenseItemsItem = {
+  title: string;
+  amount: number;
+};
+
 export interface Shift {
   id: number;
   userId: number;
@@ -786,6 +791,7 @@ export interface Shift {
   withdrawalTotal?: number | null;
   /** @nullable */
   shiftExpenses?: number | null;
+  shiftExpenseItems?: ShiftShiftExpenseItemsItem[];
 }
 
 export interface ShiftInput {

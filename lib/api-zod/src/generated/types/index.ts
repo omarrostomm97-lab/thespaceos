@@ -157,6 +157,7 @@ export * from './sessionWithBillingStatus';
 export * from './shift';
 export * from './shiftCloseInput';
 export * from './shiftInput';
+export * from './shiftShiftExpenseItemsItem';
 export * from './shiftStat';
 export * from './shiftStatus';
 export * from './tenant';

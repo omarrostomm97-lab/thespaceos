@@ -133,7 +133,7 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
           eq(financeTransactionsTable.type, "owner_withdrawal"),
           gte(financeTransactionsTable.createdAt, shift.openedAt)
         )),
-      db.select({ amount: financeTransactionsTable.amount })
+      db.select({ amount: financeTransactionsTable.amount, title: financeTransactionsTable.title })
         .from(financeTransactionsTable)
         .where(and(
           eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
@@ -153,6 +153,10 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
 
     const withdrawalTotal = withdrawals.reduce((s, w) => s + parseFloat(w.amount as string), 0);
     const shiftExpenses = shiftExpensesRows.reduce((s, e) => s + parseFloat(e.amount as string), 0);
+    const shiftExpenseItems = shiftExpensesRows.map(e => ({
+      title: e.title ?? "",
+      amount: parseFloat(e.amount as string),
+    }));
     const opening = parseFloat(shift.openingCash as string);
     const grossCash = opening + cashIncome;
     const liveExpectedCash = grossCash - withdrawalTotal - shiftExpenses;
@@ -163,7 +167,7 @@ router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
     res.json({
       ...formatted,
       cashIncome, visaIncome, walletIncome, totalIncome,
-      withdrawalTotal, grossCash, shiftExpenses,
+      withdrawalTotal, grossCash, shiftExpenses, shiftExpenseItems,
     });
   } catch (e) {
     console.error(e);

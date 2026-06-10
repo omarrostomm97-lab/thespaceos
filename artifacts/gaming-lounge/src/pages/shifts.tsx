@@ -177,7 +177,8 @@ export default function Shifts() {
   const visaIncome      = currentShift?.visaIncome      ?? 0;
   const walletIncome    = currentShift?.walletIncome    ?? 0;
   const withdrawalTotal = currentShift?.withdrawalTotal ?? 0;
-  const shiftExpenses   = currentShift?.shiftExpenses   ?? 0;
+  const shiftExpenses      = currentShift?.shiftExpenses      ?? 0;
+  const shiftExpenseItems  = currentShift?.shiftExpenseItems  ?? [];
 
   if ((isLoadingCurrent && !isCurrentError) || isLoadingList) {
     return (
@@ -403,6 +404,38 @@ export default function Shifts() {
                 <label className="block text-sm font-bold text-destructive">
                   {t("shift_close_title")}
                 </label>
+
+                {/* Expense items deducted this shift */}
+                {shiftExpenseItems.length > 0 && (
+                  <div className="rounded-xl border border-orange-500/25 bg-orange-500/5 overflow-hidden">
+                    <div className="px-3 py-2 border-b border-orange-500/20">
+                      <p className="text-[11px] font-semibold text-orange-500 uppercase tracking-wide">
+                        {t("shift_close_expenses_label")}
+                      </p>
+                    </div>
+                    <div className="divide-y divide-orange-500/10">
+                      {shiftExpenseItems.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between px-3 py-2">
+                          <span className="text-sm text-foreground/80 truncate max-w-[65%]">
+                            {item.title || "—"}
+                          </span>
+                          <span className="text-sm font-mono font-semibold text-orange-500 tabular-nums shrink-0">
+                            −{item.amount.toFixed(2)} {egp}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    {shiftExpenseItems.length > 1 && (
+                      <div className="flex items-center justify-between px-3 py-2 border-t border-orange-500/20 bg-orange-500/8">
+                        <span className="text-xs font-bold text-orange-600">{t("shift_receipt_expenses")}</span>
+                        <span className="text-sm font-mono font-bold text-orange-500 tabular-nums">
+                          −{shiftExpenses.toFixed(2)} {egp}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="flex gap-3">
                   <input
                     type="number"

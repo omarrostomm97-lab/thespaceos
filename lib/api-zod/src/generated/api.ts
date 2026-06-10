@@ -1711,7 +1711,11 @@ export const ListShiftsResponseItem = zod.object({
   "totalIncome": zod.number().nullish(),
   "grossCash": zod.number().nullish(),
   "withdrawalTotal": zod.number().nullish(),
-  "shiftExpenses": zod.number().nullish()
+  "shiftExpenses": zod.number().nullish(),
+  "shiftExpenseItems": zod.array(zod.object({
+  "title": zod.string(),
+  "amount": zod.number()
+})).optional()
 })
 export const ListShiftsResponse = zod.array(ListShiftsResponseItem)
 
@@ -1745,7 +1749,11 @@ export const GetCurrentShiftResponse = zod.object({
   "totalIncome": zod.number().nullish(),
   "grossCash": zod.number().nullish(),
   "withdrawalTotal": zod.number().nullish(),
-  "shiftExpenses": zod.number().nullish()
+  "shiftExpenses": zod.number().nullish(),
+  "shiftExpenseItems": zod.array(zod.object({
+  "title": zod.string(),
+  "amount": zod.number()
+})).optional()
 })
 
 
@@ -1779,7 +1787,11 @@ export const CloseShiftResponse = zod.object({
   "totalIncome": zod.number().nullish(),
   "grossCash": zod.number().nullish(),
   "withdrawalTotal": zod.number().nullish(),
-  "shiftExpenses": zod.number().nullish()
+  "shiftExpenses": zod.number().nullish(),
+  "shiftExpenseItems": zod.array(zod.object({
+  "title": zod.string(),
+  "amount": zod.number()
+})).optional()
 })
 
 

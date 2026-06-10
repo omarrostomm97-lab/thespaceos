@@ -3508,6 +3508,16 @@ components:
           type: ["number", "null"]
         shiftExpenses:
           type: ["number", "null"]
+        shiftExpenseItems:
+          type: array
+          items:
+            type: object
+            required: [title, amount]
+            properties:
+              title:
+                type: string
+              amount:
+                type: number
 
     ShiftInput:
       type: object

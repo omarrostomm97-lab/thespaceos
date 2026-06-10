@@ -5,6 +5,7 @@
  * Gaming Lounge OS API
  * OpenAPI spec version: 0.1.0
  */
+import type { ShiftShiftExpenseItemsItem } from './shiftShiftExpenseItemsItem';
 import type { ShiftStatus } from './shiftStatus';
 
 export interface Shift {
@@ -39,4 +40,5 @@ export interface Shift {
   withdrawalTotal?: number | null;
   /** @nullable */
   shiftExpenses?: number | null;
+  shiftExpenseItems?: ShiftShiftExpenseItemsItem[];
 }
