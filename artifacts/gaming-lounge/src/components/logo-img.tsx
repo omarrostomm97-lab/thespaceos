@@ -68,19 +68,17 @@ export function LogoImg({
           flexShrink: 0,
         };
 
-  const adaptiveClass =
-    variant === "adaptive"
-      ? height >= 80
-        ? "dark:bg-[#eceff8] dark:rounded-2xl dark:shadow-md dark:px-5 dark:py-3"
-        : "dark:bg-[#eceff8] dark:rounded-xl dark:shadow dark:px-3 dark:py-1.5"
-      : "";
+  const adaptiveImgClass =
+    variant === "adaptive" ? "dark:brightness-0 dark:invert" : "";
+
+  const finalImgClass = [adaptiveImgClass, className].filter(Boolean).join(" ");
 
   return (
-    <span style={wrapperStyle} className={adaptiveClass}>
+    <span style={wrapperStyle}>
       <img
         src={LOGO}
         alt={alt}
-        className={className}
+        className={finalImgClass}
         style={{
           height,
           width: "auto",
