@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useLang } from "@/hooks/use-language";
 
 /* ─── Types ─────────────────────────────────────────── */
-export type ShiftDrawerTab = "gaming" | "roomOrders" | "pos" | "orders" | "withdrawals";
+export type ShiftDrawerTab = "gaming" | "roomOrders" | "pos" | "orders" | "withdrawals" | "expenses";
 
 export interface ShiftMeta {
   id: number;
@@ -50,6 +50,13 @@ interface WithdrawalItem {
   createdAt: string;
 }
 
+interface ExpenseItem {
+  id: number;
+  amount: number;
+  title: string | null;
+  createdAt: string;
+}
+
 interface ShiftSummaryData {
   sessions: SessionItem[];
   roomOrders: OrderItem[];
@@ -57,6 +64,10 @@ interface ShiftSummaryData {
   withdrawals?: {
     total: number;
     items: WithdrawalItem[];
+  };
+  expenses?: {
+    total: number;
+    items: ExpenseItem[];
   };
 }
 
@@ -333,6 +344,55 @@ function WithdrawalsList({ items, total, lang, egp, noLabel }: {
   );
 }
 
+/* ─── Expenses list ─────────────────────────────────── */
+function ExpensesList({ items, total, lang, egp, noLabel }: {
+  items: ExpenseItem[]; total: number; lang: string; egp: string; noLabel: string;
+}) {
+  const { t } = useLang();
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-14 text-muted-foreground">
+        <div className="text-3xl mb-2">🧾</div>
+        <p className="text-sm">{noLabel}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between bg-orange-500/8 border border-orange-500/20 rounded-2xl px-4 py-3">
+        <p className="text-sm font-bold text-orange-500">
+          {t("shift_total_deductions")}
+        </p>
+        <p className="text-base font-bold text-orange-500 tabular-nums">
+          {total.toFixed(2)}
+          <span className="text-[10px] font-normal ms-1">{egp}</span>
+        </p>
+      </div>
+      {items.map((e) => (
+        <div key={e.id} className="bg-card border border-card-border rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-orange-500/10 flex items-center justify-center text-lg shrink-0">
+              🧾
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate">{e.title || t("shift_expense_default")}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {new Date(e.createdAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", {
+                  hour: "2-digit", minute: "2-digit", hour12: true,
+                })}
+              </p>
+            </div>
+          </div>
+          <p className="text-base font-bold text-orange-500 tabular-nums shrink-0">
+            -{e.amount.toFixed(2)}
+            <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ─── Main Drawer Component ─────────────────────────── */
 export default function ShiftDetailDrawer({
   shiftId,
@@ -368,6 +428,7 @@ export default function ShiftDetailDrawer({
     { id: "pos",         label: t("shift_tab_pos"),         icon: "🛒", color: "orange",   count: () => data?.posOrders.length ?? 0 },
     { id: "orders",      label: t("shift_tab_all_orders"),  icon: "📦", color: "slate",    count: () => allOrders.length },
     ...(isMgmt ? [{ id: "withdrawals" as ShiftDrawerTab, label: t("shift_tab_withdrawals"), icon: "💸", color: "red", count: () => data?.withdrawals?.items.length ?? 0 }] : []),
+    ...(isMgmt ? [{ id: "expenses" as ShiftDrawerTab, label: t("shift_tab_expenses"), icon: "🧾", color: "orange", count: () => data?.expenses?.items.length ?? 0 }] : []),
   ];
 
   const allOrders = data
@@ -488,6 +549,19 @@ export default function ShiftDetailDrawer({
                   </div>
                 )}
 
+                {/* Shift expenses deduction row — mgmt only */}
+                {isMgmt && (data?.expenses?.total ?? 0) > 0 && (
+                  <div className="mt-2 flex items-center justify-between bg-orange-500/8 border border-orange-500/20 rounded-xl px-3 py-2">
+                    <p className="text-[11px] font-semibold text-orange-500">
+                      🧾 {t("shift_receipt_expenses")}
+                    </p>
+                    <p className="text-sm font-bold text-orange-500 tabular-nums">
+                      -{(data?.expenses?.total ?? 0).toFixed(2)}
+                      <span className="text-[9px] font-normal ms-1">{egp}</span>
+                    </p>
+                  </div>
+                )}
+
                 {/* Reconciliation strip — mgmt only, only for closed shifts */}
                 {isMgmt && hasDifference && (
                   <div className="mt-2 grid grid-cols-3 gap-2">
@@ -594,6 +668,14 @@ export default function ShiftDetailDrawer({
                       total={data?.withdrawals?.total ?? 0}
                       lang={lang} egp={egp}
                       noLabel={t("shift_no_withdrawals")}
+                    />
+                  )}
+                  {activeTab === "expenses" && (
+                    <ExpensesList
+                      items={data?.expenses?.items ?? []}
+                      total={data?.expenses?.total ?? 0}
+                      lang={lang} egp={egp}
+                      noLabel={t("shift_no_expenses")}
                     />
                   )}
                 </div>

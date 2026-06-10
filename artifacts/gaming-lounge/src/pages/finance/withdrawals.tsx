@@ -3,6 +3,7 @@ import {
   useListFinanceTransactions,
   useListFinanceAccounts,
   useCreateFinanceTransaction,
+  useGetCurrentShift,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLang } from "@/hooks/use-language";
@@ -25,6 +26,7 @@ export default function FinanceWithdrawals() {
 
   const { data: txData, isLoading } = useListFinanceTransactions({ type: "owner_withdrawal", period: "month" });
   const { data: accData } = useListFinanceAccounts();
+  const { data: currentShift } = useGetCurrentShift();
   const createTx = useCreateFinanceTransaction();
 
   const transactions = txData ?? [];
@@ -36,7 +38,7 @@ export default function FinanceWithdrawals() {
   const handleAdd = () => {
     if (!amount || isNaN(parseFloat(amount))) return;
     createTx.mutate(
-      { data: { type: "owner_withdrawal", amount: parseFloat(amount), accountId: accId ? parseInt(accId) : null, vendorName: owner || null, notes: notes || null, transactionDate: new Date(txDate).toISOString(), status: "verified" } },
+      { data: { type: "owner_withdrawal", amount: parseFloat(amount), accountId: accId ? parseInt(accId) : null, vendorName: owner || null, notes: notes || null, transactionDate: new Date(txDate).toISOString(), status: "verified", shiftId: currentShift?.id ?? null } },
       {
         onSuccess: () => { toast.success(t("finance_withdrawal_added_ok")); qc.invalidateQueries({ queryKey: ["listFinanceTransactions"] }); setOpen(false); resetForm(); },
         onError: () => toast.error(t("finance_expense_error")),

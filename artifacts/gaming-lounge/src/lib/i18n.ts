@@ -947,6 +947,10 @@ const translations = {
     shift_afternoon_pm: "مساءً — PM",
     shift_total_withdrawals: "إجمالي السحوبات",
     shift_withdrawal_default: "سحب",
+    shift_tab_expenses: "مصروفات الوردية",
+    shift_no_expenses: "لا توجد مصروفات مخصومة",
+    shift_total_deductions: "إجمالي المصروفات المخصومة",
+    shift_expense_default: "مصروف",
 
     /* ── Expense Templates (Recurring) ── */
     tab_expenses: "المصروفات",
@@ -1934,6 +1938,10 @@ const translations = {
     shift_afternoon_pm: "Afternoon / Evening — PM",
     shift_total_withdrawals: "Total Withdrawals",
     shift_withdrawal_default: "Withdrawal",
+    shift_tab_expenses: "Shift Expenses",
+    shift_no_expenses: "No deducted expenses",
+    shift_total_deductions: "Total Deducted Expenses",
+    shift_expense_default: "Expense",
 
     /* ── Expense Templates (Recurring) ── */
     tab_expenses: "Expenses",

@@ -310,7 +310,7 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
     const from = shift.openedAt;
     const to = shift.closedAt ?? new Date();
 
-    const [rawSessions, rawOrders, withdrawalRows] = await Promise.all([
+    const [rawSessions, rawOrders, withdrawalRows, expenseRows] = await Promise.all([
       db.select().from(sessionsTable)
         .where(and(
           eq(sessionsTable.tenantId, req.user!.tenantId!),
@@ -335,6 +335,19 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
         .where(and(
           eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
           eq(financeTransactionsTable.type, "owner_withdrawal"),
+          gte(financeTransactionsTable.createdAt, from),
+          lte(financeTransactionsTable.createdAt, to)
+        )),
+      db.select({
+        id: financeTransactionsTable.id,
+        amount: financeTransactionsTable.amount,
+        title: financeTransactionsTable.title,
+        createdAt: financeTransactionsTable.createdAt,
+      }).from(financeTransactionsTable)
+        .where(and(
+          eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+          eq(financeTransactionsTable.type, "expense"),
+          eq(financeTransactionsTable.deductFromShift, true),
           gte(financeTransactionsTable.createdAt, from),
           lte(financeTransactionsTable.createdAt, to)
         )),
@@ -387,6 +400,7 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
     }));
 
     const withdrawalTotal = withdrawalRows.reduce((s, w) => s + parseFloat(w.amount as string), 0);
+    const expenseTotal = expenseRows.reduce((s, e) => s + parseFloat(e.amount as string), 0);
 
     res.json({
       sessions,
@@ -397,6 +411,13 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
         items: withdrawalRows.map(w => ({
           id: w.id, amount: parseFloat(w.amount as string),
           title: w.title, createdAt: w.createdAt,
+        })),
+      },
+      expenses: {
+        total: expenseTotal,
+        items: expenseRows.map(e => ({
+          id: e.id, amount: parseFloat(e.amount as string),
+          title: e.title, createdAt: e.createdAt,
         })),
       },
     });
