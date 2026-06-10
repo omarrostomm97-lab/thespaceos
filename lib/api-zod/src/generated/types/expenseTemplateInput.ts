@@ -15,8 +15,12 @@ export interface ExpenseTemplateInput {
   /** @nullable */
   categoryId?: number | null;
   /** @nullable */
+  accountId?: number | null;
+  /** @nullable */
   paymentMethod?: string | null;
   frequency?: ExpenseTemplateInputFrequency;
+  /** @nullable */
+  applyDay?: number | null;
   autoApply?: boolean;
   deductFromShift?: boolean;
   isActive?: boolean;

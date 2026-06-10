@@ -8007,7 +8007,7 @@ export const updateExpenseTemplate = async (templateId: number,
   return customFetch<ExpenseTemplate>(getUpdateExpenseTemplateUrl(templateId),
   {
     ...options,
-    method: 'PUT',
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(
       expenseTemplateInput,)
@@ -8130,6 +8130,76 @@ export const useDeleteExpenseTemplate = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteExpenseTemplateMutationOptions(options));
+    }
+
+export const getApplyExpenseTemplateUrl = (templateId: number,) => {
+
+
+
+
+  return `/api/finance/expense-templates/${templateId}/apply`
+}
+
+/**
+ * @summary Manually apply an expense template now
+ */
+export const applyExpenseTemplate = async (templateId: number, options?: RequestInit): Promise<FinanceTransaction> => {
+
+  return customFetch<FinanceTransaction>(getApplyExpenseTemplateUrl(templateId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getApplyExpenseTemplateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyExpenseTemplate>>, TError,{templateId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof applyExpenseTemplate>>, TError,{templateId: number}, TContext> => {
+
+const mutationKey = ['applyExpenseTemplate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof applyExpenseTemplate>>, {templateId: number}> = (props) => {
+          const {templateId} = props ?? {};
+
+          return  applyExpenseTemplate(templateId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ApplyExpenseTemplateMutationResult = NonNullable<Awaited<ReturnType<typeof applyExpenseTemplate>>>
+
+    export type ApplyExpenseTemplateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually apply an expense template now
+ */
+export const useApplyExpenseTemplate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof applyExpenseTemplate>>, TError,{templateId: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof applyExpenseTemplate>>,
+        TError,
+        {templateId: number},
+        TContext
+      > => {
+      return useMutation(getApplyExpenseTemplateMutationOptions(options));
     }
 
 export const getListFinanceAssetsUrl = () => {

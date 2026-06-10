@@ -17,6 +17,8 @@ export interface ExpenseTemplate {
   /** @nullable */
   categoryId?: number | null;
   /** @nullable */
+  accountId?: number | null;
+  /** @nullable */
   categoryName?: string | null;
   /** @nullable */
   categoryNameAr?: string | null;
@@ -27,11 +29,15 @@ export interface ExpenseTemplate {
   /** @nullable */
   paymentMethod?: string | null;
   frequency: ExpenseTemplateFrequency;
+  /** @nullable */
+  applyDay?: number | null;
   autoApply: boolean;
-  deductFromShift?: boolean;
+  deductFromShift: boolean;
   isActive: boolean;
   /** @nullable */
   notes?: string | null;
+  /** @nullable */
+  lastAppliedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

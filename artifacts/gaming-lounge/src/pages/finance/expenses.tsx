@@ -11,6 +11,8 @@ import {
   useCreateExpenseTemplate,
   useUpdateExpenseTemplate,
   useDeleteExpenseTemplate,
+  useApplyExpenseTemplate,
+  useGetCurrentShift,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLang } from "@/hooks/use-language";
@@ -18,7 +20,7 @@ import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   TrendingDown, Plus, Trash2, Check, ChevronDown, ChevronUp,
-  Receipt, RefreshCw, Pencil, Repeat,
+  Receipt, RefreshCw, Pencil, Repeat, Play,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -55,8 +57,10 @@ export default function FinanceExpenses() {
   const [tmplTitleAr, setTmplTitleAr] = useState("");
   const [tmplAmount, setTmplAmount] = useState("");
   const [tmplCatId, setTmplCatId] = useState("");
+  const [tmplAccId, setTmplAccId] = useState("");
   const [tmplPayMethod, setTmplPayMethod] = useState("cash");
   const [tmplFreq, setTmplFreq] = useState<"daily" | "weekly" | "monthly">("daily");
+  const [tmplApplyDay, setTmplApplyDay] = useState("");
   const [tmplAutoApply, setTmplAutoApply] = useState(false);
   const [tmplDeductShift, setTmplDeductShift] = useState(true);
   const [tmplIsActive, setTmplIsActive] = useState(true);
@@ -67,20 +71,29 @@ export default function FinanceExpenses() {
   const { data: catData } = useListFinanceCategories({ type: "expense" });
   const { data: accData } = useListFinanceAccounts();
   const { data: tmplData, isLoading: tmplLoading } = useListExpenseTemplates();
+  const { data: currentShift } = useGetCurrentShift();
   const createTx = useCreateFinanceTransaction();
   const updateTx = useUpdateFinanceTransaction();
   const deleteTx = useDeleteFinanceTransaction();
   const createTmpl = useCreateExpenseTemplate();
   const updateTmpl = useUpdateExpenseTemplate();
   const deleteTmpl = useDeleteExpenseTemplate();
+  const applyTmpl = useApplyExpenseTemplate();
 
   const transactions = txData ?? [];
   const categories = catData ?? [];
   const accounts = accData ?? [];
   const templates = tmplData ?? [];
 
+  const hasOpenShift = !!currentShift;
+
   const totalPaid = transactions.filter(tx => tx.status === "paid").reduce((s, tx) => s + parseFloat(tx.amount), 0);
   const totalPending = transactions.filter(tx => tx.status === "pending").reduce((s, tx) => s + parseFloat(tx.amount), 0);
+
+  /* ── shift-deducted expense total (from current shift's linked expenses) ── */
+  const shiftExpensesTotal = hasOpenShift
+    ? transactions.filter(tx => tx.deductFromShift && tx.status === "paid").reduce((s, tx) => s + parseFloat(tx.amount), 0)
+    : 0;
 
   /* ── expense form helpers ── */
   const resetExpForm = () => {
@@ -103,13 +116,14 @@ export default function FinanceExpenses() {
           notes: notes || null,
           title: title || null,
           transactionDate: new Date(txDate).toISOString(),
-          deductFromShift: deductShift,
+          deductFromShift: deductShift && hasOpenShift,
         },
       },
       {
         onSuccess: () => {
           toast.success(t("finance_expense_added"));
           qc.invalidateQueries({ queryKey: ["listFinanceTransactions"] });
+          qc.invalidateQueries({ queryKey: ["getCurrentShift"] });
           setExpOpen(false);
           resetExpForm();
         },
@@ -140,8 +154,8 @@ export default function FinanceExpenses() {
   /* ── template form helpers ── */
   const resetTmplForm = () => {
     setTmplTitle(""); setTmplTitleAr(""); setTmplAmount("");
-    setTmplCatId(""); setTmplPayMethod("cash"); setTmplFreq("daily");
-    setTmplAutoApply(false); setTmplDeductShift(true); setTmplIsActive(true); setTmplNotes("");
+    setTmplCatId(""); setTmplAccId(""); setTmplPayMethod("cash"); setTmplFreq("daily");
+    setTmplApplyDay(""); setTmplAutoApply(false); setTmplDeductShift(true); setTmplIsActive(true); setTmplNotes("");
     setEditingTmpl(null);
   };
 
@@ -153,8 +167,10 @@ export default function FinanceExpenses() {
     setTmplTitleAr(tmpl.titleAr ?? "");
     setTmplAmount(tmpl.amount);
     setTmplCatId(tmpl.categoryId ? String(tmpl.categoryId) : "");
+    setTmplAccId(tmpl.accountId ? String(tmpl.accountId) : "");
     setTmplPayMethod(tmpl.paymentMethod ?? "cash");
     setTmplFreq((tmpl.frequency as "daily" | "weekly" | "monthly") ?? "daily");
+    setTmplApplyDay(tmpl.applyDay ? String(tmpl.applyDay) : "");
     setTmplAutoApply(tmpl.autoApply);
     setTmplDeductShift(tmpl.deductFromShift);
     setTmplIsActive(tmpl.isActive);
@@ -164,13 +180,16 @@ export default function FinanceExpenses() {
 
   const handleSaveTmpl = () => {
     if (!tmplTitle || !tmplAmount || isNaN(parseFloat(tmplAmount))) return;
+    const applyDayInt = tmplFreq === "monthly" && tmplApplyDay ? parseInt(tmplApplyDay) : null;
     const payload = {
       title: tmplTitle,
       titleAr: tmplTitleAr || null,
       amount: parseFloat(tmplAmount),
       categoryId: tmplCatId ? parseInt(tmplCatId) : null,
+      accountId: tmplAccId ? parseInt(tmplAccId) : null,
       paymentMethod: tmplPayMethod,
       frequency: tmplFreq,
+      applyDay: applyDayInt,
       autoApply: tmplAutoApply,
       deductFromShift: tmplDeductShift,
       isActive: tmplIsActive,
@@ -210,6 +229,21 @@ export default function FinanceExpenses() {
         onSuccess: () => {
           toast.success(t("tmpl_deleted_ok"));
           qc.invalidateQueries({ queryKey: ["listExpenseTemplates"] });
+        },
+        onError: () => toast.error(t("tmpl_error")),
+      }
+    );
+  };
+
+  const handleApplyNow = (id: number) => {
+    applyTmpl.mutate(
+      { templateId: id },
+      {
+        onSuccess: () => {
+          toast.success(t("tmpl_apply_now_ok"));
+          qc.invalidateQueries({ queryKey: ["listExpenseTemplates"] });
+          qc.invalidateQueries({ queryKey: ["listFinanceTransactions"] });
+          qc.invalidateQueries({ queryKey: ["getCurrentShift"] });
         },
         onError: () => toast.error(t("tmpl_error")),
       }
@@ -313,6 +347,15 @@ export default function FinanceExpenses() {
               <p className="text-xs text-muted-foreground mb-1">{t("finance_total_pending")}</p>
               <p className="text-2xl font-bold text-amber-500 tabular">{EGP(totalPending)}</p>
             </div>
+            {hasOpenShift && shiftExpensesTotal > 0 && (
+              <div className="card-base rounded-2xl p-4 col-span-2 border border-orange-500/20">
+                <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                  <span className="inline-block w-2 h-2 rounded-full bg-orange-500" />
+                  {t("shift_deduct_total")}
+                </p>
+                <p className="text-xl font-bold text-orange-500 tabular">{EGP(shiftExpensesTotal)}</p>
+              </div>
+            )}
           </div>
 
           {isLoading ? (
@@ -427,50 +470,72 @@ export default function FinanceExpenses() {
               {templates.map(tmpl => {
                 const freqs = getFreqLabel();
                 const displayTitle = lang === "ar" ? (tmpl.titleAr || tmpl.title) : tmpl.title;
+                const isApplying = applyTmpl.isPending;
                 return (
                   <StaggerItem key={tmpl.id}>
-                    <div className="card-base rounded-2xl p-4 flex items-center gap-3">
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm"
-                        style={{ background: tmpl.categoryColor ? `${tmpl.categoryColor}25` : "var(--secondary)", color: tmpl.categoryColor ?? "var(--muted-foreground)" }}
-                      >
-                        {tmpl.categoryIcon ?? "💸"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
-                          <p className="text-sm font-semibold truncate">{displayTitle}</p>
-                          <span className={cn(
-                            "text-[10px] px-1.5 py-0.5 rounded-full font-semibold",
-                            tmpl.isActive ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground"
-                          )}>
-                            {tmpl.isActive ? t("tmpl_active_badge") : t("tmpl_inactive_badge")}
-                          </span>
-                          {tmpl.autoApply && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold flex items-center gap-0.5">
-                              <RefreshCw className="h-2.5 w-2.5" />{t("tmpl_auto_badge")}
+                    <div className="card-base rounded-2xl p-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-sm"
+                          style={{ background: tmpl.categoryColor ? `${tmpl.categoryColor}25` : "var(--secondary)", color: tmpl.categoryColor ?? "var(--muted-foreground)" }}
+                        >
+                          {tmpl.categoryIcon ?? "💸"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-1.5 mb-0.5">
+                            <p className="text-sm font-semibold truncate">{displayTitle}</p>
+                            <span className={cn(
+                              "text-[10px] px-1.5 py-0.5 rounded-full font-semibold",
+                              tmpl.isActive ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground"
+                            )}>
+                              {tmpl.isActive ? t("tmpl_active_badge") : t("tmpl_inactive_badge")}
                             </span>
+                            {tmpl.autoApply && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-semibold flex items-center gap-0.5">
+                                <RefreshCw className="h-2.5 w-2.5" />{t("tmpl_auto_badge")}
+                              </span>
+                            )}
+                            {tmpl.deductFromShift && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-500 font-semibold">
+                                {t("expense_deduct_shift")}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {freqs[tmpl.frequency as keyof typeof freqs] ?? tmpl.frequency}
+                            {tmpl.frequency === "monthly" && tmpl.applyDay ? ` · ${t("tmpl_apply_day_label")}: ${tmpl.applyDay}` : ""}
+                            {tmpl.categoryName ? ` · ${lang === "ar" ? tmpl.categoryNameAr ?? tmpl.categoryName : tmpl.categoryName}` : ""}
+                          </p>
+                          {tmpl.lastAppliedAt && (
+                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                              {t("tmpl_last_applied")}: {new Date(tmpl.lastAppliedAt).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}
+                            </p>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {freqs[tmpl.frequency as keyof typeof freqs] ?? tmpl.frequency}
-                          {tmpl.categoryName ? ` · ${lang === "ar" ? tmpl.categoryNameAr ?? tmpl.categoryName : tmpl.categoryName}` : ""}
-                        </p>
-                      </div>
-                      <div className="flex flex-col items-end gap-2 shrink-0">
-                        <p className="text-sm font-bold text-red-500 tabular">{EGP(tmpl.amount)}</p>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => openEditTmpl(tmpl)}
-                            className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/70 transition text-muted-foreground hover:text-foreground"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteTmpl(tmpl.id)}
-                            className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition text-red-500"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                        <div className="flex flex-col items-end gap-2 shrink-0">
+                          <p className="text-sm font-bold text-red-500 tabular">{EGP(tmpl.amount)}</p>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => handleApplyNow(tmpl.id)}
+                              disabled={isApplying}
+                              title={t("tmpl_apply_now")}
+                              className="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 transition text-emerald-600 disabled:opacity-50"
+                            >
+                              <Play className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => openEditTmpl(tmpl)}
+                              className="p-1.5 rounded-lg bg-secondary hover:bg-secondary/70 transition text-muted-foreground hover:text-foreground"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTmpl(tmpl.id)}
+                              className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 transition text-red-500"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -512,11 +577,19 @@ export default function FinanceExpenses() {
               <label className="text-xs text-muted-foreground mb-1 block">{t("finance_expense_date")}</label>
               <input type="date" value={txDate} onChange={e => setTxDate(e.target.value)} className={inputCls} />
             </div>
-            <label className="flex items-start gap-2.5 cursor-pointer">
-              <input type="checkbox" checked={deductShift} onChange={e => setDeductShift(e.target.checked)} className="mt-0.5 accent-primary" />
+            <label className={cn("flex items-start gap-2.5", hasOpenShift ? "cursor-pointer" : "cursor-not-allowed opacity-60")}>
+              <input
+                type="checkbox"
+                checked={deductShift && hasOpenShift}
+                onChange={e => hasOpenShift && setDeductShift(e.target.checked)}
+                disabled={!hasOpenShift}
+                className="mt-0.5 accent-primary"
+              />
               <div>
                 <p className="text-sm font-medium">{t("expense_deduct_shift")}</p>
-                <p className="text-xs text-muted-foreground">{t("expense_deduct_shift_hint")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {hasOpenShift ? t("expense_deduct_shift_hint") : t("expense_deduct_no_shift")}
+                </p>
               </div>
             </label>
             <button onClick={() => setShowMore(v => !v)} className="flex items-center gap-1 text-xs text-primary font-medium">
@@ -589,13 +662,31 @@ export default function FinanceExpenses() {
               </select>
             </div>
             <div>
+              <label className="text-xs text-muted-foreground mb-1 block">{t("tmpl_account_label")}</label>
+              <select value={tmplAccId} onChange={e => setTmplAccId(e.target.value)} className={inputCls}>
+                <option value="">—</option>
+                {accounts.map(a => <option key={a.id} value={a.id}>{lang === "ar" ? a.nameAr ?? a.name : a.name}</option>)}
+              </select>
+            </div>
+            <div>
               <label className="text-xs text-muted-foreground mb-1 block">{t("tmpl_freq_label")}</label>
               <select value={tmplFreq} onChange={e => setTmplFreq(e.target.value as any)} className={inputCls}>
                 <option value="daily">{t("tmpl_freq_daily")}</option>
-                <option value="weekly">{t("tmpl_freq_weekly")}</option>
                 <option value="monthly">{t("tmpl_freq_monthly")}</option>
               </select>
             </div>
+            <AnimatePresence>
+              {tmplFreq === "monthly" && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                  <label className="text-xs text-muted-foreground mb-1 block">{t("tmpl_apply_day_label")}</label>
+                  <input
+                    type="number" inputMode="numeric" min={1} max={28}
+                    value={tmplApplyDay} onChange={e => setTmplApplyDay(e.target.value)}
+                    placeholder="1-28" className={inputCls}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">{t("tmpl_payment_method_label")}</label>
               <select value={tmplPayMethod} onChange={e => setTmplPayMethod(e.target.value)} className={inputCls}>

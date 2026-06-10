@@ -2542,16 +2542,19 @@ export const ListExpenseTemplatesResponseItem = zod.object({
   "titleAr": zod.string().nullish(),
   "amount": zod.string(),
   "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
   "categoryName": zod.string().nullish(),
   "categoryNameAr": zod.string().nullish(),
   "categoryColor": zod.string().nullish(),
   "categoryIcon": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
   "frequency": zod.enum(['daily', 'weekly', 'monthly']),
+  "applyDay": zod.number().nullish(),
   "autoApply": zod.boolean(),
-  "deductFromShift": zod.boolean().optional(),
+  "deductFromShift": zod.boolean(),
   "isActive": zod.boolean(),
   "notes": zod.string().nullish(),
+  "lastAppliedAt": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -2566,8 +2569,10 @@ export const CreateExpenseTemplateBody = zod.object({
   "titleAr": zod.string().nullish(),
   "amount": zod.number(),
   "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
   "paymentMethod": zod.string().nullish(),
   "frequency": zod.enum(['daily', 'weekly', 'monthly']).optional(),
+  "applyDay": zod.number().nullish(),
   "autoApply": zod.boolean().optional(),
   "deductFromShift": zod.boolean().optional(),
   "isActive": zod.boolean().optional(),
@@ -2587,8 +2592,10 @@ export const UpdateExpenseTemplateBody = zod.object({
   "titleAr": zod.string().nullish(),
   "amount": zod.number(),
   "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
   "paymentMethod": zod.string().nullish(),
   "frequency": zod.enum(['daily', 'weekly', 'monthly']).optional(),
+  "applyDay": zod.number().nullish(),
   "autoApply": zod.boolean().optional(),
   "deductFromShift": zod.boolean().optional(),
   "isActive": zod.boolean().optional(),
@@ -2602,16 +2609,19 @@ export const UpdateExpenseTemplateResponse = zod.object({
   "titleAr": zod.string().nullish(),
   "amount": zod.string(),
   "categoryId": zod.number().nullish(),
+  "accountId": zod.number().nullish(),
   "categoryName": zod.string().nullish(),
   "categoryNameAr": zod.string().nullish(),
   "categoryColor": zod.string().nullish(),
   "categoryIcon": zod.string().nullish(),
   "paymentMethod": zod.string().nullish(),
   "frequency": zod.enum(['daily', 'weekly', 'monthly']),
+  "applyDay": zod.number().nullish(),
   "autoApply": zod.boolean(),
-  "deductFromShift": zod.boolean().optional(),
+  "deductFromShift": zod.boolean(),
   "isActive": zod.boolean(),
   "notes": zod.string().nullish(),
+  "lastAppliedAt": zod.coerce.date().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -2626,6 +2636,14 @@ export const DeleteExpenseTemplateParams = zod.object({
 
 export const DeleteExpenseTemplateResponse = zod.object({
   "message": zod.string()
+})
+
+
+/**
+ * @summary Manually apply an expense template now
+ */
+export const ApplyExpenseTemplateParams = zod.object({
+  "templateId": zod.coerce.number()
 })
 
 

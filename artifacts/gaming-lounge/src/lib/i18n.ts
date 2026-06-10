@@ -972,7 +972,15 @@ const translations = {
     tmpl_edit_title: "تعديل القالب",
     expense_deduct_shift: "خصم من وردية",
     expense_deduct_shift_hint: "سيظهر هذا المصروف في حسابات الوردية ويؤثر على النقدية المتوقعة",
+    expense_deduct_no_shift: "لا توجد وردية مفتوحة حالياً",
     tmpl_isactive_label: "القالب نشط",
+    tmpl_apply_now: "تطبيق الآن",
+    tmpl_apply_now_ok: "تم تطبيق القالب وإضافة المصروف",
+    tmpl_last_applied: "آخر تطبيق",
+    tmpl_apply_day_label: "يوم التطبيق (1-28)",
+    tmpl_account_label: "الحساب",
+    tmpl_next_due: "الاستحقاق القادم",
+    shift_deduct_total: "مصروفات الوردية",
   },
   en: {
     /* ── Brand ── */
@@ -1943,7 +1951,15 @@ const translations = {
     tmpl_edit_title: "Edit Template",
     expense_deduct_shift: "Deduct from shift",
     expense_deduct_shift_hint: "This expense will appear in shift calculations and affect expected cash",
+    expense_deduct_no_shift: "No open shift at the moment",
     tmpl_isactive_label: "Template is active",
+    tmpl_apply_now: "Apply Now",
+    tmpl_apply_now_ok: "Template applied — expense added",
+    tmpl_last_applied: "Last applied",
+    tmpl_apply_day_label: "Apply on day (1-28)",
+    tmpl_account_label: "Account",
+    tmpl_next_due: "Next due",
+    shift_deduct_total: "Shift expenses",
   },
 } as const;
 

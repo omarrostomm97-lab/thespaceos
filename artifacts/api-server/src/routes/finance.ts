@@ -432,6 +432,16 @@ router.post("/finance/transactions", requireAuth, requireTenant, async (req, res
       }
     }
 
+    // Auto-link the open shift when deductFromShift is true and no shiftId provided
+    let linkedShiftId: number | null = shiftId ?? null;
+    if (deductFromShift === true && !linkedShiftId) {
+      const [openShift] = await db.select({ id: shiftsTable.id })
+        .from(shiftsTable)
+        .where(and(eq(shiftsTable.tenantId, tenantId), eq(shiftsTable.status, "open")))
+        .limit(1);
+      linkedShiftId = openShift?.id ?? null;
+    }
+
     const [row] = await db.insert(financeTransactionsTable)
       .values({
         tenantId, type,
@@ -449,7 +459,7 @@ router.post("/finance/transactions", requireAuth, requireTenant, async (req, res
         notes: notes ?? null,
         templateId: templateId ?? null,
         deductFromShift: deductFromShift === true,
-        shiftId: shiftId ?? null,
+        shiftId: linkedShiftId,
         createdByUserId: userId,
       })
       .returning();
@@ -919,8 +929,10 @@ router.get("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, as
         titleAr: expenseTemplatesTable.titleAr,
         amount: expenseTemplatesTable.amount,
         categoryId: expenseTemplatesTable.categoryId,
+        accountId: expenseTemplatesTable.accountId,
         paymentMethod: expenseTemplatesTable.paymentMethod,
         frequency: expenseTemplatesTable.frequency,
+        applyDay: expenseTemplatesTable.applyDay,
         autoApply: expenseTemplatesTable.autoApply,
         deductFromShift: expenseTemplatesTable.deductFromShift,
         isActive: expenseTemplatesTable.isActive,
@@ -936,7 +948,28 @@ router.get("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, as
       .leftJoin(financeCategoriesTable, eq(expenseTemplatesTable.categoryId, financeCategoriesTable.id))
       .where(eq(expenseTemplatesTable.tenantId, tenantId))
       .orderBy(desc(expenseTemplatesTable.createdAt));
-    res.json(rows);
+
+    // Attach lastAppliedAt per template via one batch query
+    const tmplIds = rows.map(r => r.id);
+    let lastAppliedMap: Record<number, string | null> = {};
+    if (tmplIds.length > 0) {
+      const lastApplied = await db
+        .select({
+          templateId: financeTransactionsTable.templateId,
+          lastAppliedAt: sql<string>`max(${financeTransactionsTable.transactionDate})`,
+        })
+        .from(financeTransactionsTable)
+        .where(and(
+          eq(financeTransactionsTable.tenantId, tenantId),
+          inArray(financeTransactionsTable.templateId, tmplIds),
+        ))
+        .groupBy(financeTransactionsTable.templateId);
+      for (const r of lastApplied) {
+        if (r.templateId) lastAppliedMap[r.templateId] = r.lastAppliedAt;
+      }
+    }
+
+    res.json(rows.map(r => ({ ...r, lastAppliedAt: lastAppliedMap[r.id] ?? null })));
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to list expense templates" });
@@ -946,7 +979,7 @@ router.get("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, as
 router.post("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const { title, titleAr, amount, categoryId, paymentMethod, frequency, autoApply, deductFromShift, isActive, notes } = req.body;
+    const { title, titleAr, amount, categoryId, accountId, paymentMethod, frequency, applyDay, autoApply, deductFromShift, isActive, notes } = req.body;
     if (!title || amount === undefined) {
       res.status(400).json({ error: "title and amount are required" }); return;
     }
@@ -956,21 +989,23 @@ router.post("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, a
       titleAr: titleAr ?? null,
       amount: String(parseFloat(amount)),
       categoryId: categoryId ?? null,
+      accountId: accountId ?? null,
       paymentMethod: paymentMethod ?? "cash",
       frequency: frequency ?? "daily",
+      applyDay: applyDay ?? null,
       autoApply: autoApply ?? false,
       deductFromShift: deductFromShift !== false,
       isActive: isActive !== undefined ? isActive : true,
       notes: notes ?? null,
     }).returning();
-    res.status(201).json(row);
+    res.status(201).json({ ...row, lastAppliedAt: null });
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to create expense template" });
   }
 });
 
-router.put("/finance/expense-templates/:templateId", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
+router.patch("/finance/expense-templates/:templateId", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
     const templateId = parseInt(req.params.templateId);
@@ -978,14 +1013,16 @@ router.put("/finance/expense-templates/:templateId", requireAuth, requireTenant,
       .where(and(eq(expenseTemplatesTable.id, templateId), eq(expenseTemplatesTable.tenantId, tenantId)))
       .limit(1);
     if (!existing) { res.status(404).json({ error: "Template not found" }); return; }
-    const { title, titleAr, amount, categoryId, paymentMethod, frequency, autoApply, deductFromShift, isActive, notes } = req.body;
+    const { title, titleAr, amount, categoryId, accountId, paymentMethod, frequency, applyDay, autoApply, deductFromShift, isActive, notes } = req.body;
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (title !== undefined) updates.title = title;
     if (titleAr !== undefined) updates.titleAr = titleAr;
     if (amount !== undefined) updates.amount = String(parseFloat(amount));
     if (categoryId !== undefined) updates.categoryId = categoryId;
+    if (accountId !== undefined) updates.accountId = accountId;
     if (paymentMethod !== undefined) updates.paymentMethod = paymentMethod;
     if (frequency !== undefined) updates.frequency = frequency;
+    if (applyDay !== undefined) updates.applyDay = applyDay;
     if (autoApply !== undefined) updates.autoApply = autoApply;
     if (deductFromShift !== undefined) updates.deductFromShift = deductFromShift;
     if (isActive !== undefined) updates.isActive = isActive;
@@ -996,6 +1033,51 @@ router.put("/finance/expense-templates/:templateId", requireAuth, requireTenant,
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "Failed to update expense template" });
+  }
+});
+
+router.post("/finance/expense-templates/:templateId/apply", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
+  try {
+    const tenantId = req.user!.tenantId!;
+    const userId = req.user!.id;
+    const templateId = parseInt(req.params.templateId);
+    const [tmpl] = await db.select().from(expenseTemplatesTable)
+      .where(and(eq(expenseTemplatesTable.id, templateId), eq(expenseTemplatesTable.tenantId, tenantId)))
+      .limit(1);
+    if (!tmpl) { res.status(404).json({ error: "Template not found" }); return; }
+
+    // Find the open shift if deductFromShift
+    let linkedShiftId: number | null = null;
+    if (tmpl.deductFromShift) {
+      const [openShift] = await db.select({ id: shiftsTable.id })
+        .from(shiftsTable)
+        .where(and(eq(shiftsTable.tenantId, tenantId), eq(shiftsTable.status, "open")))
+        .limit(1);
+      linkedShiftId = openShift?.id ?? null;
+    }
+
+    const [tx] = await db.insert(financeTransactionsTable).values({
+      tenantId,
+      type: "expense",
+      title: tmpl.title,
+      amount: String(tmpl.amount),
+      categoryId: tmpl.categoryId ?? null,
+      accountId: tmpl.accountId ?? null,
+      paymentMethod: tmpl.paymentMethod ?? null,
+      status: "paid",
+      transactionDate: new Date(),
+      referenceType: "template",
+      templateId: tmpl.id,
+      deductFromShift: tmpl.deductFromShift,
+      shiftId: linkedShiftId,
+      notes: tmpl.notes ?? null,
+      createdByUserId: userId,
+    }).returning();
+
+    res.status(201).json(tx);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Failed to apply template" });
   }
 });
 

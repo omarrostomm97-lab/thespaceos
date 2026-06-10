@@ -2248,7 +2248,7 @@ paths:
                 $ref: "#/components/schemas/ExpenseTemplate"
 
   /finance/expense-templates/{templateId}:
-    put:
+    patch:
       operationId: updateExpenseTemplate
       tags: [finance]
       summary: Update an expense template
@@ -2288,6 +2288,25 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
+
+  /finance/expense-templates/{templateId}/apply:
+    post:
+      operationId: applyExpenseTemplate
+      tags: [finance]
+      summary: Manually apply an expense template now
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Transaction created from template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FinanceTransaction"
 
   /finance/assets:
     get:
@@ -4110,7 +4129,7 @@ components:
 
     ExpenseTemplate:
       type: object
-      required: [id, tenantId, title, amount, frequency, autoApply, isActive, createdAt, updatedAt]
+      required: [id, tenantId, title, amount, frequency, autoApply, isActive, deductFromShift, createdAt, updatedAt]
       properties:
         id:
           type: integer
@@ -4123,6 +4142,8 @@ components:
         amount:
           type: string
         categoryId:
+          type: ["integer", "null"]
+        accountId:
           type: ["integer", "null"]
         categoryName:
           type: ["string", "null"]
@@ -4137,6 +4158,8 @@ components:
         frequency:
           type: string
           enum: [daily, weekly, monthly]
+        applyDay:
+          type: ["integer", "null"]
         autoApply:
           type: boolean
         deductFromShift:
@@ -4145,6 +4168,9 @@ components:
           type: boolean
         notes:
           type: ["string", "null"]
+        lastAppliedAt:
+          type: ["string", "null"]
+          format: date-time
         createdAt:
           type: string
           format: date-time
@@ -4164,11 +4190,15 @@ components:
           type: number
         categoryId:
           type: ["integer", "null"]
+        accountId:
+          type: ["integer", "null"]
         paymentMethod:
           type: ["string", "null"]
         frequency:
           type: string
           enum: [daily, weekly, monthly]
+        applyDay:
+          type: ["integer", "null"]
         autoApply:
           type: boolean
         deductFromShift:
