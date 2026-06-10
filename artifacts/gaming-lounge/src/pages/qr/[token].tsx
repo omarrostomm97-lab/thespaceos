@@ -8,10 +8,7 @@ import {
   ChevronLeft, CheckCircle2, Wifi, Clock, Lock, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
-
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const LOGO_FULL = `${BASE}/the-space-os-logo.png`;
-const LOGO_ICON = `${BASE}/the-space-os-logo.png`;
+import { LogoImg } from "@/components/logo-img";
 
 /* ─── Types ────────────────────────────────────────── */
 interface CartItem { product: any; quantity: number }
@@ -127,13 +124,12 @@ export default function QrMenu() {
       <div className="min-h-screen bg-[#08080f] flex flex-col items-center justify-center gap-5">
         <div className="h-16 w-16 rounded-full border-4 border-[#7c3aed]/20 border-t-[#7c3aed]"
           style={{ animation: "spin 1s linear infinite" }} />
-        <motion.img
-          src={LOGO_FULL}
-          alt="The Space OS"
+        <motion.div
           animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
-          style={{ height: 44, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }}
-        />
+        >
+          <LogoImg variant="always" height={44} />
+        </motion.div>
         <p className="text-[#7c3aed]/60 text-xs tracking-[0.3em] uppercase">Loading Menu</p>
       </div>
     );
@@ -147,7 +143,7 @@ export default function QrMenu() {
           animate={{ scale: 1, opacity: 1 }}
           className="bg-red-500/10 border border-red-500/20 rounded-3xl p-10 max-w-xs"
         >
-          <img src={LOGO_FULL} alt="The Space OS" className="mx-auto mb-5" style={{ height: 56, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
+          <div className="flex justify-center mb-5"><LogoImg variant="always" height={56} /></div>
           <h1 className="text-xl font-bold text-white mb-2">Menu Not Found</h1>
           <p className="text-gray-500 text-sm leading-relaxed">This QR code is invalid or the session has ended.</p>
         </motion.div>
@@ -244,7 +240,7 @@ export default function QrMenu() {
             className="flex items-center gap-2 mb-4"
           >
             <div className="bg-[#7c3aed]/20 border border-[#7c3aed]/40 rounded-full px-3 py-1 flex items-center gap-1.5">
-              <img src={LOGO_ICON} alt="" style={{ height: 20, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
+              <LogoImg variant="always" height={20} alt="" />
               <span className="text-[#a78bfa] text-xs font-semibold tracking-wide">Room Menu</span>
             </div>
             {/* Session pill */}
@@ -450,7 +446,7 @@ export default function QrMenu() {
         <div className="flex flex-col items-center gap-3 pt-6 pb-2">
           <div className="h-px w-24 bg-white/[0.06]" />
           <p className="text-[10px] text-gray-700 uppercase tracking-[0.18em]">Powered by</p>
-          <img src={LOGO_FULL} alt="The Space OS" className="w-auto object-contain opacity-80 rounded-xl" style={{ height: 64, filter: "brightness(0) invert(1)" }} />
+          <LogoImg variant="always" height={64} />
         </div>
       </main>
 

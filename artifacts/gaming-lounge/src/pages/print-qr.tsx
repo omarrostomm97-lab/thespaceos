@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { Printer, X } from "lucide-react";
-
-const LOGO = `${import.meta.env.BASE_URL}the-space-os-logo.png`;
+import { LogoImg } from "@/components/logo-img";
 
 export default function PrintQrPage() {
   const params = new URLSearchParams(window.location.search);
@@ -128,11 +127,7 @@ export default function PrintQrPage() {
               position: "absolute", inset: 0,
               background: "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%)",
             }} />
-            <img
-              src={LOGO}
-              alt="The Space OS"
-              style={{ height: 28, width: "auto", objectFit: "contain", objectPosition: "left center", filter: "brightness(0) invert(1)", flexShrink: 0, position: "relative" }}
-            />
+            <LogoImg variant="print" height={32} />
             <div style={{ position: "relative" }}>
               <div style={{ color: "white", fontSize: 14, fontWeight: 700, letterSpacing: "0.02em" }}>
                 {venue || "The Space OS"}
@@ -238,11 +233,7 @@ export default function PrintQrPage() {
             <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 10, letterSpacing: "0.08em" }}>
               POWERED BY
             </span>
-            <img
-              src={`${import.meta.env.BASE_URL}the-space-os-logo.png`}
-              alt="The Space OS"
-              style={{ height: 40, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }}
-            />
+            <LogoImg variant="always" height={52} />
           </div>
 
         </div>

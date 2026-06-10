@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
+import { LogoImg } from "@/components/logo-img";
 import { useLang } from "@/hooks/use-language";
 import { useTheme } from "@/hooks/use-theme";
 import {
@@ -167,22 +168,7 @@ export function Layout({ children }: LayoutProps) {
         {/* ── Brand ── */}
         <div className="relative px-5 pt-6 pb-4 shrink-0">
           <div className="flex flex-col gap-2">
-            <div
-              style={{
-                display: "inline-flex",
-                alignSelf: "flex-start",
-                background: "rgba(255,255,255,0.96)",
-                borderRadius: 12,
-                padding: "6px 12px",
-                boxShadow: "0 2px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.6)",
-              }}
-            >
-              <img
-                src={LOGO}
-                alt="The Space OS"
-                style={{ height: 44, width: "auto", objectFit: "contain", objectPosition: "left center" }}
-              />
-            </div>
+            <LogoImg variant="adaptive" height={44} />
             <p className="text-[10px] font-medium tracking-wide" style={{ color: "var(--sb-text-inactive)" }}>
               {t("brand_subtitle")}
             </p>
@@ -542,11 +528,7 @@ export function Layout({ children }: LayoutProps) {
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center mx-auto">
-            <img
-              src={LOGO}
-              alt="The Space OS"
-              style={{ height: 26, width: "auto", objectFit: "contain", objectPosition: "left center" }}
-            />
+            <LogoImg variant="adaptive" height={32} />
           </div>
           {/* spacer matching hamburger width */}
           <div className="w-9" />

@@ -11,8 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion } from "framer-motion";
-
-const LOGO = `${import.meta.env.BASE_URL}the-space-os-logo.png`;
+import { LogoImg } from "@/components/logo-img";
 
 type LoginForm = { email: string; password: string };
 
@@ -98,13 +97,7 @@ export default function Login() {
         }}
       >
         <div className="flex flex-col items-center text-center space-y-3">
-          <div className="mb-1 rounded-2xl px-6 py-4 bg-transparent dark:bg-white/95 dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
-            <img
-              src={LOGO}
-              alt="The Space OS"
-              style={{ height: 112, width: "auto", objectFit: "contain" }}
-            />
-          </div>
+          <LogoImg variant="adaptive" height={112} className="mb-1" />
           <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("login_system")}</h1>
           <p className="text-muted-foreground">{t("login_subtitle")}</p>
         </div>

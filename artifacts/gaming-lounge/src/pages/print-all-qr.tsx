@@ -4,9 +4,7 @@ import { useListAssets, generateAssetQr } from "@workspace/api-client-react";
 import type { Asset } from "@workspace/api-client-react";
 import { Gamepad2, Printer, X, Loader2, LayoutGrid, Square } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
-const LOGO = `${BASE}/the-space-os-logo.png`;
+import { LogoImg } from "@/components/logo-img";
 
 type Layout = "single" | "compact";
 
@@ -48,11 +46,7 @@ function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venu
         display: "flex", alignItems: "center", gap: 10, position: "relative",
       }}>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%)" }} />
-        <img
-          src={LOGO}
-          alt="The Space OS"
-          style={{ height: 24, width: "auto", objectFit: "contain", objectPosition: "left center", filter: "brightness(0) invert(1)", flexShrink: 0, position: "relative" }}
-        />
+        <LogoImg variant="print" height={28} />
         <div style={{ position: "relative", color: "white", fontSize: 13, fontWeight: 700 }}>
           {venueName || "The Space OS"}
         </div>
@@ -96,7 +90,7 @@ function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venu
         display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
       }}>
         <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 9, letterSpacing: "0.08em" }}>POWERED BY</span>
-        <img src={LOGO} alt="The Space OS" style={{ height: 36, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
+        <LogoImg variant="always" height={48} />
       </div>
     </div>
   );
@@ -124,11 +118,7 @@ function CompactQrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: strin
         display: "flex", alignItems: "center", gap: 7, position: "relative",
       }}>
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%)" }} />
-        <img
-          src={LOGO}
-          alt="The Space OS"
-          style={{ height: 16, width: "auto", objectFit: "contain", objectPosition: "left center", filter: "brightness(0) invert(1)", flexShrink: 0, position: "relative" }}
-        />
+        <LogoImg variant="print" height={18} />
         <span style={{
           position: "relative", color: "white", fontSize: 10, fontWeight: 700,
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
@@ -186,7 +176,7 @@ function CompactQrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: strin
         display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
       }}>
         <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 7, letterSpacing: "0.08em" }}>POWERED BY</span>
-        <img src={LOGO} alt="The Space OS" style={{ height: 22, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
+        <LogoImg variant="always" height={30} />
       </div>
     </div>
   );
