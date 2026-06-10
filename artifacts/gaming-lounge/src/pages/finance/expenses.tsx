@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ShiftDetailDrawer from "@/components/shift-detail-drawer";
 
 type ActiveTab = "expenses" | "recurring";
 type Period = "today" | "week" | "month" | "custom";
@@ -113,6 +114,9 @@ export default function FinanceExpenses() {
   const templates = tmplData ?? [];
 
   const hasOpenShift = !!currentShift;
+
+  /* ── shift drawer ── */
+  const [drawerShiftId, setDrawerShiftId] = useState<number | null>(null);
 
   const totalPaid = transactions.filter(tx => tx.status === "paid").reduce((s, tx) => s + parseFloat(tx.amount), 0);
   const totalPending = transactions.filter(tx => tx.status === "pending").reduce((s, tx) => s + parseFloat(tx.amount), 0);
@@ -439,6 +443,14 @@ export default function FinanceExpenses() {
                               <span className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-500 font-semibold">
                                 {t("expense_deduct_shift")}
                               </span>
+                            )}
+                            {tx.shiftId && (
+                              <button
+                                onClick={e => { e.stopPropagation(); setDrawerShiftId(tx.shiftId!); }}
+                                className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 font-semibold hover:bg-indigo-500/20 transition"
+                              >
+                                {t("shift_badge")} #{tx.shiftId}
+                              </button>
                             )}
                           </div>
                           <p className="text-xs text-muted-foreground">
@@ -778,6 +790,14 @@ export default function FinanceExpenses() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ShiftDetailDrawer
+        shiftId={drawerShiftId}
+        initialTab="expenses"
+        shiftMeta={null}
+        isMgmt={true}
+        onClose={() => setDrawerShiftId(null)}
+      />
     </FadeIn>
   );
 }

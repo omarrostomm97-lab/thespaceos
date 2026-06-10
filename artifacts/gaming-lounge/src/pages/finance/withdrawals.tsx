@@ -11,6 +11,7 @@ import { FadeIn, StaggerChildren, StaggerItem } from "@/components/motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Wallet, Plus, Info } from "lucide-react";
 import { toast } from "sonner";
+import ShiftDetailDrawer from "@/components/shift-detail-drawer";
 
 
 export default function FinanceWithdrawals() {
@@ -23,6 +24,8 @@ export default function FinanceWithdrawals() {
   const [owner, setOwner] = useState("");
   const [notes, setNotes] = useState("");
   const [txDate, setTxDate] = useState(() => new Date().toISOString().slice(0, 10));
+
+  const [drawerShiftId, setDrawerShiftId] = useState<number | null>(null);
 
   const { data: txData, isLoading } = useListFinanceTransactions({ type: "owner_withdrawal", period: "month" });
   const { data: accData } = useListFinanceAccounts();
@@ -90,7 +93,17 @@ export default function FinanceWithdrawals() {
                   <Wallet className="h-4 w-4 text-purple-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold">{tx.vendorName ?? (lang === "ar" ? "سحب المالك" : "Owner Withdrawal")}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-sm font-semibold">{tx.vendorName ?? (lang === "ar" ? "سحب المالك" : "Owner Withdrawal")}</p>
+                    {tx.shiftId && (
+                      <button
+                        onClick={() => setDrawerShiftId(tx.shiftId!)}
+                        className="shrink-0 text-[9px] px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 font-semibold hover:bg-indigo-500/20 transition"
+                      >
+                        {t("shift_badge")} #{tx.shiftId}
+                      </button>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {new Date(tx.transactionDate).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-US")}
                     {tx.accountName ? ` · ${lang === "ar" ? tx.accountNameAr ?? tx.accountName : tx.accountName}` : ""}
@@ -142,6 +155,14 @@ export default function FinanceWithdrawals() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <ShiftDetailDrawer
+        shiftId={drawerShiftId}
+        initialTab="withdrawals"
+        shiftMeta={null}
+        isMgmt={true}
+        onClose={() => setDrawerShiftId(null)}
+      />
     </FadeIn>
   );
 }

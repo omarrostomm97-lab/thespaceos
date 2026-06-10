@@ -993,6 +993,7 @@ const translations = {
     tmpl_account_label: "الحساب",
     tmpl_next_due: "الاستحقاق القادم",
     shift_deduct_total: "مصروفات الوردية",
+    shift_badge: "وردية",
   },
   en: {
     /* ── Brand ── */
@@ -1984,6 +1985,7 @@ const translations = {
     tmpl_account_label: "Account",
     tmpl_next_due: "Next due",
     shift_deduct_total: "Shift expenses",
+    shift_badge: "Shift",
   },
 } as const;
 
