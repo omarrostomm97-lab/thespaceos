@@ -166,6 +166,8 @@ export * from './tenantInputLanguage';
 export * from './tenantLanguage';
 export * from './tenantUpdate';
 export * from './tenantUpdateLanguage';
+export * from './uploadUrlRequest';
+export * from './uploadUrlResponse';
 export * from './user';
 export * from './userInput';
 export * from './userInputRole';

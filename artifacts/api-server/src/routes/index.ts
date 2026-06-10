@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import authRouter from "./auth";
+import storageRouter from "./storage";
 import tenantsRouter from "./tenants";
 import usersRouter from "./users";
 import assetsRouter from "./assets";
@@ -23,6 +24,7 @@ import leadsRouter from "./leads";
 const router: IRouter = Router();
 
 router.use(healthRouter);
+router.use(storageRouter);
 router.use(authRouter);
 router.use(tenantsRouter);
 router.use(usersRouter);

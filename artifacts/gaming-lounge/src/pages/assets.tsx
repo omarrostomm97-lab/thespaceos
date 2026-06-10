@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   useListAssets,
@@ -25,6 +25,7 @@ import {
 import {
   Gamepad2, Tv, Trophy, Play, Plus, Pencil, Wind, Target,
   QrCode, Printer, RefreshCw, Zap, History, CalendarX, FileDown,
+  ImageIcon, UploadCloud, X,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -336,6 +337,39 @@ export default function Assets() {
   const [qrLoading, setQrLoading]           = useState(false);
   const [qrConfirmRegen, setQrConfirmRegen] = useState(false);
 
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const uploadPhoto = async (file: File) => {
+    setIsUploadingPhoto(true);
+    setPhotoUploadError(null);
+    try {
+      const token = typeof localStorage !== "undefined" ? localStorage.getItem("gl_token") : null;
+      const urlRes = await fetch("/api/storage/uploads/request-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type || "image/jpeg" }),
+      });
+      if (!urlRes.ok) throw new Error("Failed to get upload URL");
+      const { uploadURL, objectPath } = await urlRes.json();
+      const putRes = await fetch(uploadURL, {
+        method: "PUT",
+        headers: { "Content-Type": file.type || "image/jpeg" },
+        body: file,
+      });
+      if (!putRes.ok) throw new Error("Upload failed");
+      setForm(f => ({ ...f, imageUrl: `/api/storage${objectPath}` }));
+    } catch {
+      setPhotoUploadError(t("asset_upload_error"));
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
   const openAdd = () => { setEditingAsset(null); setForm(EMPTY_FORM); setErrors({}); setDialogOpen(true); };
   const openEdit = (asset: Asset) => {
     setEditingAsset(asset);
@@ -617,9 +651,65 @@ export default function Assets() {
                 <Label htmlFor="capacity">{t("asset_capacity_label")} <span className="text-muted-foreground text-xs">{t("device_name_en_hint")}</span></Label>
                 <Input id="capacity" type="number" min="1" step="1" placeholder="4" value={form.capacity} onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))} />
               </div>
+              {/* Room photo upload */}
               <div className="space-y-1.5">
-                <Label htmlFor="imageUrl">{t("asset_image_url_label")} <span className="text-muted-foreground text-xs">{t("device_name_en_hint")}</span></Label>
-                <Input id="imageUrl" type="url" placeholder="https://..." value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} />
+                <Label>{t("asset_image_url_label")} <span className="text-muted-foreground text-xs">{t("device_name_en_hint")}</span></Label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); e.target.value = ""; }}
+                />
+                {form.imageUrl ? (
+                  <div className="relative rounded-lg overflow-hidden border border-border/60 bg-secondary/30">
+                    <img
+                      src={form.imageUrl}
+                      alt="Room photo"
+                      className="w-full h-32 object-cover"
+                      onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                    <div className="absolute top-2 end-2 flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingPhoto}
+                        className="h-7 px-2 rounded-md text-xs font-semibold bg-background/80 backdrop-blur border border-border/60 hover:bg-background transition-colors flex items-center gap-1"
+                      >
+                        <UploadCloud className="h-3 w-3" />
+                        {t("asset_change_photo")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setForm(f => ({ ...f, imageUrl: "" })); setPhotoUploadError(null); }}
+                        className="h-7 w-7 rounded-md flex items-center justify-center bg-destructive/80 text-white hover:bg-destructive transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingPhoto}
+                    className="w-full h-24 rounded-lg border-2 border-dashed border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 text-muted-foreground"
+                  >
+                    {isUploadingPhoto ? (
+                      <>
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        <span className="text-xs">{t("asset_uploading_photo")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <ImageIcon className="h-6 w-6 opacity-40" />
+                        <span className="text-xs font-medium">{t("asset_choose_photo")}</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                {isUploadingPhoto && form.imageUrl === "" && null}
+                {photoUploadError && <p className="text-xs text-destructive">{photoUploadError}</p>}
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">

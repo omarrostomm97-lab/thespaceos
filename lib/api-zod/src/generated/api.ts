@@ -325,6 +325,8 @@ export const ListAssetsResponseItem = zod.object({
   "pricePerHour": zod.number(),
   "status": zod.enum(['available', 'busy']),
   "qrToken": zod.string().nullish(),
+  "capacity": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 export const ListAssetsResponse = zod.array(ListAssetsResponseItem)
@@ -356,6 +358,8 @@ export const GetAssetResponse = zod.object({
   "pricePerHour": zod.number(),
   "status": zod.enum(['available', 'busy']),
   "qrToken": zod.string().nullish(),
+  "capacity": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 
@@ -383,6 +387,8 @@ export const UpdateAssetResponse = zod.object({
   "pricePerHour": zod.number(),
   "status": zod.enum(['available', 'busy']),
   "qrToken": zod.string().nullish(),
+  "capacity": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 })
 
@@ -815,6 +821,8 @@ export const GetQrMenuResponse = zod.object({
   "pricePerHour": zod.number(),
   "status": zod.enum(['available', 'busy']),
   "qrToken": zod.string().nullish(),
+  "capacity": zod.number().nullish(),
+  "imageUrl": zod.string().nullish(),
   "createdAt": zod.coerce.date()
 }),
   "categories": zod.array(zod.object({
@@ -2948,6 +2956,34 @@ export const CreateLeadBody = zod.object({
   "company": zod.string().min(1),
   "businessType": zod.enum(['gaming_lounge', 'coworking', 'cafe', 'restaurant', 'other']),
   "city": zod.string().min(1)
+})
+
+
+/**
+ * @summary Request a presigned URL for file upload
+ */
+
+
+
+
+
+export const RequestUploadUrlBody = zod.object({
+  "name": zod.string().min(1),
+  "size": zod.number().min(1),
+  "contentType": zod.string().min(1)
+})
+
+export const RequestUploadUrlResponse = zod.object({
+  "uploadURL": zod.string().url(),
+  "objectPath": zod.string()
+})
+
+
+/**
+ * @summary Serve an uploaded object
+ */
+export const GetStorageObjectParams = zod.object({
+  "objectPath": zod.coerce.string()
 })
 
 

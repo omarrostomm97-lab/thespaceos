@@ -18,5 +18,9 @@ export interface Asset {
   status: AssetStatus;
   /** @nullable */
   qrToken?: string | null;
+  /** @nullable */
+  capacity?: number | null;
+  /** @nullable */
+  imageUrl?: string | null;
   createdAt: Date;
 }
