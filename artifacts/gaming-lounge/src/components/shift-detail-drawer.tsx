@@ -5,9 +5,10 @@ import { createPortal } from "react-dom";
 import { X, Banknote, CreditCard, Smartphone } from "lucide-react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/hooks/use-language";
 
 /* ─── Types ─────────────────────────────────────────── */
-export type ShiftDrawerTab = "gaming" | "roomOrders" | "pos" | "sessions" | "orders";
+export type ShiftDrawerTab = "gaming" | "roomOrders" | "pos" | "orders" | "withdrawals";
 
 export interface ShiftMeta {
   id: number;
@@ -22,6 +23,10 @@ export interface ShiftMeta {
   posRevenue: number;
   sessionCount: number;
   orderCount: number;
+  expectedCash?: number | null;
+  actualCash?: number | null;
+  difference?: number | null;
+  withdrawalTotal?: number;
 }
 
 interface SessionItem {
@@ -82,17 +87,17 @@ const TAB_COLOR: Record<string, string> = {
   emerald: "bg-emerald-500/15 text-emerald-500 border border-emerald-500/25",
   blue:    "bg-primary/15 text-primary border border-primary/25",
   orange:  "bg-orange-500/15 text-orange-500 border border-orange-500/25",
-  purple:  "bg-purple-500/15 text-purple-500 border border-purple-500/25",
   slate:   "bg-muted text-foreground border border-border",
+  red:     "bg-destructive/15 text-destructive border border-destructive/25",
 };
 
 /* ─── Sessions list ─────────────────────────────────── */
-function SessionsList({ items, lang, egp }: { items: SessionItem[]; lang: string; egp: string }) {
+function SessionsList({ items, lang, egp, noLabel }: { items: SessionItem[]; lang: string; egp: string; noLabel: string }) {
   if (items.length === 0) {
     return (
       <div className="text-center py-14 text-muted-foreground">
         <div className="text-3xl mb-2">🎮</div>
-        <p className="text-sm">{lang === "ar" ? "لا توجد جلسات" : "No sessions found"}</p>
+        <p className="text-sm">{noLabel}</p>
       </div>
     );
   }
@@ -211,14 +216,14 @@ function OrderCard({ o, lang, egp }: { o: OrderItem; lang: string; egp: string }
 }
 
 /* ─── Orders list (with optional AM/PM grouping) ─────── */
-function OrdersList({ items, lang, egp, groupByAmPm = false }: {
-  items: OrderItem[]; lang: string; egp: string; groupByAmPm?: boolean;
+function OrdersList({ items, lang, egp, groupByAmPm = false, noLabel }: {
+  items: OrderItem[]; lang: string; egp: string; groupByAmPm?: boolean; noLabel: string;
 }) {
   if (items.length === 0) {
     return (
       <div className="text-center py-14 text-muted-foreground">
         <div className="text-3xl mb-2">📦</div>
-        <p className="text-sm">{lang === "ar" ? "لا توجد طلبات" : "No orders found"}</p>
+        <p className="text-sm">{noLabel}</p>
       </div>
     );
   }
@@ -268,20 +273,68 @@ function OrdersList({ items, lang, egp, groupByAmPm = false }: {
   );
 }
 
+/* ─── Withdrawals list ──────────────────────────────── */
+function WithdrawalsList({ items, total, lang, egp, noLabel }: {
+  items: WithdrawalItem[]; total: number; lang: string; egp: string; noLabel: string;
+}) {
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-14 text-muted-foreground">
+        <div className="text-3xl mb-2">💸</div>
+        <p className="text-sm">{noLabel}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3">
+      {/* Total banner */}
+      <div className="flex items-center justify-between bg-destructive/8 border border-destructive/20 rounded-2xl px-4 py-3">
+        <p className="text-sm font-bold text-destructive">
+          {lang === "ar" ? "إجمالي السحوبات" : "Total Withdrawals"}
+        </p>
+        <p className="text-base font-bold text-destructive tabular-nums">
+          {total.toFixed(2)}
+          <span className="text-[10px] font-normal ms-1">{egp}</span>
+        </p>
+      </div>
+      {items.map((w) => (
+        <div key={w.id} className="bg-card border border-card-border rounded-2xl p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-destructive/10 flex items-center justify-center text-lg shrink-0">
+              💸
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate">{w.title || (lang === "ar" ? "سحب" : "Withdrawal")}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {new Date(w.createdAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", {
+                  hour: "2-digit", minute: "2-digit", hour12: true,
+                })}
+              </p>
+            </div>
+          </div>
+          <p className="text-base font-bold text-destructive tabular-nums shrink-0">
+            -{w.amount.toFixed(2)}
+            <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ─── Main Drawer Component ─────────────────────────── */
 export default function ShiftDetailDrawer({
   shiftId,
   initialTab,
   shiftMeta,
   onClose,
-  lang,
 }: {
   shiftId: number | null;
   initialTab: ShiftDrawerTab;
   shiftMeta: ShiftMeta | null;
   onClose: () => void;
-  lang: string;
 }) {
+  const { t, lang } = useLang();
   const [activeTab, setActiveTab] = useState<ShiftDrawerTab>(initialTab);
   const egp = lang === "ar" ? "ج.م" : "EGP";
 
@@ -289,19 +342,19 @@ export default function ShiftDetailDrawer({
     if (shiftId !== null) setActiveTab(initialTab);
   }, [shiftId, initialTab]);
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["shift-summary", shiftId],
     enabled: shiftId !== null,
     queryFn: () => fetchShiftSummary(shiftId!),
     staleTime: 30_000,
   });
 
-  const TABS: Array<{ id: ShiftDrawerTab; labelEn: string; labelAr: string; icon: string; color: string }> = [
-    { id: "gaming",     labelEn: "Gaming Time",  labelAr: "وقت الجيم",   icon: "🎮", color: "emerald" },
-    { id: "roomOrders", labelEn: "Room Orders",  labelAr: "طلبات الغرف", icon: "🎯", color: "blue" },
-    { id: "pos",        labelEn: "POS / Buffet", labelAr: "البوفيه",     icon: "🛒", color: "orange" },
-    { id: "sessions",   labelEn: "Sessions",     labelAr: "الجلسات",     icon: "⏱️",  color: "purple" },
-    { id: "orders",     labelEn: "All Orders",   labelAr: "كل الطلبات",  icon: "📦", color: "slate" },
+  const TABS: Array<{ id: ShiftDrawerTab; label: string; icon: string; color: string; count: () => number }> = [
+    { id: "gaming",      label: t("shift_tab_gaming"),      icon: "🎮", color: "emerald",  count: () => data?.sessions.length ?? 0 },
+    { id: "roomOrders",  label: t("shift_tab_room_orders"), icon: "🎯", color: "blue",     count: () => data?.roomOrders.length ?? 0 },
+    { id: "pos",         label: t("shift_tab_pos"),         icon: "🛒", color: "orange",   count: () => data?.posOrders.length ?? 0 },
+    { id: "orders",      label: t("shift_tab_all_orders"),  icon: "📦", color: "slate",    count: () => allOrders.length },
+    { id: "withdrawals", label: t("shift_tab_withdrawals"), icon: "💸", color: "red",      count: () => data?.withdrawals?.items.length ?? 0 },
   ];
 
   const allOrders = data
@@ -310,11 +363,12 @@ export default function ShiftDetailDrawer({
       )
     : [];
 
-  const isOpen = shiftId !== null;
+  const isClosed = shiftMeta?.status === "closed";
+  const hasDifference = isClosed && shiftMeta?.difference != null;
 
   return createPortal(
     <AnimatePresence>
-      {isOpen && (
+      {shiftId !== null && (
         <>
           {/* Backdrop */}
           <motion.div
@@ -342,7 +396,7 @@ export default function ShiftDetailDrawer({
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
                     <p className="font-bold text-[15px] truncate">
-                      {shiftMeta.userName || (lang === "ar" ? "كاشير" : "Cashier")}
+                      {shiftMeta.userName || t("shift_cashier_default")}
                     </p>
                     <p className="text-[11px] text-muted-foreground mt-0.5">
                       {new Date(shiftMeta.openedAt).toLocaleString(lang === "ar" ? "ar-EG" : "en-US", {
@@ -358,9 +412,7 @@ export default function ShiftDetailDrawer({
                         </>
                       )}
                       {shiftMeta.status === "open" && (
-                        <span className="ms-2 text-emerald-500 font-semibold">
-                          {lang === "ar" ? "• مباشر" : "• Live"}
-                        </span>
+                        <span className="ms-2 text-emerald-500 font-semibold">{t("shift_live_badge")}</span>
                       )}
                     </p>
                   </div>
@@ -384,7 +436,7 @@ export default function ShiftDetailDrawer({
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-emerald-500/8 rounded-xl px-3 py-2 text-center">
                     <p className="text-[9px] text-emerald-600 font-semibold uppercase tracking-wide mb-0.5">
-                      {lang === "ar" ? "جيمنج" : "Gaming"}
+                      {t("shift_gaming_label")}
                     </p>
                     <p className="text-sm font-bold text-emerald-500 tabular-nums">
                       {shiftMeta.gamingRevenue.toFixed(2)}
@@ -392,7 +444,7 @@ export default function ShiftDetailDrawer({
                   </div>
                   <div className="bg-primary/8 rounded-xl px-3 py-2 text-center">
                     <p className="text-[9px] text-primary font-semibold uppercase tracking-wide mb-0.5">
-                      {lang === "ar" ? "غرف" : "Rooms"}
+                      {t("shift_rooms_label")}
                     </p>
                     <p className="text-sm font-bold text-primary tabular-nums">
                       {shiftMeta.roomOrderRevenue.toFixed(2)}
@@ -409,15 +461,58 @@ export default function ShiftDetailDrawer({
                 </div>
 
                 {/* Withdrawals deduction row */}
-                {data?.withdrawals && data.withdrawals.total > 0 && (
+                {((data?.withdrawals?.total ?? 0) > 0 || (shiftMeta.withdrawalTotal ?? 0) > 0) && (
                   <div className="mt-2 flex items-center justify-between bg-destructive/8 border border-destructive/20 rounded-xl px-3 py-2">
                     <p className="text-[11px] font-semibold text-destructive">
-                      💸 {lang === "ar" ? "سحوبات المالك" : "Owner Withdrawals"}
+                      💸 {t("shift_owner_withdrawals")}
                     </p>
                     <p className="text-sm font-bold text-destructive tabular-nums">
-                      -{data.withdrawals.total.toFixed(2)}
+                      -{(data?.withdrawals?.total ?? shiftMeta.withdrawalTotal ?? 0).toFixed(2)}
                       <span className="text-[9px] font-normal ms-1">{egp}</span>
                     </p>
+                  </div>
+                )}
+
+                {/* Reconciliation strip — only for closed shifts */}
+                {hasDifference && (
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    <div className="bg-muted/60 rounded-xl px-3 py-2 text-center">
+                      <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wide mb-0.5">
+                        {t("shift_recon_expected")}
+                      </p>
+                      <p className="text-sm font-bold tabular-nums">
+                        {(shiftMeta.expectedCash ?? 0).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="bg-muted/60 rounded-xl px-3 py-2 text-center">
+                      <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wide mb-0.5">
+                        {t("shift_recon_actual")}
+                      </p>
+                      <p className="text-sm font-bold tabular-nums">
+                        {(shiftMeta.actualCash ?? 0).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className={cn(
+                      "rounded-xl px-3 py-2 text-center",
+                      (shiftMeta.difference ?? 0) < 0 ? "bg-destructive/8" :
+                      (shiftMeta.difference ?? 0) > 0 ? "bg-emerald-500/8" : "bg-muted/60"
+                    )}>
+                      <p className={cn(
+                        "text-[9px] font-semibold uppercase tracking-wide mb-0.5",
+                        (shiftMeta.difference ?? 0) < 0 ? "text-destructive" :
+                        (shiftMeta.difference ?? 0) > 0 ? "text-emerald-600" : "text-muted-foreground"
+                      )}>
+                        {t("shift_recon_diff")}
+                      </p>
+                      <p className={cn(
+                        "text-sm font-bold tabular-nums",
+                        (shiftMeta.difference ?? 0) < 0 ? "text-destructive" :
+                        (shiftMeta.difference ?? 0) > 0 ? "text-emerald-500" : "text-muted-foreground"
+                      )}>
+                        {(shiftMeta.difference ?? 0) > 0 ? "+" : ""}
+                        {(shiftMeta.difference ?? 0).toFixed(2)}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -428,7 +523,6 @@ export default function ShiftDetailDrawer({
               <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
                 {TABS.map((tab) => {
                   const active = activeTab === tab.id;
-                  const label = lang === "ar" ? tab.labelAr : tab.labelEn;
                   return (
                     <button
                       key={tab.id}
@@ -439,20 +533,13 @@ export default function ShiftDetailDrawer({
                       )}
                     >
                       <span className="text-sm">{tab.icon}</span>
-                      {label}
-                      {/* Count badge */}
+                      {tab.label}
                       {data && (
                         <span className={cn(
                           "text-[9px] font-bold px-1.5 py-0.5 rounded-full ms-0.5",
                           active ? "bg-black/10" : "bg-muted text-muted-foreground"
                         )}>
-                          {tab.id === "gaming" || tab.id === "sessions"
-                            ? data.sessions.length
-                            : tab.id === "roomOrders"
-                            ? data.roomOrders.length
-                            : tab.id === "pos"
-                            ? data.posOrders.length
-                            : allOrders.length}
+                          {tab.count()}
                         </span>
                       )}
                     </button>
@@ -474,17 +561,25 @@ export default function ShiftDetailDrawer({
                 </div>
               ) : (
                 <div className="pt-2">
-                  {(activeTab === "gaming" || activeTab === "sessions") && (
-                    <SessionsList items={data?.sessions ?? []} lang={lang} egp={egp} />
+                  {activeTab === "gaming" && (
+                    <SessionsList items={data?.sessions ?? []} lang={lang} egp={egp} noLabel={t("shift_no_sessions")} />
                   )}
                   {activeTab === "roomOrders" && (
-                    <OrdersList items={data?.roomOrders ?? []} lang={lang} egp={egp} />
+                    <OrdersList items={data?.roomOrders ?? []} lang={lang} egp={egp} noLabel={t("shift_no_orders")} />
                   )}
                   {activeTab === "pos" && (
-                    <OrdersList items={data?.posOrders ?? []} lang={lang} egp={egp} groupByAmPm />
+                    <OrdersList items={data?.posOrders ?? []} lang={lang} egp={egp} groupByAmPm noLabel={t("shift_no_orders")} />
                   )}
                   {activeTab === "orders" && (
-                    <OrdersList items={allOrders} lang={lang} egp={egp} />
+                    <OrdersList items={allOrders} lang={lang} egp={egp} noLabel={t("shift_no_orders")} />
+                  )}
+                  {activeTab === "withdrawals" && (
+                    <WithdrawalsList
+                      items={data?.withdrawals?.items ?? []}
+                      total={data?.withdrawals?.total ?? 0}
+                      lang={lang} egp={egp}
+                      noLabel={t("shift_no_withdrawals")}
+                    />
                   )}
                 </div>
               )}

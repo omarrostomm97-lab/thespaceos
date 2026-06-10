@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { shiftsTable, usersTable, paymentsTable, sessionsTable, ordersTable, orderItemsTable, productsTable, assetsTable, financeTransactionsTable } from "@workspace/db";
-import { eq, and, gte, lte, inArray } from "drizzle-orm";
+import { shiftsTable, usersTable, paymentsTable, sessionsTable, ordersTable, financeTransactionsTable } from "@workspace/db";
+import { eq, and, gte, lte, inArray, desc } from "drizzle-orm";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 import { writeAuditLog } from "../lib/audit";
+import { productsTable, assetsTable, orderItemsTable } from "@workspace/db";
 
 const router = Router();
 
 const CASHIER_UP = requireRole("platform_owner", "owner", "manager", "cashier");
-const MGMT = requireRole("platform_owner", "owner", "manager");
 
 const fmtShift = (s: typeof shiftsTable.$inferSelect, userName?: string | null) => ({
   id: s.id, userId: s.userId, userName: userName ?? null,
@@ -20,57 +20,144 @@ const fmtShift = (s: typeof shiftsTable.$inferSelect, userName?: string | null) 
   openedAt: s.openedAt, closedAt: s.closedAt,
 });
 
+/* ── GET /shifts — enriched list ── */
 router.get("/shifts", requireAuth, requireTenant, async (req, res) => {
   try {
+    const tenantId = req.user!.tenantId!;
     const shifts = await db.select().from(shiftsTable)
-      .where(eq(shiftsTable.tenantId, req.user!.tenantId!))
-      .orderBy(shiftsTable.openedAt);
-    const result = await Promise.all(shifts.reverse().map(async s => {
-      const [user] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, s.userId)).limit(1);
-      return fmtShift(s, user?.name);
-    }));
+      .where(eq(shiftsTable.tenantId, tenantId))
+      .orderBy(desc(shiftsTable.openedAt));
+
+    if (shifts.length === 0) { res.json([]); return; }
+
+    const minDate = shifts[shifts.length - 1].openedAt;
+
+    const [allUsers, allSessions, allOrders, allWithdrawals] = await Promise.all([
+      db.select({ id: usersTable.id, name: usersTable.name }).from(usersTable)
+        .where(eq(usersTable.tenantId, tenantId)),
+      db.select({
+        id: sessionsTable.id, startedAt: sessionsTable.startedAt,
+        totalCost: sessionsTable.totalCost,
+      }).from(sessionsTable).where(and(
+        eq(sessionsTable.tenantId, tenantId), gte(sessionsTable.startedAt, minDate)
+      )),
+      db.select({
+        id: ordersTable.id, sessionId: ordersTable.sessionId,
+        totalAmount: ordersTable.totalAmount, createdAt: ordersTable.createdAt,
+      }).from(ordersTable).where(and(
+        eq(ordersTable.tenantId, tenantId),
+        gte(ordersTable.createdAt, minDate),
+        inArray(ordersTable.status, ["delivered", "closed"])
+      )),
+      db.select({ amount: financeTransactionsTable.amount, createdAt: financeTransactionsTable.createdAt })
+        .from(financeTransactionsTable).where(and(
+          eq(financeTransactionsTable.tenantId, tenantId),
+          eq(financeTransactionsTable.type, "owner_withdrawal"),
+          gte(financeTransactionsTable.createdAt, minDate)
+        )),
+    ]);
+
+    const userMap = new Map(allUsers.map(u => [u.id, u.name]));
+
+    const result = shifts.map(s => {
+      const from = new Date(s.openedAt).getTime();
+      const to = s.closedAt ? new Date(s.closedAt).getTime() : Date.now();
+
+      const shiftSessions = allSessions.filter(x => {
+        const t = new Date(x.startedAt).getTime(); return t >= from && t <= to;
+      });
+      const shiftOrders = allOrders.filter(x => {
+        const t = new Date(x.createdAt).getTime(); return t >= from && t <= to;
+      });
+      const shiftWithdrawals = allWithdrawals.filter(x => {
+        const t = new Date(x.createdAt).getTime(); return t >= from && t <= to;
+      });
+
+      const gamingRevenue = shiftSessions.reduce((acc, x) =>
+        acc + (x.totalCost ? parseFloat(x.totalCost as string) : 0), 0);
+      const roomOrderRevenue = shiftOrders
+        .filter(o => o.sessionId !== null)
+        .reduce((acc, o) => acc + parseFloat(o.totalAmount as string), 0);
+      const posRevenue = shiftOrders
+        .filter(o => o.sessionId === null)
+        .reduce((acc, o) => acc + parseFloat(o.totalAmount as string), 0);
+      const totalRevenue = gamingRevenue + roomOrderRevenue + posRevenue;
+      const withdrawalTotal = shiftWithdrawals.reduce((acc, w) =>
+        acc + parseFloat(w.amount as string), 0);
+      const durationMinutes = Math.round((to - from) / 60000);
+
+      return {
+        ...fmtShift(s, userMap.get(s.userId) ?? null),
+        totalRevenue, gamingRevenue, roomOrderRevenue, posRevenue,
+        sessionCount: shiftSessions.length,
+        orderCount: shiftOrders.length,
+        durationMinutes, withdrawalTotal,
+      };
+    });
+
     res.json(result);
-  } catch {
+  } catch (e) {
+    console.error(e);
     res.status(500).json({ error: "Failed to list shifts" });
   }
 });
 
+/* ── GET /shifts/current — live shift with payment method breakdown ── */
 router.get("/shifts/current", requireAuth, requireTenant, async (req, res) => {
   try {
     const [shift] = await db.select().from(shiftsTable)
       .where(and(eq(shiftsTable.tenantId, req.user!.tenantId!), eq(shiftsTable.status, "open")))
       .limit(1);
     if (!shift) { res.json(null); return; }
-    const [user] = await db.select({ name: usersTable.name }).from(usersTable).where(eq(usersTable.id, shift.userId)).limit(1);
-    // Compute live expected cash: opening cash + ALL verified cash payments from every service
-    // (sessions/gaming, buffet orders, babyfoot, etc.) since the shift opened
-    const cashPayments = await db.select({ amount: paymentsTable.amount })
-      .from(paymentsTable)
-      .where(and(
-        eq(paymentsTable.tenantId, req.user!.tenantId!),
-        eq(paymentsTable.method, "cash"),
-        eq(paymentsTable.status, "verified"),
-        gte(paymentsTable.createdAt, shift.openedAt)
-      ));
-    const cashTotal = cashPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
-    const withdrawals = await db.select({ amount: financeTransactionsTable.amount })
-      .from(financeTransactionsTable)
-      .where(and(
-        eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
-        eq(financeTransactionsTable.type, "owner_withdrawal"),
-        gte(financeTransactionsTable.createdAt, shift.openedAt)
-      ));
-    const withdrawalTotal = withdrawals.reduce((sum, w) => sum + parseFloat(w.amount as string), 0);
-    const liveExpectedCash = parseFloat(shift.openingCash as string) + cashTotal - withdrawalTotal;
+
+    const [user] = await db.select({ name: usersTable.name }).from(usersTable)
+      .where(eq(usersTable.id, shift.userId)).limit(1);
+
+    const [allPayments, withdrawals] = await Promise.all([
+      db.select({ amount: paymentsTable.amount, method: paymentsTable.method })
+        .from(paymentsTable)
+        .where(and(
+          eq(paymentsTable.tenantId, req.user!.tenantId!),
+          eq(paymentsTable.status, "verified"),
+          gte(paymentsTable.createdAt, shift.openedAt)
+        )),
+      db.select({ amount: financeTransactionsTable.amount })
+        .from(financeTransactionsTable)
+        .where(and(
+          eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+          eq(financeTransactionsTable.type, "owner_withdrawal"),
+          gte(financeTransactionsTable.createdAt, shift.openedAt)
+        )),
+    ]);
+
+    const cashIncome = allPayments.filter(p => p.method === "cash")
+      .reduce((s, p) => s + parseFloat(p.amount as string), 0);
+    const visaIncome = allPayments.filter(p => p.method === "visa")
+      .reduce((s, p) => s + parseFloat(p.amount as string), 0);
+    const walletIncome = allPayments.filter(p => p.method !== "cash" && p.method !== "visa")
+      .reduce((s, p) => s + parseFloat(p.amount as string), 0);
+    const totalIncome = cashIncome + visaIncome + walletIncome;
+
+    const withdrawalTotal = withdrawals.reduce((s, w) => s + parseFloat(w.amount as string), 0);
+    const opening = parseFloat(shift.openingCash as string);
+    const grossCash = opening + cashIncome;
+    const liveExpectedCash = grossCash - withdrawalTotal;
+
     const formatted = fmtShift(shift, user?.name);
     formatted.expectedCash = liveExpectedCash;
-    res.json({ ...formatted, withdrawalTotal, grossCash: parseFloat(shift.openingCash as string) + cashTotal });
-  } catch {
+
+    res.json({
+      ...formatted,
+      cashIncome, visaIncome, walletIncome, totalIncome,
+      withdrawalTotal, grossCash,
+    });
+  } catch (e) {
+    console.error(e);
     res.status(500).json({ error: "Failed to get current shift" });
   }
 });
 
-// Open shift: cashier and above
+/* ── POST /shifts — open shift ── */
 router.post("/shifts", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const { openingCash } = req.body;
@@ -92,6 +179,7 @@ router.post("/shifts", requireAuth, requireTenant, CASHIER_UP, async (req, res) 
   }
 });
 
+/* ── POST /shifts/:shiftId/close ── */
 router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const id = parseInt(req.params.shiftId as string);
@@ -101,27 +189,32 @@ router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, as
       .where(and(eq(shiftsTable.id, id), eq(shiftsTable.tenantId, req.user!.tenantId!)))
       .limit(1);
     if (!shift || shift.status !== "open") { res.status(400).json({ error: "Shift not open" }); return; }
-    const cashPayments = await db.select({ amount: paymentsTable.amount })
-      .from(paymentsTable)
-      .where(and(
-        eq(paymentsTable.tenantId, req.user!.tenantId!),
-        eq(paymentsTable.method, "cash"),
-        eq(paymentsTable.status, "verified"),
-        gte(paymentsTable.createdAt, shift.openedAt)
-      ));
-    const cashTotal = cashPayments.reduce((sum, p) => sum + parseFloat(p.amount as string), 0);
-    const withdrawalRows = await db.select({ amount: financeTransactionsTable.amount })
-      .from(financeTransactionsTable)
-      .where(and(
-        eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
-        eq(financeTransactionsTable.type, "owner_withdrawal"),
-        gte(financeTransactionsTable.createdAt, shift.openedAt)
-      ));
-    const withdrawalTotal = withdrawalRows.reduce((sum, w) => sum + parseFloat(w.amount as string), 0);
+
+    const [cashPayments, withdrawalRows] = await Promise.all([
+      db.select({ amount: paymentsTable.amount })
+        .from(paymentsTable)
+        .where(and(
+          eq(paymentsTable.tenantId, req.user!.tenantId!),
+          eq(paymentsTable.method, "cash"),
+          eq(paymentsTable.status, "verified"),
+          gte(paymentsTable.createdAt, shift.openedAt)
+        )),
+      db.select({ amount: financeTransactionsTable.amount })
+        .from(financeTransactionsTable)
+        .where(and(
+          eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+          eq(financeTransactionsTable.type, "owner_withdrawal"),
+          gte(financeTransactionsTable.createdAt, shift.openedAt)
+        )),
+    ]);
+
+    const cashTotal = cashPayments.reduce((s, p) => s + parseFloat(p.amount as string), 0);
+    const withdrawalTotal = withdrawalRows.reduce((s, w) => s + parseFloat(w.amount as string), 0);
     const opening = parseFloat(shift.openingCash as string);
     const grossCash = opening + cashTotal;
     const expectedCash = grossCash - withdrawalTotal;
     const difference = parseFloat(String(actualCash)) - expectedCash;
+
     const [updated] = await db.update(shiftsTable).set({
       status: "closed",
       actualCash: String(actualCash),
@@ -130,6 +223,7 @@ router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, as
       differenceExplanation,
       closedAt: new Date(),
     }).where(eq(shiftsTable.id, id)).returning();
+
     await writeAuditLog({ user: req.user, action: "close_shift", entityType: "shift", entityId: id, newValue: { actualCash, expectedCash, difference } });
     res.json(fmtShift(updated, req.user!.name));
   } catch {
@@ -137,7 +231,7 @@ router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, as
   }
 });
 
-/* ── GET /shifts/:shiftId/summary — drill-down data for a shift ── */
+/* ── GET /shifts/:shiftId/summary — detail drawer data ── */
 router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
     const shiftId = parseInt(req.params.shiftId as string);
@@ -149,26 +243,36 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
     const from = shift.openedAt;
     const to = shift.closedAt ?? new Date();
 
-    /* Sessions within shift window */
-    const rawSessions = await db.select().from(sessionsTable)
-      .where(and(
-        eq(sessionsTable.tenantId, req.user!.tenantId!),
-        gte(sessionsTable.startedAt, from),
-        lte(sessionsTable.startedAt, to)
-      ))
-      .orderBy(sessionsTable.startedAt);
+    const [rawSessions, rawOrders, withdrawalRows] = await Promise.all([
+      db.select().from(sessionsTable)
+        .where(and(
+          eq(sessionsTable.tenantId, req.user!.tenantId!),
+          gte(sessionsTable.startedAt, from),
+          lte(sessionsTable.startedAt, to)
+        ))
+        .orderBy(sessionsTable.startedAt),
+      db.select().from(ordersTable)
+        .where(and(
+          eq(ordersTable.tenantId, req.user!.tenantId!),
+          gte(ordersTable.createdAt, from),
+          lte(ordersTable.createdAt, to),
+          inArray(ordersTable.status, ["delivered", "closed"])
+        ))
+        .orderBy(ordersTable.createdAt),
+      db.select({
+        id: financeTransactionsTable.id,
+        amount: financeTransactionsTable.amount,
+        title: financeTransactionsTable.title,
+        createdAt: financeTransactionsTable.createdAt,
+      }).from(financeTransactionsTable)
+        .where(and(
+          eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+          eq(financeTransactionsTable.type, "owner_withdrawal"),
+          gte(financeTransactionsTable.createdAt, from),
+          lte(financeTransactionsTable.createdAt, to)
+        )),
+    ]);
 
-    /* Orders within shift window (delivered/closed only) */
-    const rawOrders = await db.select().from(ordersTable)
-      .where(and(
-        eq(ordersTable.tenantId, req.user!.tenantId!),
-        gte(ordersTable.createdAt, from),
-        lte(ordersTable.createdAt, to),
-        inArray(ordersTable.status, ["delivered", "closed"])
-      ))
-      .orderBy(ordersTable.createdAt);
-
-    /* Format sessions with asset + payment info */
     const sessions = await Promise.all(rawSessions.map(async (s) => {
       const [asset] = await db.select({ name: assetsTable.name, nameAr: assetsTable.nameAr })
         .from(assetsTable).where(eq(assetsTable.id, s.assetId)).limit(1);
@@ -176,26 +280,19 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
         .from(paymentsTable)
         .where(and(eq(paymentsTable.sessionId, s.id), eq(paymentsTable.status, "verified")));
       return {
-        id: s.id,
-        assetId: s.assetId,
-        assetName: asset?.name ?? null,
-        assetNameAr: asset?.nameAr ?? null,
-        status: s.status,
-        startedAt: s.startedAt,
-        endedAt: s.endedAt,
+        id: s.id, assetId: s.assetId,
+        assetName: asset?.name ?? null, assetNameAr: asset?.nameAr ?? null,
+        status: s.status, startedAt: s.startedAt, endedAt: s.endedAt,
         totalMinutes: s.totalMinutes ? parseFloat(s.totalMinutes as string) : null,
         totalCost: s.totalCost ? parseFloat(s.totalCost as string) : null,
         payments: payments.map(p => ({ method: p.method, amount: parseFloat(p.amount as string) })),
       };
     }));
 
-    /* Format orders with items + asset info */
     const orders = await Promise.all(rawOrders.map(async (o) => {
       const items = await db.select({
-        productName: productsTable.name,
-        productNameAr: productsTable.nameAr,
-        quantity: orderItemsTable.quantity,
-        unitPrice: orderItemsTable.unitPrice,
+        productName: productsTable.name, productNameAr: productsTable.nameAr,
+        quantity: orderItemsTable.quantity, unitPrice: orderItemsTable.unitPrice,
         totalPrice: orderItemsTable.totalPrice,
       }).from(orderItemsTable)
         .leftJoin(productsTable, eq(orderItemsTable.productId, productsTable.id))
@@ -209,16 +306,12 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
       }
 
       return {
-        id: o.id,
-        source: o.source,
-        sessionId: o.sessionId,
-        assetId: o.assetId,
+        id: o.id, source: o.source, sessionId: o.sessionId, assetId: o.assetId,
         assetName, assetNameAr,
         totalAmount: parseFloat(o.totalAmount as string),
         createdAt: o.createdAt,
         items: items.map(i => ({
-          productName: i.productName ?? "—",
-          productNameAr: i.productNameAr ?? null,
+          productName: i.productName ?? "—", productNameAr: i.productNameAr ?? null,
           quantity: i.quantity,
           unitPrice: parseFloat(i.unitPrice as string),
           totalPrice: parseFloat(i.totalPrice as string),
@@ -226,32 +319,17 @@ router.get("/shifts/:shiftId/summary", requireAuth, requireTenant, CASHIER_UP, a
       };
     }));
 
-    /* Withdrawals within shift window */
-    const withdrawalRows = await db.select({
-      id: financeTransactionsTable.id,
-      amount: financeTransactionsTable.amount,
-      title: financeTransactionsTable.title,
-      createdAt: financeTransactionsTable.createdAt,
-    }).from(financeTransactionsTable)
-      .where(and(
-        eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
-        eq(financeTransactionsTable.type, "owner_withdrawal"),
-        gte(financeTransactionsTable.createdAt, from),
-        lte(financeTransactionsTable.createdAt, to)
-      ));
-    const withdrawalTotal = withdrawalRows.reduce((sum, w) => sum + parseFloat(w.amount as string), 0);
+    const withdrawalTotal = withdrawalRows.reduce((s, w) => s + parseFloat(w.amount as string), 0);
 
     res.json({
       sessions,
       roomOrders: orders.filter(o => o.sessionId !== null),
-      posOrders:  orders.filter(o => o.sessionId === null),
+      posOrders: orders.filter(o => o.sessionId === null),
       withdrawals: {
         total: withdrawalTotal,
         items: withdrawalRows.map(w => ({
-          id: w.id,
-          amount: parseFloat(w.amount as string),
-          title: w.title,
-          createdAt: w.createdAt,
+          id: w.id, amount: parseFloat(w.amount as string),
+          title: w.title, createdAt: w.createdAt,
         })),
       },
     });

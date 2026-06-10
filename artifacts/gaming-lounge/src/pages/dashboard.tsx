@@ -1606,7 +1606,7 @@ export default function Dashboard() {
 
                       {/* Sessions */}
                       <button
-                        onClick={() => openDrawer(shiftMeta, "sessions")}
+                        onClick={() => openDrawer(shiftMeta, "gaming")}
                         className="bg-secondary hover:bg-muted active:scale-95 rounded-xl px-3 py-2.5 text-start transition-all duration-150 group"
                       >
                         <p className="text-[10px] text-muted-foreground font-medium mb-0.5 flex items-center gap-1">
@@ -1968,7 +1968,6 @@ export default function Dashboard() {
         initialTab={drawerShift?.tab ?? "gaming"}
         shiftMeta={drawerShift?.meta ?? null}
         onClose={() => setDrawerShift(null)}
-        lang={lang}
       />
 
       {/* Mobile bottom nav */}

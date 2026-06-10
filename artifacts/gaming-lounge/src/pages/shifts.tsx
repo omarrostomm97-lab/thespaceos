@@ -1,55 +1,181 @@
+import { useState, useEffect } from "react";
 import { useGetCurrentShift, useListShifts, useOpenShift, useCloseShift, getGetCurrentShiftQueryKey, getListShiftsQueryKey } from "@workspace/api-client-react";
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Clock, Wallet, CheckSquare, AlertCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useLang } from "@/hooks/use-language";
+import { cn } from "@/lib/utils";
+import {
+  Banknote, CreditCard, Smartphone, Clock, TrendingUp, BarChart3,
+  AlertCircle, ChevronRight, CheckSquare, Eye,
+} from "lucide-react";
+import ShiftDetailDrawer, { ShiftMeta, ShiftDrawerTab } from "@/components/shift-detail-drawer";
 
+/* ─── helpers ──────────────────────────────────────── */
+function fmtDuration(mins: number) {
+  const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function DiffBadge({ value, egp }: { value: number | null | undefined; egp: string }) {
+  if (value == null) return <span className="text-muted-foreground text-xs">—</span>;
+  const isNeg = value < 0;
+  const isPos = value > 0;
+  return (
+    <span className={cn(
+      "font-mono font-bold text-sm tabular-nums",
+      isNeg ? "text-destructive" : isPos ? "text-emerald-500" : "text-muted-foreground"
+    )}>
+      {isPos ? "+" : ""}{value.toFixed(2)}
+      <span className="text-[10px] font-normal ms-1">{egp}</span>
+    </span>
+  );
+}
+
+/* ─── main page ─────────────────────────────────────── */
 export default function Shifts() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const egp = lang === "ar" ? "ج.م" : "EGP";
   const queryClient = useQueryClient();
-  const { data: currentShift, isLoading: isLoadingCurrent, isError: isCurrentShiftError } = useGetCurrentShift({
-    query: { queryKey: getGetCurrentShiftQueryKey(), refetchInterval: 15000 }
-  });
-  const { data: shifts, isLoading: isLoadingList } = useListShifts();
-  
-  const openShift = useOpenShift();
-  const closeShift = useCloseShift();
 
+  /* ── data ── */
+  const {
+    data: currentShift,
+    isLoading: isLoadingCurrent,
+    isError: isCurrentError,
+  } = useGetCurrentShift({ query: { queryKey: getGetCurrentShiftQueryKey(), refetchInterval: 15_000 } });
+
+  const { data: shifts, isLoading: isLoadingList } = useListShifts({
+    query: { queryKey: getListShiftsQueryKey(), refetchInterval: 30_000 },
+  });
+
+  /* ── form state ── */
   const [openingCash, setOpeningCash] = useState("");
   const [actualCash, setActualCash] = useState("");
+
+  /* ── drawer state ── */
+  const [drawerShiftId, setDrawerShiftId]   = useState<number | null>(null);
+  const [drawerMeta, setDrawerMeta]         = useState<ShiftMeta | null>(null);
+  const [drawerInitTab, setDrawerInitTab]   = useState<ShiftDrawerTab>("gaming");
+
+  /* ── live elapsed timer ── */
+  const [elapsed, setElapsed] = useState("00:00:00");
+  useEffect(() => {
+    if (!currentShift) { setElapsed("00:00:00"); return; }
+    const update = () => {
+      const diff = Date.now() - new Date(currentShift.openedAt).getTime();
+      const h = Math.floor(diff / 3_600_000);
+      const m = Math.floor((diff % 3_600_000) / 60_000);
+      const s = Math.floor((diff % 60_000) / 1_000);
+      setElapsed(
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+      );
+    };
+    update();
+    const id = setInterval(update, 1_000);
+    return () => clearInterval(id);
+  }, [currentShift?.openedAt]);
+
+  /* ── actions ── */
+  const openShift  = useOpenShift();
+  const closeShift = useCloseShift();
 
   const handleOpen = async () => {
     if (!openingCash) return;
     try {
       await openShift.mutateAsync({ data: { openingCash: parseFloat(openingCash) } });
-      toast.success("تم فتح الوردية بنجاح");
+      toast.success(t("shift_open_success"));
       setOpeningCash("");
       queryClient.invalidateQueries({ queryKey: getGetCurrentShiftQueryKey() });
       queryClient.invalidateQueries({ queryKey: getListShiftsQueryKey() });
-    } catch (error) {
-      toast.error("حدث خطأ أثناء فتح الوردية");
+    } catch {
+      toast.error(t("shift_open_error"));
     }
   };
 
   const handleClose = async () => {
-    if (!actualCash) return;
+    if (!actualCash || !currentShift) return;
     try {
-      await closeShift.mutateAsync({ shiftId: currentShift!.id, data: { actualCash: parseFloat(actualCash) } });
-      toast.success("تم إغلاق الوردية بنجاح");
+      await closeShift.mutateAsync({
+        shiftId: currentShift.id,
+        data: { actualCash: parseFloat(actualCash) },
+      });
+      toast.success(t("shift_close_success"));
       setActualCash("");
       queryClient.invalidateQueries({ queryKey: getGetCurrentShiftQueryKey() });
       queryClient.invalidateQueries({ queryKey: getListShiftsQueryKey() });
-    } catch (error) {
-      toast.error("حدث خطأ أثناء إغلاق الوردية");
+    } catch {
+      toast.error(t("shift_close_error"));
     }
   };
 
-  if ((isLoadingCurrent && !isCurrentShiftError) || isLoadingList) {
+  /* ── open drawer helpers ── */
+  const openDrawerForShift = (shift: any, tab: ShiftDrawerTab = "gaming") => {
+    setDrawerShiftId(shift.id);
+    setDrawerInitTab(tab);
+    setDrawerMeta({
+      id: shift.id,
+      userName: shift.userName,
+      openedAt: shift.openedAt,
+      closedAt: shift.closedAt,
+      status: shift.status,
+      totalRevenue: shift.totalRevenue ?? 0,
+      durationMinutes: shift.durationMinutes ?? 0,
+      gamingRevenue: shift.gamingRevenue ?? 0,
+      roomOrderRevenue: shift.roomOrderRevenue ?? 0,
+      posRevenue: shift.posRevenue ?? 0,
+      sessionCount: shift.sessionCount ?? 0,
+      orderCount: shift.orderCount ?? 0,
+      expectedCash: shift.expectedCash,
+      actualCash: shift.actualCash,
+      difference: shift.difference,
+      withdrawalTotal: shift.withdrawalTotal ?? 0,
+    });
+  };
+
+  const openCurrentShiftDrawer = () => {
+    if (!currentShift) return;
+    const fromList = (shifts as any[])?.find((s: any) => s.id === currentShift.id);
+    openDrawerForShift({
+      id: currentShift.id,
+      userName: currentShift.userName,
+      openedAt: currentShift.openedAt,
+      closedAt: currentShift.closedAt,
+      status: "open",
+      totalRevenue: fromList?.totalRevenue
+        ?? Math.max(0, (currentShift as any).grossCash - currentShift.openingCash),
+      durationMinutes: fromList?.durationMinutes
+        ?? Math.round((Date.now() - new Date(currentShift.openedAt).getTime()) / 60_000),
+      gamingRevenue: fromList?.gamingRevenue ?? 0,
+      roomOrderRevenue: fromList?.roomOrderRevenue ?? 0,
+      posRevenue: fromList?.posRevenue ?? 0,
+      sessionCount: fromList?.sessionCount ?? 0,
+      orderCount: fromList?.orderCount ?? 0,
+      expectedCash: currentShift.expectedCash,
+      actualCash: null,
+      difference: null,
+      withdrawalTotal: (currentShift as any).withdrawalTotal ?? 0,
+    });
+  };
+
+  /* ── stats strip ── */
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const closedShifts = (shifts as any[])?.filter((s: any) => s.status === "closed") ?? [];
+  const thisMonthClosed = closedShifts.filter((s: any) => new Date(s.openedAt) >= startOfMonth);
+  const monthRevenue = thisMonthClosed.reduce((a: number, s: any) => a + (s.totalRevenue ?? 0), 0);
+  const diffsWithValues = thisMonthClosed.filter((s: any) => s.difference != null);
+  const avgDiff = diffsWithValues.length
+    ? diffsWithValues.reduce((a: number, s: any) => a + s.difference, 0) / diffsWithValues.length
+    : 0;
+
+  /* ── CS: live income chips from current shift ── */
+  const cashIncome   = (currentShift as any)?.cashIncome   ?? 0;
+  const visaIncome   = (currentShift as any)?.visaIncome   ?? 0;
+  const walletIncome = (currentShift as any)?.walletIncome ?? 0;
+  const withdrawalTotal = (currentShift as any)?.withdrawalTotal ?? 0;
+
+  if ((isLoadingCurrent && !isCurrentError) || isLoadingList) {
     return (
       <div className="p-8 flex items-center justify-center h-full">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -59,165 +185,361 @@ export default function Shifts() {
 
   return (
     <div className="p-4 md:p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">إدارة الورديات</h2>
-          <p className="text-muted-foreground mt-1">فتح وإغلاق ورديات العمليات وحساب النقدية</p>
+      {/* ── Page header ── */}
+      <div>
+        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">
+          {t("shifts_mgmt_title")}
+        </h2>
+        <p className="text-muted-foreground mt-1 text-sm">{t("shifts_mgmt_subtitle")}</p>
+      </div>
+
+      {/* ── Stats strip ── */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 mb-1">
+            <BarChart3 className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+              {t("shifts_this_month")}
+            </p>
+          </div>
+          <p className="text-2xl font-bold tabular-nums">{thisMonthClosed.length}</p>
+        </div>
+        <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 mb-1">
+            <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+              {t("shifts_revenue_month")}
+            </p>
+          </div>
+          <p className="text-lg font-bold text-emerald-500 tabular-nums">
+            {monthRevenue.toFixed(0)}
+            <span className="text-xs font-normal text-muted-foreground ms-1">{egp}</span>
+          </p>
+        </div>
+        <div className="card-base rounded-2xl p-4 flex flex-col gap-1">
+          <div className="flex items-center gap-1.5 mb-1">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+              {t("shifts_avg_diff")}
+            </p>
+          </div>
+          <p className={cn(
+            "text-lg font-bold tabular-nums",
+            avgDiff < 0 ? "text-destructive" : avgDiff > 0 ? "text-emerald-500" : "text-muted-foreground"
+          )}>
+            {avgDiff > 0 ? "+" : ""}{avgDiff.toFixed(0)}
+            <span className="text-xs font-normal text-muted-foreground ms-1">{egp}</span>
+          </p>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="bg-card border-2 border-primary">
-          <CardHeader className="bg-secondary/30">
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              الوردية الحالية
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6">
-            {!currentShift ? (
-              <div className="space-y-4">
-                <div className="bg-amber-500/10 text-amber-500 p-4 rounded-lg flex items-start gap-3 border border-amber-500/20">
-                  <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-                  <p className="font-bold">لا توجد وردية مفتوحة حالياً. يرجى فتح وردية للبدء في تلقي الطلبات.</p>
-                </div>
-                <div className="pt-4 border-t border-border">
-                  <label className="block text-sm font-medium mb-2">النقدية الافتتاحية (الدرج)</label>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Input 
-                      type="number" 
-                      placeholder="0.00" 
-                      value={openingCash}
-                      onChange={(e) => setOpeningCash(e.target.value)}
-                      className="h-12 text-lg font-bold flex-1"
-                    />
-                    <Button 
-                      className="h-12 px-6 font-bold sm:w-auto w-full" 
-                      onClick={handleOpen}
-                      disabled={openShift.isPending || !openingCash}
-                    >
-                      فتح الوردية
-                    </Button>
-                  </div>
-                </div>
+      {/* ── Current shift card ── */}
+      <div className="card-base rounded-3xl overflow-hidden">
+        {/* Header stripe */}
+        <div className={cn(
+          "px-5 py-3 flex items-center justify-between",
+          currentShift ? "bg-emerald-500/10 border-b border-emerald-500/20" : "bg-amber-500/10 border-b border-amber-500/20"
+        )}>
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              {currentShift && (
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+              )}
+              <span className={cn(
+                "relative inline-flex h-2 w-2 rounded-full",
+                currentShift ? "bg-emerald-500" : "bg-amber-400"
+              )} />
+            </span>
+            <p className="text-sm font-bold">
+              {currentShift ? t("shift_open") : t("open_shift")}
+            </p>
+          </div>
+          {currentShift && (
+            <p className="text-xl font-mono font-bold text-emerald-500 tabular-nums tracking-widest">
+              {elapsed}
+            </p>
+          )}
+        </div>
+
+        <div className="p-5">
+          {!currentShift ? (
+            /* ── No open shift ── */
+            <div className="space-y-5">
+              <div className="flex items-start gap-3 bg-amber-500/8 border border-amber-500/20 rounded-2xl p-4">
+                <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                <p className="text-sm font-medium text-amber-700 dark:text-amber-400 leading-relaxed">
+                  {t("shift_no_open_warning")}
+                </p>
               </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-background p-3 md:p-4 rounded-lg border border-border">
-                    <p className="text-sm text-muted-foreground">مسؤول الوردية</p>
-                    <p className="font-bold text-base md:text-lg">{currentShift.userName}</p>
-                  </div>
-                  <div className="bg-background p-3 md:p-4 rounded-lg border border-border">
-                    <p className="text-sm text-muted-foreground">وقت الفتح</p>
-                    <p className="font-bold text-base md:text-lg font-mono">{new Date(currentShift.openedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}</p>
-                  </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">{t("shift_opening_cash_label")}</label>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    placeholder="0.00"
+                    value={openingCash}
+                    onChange={(e) => setOpeningCash(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleOpen()}
+                    className="h-12 flex-1 rounded-xl border border-border bg-background px-4 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                  <button
+                    onClick={handleOpen}
+                    disabled={openShift.isPending || !openingCash}
+                    className="h-12 px-6 rounded-xl bg-primary text-primary-foreground font-bold text-sm disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {openShift.isPending ? t("loading") : t("shift_open_btn")}
+                  </button>
                 </div>
-
-                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">النقدية الافتتاحية</span>
-                    <span className="font-mono">{currentShift.openingCash.toFixed(2)} {t("egp_label")}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm pt-2 border-t border-primary/20">
-                    <span className="text-muted-foreground">إجمالي النقدية (كل الخدمات)</span>
-                    <span className="font-mono text-primary">
-                      {(((currentShift as any).grossCash ?? (currentShift.expectedCash ?? 0)) - currentShift.openingCash).toFixed(2)} {t("egp_label")}
-                    </span>
-                  </div>
-                  {(currentShift as any).withdrawalTotal > 0 && (
-                    <div className="flex justify-between items-center text-sm pt-2 border-t border-primary/20">
-                      <span className="text-destructive font-medium">💸 سحوبات المالك</span>
-                      <span className="font-mono text-destructive">
-                        -{(currentShift as any).withdrawalTotal.toFixed(2)} {t("egp_label")}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center text-lg font-bold pt-2 border-t border-primary/20">
-                    <div>
-                      <span className="text-primary">النقدية المتوقعة بالدرج</span>
-                      <p className="text-xs font-normal text-muted-foreground mt-0.5">
-                        {(currentShift as any).withdrawalTotal > 0
-                          ? "افتتاحية + خدمات − سحوبات المالك"
-                          : "افتتاحية + جلسات + بوفيه + كل الخدمات"}
-                      </p>
-                    </div>
-                    <span className="font-mono text-emerald-500">{(currentShift.expectedCash ?? 0).toFixed(2)} {t("egp_label")}</span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-border space-y-3">
-                  <label className="block text-sm font-bold text-destructive">إغلاق الوردية (العهدية الفعلية)</label>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <Input 
-                      type="number" 
-                      placeholder="النقدية الفعلية الموجودة" 
-                      value={actualCash}
-                      onChange={(e) => setActualCash(e.target.value)}
-                      className="h-12 text-lg font-bold border-destructive focus-visible:ring-destructive flex-1"
-                    />
-                    <Button 
-                      variant="destructive"
-                      className="h-12 px-6 font-bold sm:w-auto w-full" 
-                      onClick={handleClose}
-                      disabled={closeShift.isPending || !actualCash}
-                    >
-                      <CheckSquare className="ml-2 h-4 w-4" />
-                      إغلاق
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-muted-foreground" />
-              سجل الورديات السابقة
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-y-auto max-h-[400px] md:max-h-[500px]">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-right min-w-[280px]">
-                  <thead className="bg-secondary text-muted-foreground sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3">المسؤول</th>
-                      <th className="px-4 py-3">التاريخ</th>
-                      <th className="px-4 py-3">العجز/الزيادة</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shifts?.filter(s => s.status === 'closed').map(shift => (
-                      <tr key={shift.id} className="border-b border-border hover:bg-secondary/20">
-                        <td className="px-4 py-3 font-medium">{shift.userName}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-xs">
-                          {format(new Date(shift.openedAt), "dd/MM/yyyy")}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`font-mono font-bold ${
-                            (shift.difference || 0) < 0 ? 'text-destructive' : 
-                            (shift.difference || 0) > 0 ? 'text-emerald-500' : 
-                            'text-muted-foreground'
-                          }`}>
-                            {shift.difference != null ? shift.difference.toFixed(2) : "-"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                    {shifts?.filter(s => s.status === 'closed').length === 0 && (
-                      <tr><td colSpan={3} className="px-4 py-8 text-center text-muted-foreground">لا توجد ورديات مغلقة</td></tr>
-                    )}
-                  </tbody>
-                </table>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          ) : (
+            /* ── Open shift detail ── */
+            <div className="space-y-4">
+              {/* Cashier + time */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-muted/40 rounded-2xl p-3">
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide mb-1">
+                    {t("shift_responsible")}
+                  </p>
+                  <p className="font-bold text-sm">{currentShift.userName || "—"}</p>
+                </div>
+                <div className="bg-muted/40 rounded-2xl p-3">
+                  <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide mb-1">
+                    {t("shift_open_time")}
+                  </p>
+                  <p className="font-bold text-sm font-mono">
+                    {new Date(currentShift.openedAt).toLocaleTimeString(
+                      lang === "ar" ? "ar-EG" : "en-US",
+                      { hour: "2-digit", minute: "2-digit", hour12: true }
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {/* Payment method breakdown chips */}
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-col items-center gap-1 bg-emerald-500/8 border border-emerald-500/20 rounded-xl px-2 py-2.5">
+                    <Banknote className="h-4 w-4 text-emerald-500" />
+                    <p className="text-[10px] text-emerald-600 font-semibold">{t("shift_cash_income")}</p>
+                    <p className="text-sm font-bold text-emerald-500 tabular-nums">{cashIncome.toFixed(2)}</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 bg-primary/8 border border-primary/20 rounded-xl px-2 py-2.5">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    <p className="text-[10px] text-primary font-semibold">{t("shift_visa_income")}</p>
+                    <p className="text-sm font-bold text-primary tabular-nums">{visaIncome.toFixed(2)}</p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1 bg-purple-500/8 border border-purple-500/20 rounded-xl px-2 py-2.5">
+                    <Smartphone className="h-4 w-4 text-purple-500" />
+                    <p className="text-[10px] text-purple-600 font-semibold">{t("shift_wallet_income")}</p>
+                    <p className="text-sm font-bold text-purple-500 tabular-nums">{walletIncome.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Expected cash breakdown */}
+              <div className="bg-primary/5 border border-primary/15 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{t("shift_opening_cash")}</span>
+                  <span className="font-mono font-semibold">
+                    {currentShift.openingCash.toFixed(2)} {egp}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm border-t border-primary/15 pt-3">
+                  <span className="text-muted-foreground">{t("shift_total_income_all")}</span>
+                  <span className="font-mono text-primary font-semibold">
+                    +{((currentShift as any).grossCash
+                      ? (currentShift as any).grossCash - currentShift.openingCash
+                      : cashIncome
+                    ).toFixed(2)} {egp}
+                  </span>
+                </div>
+                {withdrawalTotal > 0 && (
+                  <div className="flex items-center justify-between text-sm border-t border-primary/15 pt-3">
+                    <span className="text-destructive font-medium">💸 {t("shift_withdrawals_deduction")}</span>
+                    <span className="font-mono text-destructive font-semibold">
+                      -{withdrawalTotal.toFixed(2)} {egp}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between border-t border-primary/15 pt-3">
+                  <div>
+                    <p className="font-bold text-primary text-sm">{t("shift_expected_cash_label")}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {withdrawalTotal > 0
+                        ? t("shift_expected_formula_withdrawals")
+                        : t("shift_expected_formula_plain")}
+                    </p>
+                  </div>
+                  <p className="text-lg font-bold text-emerald-500 font-mono tabular-nums">
+                    {(currentShift.expectedCash ?? 0).toFixed(2)}
+                    <span className="text-xs font-normal text-muted-foreground ms-1">{egp}</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={openCurrentShiftDrawer}
+                  className="flex-1 h-11 flex items-center justify-center gap-2 rounded-xl border border-primary/30 text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
+                >
+                  <Eye className="h-4 w-4" />
+                  {t("shift_view_details_btn")}
+                </button>
+              </div>
+
+              {/* Close shift form */}
+              <div className="border-t border-border/50 pt-4 space-y-3">
+                <label className="block text-sm font-bold text-destructive">
+                  {t("shift_close_title")}
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="number"
+                    placeholder={t("shift_actual_cash_placeholder")}
+                    value={actualCash}
+                    onChange={(e) => setActualCash(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleClose()}
+                    className="h-12 flex-1 rounded-xl border border-destructive/40 bg-background px-4 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-destructive/30"
+                  />
+                  <button
+                    onClick={handleClose}
+                    disabled={closeShift.isPending || !actualCash}
+                    className="h-12 px-5 flex items-center gap-2 rounded-xl bg-destructive text-destructive-foreground font-bold text-sm disabled:opacity-50 whitespace-nowrap"
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                    {closeShift.isPending ? t("loading") : t("shift_close_btn")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* ── Shift history table ── */}
+      <div className="card-base rounded-3xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-border/50 flex items-center justify-between">
+          <h3 className="font-bold text-base">{t("shift_history_title")}</h3>
+          <span className="text-sm text-muted-foreground tabular-nums">{closedShifts.length}</span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[560px]" dir={lang === "ar" ? "rtl" : "ltr"}>
+            <thead>
+              <tr className="border-b border-border/40 bg-muted/30">
+                <th className="px-4 py-3 text-start text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_cashier")}
+                </th>
+                <th className="px-4 py-3 text-start text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_date")}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_revenue")}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_expected")}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_actual")}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_diff")}
+                </th>
+                <th className="w-10" />
+              </tr>
+            </thead>
+            <tbody>
+              {closedShifts.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground text-sm">
+                    {t("shift_no_history")}
+                  </td>
+                </tr>
+              )}
+              {closedShifts.map((shift: any) => {
+                const durationMins = shift.durationMinutes ?? 0;
+                return (
+                  <tr
+                    key={shift.id}
+                    onClick={() => openDrawerForShift(shift)}
+                    className="border-b border-border/30 hover:bg-muted/30 cursor-pointer transition-colors active:bg-muted/50 group"
+                  >
+                    {/* Cashier */}
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-sm">{shift.userName || "—"}</p>
+                    </td>
+
+                    {/* Date + duration */}
+                    <td className="px-4 py-3">
+                      <p className="text-sm">
+                        {format(new Date(shift.openedAt), "dd/MM/yyyy")}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {new Date(shift.openedAt).toLocaleTimeString(
+                          lang === "ar" ? "ar-EG" : "en-US",
+                          { hour: "2-digit", minute: "2-digit", hour12: true }
+                        )}
+                        {durationMins > 0 && (
+                          <span className="ms-2 text-primary/70">{fmtDuration(durationMins)}</span>
+                        )}
+                      </p>
+                    </td>
+
+                    {/* Revenue */}
+                    <td className="px-4 py-3 text-end">
+                      {(shift.totalRevenue ?? 0) > 0 ? (
+                        <span className="font-mono font-bold text-emerald-500 text-sm tabular-nums">
+                          {(shift.totalRevenue ?? 0).toFixed(2)}
+                          <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">—</span>
+                      )}
+                    </td>
+
+                    {/* Expected */}
+                    <td className="px-4 py-3 text-end">
+                      <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                        {shift.expectedCash != null ? shift.expectedCash.toFixed(2) : "—"}
+                      </span>
+                    </td>
+
+                    {/* Actual */}
+                    <td className="px-4 py-3 text-end">
+                      <span className="font-mono text-sm tabular-nums">
+                        {shift.actualCash != null ? shift.actualCash.toFixed(2) : "—"}
+                      </span>
+                    </td>
+
+                    {/* Difference */}
+                    <td className="px-4 py-3 text-end">
+                      <DiffBadge value={shift.difference} egp={egp} />
+                    </td>
+
+                    {/* Arrow */}
+                    <td className="px-3 py-3">
+                      <ChevronRight className={cn(
+                        "h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors",
+                        lang === "ar" && "rotate-180"
+                      )} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* ── Detail Drawer ── */}
+      <ShiftDetailDrawer
+        shiftId={drawerShiftId}
+        initialTab={drawerInitTab}
+        shiftMeta={drawerMeta}
+        onClose={() => { setDrawerShiftId(null); setDrawerMeta(null); }}
+      />
     </div>
   );
 }
