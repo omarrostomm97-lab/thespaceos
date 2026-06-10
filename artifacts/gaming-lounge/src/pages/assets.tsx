@@ -292,8 +292,8 @@ function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t
 
 /* ─── Form state ─────────────────────────────────────── */
 
-interface FormState { nameAr: string; name: string; type: string; pricePerHour: string; }
-const EMPTY_FORM: FormState = { nameAr: "", name: "", type: "ps", pricePerHour: "" };
+interface FormState { nameAr: string; name: string; type: string; pricePerHour: string; capacity: string; imageUrl: string; }
+const EMPTY_FORM: FormState = { nameAr: "", name: "", type: "ps", pricePerHour: "", capacity: "", imageUrl: "" };
 
 /* ─── Page ───────────────────────────────────────────── */
 
@@ -339,7 +339,14 @@ export default function Assets() {
   const openAdd = () => { setEditingAsset(null); setForm(EMPTY_FORM); setErrors({}); setDialogOpen(true); };
   const openEdit = (asset: Asset) => {
     setEditingAsset(asset);
-    setForm({ nameAr: asset.nameAr ?? "", name: asset.name, type: asset.type, pricePerHour: String(asset.pricePerHour) });
+    setForm({
+      nameAr: asset.nameAr ?? "",
+      name: asset.name,
+      type: asset.type,
+      pricePerHour: String(asset.pricePerHour),
+      capacity: asset.capacity != null ? String(asset.capacity) : "",
+      imageUrl: (asset as any).imageUrl ?? "",
+    });
     setErrors({});
     setDialogOpen(true);
   };
@@ -358,12 +365,14 @@ export default function Assets() {
     if (!validate()) return;
     const price = parseFloat(form.pricePerHour);
     const nameValue = form.name.trim() || form.nameAr.trim();
+    const capacityVal = form.capacity.trim() ? parseInt(form.capacity) : undefined;
+    const imageUrlVal = form.imageUrl.trim() || undefined;
     try {
       if (editingAsset) {
-        await updateAsset.mutateAsync({ assetId: editingAsset.id, data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price } });
+        await updateAsset.mutateAsync({ assetId: editingAsset.id, data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price, capacity: capacityVal, imageUrl: imageUrlVal } as any });
         toast.success(t("device_updated"));
       } else {
-        await createAsset.mutateAsync({ data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price } });
+        await createAsset.mutateAsync({ data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price, capacity: capacityVal, imageUrl: imageUrlVal } as any });
         toast.success(t("device_added"));
       }
       queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey() });
@@ -603,6 +612,14 @@ export default function Assets() {
                 <Label htmlFor="pricePerHour">{t("price_per_hour_label")} <span className="text-destructive">{t("required")}</span></Label>
                 <Input id="pricePerHour" type="number" min="0" step="0.5" placeholder="30" value={form.pricePerHour} onChange={e => setForm(f => ({ ...f, pricePerHour: e.target.value }))} />
                 {errors.pricePerHour && <p className="text-xs text-destructive">{errors.pricePerHour}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="capacity">{t("asset_capacity_label")} <span className="text-muted-foreground text-xs">{t("device_name_en_hint")}</span></Label>
+                <Input id="capacity" type="number" min="1" step="1" placeholder="4" value={form.capacity} onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="imageUrl">{t("asset_image_url_label")} <span className="text-muted-foreground text-xs">{t("device_name_en_hint")}</span></Label>
+                <Input id="imageUrl" type="url" placeholder="https://..." value={form.imageUrl} onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))} />
               </div>
             </div>
             <DialogFooter className="gap-2 sm:gap-0">
