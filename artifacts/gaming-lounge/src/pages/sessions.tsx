@@ -76,18 +76,23 @@ interface SessionRowProps {
 function SessionListRow({ session, t, lang, egp, onPauseResume, onCheckout, pauseResumePending }: SessionRowProps) {
   const isPaused = session.status === "paused";
   const baseMinutes = session.currentMinutes as number;
-  const [extraSeconds, setExtraSeconds] = useState(0);
 
+  // Live seconds counter — only ticks when session is active (not paused).
+  // When isPaused becomes true, liveSeconds is reset to 0 and no interval is started,
+  // so the display is frozen at exactly the server-provided baseMinutes value and
+  // will NOT drift regardless of how many times the API polls and updates baseMinutes.
+  const [liveSeconds, setLiveSeconds] = useState(0);
   useEffect(() => {
-    setExtraSeconds(0);
-    if (isPaused) return;
-    const id = setInterval(() => setExtraSeconds(s => s + 1), 1000);
+    setLiveSeconds(0);          // reset whenever server data or pause state changes
+    if (isPaused) return;       // frozen — no interval for paused sessions
+    const id = setInterval(() => setLiveSeconds(s => s + 1), 1000);
     return () => clearInterval(id);
   }, [baseMinutes, isPaused]);
 
-  const totalSeconds = Math.round(baseMinutes * 60) + (isPaused ? 0 : extraSeconds);
+  const totalSeconds = Math.round(baseMinutes * 60) + liveSeconds; // liveSeconds = 0 when paused
   const displayHours = Math.floor(totalSeconds / 3600);
   const displayMins = Math.floor((totalSeconds % 3600) / 60);
+  const timerStr = `${displayHours.toString().padStart(2, "0")}:${displayMins.toString().padStart(2, "0")}`;
 
   const name = lang === "ar"
     ? (session.assetNameAr || session.assetName)
@@ -106,125 +111,179 @@ function SessionListRow({ session, t, lang, egp, onPauseResume, onCheckout, paus
     ? new Date(session.startedAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" })
     : "—";
 
-  return (
-    <div className={cn(
-      "card-base flex items-stretch overflow-hidden border-s-4",
-      isPaused ? "border-s-amber-500" : "border-s-emerald-500"
+  const statusBadge = (
+    <span className={cn(
+      "text-xs font-semibold px-2 py-0.5 rounded-full shrink-0",
+      isPaused ? "bg-amber-500/15 text-amber-500" : "bg-emerald-500/15 text-emerald-500"
     )}>
-      {/* Thumbnail */}
-      <div className="hidden sm:flex shrink-0 w-32 md:w-40 items-center justify-center overflow-hidden">
-        {imageUrl ? (
-          <img src={imageUrl} alt={name ?? ""} className="w-full h-full object-cover min-h-[110px]" />
-        ) : (
-          <div className={cn("w-full h-full bg-gradient-to-br min-h-[110px] flex items-center justify-center", getTypePlaceholderClass(rawType))}>
-            <Gamepad2 className="h-9 w-9 text-white/40" />
-          </div>
-        )}
-      </div>
+      {isPaused ? t("sessions_filter_paused") : t("sessions_in_play")}
+    </span>
+  );
 
-      {/* Room info */}
-      <div className="flex-1 min-w-0 p-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-bold text-base sm:text-lg leading-tight truncate max-w-[200px]">
-            {name || `Session #${session.id}`}
-          </span>
-          <span className={cn(
-            "text-xs font-semibold px-2 py-0.5 rounded-full shrink-0",
-            isPaused ? "bg-amber-500/15 text-amber-500" : "bg-emerald-500/15 text-emerald-500"
-          )}>
-            {isPaused ? t("sessions_filter_paused") : t("sessions_in_play")}
-          </span>
-          {undeliveredCount > 0 && (
-            <div className="flex items-center gap-1 bg-destructive/10 border border-destructive/20 rounded-full px-2 py-0.5 shrink-0">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-destructive" />
-              </span>
-              <ShoppingBag className="h-3 w-3 text-destructive" />
-              <span className="text-xs font-bold text-destructive">{undeliveredCount}</span>
+  const undeliveredBadge = undeliveredCount > 0 && (
+    <div className="flex items-center gap-1 bg-destructive/10 border border-destructive/20 rounded-full px-2 py-0.5 shrink-0">
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-destructive" />
+      </span>
+      <ShoppingBag className="h-3 w-3 text-destructive" />
+      <span className="text-xs font-bold text-destructive">{undeliveredCount}</span>
+    </div>
+  );
+
+  const pauseResumeBtn = isPaused ? (
+    <Button
+      size="sm"
+      className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs w-full"
+      onClick={() => onPauseResume("resume", session.id)}
+      disabled={pauseResumePending}
+    >
+      <Play className="h-3.5 w-3.5 me-1.5" />
+      {t("sessions_resume_btn")}
+    </Button>
+  ) : (
+    <Button
+      size="sm"
+      variant="secondary"
+      className="h-9 border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 font-semibold text-xs w-full"
+      onClick={() => onPauseResume("pause", session.id)}
+      disabled={pauseResumePending}
+    >
+      <Pause className="h-3.5 w-3.5 me-1.5" />
+      {t("sessions_pause_btn")}
+    </Button>
+  );
+
+  const endCheckoutBtn = (
+    <Button
+      size="sm"
+      variant="destructive"
+      className="h-9 font-semibold text-xs w-full"
+      onClick={() => onCheckout(session)}
+    >
+      <SquareSquare className="h-3.5 w-3.5 me-1.5" />
+      {t("sessions_end_checkout_btn")}
+    </Button>
+  );
+
+  const viewDetailsBtn = (
+    <Link href={`/sessions/${session.id}`} className="block w-full">
+      <Button size="sm" variant="outline" className="h-9 font-semibold text-xs w-full">
+        <Receipt className="h-3.5 w-3.5 me-1.5" />
+        {t("session_details_btn")}
+      </Button>
+    </Link>
+  );
+
+  return (
+    <div className={cn("card-base overflow-hidden border-s-4", isPaused ? "border-s-amber-500" : "border-s-emerald-500")}>
+
+      {/* ── Desktop / Tablet (≥ sm): horizontal flex row ── */}
+      <div className="hidden sm:flex items-stretch">
+        {/* Thumbnail */}
+        <div className="shrink-0 w-32 md:w-40 flex items-center justify-center overflow-hidden">
+          {imageUrl ? (
+            <img src={imageUrl} alt={name ?? ""} className="w-full h-full object-cover min-h-[110px]" />
+          ) : (
+            <div className={cn("w-full h-full bg-gradient-to-br min-h-[110px] flex items-center justify-center", getTypePlaceholderClass(rawType))}>
+              <Gamepad2 className="h-9 w-9 text-white/40" />
             </div>
           )}
         </div>
-        {typeLabel && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {typeLabel}{capacity ? ` • ${capacity} ${t("sessions_seats")}` : ""}
+
+        {/* Room info */}
+        <div className="flex-1 min-w-0 p-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-lg leading-tight truncate max-w-[200px]">
+              {name || `Session #${session.id}`}
+            </span>
+            {statusBadge}
+            {undeliveredBadge}
+          </div>
+          {typeLabel && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {typeLabel}{capacity ? ` • ${capacity} ${t("sessions_seats")}` : ""}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {t("sessions_started")} {startedTime}
           </p>
-        )}
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {t("sessions_started")} {startedTime}
-        </p>
-        {/* Mobile-only cost display */}
-        <p className="sm:hidden text-base font-bold text-emerald-500 tabular-nums mt-2">
-          {totalCost.toFixed(2)} <span className="text-xs">{egp}</span>
-        </p>
-        <p className="sm:hidden text-xs text-muted-foreground font-mono mt-0.5 tabular-nums">
-          {displayHours.toString().padStart(2, "0")}:{displayMins.toString().padStart(2, "0")}
-        </p>
+        </div>
+
+        {/* Elapsed time */}
+        <div className="hidden md:flex flex-col items-center justify-center px-5 border-s border-border/40 shrink-0 min-w-[90px]">
+          <Clock className="h-4 w-4 text-muted-foreground mb-1.5" />
+          <p className="text-2xl font-mono font-bold tracking-tight tabular-nums">{timerStr}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wide">{t("sessions_hr_label")}</p>
+        </div>
+
+        {/* Costs */}
+        <div className="flex flex-col items-end justify-center px-5 border-s border-border/40 shrink-0 min-w-[130px]">
+          <p className="text-2xl font-bold text-emerald-500 tabular-nums">
+            {totalCost.toFixed(2)}
+            <span className="text-xs text-emerald-500/70 ms-1">{egp}</span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-1.5">
+            {t("gaming_cost")}: <span className="font-semibold text-foreground">{currentCost.toFixed(2)}</span>
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {t("orders_cost")}: <span className="font-semibold text-foreground">{ordersCost.toFixed(2)}</span>
+          </p>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex flex-col gap-2 p-3 shrink-0 justify-center border-s border-border/40 min-w-[140px]">
+          {pauseResumeBtn}
+          {endCheckoutBtn}
+          {viewDetailsBtn}
+        </div>
       </div>
 
-      {/* Elapsed time */}
-      <div className="hidden md:flex flex-col items-center justify-center px-5 border-s border-border/40 shrink-0 min-w-[90px]">
-        <Clock className="h-4 w-4 text-muted-foreground mb-1.5" />
-        <p className="text-2xl font-mono font-bold tracking-tight tabular-nums">
-          {displayHours.toString().padStart(2, "0")}:{displayMins.toString().padStart(2, "0")}
-        </p>
-        <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wide">{t("sessions_hr_label")}</p>
+      {/* ── Mobile (< sm): stacked layout ── */}
+      <div className="sm:hidden p-4 space-y-3">
+        {/* Session info */}
+        <div>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="font-bold text-base leading-tight">{name || `Session #${session.id}`}</span>
+            {statusBadge}
+            {undeliveredBadge}
+          </div>
+          {typeLabel && (
+            <p className="text-xs text-muted-foreground">
+              {typeLabel}{capacity ? ` • ${capacity} ${t("sessions_seats")}` : ""}
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground mt-0.5">{t("sessions_started")} {startedTime}</p>
+        </div>
+
+        {/* Elapsed + total cost inline */}
+        <div className="flex items-center justify-between bg-secondary/40 rounded-lg px-3 py-2">
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">{t("sessions_hr_label")}</p>
+            <p className="text-xl font-mono font-bold tabular-nums">{timerStr}</p>
+          </div>
+          <div className="text-end">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-0.5">{t("total_cost_label")}</p>
+            <p className="text-xl font-bold text-emerald-500 tabular-nums">
+              {totalCost.toFixed(2)} <span className="text-xs">{egp}</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Gaming / orders cost breakdown */}
+        <div className="flex justify-between text-xs text-muted-foreground px-1">
+          <span>{t("gaming_cost")}: <span className="font-semibold text-foreground">{currentCost.toFixed(2)}</span></span>
+          <span>{t("orders_cost")}: <span className="font-semibold text-foreground">{ordersCost.toFixed(2)}</span></span>
+        </div>
+
+        {/* Full-width action buttons stacked vertically */}
+        <div className="space-y-2">
+          {pauseResumeBtn}
+          {endCheckoutBtn}
+          {viewDetailsBtn}
+        </div>
       </div>
 
-      {/* Costs */}
-      <div className="hidden sm:flex flex-col items-end justify-center px-5 border-s border-border/40 shrink-0 min-w-[130px]">
-        <p className="text-2xl font-bold text-emerald-500 tabular-nums">
-          {totalCost.toFixed(2)}
-          <span className="text-xs text-emerald-500/70 ms-1">{egp}</span>
-        </p>
-        <p className="text-xs text-muted-foreground mt-1.5">
-          {t("gaming_cost")}: <span className="font-semibold text-foreground">{currentCost.toFixed(2)}</span>
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {t("orders_cost")}: <span className="font-semibold text-foreground">{ordersCost.toFixed(2)}</span>
-        </p>
-      </div>
-
-      {/* Actions */}
-      <div className="flex flex-col gap-2 p-3 shrink-0 justify-center border-s border-border/40">
-        {isPaused ? (
-          <Button
-            size="sm"
-            className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3 min-w-[120px]"
-            onClick={() => onPauseResume("resume", session.id)}
-            disabled={pauseResumePending}
-          >
-            <Play className="h-3.5 w-3.5 me-1.5" />
-            {t("sessions_resume_btn")}
-          </Button>
-        ) : (
-          <Button
-            size="sm"
-            variant="secondary"
-            className="h-9 border border-amber-500/30 text-amber-500 hover:bg-amber-500/10 font-semibold text-xs px-3 min-w-[120px]"
-            onClick={() => onPauseResume("pause", session.id)}
-            disabled={pauseResumePending}
-          >
-            <Pause className="h-3.5 w-3.5 me-1.5" />
-            {t("sessions_pause_btn")}
-          </Button>
-        )}
-        <Button
-          size="sm"
-          variant="destructive"
-          className="h-9 font-semibold text-xs px-3"
-          onClick={() => onCheckout(session)}
-        >
-          <SquareSquare className="h-3.5 w-3.5 me-1.5" />
-          {t("sessions_end_checkout_btn")}
-        </Button>
-        <Link href={`/sessions/${session.id}`}>
-          <Button size="sm" variant="outline" className="h-9 font-semibold text-xs px-3 w-full">
-            <Receipt className="h-3.5 w-3.5 me-1.5" />
-            {t("session_details_btn")}
-          </Button>
-        </Link>
-      </div>
     </div>
   );
 }
