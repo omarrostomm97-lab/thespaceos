@@ -12,6 +12,8 @@ export const assetsTable = pgTable("assets", {
   pricePerHour: numeric("price_per_hour", { precision: 10, scale: 2 }).notNull(),
   status: text("status").notNull().default("available"),
   qrToken: text("qr_token").unique(),
+  capacity: integer("capacity"),
+  imageUrl: text("image_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

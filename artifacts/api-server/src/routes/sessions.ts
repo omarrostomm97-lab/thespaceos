@@ -38,14 +38,23 @@ function calcMinutes(startedAt: Date, pausedAt: Date | null, endedAt: Date | nul
 }
 
 async function formatSession(s: typeof sessionsTable.$inferSelect, includeNames = true) {
-  let assetName = null, assetNameAr = null, userName = null, pricePerHour = 0;
+  let assetName = null, assetNameAr = null, assetType = null, assetCapacity = null, assetImageUrl = null, userName = null, pricePerHour = 0;
   if (includeNames) {
-    const [asset] = await db.select({ name: assetsTable.name, nameAr: assetsTable.nameAr, pricePerHour: assetsTable.pricePerHour })
-      .from(assetsTable).where(eq(assetsTable.id, s.assetId)).limit(1);
+    const [asset] = await db.select({
+      name: assetsTable.name,
+      nameAr: assetsTable.nameAr,
+      pricePerHour: assetsTable.pricePerHour,
+      type: assetsTable.type,
+      capacity: assetsTable.capacity,
+      imageUrl: assetsTable.imageUrl,
+    }).from(assetsTable).where(eq(assetsTable.id, s.assetId)).limit(1);
     const [user] = await db.select({ name: usersTable.name })
       .from(usersTable).where(eq(usersTable.id, s.userId)).limit(1);
     assetName = asset?.name ?? null;
     assetNameAr = asset?.nameAr ?? null;
+    assetType = asset?.type ?? null;
+    assetCapacity = asset?.capacity ?? null;
+    assetImageUrl = asset?.imageUrl ?? null;
     userName = user?.name ?? null;
     pricePerHour = asset ? parseFloat(asset.pricePerHour as string) : 0;
   }
@@ -54,6 +63,9 @@ async function formatSession(s: typeof sessionsTable.$inferSelect, includeNames 
     assetId: s.assetId,
     assetName,
     assetNameAr,
+    assetType,
+    assetCapacity,
+    assetImageUrl,
     userId: s.userId,
     userName,
     status: s.status,
