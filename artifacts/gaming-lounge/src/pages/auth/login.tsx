@@ -13,6 +13,8 @@ import * as z from "zod";
 import { motion } from "framer-motion";
 import { LogoImg } from "@/components/logo-img";
 
+const LOGO = `${import.meta.env.BASE_URL}the-space-os-logo.png`;
+
 type LoginForm = { email: string; password: string };
 
 export default function Login() {
@@ -97,8 +99,16 @@ export default function Login() {
         }}
       >
         <div className="flex flex-col items-center text-center space-y-3">
-          <LogoImg variant="adaptive" height={112} className="mb-1" />
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("login_system")}</h1>
+          <div
+            className="mb-2 inline-flex items-center justify-center dark:bg-[#eceff8] dark:rounded-2xl dark:shadow-md"
+            style={{ padding: "8px 20px" }}
+          >
+            <img
+              src={LOGO}
+              alt="The Space OS"
+              style={{ height: 160, width: "auto", objectFit: "contain" }}
+            />
+          </div>
           <p className="text-muted-foreground">{t("login_subtitle")}</p>
         </div>
 

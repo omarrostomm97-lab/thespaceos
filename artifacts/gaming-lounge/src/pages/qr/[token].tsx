@@ -268,18 +268,8 @@ export default function QrMenu() {
             transition={{ delay: 0.1 }}
             className="text-4xl font-black tracking-tight text-white leading-none mb-1"
           >
-            {asset.nameAr || asset.name}
+            {asset.name}
           </motion.h1>
-          {asset.nameAr && (
-            <motion.p
-              initial={{ y: -8, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.15 }}
-              className="text-gray-500 text-sm"
-            >
-              {asset.name}
-            </motion.p>
-          )}
 
           {/* Search bar */}
           <motion.div
@@ -405,7 +395,7 @@ export default function QrMenu() {
                 <section key={cat.id}>
                   <div className="flex items-center gap-3 mb-4 px-1">
                     <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-[#a78bfa]">
-                      {cat.nameAr || cat.name}
+                      {cat.name}
                     </h2>
                     <div className="flex-1 h-px bg-[#7c3aed]/15" />
                     <span className="text-[10px] text-gray-700 tabular-nums">{catProds.length}</span>

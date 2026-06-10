@@ -53,12 +53,12 @@ export function LogoImg({
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
-          background: "rgba(255,255,255,0.95)",
+          background: "rgba(236, 238, 245, 0.97)",
           borderRadius: radius,
           padding: `${padV}px ${padH}px`,
           boxShadow:
             height >= 40
-              ? "0 2px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.5)"
+              ? "0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.6)"
               : undefined,
         }
       : {
@@ -71,8 +71,8 @@ export function LogoImg({
   const adaptiveClass =
     variant === "adaptive"
       ? height >= 80
-        ? "dark:bg-white/95 dark:rounded-2xl dark:shadow-lg dark:px-5 dark:py-3"
-        : "dark:bg-white/95 dark:rounded-xl dark:shadow-md dark:px-3 dark:py-1.5"
+        ? "dark:bg-[#eceff8] dark:rounded-2xl dark:shadow-md dark:px-5 dark:py-3"
+        : "dark:bg-[#eceff8] dark:rounded-xl dark:shadow dark:px-3 dark:py-1.5"
       : "";
 
   return (
