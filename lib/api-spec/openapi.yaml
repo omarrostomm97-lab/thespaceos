@@ -4139,6 +4139,8 @@ components:
           enum: [daily, weekly, monthly]
         autoApply:
           type: boolean
+        deductFromShift:
+          type: boolean
         isActive:
           type: boolean
         notes:
@@ -4168,6 +4170,8 @@ components:
           type: string
           enum: [daily, weekly, monthly]
         autoApply:
+          type: boolean
+        deductFromShift:
           type: boolean
         isActive:
           type: boolean

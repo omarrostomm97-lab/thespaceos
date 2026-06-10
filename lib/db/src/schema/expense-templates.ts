@@ -14,6 +14,7 @@ export const expenseTemplatesTable = pgTable("expense_templates", {
   paymentMethod: text("payment_method").default("cash"),
   frequency: text("frequency").notNull().default("daily"),
   autoApply: boolean("auto_apply").notNull().default(false),
+  deductFromShift: boolean("deduct_from_shift").notNull().default(true),
   isActive: boolean("is_active").notNull().default(true),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

@@ -28,6 +28,7 @@ export interface ExpenseTemplate {
   paymentMethod?: string | null;
   frequency: ExpenseTemplateFrequency;
   autoApply: boolean;
+  deductFromShift?: boolean;
   isActive: boolean;
   /** @nullable */
   notes?: string | null;

@@ -58,6 +58,7 @@ export default function FinanceExpenses() {
   const [tmplPayMethod, setTmplPayMethod] = useState("cash");
   const [tmplFreq, setTmplFreq] = useState<"daily" | "weekly" | "monthly">("daily");
   const [tmplAutoApply, setTmplAutoApply] = useState(false);
+  const [tmplDeductShift, setTmplDeductShift] = useState(true);
   const [tmplIsActive, setTmplIsActive] = useState(true);
   const [tmplNotes, setTmplNotes] = useState("");
 
@@ -140,7 +141,7 @@ export default function FinanceExpenses() {
   const resetTmplForm = () => {
     setTmplTitle(""); setTmplTitleAr(""); setTmplAmount("");
     setTmplCatId(""); setTmplPayMethod("cash"); setTmplFreq("daily");
-    setTmplAutoApply(false); setTmplIsActive(true); setTmplNotes("");
+    setTmplAutoApply(false); setTmplDeductShift(true); setTmplIsActive(true); setTmplNotes("");
     setEditingTmpl(null);
   };
 
@@ -155,6 +156,7 @@ export default function FinanceExpenses() {
     setTmplPayMethod(tmpl.paymentMethod ?? "cash");
     setTmplFreq((tmpl.frequency as "daily" | "weekly" | "monthly") ?? "daily");
     setTmplAutoApply(tmpl.autoApply);
+    setTmplDeductShift(tmpl.deductFromShift);
     setTmplIsActive(tmpl.isActive);
     setTmplNotes(tmpl.notes ?? "");
     setTmplOpen(true);
@@ -170,6 +172,7 @@ export default function FinanceExpenses() {
       paymentMethod: tmplPayMethod,
       frequency: tmplFreq,
       autoApply: tmplAutoApply,
+      deductFromShift: tmplDeductShift,
       isActive: tmplIsActive,
       notes: tmplNotes || null,
     };
@@ -610,6 +613,13 @@ export default function FinanceExpenses() {
               <div>
                 <p className="text-sm font-medium">{t("tmpl_auto_apply_label")}</p>
                 <p className="text-xs text-muted-foreground">{t("tmpl_auto_apply_hint")}</p>
+              </div>
+            </label>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" checked={tmplDeductShift} onChange={e => setTmplDeductShift(e.target.checked)} className="mt-0.5 accent-primary" />
+              <div>
+                <p className="text-sm font-medium">{t("expense_deduct_shift")}</p>
+                <p className="text-xs text-muted-foreground">{t("expense_deduct_shift_hint")}</p>
               </div>
             </label>
             <label className="flex items-center gap-2.5 cursor-pointer">

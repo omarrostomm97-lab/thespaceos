@@ -419,7 +419,7 @@ router.post("/finance/transactions", requireAuth, requireTenant, async (req, res
   try {
     const tenantId = req.user!.tenantId!;
     const userId = req.user!.id;
-    const { type, categoryId, accountId, title, description, amount, transactionDate, paymentMethod, status, referenceType, referenceId, vendorName, notes } = req.body;
+    const { type, categoryId, accountId, title, description, amount, transactionDate, paymentMethod, status, referenceType, referenceId, vendorName, notes, templateId, deductFromShift, shiftId } = req.body;
     if (!type || !amount) { res.status(400).json({ error: "type and amount are required" }); return; }
 
     // Auto-generate title if missing
@@ -447,6 +447,9 @@ router.post("/finance/transactions", requireAuth, requireTenant, async (req, res
         referenceId: referenceId ? String(referenceId) : null,
         vendorName: vendorName ?? null,
         notes: notes ?? null,
+        templateId: templateId ?? null,
+        deductFromShift: deductFromShift === true,
+        shiftId: shiftId ?? null,
         createdByUserId: userId,
       })
       .returning();
@@ -919,6 +922,7 @@ router.get("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, as
         paymentMethod: expenseTemplatesTable.paymentMethod,
         frequency: expenseTemplatesTable.frequency,
         autoApply: expenseTemplatesTable.autoApply,
+        deductFromShift: expenseTemplatesTable.deductFromShift,
         isActive: expenseTemplatesTable.isActive,
         notes: expenseTemplatesTable.notes,
         createdAt: expenseTemplatesTable.createdAt,
@@ -942,7 +946,7 @@ router.get("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, as
 router.post("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const { title, titleAr, amount, categoryId, paymentMethod, frequency, autoApply, isActive, notes } = req.body;
+    const { title, titleAr, amount, categoryId, paymentMethod, frequency, autoApply, deductFromShift, isActive, notes } = req.body;
     if (!title || amount === undefined) {
       res.status(400).json({ error: "title and amount are required" }); return;
     }
@@ -955,6 +959,7 @@ router.post("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, a
       paymentMethod: paymentMethod ?? "cash",
       frequency: frequency ?? "daily",
       autoApply: autoApply ?? false,
+      deductFromShift: deductFromShift !== false,
       isActive: isActive !== undefined ? isActive : true,
       notes: notes ?? null,
     }).returning();
@@ -969,11 +974,11 @@ router.put("/finance/expense-templates/:templateId", requireAuth, requireTenant,
   try {
     const tenantId = req.user!.tenantId!;
     const templateId = parseInt(req.params.templateId);
-    const { title, titleAr, amount, categoryId, paymentMethod, frequency, autoApply, isActive, notes } = req.body;
     const [existing] = await db.select().from(expenseTemplatesTable)
       .where(and(eq(expenseTemplatesTable.id, templateId), eq(expenseTemplatesTable.tenantId, tenantId)))
       .limit(1);
     if (!existing) { res.status(404).json({ error: "Template not found" }); return; }
+    const { title, titleAr, amount, categoryId, paymentMethod, frequency, autoApply, deductFromShift, isActive, notes } = req.body;
     const updates: Record<string, unknown> = { updatedAt: new Date() };
     if (title !== undefined) updates.title = title;
     if (titleAr !== undefined) updates.titleAr = titleAr;
@@ -982,6 +987,7 @@ router.put("/finance/expense-templates/:templateId", requireAuth, requireTenant,
     if (paymentMethod !== undefined) updates.paymentMethod = paymentMethod;
     if (frequency !== undefined) updates.frequency = frequency;
     if (autoApply !== undefined) updates.autoApply = autoApply;
+    if (deductFromShift !== undefined) updates.deductFromShift = deductFromShift;
     if (isActive !== undefined) updates.isActive = isActive;
     if (notes !== undefined) updates.notes = notes;
     const [updated] = await db.update(expenseTemplatesTable).set(updates as any)

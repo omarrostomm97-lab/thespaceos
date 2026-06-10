@@ -211,8 +211,8 @@ router.post("/shifts", requireAuth, requireTenant, CASHIER_UP, async (req, res) 
             paymentMethod: tmpl.paymentMethod ?? "cash",
             status: "paid",
             templateId: tmpl.id,
-            deductFromShift: true,
-            shiftId: shift.id,
+            deductFromShift: tmpl.deductFromShift,
+            shiftId: tmpl.deductFromShift ? shift.id : null,
             createdByUserId: req.user!.id,
             transactionDate: new Date(),
           });
@@ -239,7 +239,7 @@ router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, as
       .limit(1);
     if (!shift || shift.status !== "open") { res.status(400).json({ error: "Shift not open" }); return; }
 
-    const [cashPayments, withdrawalRows] = await Promise.all([
+    const [cashPayments, withdrawalRows, shiftExpenseRows] = await Promise.all([
       db.select({ amount: paymentsTable.amount })
         .from(paymentsTable)
         .where(and(
@@ -255,13 +255,22 @@ router.post("/shifts/:shiftId/close", requireAuth, requireTenant, CASHIER_UP, as
           eq(financeTransactionsTable.type, "owner_withdrawal"),
           gte(financeTransactionsTable.createdAt, shift.openedAt)
         )),
+      db.select({ amount: financeTransactionsTable.amount })
+        .from(financeTransactionsTable)
+        .where(and(
+          eq(financeTransactionsTable.tenantId, req.user!.tenantId!),
+          eq(financeTransactionsTable.type, "expense"),
+          eq(financeTransactionsTable.deductFromShift, true),
+          gte(financeTransactionsTable.createdAt, shift.openedAt)
+        )),
     ]);
 
     const cashTotal = cashPayments.reduce((s, p) => s + parseFloat(p.amount as string), 0);
     const withdrawalTotal = withdrawalRows.reduce((s, w) => s + parseFloat(w.amount as string), 0);
+    const shiftExpensesTotal = shiftExpenseRows.reduce((s, e) => s + parseFloat(e.amount as string), 0);
     const opening = parseFloat(shift.openingCash as string);
     const grossCash = opening + cashTotal;
-    const expectedCash = grossCash - withdrawalTotal;
+    const expectedCash = grossCash - withdrawalTotal - shiftExpensesTotal;
     const difference = parseFloat(String(actualCash)) - expectedCash;
 
     const [updated] = await db.update(shiftsTable).set({

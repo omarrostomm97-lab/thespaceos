@@ -2549,6 +2549,7 @@ export const ListExpenseTemplatesResponseItem = zod.object({
   "paymentMethod": zod.string().nullish(),
   "frequency": zod.enum(['daily', 'weekly', 'monthly']),
   "autoApply": zod.boolean(),
+  "deductFromShift": zod.boolean().optional(),
   "isActive": zod.boolean(),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
@@ -2568,6 +2569,7 @@ export const CreateExpenseTemplateBody = zod.object({
   "paymentMethod": zod.string().nullish(),
   "frequency": zod.enum(['daily', 'weekly', 'monthly']).optional(),
   "autoApply": zod.boolean().optional(),
+  "deductFromShift": zod.boolean().optional(),
   "isActive": zod.boolean().optional(),
   "notes": zod.string().nullish()
 })
@@ -2588,6 +2590,7 @@ export const UpdateExpenseTemplateBody = zod.object({
   "paymentMethod": zod.string().nullish(),
   "frequency": zod.enum(['daily', 'weekly', 'monthly']).optional(),
   "autoApply": zod.boolean().optional(),
+  "deductFromShift": zod.boolean().optional(),
   "isActive": zod.boolean().optional(),
   "notes": zod.string().nullish()
 })
@@ -2606,6 +2609,7 @@ export const UpdateExpenseTemplateResponse = zod.object({
   "paymentMethod": zod.string().nullish(),
   "frequency": zod.enum(['daily', 'weekly', 'monthly']),
   "autoApply": zod.boolean(),
+  "deductFromShift": zod.boolean().optional(),
   "isActive": zod.boolean(),
   "notes": zod.string().nullish(),
   "createdAt": zod.coerce.date(),
