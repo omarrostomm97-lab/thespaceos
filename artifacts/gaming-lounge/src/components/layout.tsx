@@ -165,13 +165,24 @@ export function Layout({ children }: LayoutProps) {
         />
 
         {/* ── Brand ── */}
-        <div className="relative px-5 pt-6 pb-5 shrink-0">
-          <div className="flex flex-col gap-1">
-            <img
-              src={LOGO}
-              alt="The Space OS"
-              style={{ height: 32, width: "auto", objectFit: "contain", objectPosition: "left center" }}
-            />
+        <div className="relative px-5 pt-6 pb-4 shrink-0">
+          <div className="flex flex-col gap-2">
+            <div
+              style={{
+                display: "inline-flex",
+                alignSelf: "flex-start",
+                background: "rgba(255,255,255,0.96)",
+                borderRadius: 12,
+                padding: "6px 12px",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.6)",
+              }}
+            >
+              <img
+                src={LOGO}
+                alt="The Space OS"
+                style={{ height: 44, width: "auto", objectFit: "contain", objectPosition: "left center" }}
+              />
+            </div>
             <p className="text-[10px] font-medium tracking-wide" style={{ color: "var(--sb-text-inactive)" }}>
               {t("brand_subtitle")}
             </p>

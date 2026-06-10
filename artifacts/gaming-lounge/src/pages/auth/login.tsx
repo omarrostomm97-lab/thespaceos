@@ -97,13 +97,14 @@ export default function Login() {
           boxShadow: "var(--shadow-card)",
         }}
       >
-        <div className="flex flex-col items-center text-center space-y-2">
-          <img
-            src={LOGO}
-            alt="The Space OS"
-            className="mb-2"
-            style={{ height: 64, width: "auto", objectFit: "contain" }}
-          />
+        <div className="flex flex-col items-center text-center space-y-3">
+          <div className="mb-1 rounded-2xl px-6 py-4 bg-transparent dark:bg-white/95 dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] transition-all duration-300">
+            <img
+              src={LOGO}
+              alt="The Space OS"
+              style={{ height: 112, width: "auto", objectFit: "contain" }}
+            />
+          </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("login_system")}</h1>
           <p className="text-muted-foreground">{t("login_subtitle")}</p>
         </div>

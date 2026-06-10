@@ -241,7 +241,7 @@ export default function PrintQrPage() {
             <img
               src={`${import.meta.env.BASE_URL}the-space-os-logo.png`}
               alt="The Space OS"
-              style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover" }}
+              style={{ height: 40, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }}
             />
           </div>
 

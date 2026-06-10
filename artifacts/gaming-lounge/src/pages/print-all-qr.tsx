@@ -96,7 +96,7 @@ function QrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: string; venu
         display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
       }}>
         <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 9, letterSpacing: "0.08em" }}>POWERED BY</span>
-        <img src={LOGO} alt="The Space OS" style={{ width: 44, height: 44, borderRadius: 9, objectFit: "cover" }} />
+        <img src={LOGO} alt="The Space OS" style={{ height: 36, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
       </div>
     </div>
   );
@@ -186,7 +186,7 @@ function CompactQrCard({ asset, qrUrl, venueName }: { asset: Asset; qrUrl: strin
         display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
       }}>
         <span style={{ color: "rgba(255,255,255,0.35)", fontSize: 7, letterSpacing: "0.08em" }}>POWERED BY</span>
-        <img src={LOGO} alt="The Space OS" style={{ width: 28, height: 28, borderRadius: 6, objectFit: "cover" }} />
+        <img src={LOGO} alt="The Space OS" style={{ height: 22, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
       </div>
     </div>
   );

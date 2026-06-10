@@ -44,7 +44,7 @@ export default function PublicMenuPage() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center gap-4">
         <div className="h-16 w-16 rounded-full border-4 border-[#7c3aed]/30 border-t-[#7c3aed] animate-spin" />
-        <img src={LOGO_FULL} alt="The Space OS" style={{ height: 22, width: "auto", objectFit: "contain", opacity: 0.7 }} />
+        <img src={LOGO_FULL} alt="The Space OS" style={{ height: 40, width: "auto", objectFit: "contain", opacity: 0.85, filter: "brightness(0) invert(1)" }} />
         <p className="text-[#7c3aed]/70 text-sm tracking-widest uppercase">Loading Menu</p>
       </div>
     );
@@ -54,7 +54,7 @@ export default function PublicMenuPage() {
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex flex-col items-center justify-center gap-6 p-8 text-center">
         <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-8 max-w-sm">
-          <img src={LOGO_FULL} alt="The Space OS" className="mx-auto mb-4" style={{ height: 32, width: "auto", objectFit: "contain" }} />
+          <img src={LOGO_FULL} alt="The Space OS" className="mx-auto mb-4" style={{ height: 52, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
           <h1 className="text-xl font-bold text-white mb-2">Menu Not Found</h1>
           <p className="text-gray-500 text-sm">This QR code is invalid or the menu is no longer available.</p>
         </div>
@@ -71,8 +71,8 @@ export default function PublicMenuPage() {
       <header className="sticky top-0 z-30 bg-[#0a0a0f]/95 backdrop-blur-xl border-b border-white/5">
         <div className="px-4 pt-5 pb-3">
           <div className="flex items-center gap-3 mb-4">
-            <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/30 rounded-xl p-2 flex items-center justify-center">
-              <img src={LOGO_FULL} alt="The Space OS" style={{ height: 22, width: "auto", objectFit: "contain" }} />
+            <div className="bg-[#7c3aed]/10 border border-[#7c3aed]/30 rounded-xl p-2.5 flex items-center justify-center">
+              <img src={LOGO_FULL} alt="The Space OS" style={{ height: 36, width: "auto", objectFit: "contain", filter: "brightness(0) invert(1)" }} />
             </div>
             <div>
               <h1 className="font-bold text-lg leading-tight text-white">{tenant.name}</h1>
@@ -201,7 +201,7 @@ export default function PublicMenuPage() {
           <div className="h-3 w-px bg-white/10" />
           <div className="flex items-center gap-1.5">
             <span className="text-[10px] text-gray-700 uppercase tracking-[0.15em]">Powered by</span>
-            <img src={LOGO_FULL} alt="The Space OS" className="h-5 w-auto object-contain opacity-60 rounded" />
+            <img src={LOGO_FULL} alt="The Space OS" className="w-auto object-contain opacity-70 rounded" style={{ height: 28, filter: "brightness(0) invert(1)" }} />
           </div>
         </div>
       </footer>
