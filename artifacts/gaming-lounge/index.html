@@ -12,26 +12,34 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Space OS" />
     <meta name="twitter:description" content="Manage sessions, bookings, orders, staff, shifts, payments, and reports — all in one platform." />
-    <link rel="icon" type="image/png" sizes="any" href="%BASE_URL%the-space-os-logo.png" />
-    <link rel="apple-touch-icon" href="%BASE_URL%the-space-os-logo.png" />
+    <link rel="icon" id="favicon-link" type="image/png" sizes="any" href="%BASE_URL%the-space-os-icon.png" />
+    <link rel="apple-touch-icon" href="%BASE_URL%the-space-os-icon.png" />
     <script>
       (function () {
-        var canvas = document.createElement('canvas');
-        canvas.width = 256; canvas.height = 256;
-        var ctx = canvas.getContext('2d');
-        var img = new Image();
-        img.onload = function () {
-          ctx.fillStyle = '#ffffff';
-          ctx.fillRect(0, 0, 256, 256);
-          var scale = Math.min(216 / img.naturalWidth, 216 / img.naturalHeight);
-          var w = img.naturalWidth * scale;
-          var h = img.naturalHeight * scale;
-          ctx.drawImage(img, (256 - w) / 2, (256 - h) / 2, w, h);
-          var link = document.querySelector('link[rel="icon"]');
-          if (link) link.href = canvas.toDataURL('image/png');
-        };
-        img.crossOrigin = 'anonymous';
-        img.src = '%BASE_URL%the-space-os-logo.png';
+        var src = '%BASE_URL%the-space-os-icon.png';
+        function applyFavicon(darkMode) {
+          var canvas = document.createElement('canvas');
+          canvas.width = 256; canvas.height = 256;
+          var ctx = canvas.getContext('2d');
+          var img = new Image();
+          img.onload = function () {
+            if (darkMode) {
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, 256, 256);
+            }
+            var scale = Math.min(220 / img.naturalWidth, 220 / img.naturalHeight);
+            var w = img.naturalWidth * scale;
+            var h = img.naturalHeight * scale;
+            ctx.drawImage(img, (256 - w) / 2, (256 - h) / 2, w, h);
+            var link = document.getElementById('favicon-link');
+            if (link) link.href = canvas.toDataURL('image/png');
+          };
+          img.crossOrigin = 'anonymous';
+          img.src = src;
+        }
+        var mq = window.matchMedia('(prefers-color-scheme: dark)');
+        applyFavicon(mq.matches);
+        mq.addEventListener('change', function (e) { applyFavicon(e.matches); });
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
