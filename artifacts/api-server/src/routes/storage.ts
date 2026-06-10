@@ -1,77 +1,59 @@
 import { Router, type IRouter, type Request, type Response } from "express";
-import { Readable } from "stream";
-import {
-  RequestUploadUrlBody,
-  RequestUploadUrlResponse,
-} from "@workspace/api-zod";
-import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
+import express from "express";
+import multer from "multer";
+import path from "path";
+import { randomUUID } from "crypto";
+import { getUploadsDir } from "../lib/objectStorage";
 import { requireAuth, requireTenant, requireRole } from "../lib/auth";
 
 const router: IRouter = Router();
-const objectStorageService = new ObjectStorageService();
 const MGMT = requireRole("platform_owner", "owner", "manager");
 
-/**
- * POST /storage/uploads/request-url
- *
- * Request a presigned URL for file upload.
- * The client sends JSON metadata (name, size, contentType) — NOT the file.
- * Then uploads the file directly to the returned presigned URL.
- */
-router.post("/storage/uploads/request-url", requireAuth, requireTenant, MGMT, async (req: Request, res: Response) => {
-  const parsed = RequestUploadUrlBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Missing or invalid required fields" });
-    return;
-  }
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, getUploadsDir()),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
+    cb(null, `${randomUUID()}${ext}`);
+  },
+});
 
-  try {
-    const { name, size, contentType } = parsed.data;
-    const { uploadURL, objectPath } = await objectStorageService.getObjectEntityUploadURL();
-
-    res.json(
-      RequestUploadUrlResponse.parse({
-        uploadURL,
-        objectPath,
-        metadata: { name, size, contentType },
-      }),
-    );
-  } catch (error) {
-    req.log.error({ err: error }, "Error generating upload URL");
-    res.status(500).json({ error: "Failed to generate upload URL" });
-  }
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) cb(null, true);
+    else cb(new Error("Only image files are allowed"));
+  },
 });
 
 /**
- * GET /storage/objects/*
- *
- * Serve private object entities from R2 bucket.
+ * POST /storage/uploads
+ * Accepts a multipart/form-data request with a single "file" field.
+ * Saves the file to UPLOADS_DIR and returns the serving URL.
  */
-router.get("/storage/objects/*path", async (req: Request, res: Response) => {
-  try {
-    const raw = req.params.path;
-    const wildcardPath = Array.isArray(raw) ? raw.join("/") : raw;
-    const objectPath = `/objects/${wildcardPath}`;
-    const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
-    const response = await objectStorageService.downloadObject(objectFile);
-
-    res.status(response.status);
-    response.headers.forEach((value, key) => res.setHeader(key, value));
-
-    if (response.body) {
-      const nodeStream = Readable.fromWeb(response.body as ReadableStream<Uint8Array>);
-      nodeStream.pipe(res);
-    } else {
-      res.end();
-    }
-  } catch (error) {
-    if (error instanceof ObjectNotFoundError) {
-      res.status(404).json({ error: "Object not found" });
+router.post(
+  "/storage/uploads",
+  requireAuth,
+  requireTenant,
+  MGMT,
+  upload.single("file"),
+  (req: Request, res: Response) => {
+    if (!req.file) {
+      res.status(400).json({ error: "No file uploaded" });
       return;
     }
-    req.log.error({ err: error }, "Error serving object");
-    res.status(500).json({ error: "Failed to serve object" });
+    const imageUrl = `/api/storage/uploads/${req.file.filename}`;
+    res.json({ imageUrl });
   }
-});
+);
+
+/**
+ * GET /storage/uploads/:filename
+ * Serve uploaded files from UPLOADS_DIR.
+ */
+router.use("/storage/uploads", express.static(getUploadsDir(), {
+  maxAge: "7d",
+  fallthrough: false,
+}));
 
 export default router;

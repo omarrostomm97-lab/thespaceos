@@ -346,23 +346,16 @@ export default function Assets() {
     setPhotoUploadError(null);
     try {
       const token = typeof localStorage !== "undefined" ? localStorage.getItem("gl_token") : null;
-      const urlRes = await fetch("/api/storage/uploads/request-url", {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/storage/uploads", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type || "image/jpeg" }),
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: formData,
       });
-      if (!urlRes.ok) throw new Error("Failed to get upload URL");
-      const { uploadURL, objectPath } = await urlRes.json();
-      const putRes = await fetch(uploadURL, {
-        method: "PUT",
-        headers: { "Content-Type": file.type || "image/jpeg" },
-        body: file,
-      });
-      if (!putRes.ok) throw new Error("Upload failed");
-      setForm(f => ({ ...f, imageUrl: `/api/storage${objectPath}` }));
+      if (!res.ok) throw new Error("Upload failed");
+      const { imageUrl } = await res.json();
+      setForm(f => ({ ...f, imageUrl }));
     } catch {
       setPhotoUploadError(t("asset_upload_error"));
     } finally {
