@@ -1013,7 +1013,7 @@ router.post("/finance/expense-templates", requireAuth, requireTenant, MGMT_UP, a
 router.patch("/finance/expense-templates/:templateId", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const templateId = parseInt(req.params.templateId);
+    const templateId = parseInt(req.params.templateId as string);
     const [existing] = await db.select().from(expenseTemplatesTable)
       .where(and(eq(expenseTemplatesTable.id, templateId), eq(expenseTemplatesTable.tenantId, tenantId)))
       .limit(1);
@@ -1045,7 +1045,7 @@ router.post("/finance/expense-templates/:templateId/apply", requireAuth, require
   try {
     const tenantId = req.user!.tenantId!;
     const userId = req.user!.id;
-    const templateId = parseInt(req.params.templateId);
+    const templateId = parseInt(req.params.templateId as string);
     const [tmpl] = await db.select().from(expenseTemplatesTable)
       .where(and(eq(expenseTemplatesTable.id, templateId), eq(expenseTemplatesTable.tenantId, tenantId)))
       .limit(1);
@@ -1089,7 +1089,7 @@ router.post("/finance/expense-templates/:templateId/apply", requireAuth, require
 router.delete("/finance/expense-templates/:templateId", requireAuth, requireTenant, MGMT_UP, async (req, res) => {
   try {
     const tenantId = req.user!.tenantId!;
-    const templateId = parseInt(req.params.templateId);
+    const templateId = parseInt(req.params.templateId as string);
     const [existing] = await db.select().from(expenseTemplatesTable)
       .where(and(eq(expenseTemplatesTable.id, templateId), eq(expenseTemplatesTable.tenantId, tenantId)))
       .limit(1);

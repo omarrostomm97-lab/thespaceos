@@ -178,7 +178,7 @@ router.get("/discounts", requireAuth, requireTenant, MGMT, async (req, res) => {
 // GET /discounts/session/:sessionId
 router.get("/discounts/session/:sessionId", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
-    const sessionId = parseInt(req.params.sessionId);
+    const sessionId = parseInt(req.params.sessionId as string);
     const rows = await db.select().from(discountRequestsTable)
       .where(and(
         eq(discountRequestsTable.sessionId, sessionId),
@@ -194,7 +194,7 @@ router.get("/discounts/session/:sessionId", requireAuth, requireTenant, CASHIER_
 // GET /discounts/order/:orderId
 router.get("/discounts/order/:orderId", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
-    const orderId = parseInt(req.params.orderId);
+    const orderId = parseInt(req.params.orderId as string);
     const rows = await db.select().from(discountRequestsTable)
       .where(and(
         eq(discountRequestsTable.orderId, orderId),
@@ -285,7 +285,7 @@ router.post("/discounts", requireAuth, requireTenant, CASHIER_UP, requireOpenShi
 // POST /discounts/:requestId/approve
 router.post("/discounts/:requestId/approve", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
-    const id = parseInt(req.params.requestId);
+    const id = parseInt(req.params.requestId as string);
     const { adminNote } = req.body ?? {};
 
     const [row] = await db.select().from(discountRequestsTable)
@@ -342,7 +342,7 @@ router.post("/discounts/:requestId/approve", requireAuth, requireTenant, MGMT, a
 // POST /discounts/:requestId/reject
 router.post("/discounts/:requestId/reject", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
-    const id = parseInt(req.params.requestId);
+    const id = parseInt(req.params.requestId as string);
     const { adminNote } = req.body ?? {};
     const [row] = await db.select().from(discountRequestsTable)
       .where(and(eq(discountRequestsTable.id, id), eq(discountRequestsTable.tenantId, req.user!.tenantId!)))
@@ -363,7 +363,7 @@ router.post("/discounts/:requestId/reject", requireAuth, requireTenant, MGMT, as
 // POST /discounts/:requestId/cancel — cashier cancels own pending request (or manager/owner)
 router.post("/discounts/:requestId/cancel", requireAuth, requireTenant, CASHIER_UP, async (req, res) => {
   try {
-    const id = parseInt(req.params.requestId);
+    const id = parseInt(req.params.requestId as string);
     const [row] = await db.select().from(discountRequestsTable)
       .where(and(eq(discountRequestsTable.id, id), eq(discountRequestsTable.tenantId, req.user!.tenantId!)))
       .limit(1);

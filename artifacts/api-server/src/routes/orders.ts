@@ -361,8 +361,8 @@ router.post("/orders/:orderId/cancel", requireAuth, requireTenant, CASHIER_UP, a
 // POST /orders/:orderId/items/:itemId/request-return — cashier submits return request
 router.post("/orders/:orderId/items/:itemId/request-return", requireAuth, requireTenant, CASHIER_UP, requireOpenShift, async (req, res) => {
   try {
-    const orderId = parseInt(req.params.orderId);
-    const itemId = parseInt(req.params.itemId);
+    const orderId = parseInt(req.params.orderId as string);
+    const itemId = parseInt(req.params.itemId as string);
     const { reason, quantity } = req.body;
     if (!reason?.trim()) { res.status(400).json({ error: "reason required" }); return; }
 
@@ -401,8 +401,8 @@ router.post("/orders/:orderId/items/:itemId/request-return", requireAuth, requir
 // POST /orders/:orderId/items/:itemId/approve-return — owner/manager approves, restores inventory + updates total
 router.post("/orders/:orderId/items/:itemId/approve-return", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
-    const orderId = parseInt(req.params.orderId);
-    const itemId = parseInt(req.params.itemId);
+    const orderId = parseInt(req.params.orderId as string);
+    const itemId = parseInt(req.params.itemId as string);
 
     const [order] = await db.select().from(ordersTable)
       .where(and(eq(ordersTable.id, orderId), eq(ordersTable.tenantId, req.user!.tenantId!)))
@@ -477,8 +477,8 @@ router.post("/orders/:orderId/items/:itemId/approve-return", requireAuth, requir
 // POST /orders/:orderId/items/:itemId/reject-return — owner/manager rejects
 router.post("/orders/:orderId/items/:itemId/reject-return", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
-    const orderId = parseInt(req.params.orderId);
-    const itemId = parseInt(req.params.itemId);
+    const orderId = parseInt(req.params.orderId as string);
+    const itemId = parseInt(req.params.itemId as string);
 
     const [order] = await db.select().from(ordersTable)
       .where(and(eq(ordersTable.id, orderId), eq(ordersTable.tenantId, req.user!.tenantId!)))
