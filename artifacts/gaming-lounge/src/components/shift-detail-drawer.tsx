@@ -78,9 +78,9 @@ function fmtTime(iso: string, lang: string) {
   });
 }
 
-function fmtDuration(mins: number) {
+function fmtDuration(mins: number, hShort: string, mShort: string) {
   const h = Math.floor(mins / 60), m = Math.round(mins % 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return h > 0 ? `${h}${hShort} ${m}${mShort}` : `${m}${mShort}`;
 }
 
 const TAB_COLOR: Record<string, string> = {
@@ -93,6 +93,14 @@ const TAB_COLOR: Record<string, string> = {
 
 /* ─── Sessions list ─────────────────────────────────── */
 function SessionsList({ items, lang, egp, noLabel }: { items: SessionItem[]; lang: string; egp: string; noLabel: string }) {
+  const { t } = useLang();
+  const statusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      active: t("badge_active"), paused: t("badge_paused"),
+      ended: t("badge_ended"), cancelled: t("badge_cancelled"),
+    };
+    return map[status] ?? status;
+  };
   if (items.length === 0) {
     return (
       <div className="text-center py-14 text-muted-foreground">
@@ -129,9 +137,9 @@ function SessionsList({ items, lang, egp, noLabel }: { items: SessionItem[]; lan
                     <p className="text-[11px] text-muted-foreground mt-0.5">
                       {fmtTime(s.startedAt, lang)}
                       {" → "}
-                      {s.endedAt ? fmtTime(s.endedAt, lang) : (lang === "ar" ? "الآن" : "Now")}
+                      {s.endedAt ? fmtTime(s.endedAt, lang) : t("shift_now")}
                       {s.totalMinutes != null && (
-                        <span className="ms-2 text-primary/70 font-medium">{fmtDuration(s.totalMinutes)}</span>
+                        <span className="ms-2 text-primary/70 font-medium">{fmtDuration(s.totalMinutes, t("dash_hour_short"), t("dash_minute_short"))}</span>
                       )}
                     </p>
                   </div>
@@ -147,7 +155,7 @@ function SessionsList({ items, lang, egp, noLabel }: { items: SessionItem[]; lan
                     s.status === "cancelled" ? "bg-red-500/10 text-red-500" :
                     "bg-muted text-muted-foreground"
                   )}>
-                    {s.status}
+                    {statusLabel(s.status)}
                   </span>
                 </div>
               </div>
@@ -174,6 +182,7 @@ function SessionsList({ items, lang, egp, noLabel }: { items: SessionItem[]; lan
 
 /* ─── Single order card ─────────────────────────────── */
 function OrderCard({ o, lang, egp }: { o: OrderItem; lang: string; egp: string }) {
+  const { t } = useLang();
   const assetLabel = lang === "ar" ? (o.assetNameAr || o.assetName) : (o.assetName || o.assetNameAr);
   const isRoom = o.sessionId !== null;
   return (
@@ -184,8 +193,8 @@ function OrderCard({ o, lang, egp }: { o: OrderItem; lang: string; egp: string }
           <div>
             <p className="text-xs font-bold leading-tight">
               {isRoom
-                ? (assetLabel || (lang === "ar" ? "غرفة" : "Room"))
-                : (lang === "ar" ? "بوفيه / POS" : "POS / Buffet")}
+                ? (assetLabel || t("shift_room_fallback"))
+                : t("shift_pos_buffet")}
             </p>
             <p className="text-[10px] text-muted-foreground">{fmtTime(o.createdAt, lang)}</p>
           </div>
@@ -219,6 +228,7 @@ function OrderCard({ o, lang, egp }: { o: OrderItem; lang: string; egp: string }
 function OrdersList({ items, lang, egp, groupByAmPm = false, noLabel }: {
   items: OrderItem[]; lang: string; egp: string; groupByAmPm?: boolean; noLabel: string;
 }) {
+  const { t } = useLang();
   if (items.length === 0) {
     return (
       <div className="text-center py-14 text-muted-foreground">
@@ -244,7 +254,7 @@ function OrdersList({ items, lang, egp, groupByAmPm = false, noLabel }: {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🌅</span>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              {lang === "ar" ? "صباحاً — AM" : "Morning — AM"}
+              {t("shift_morning_am")}
             </p>
             <div className="h-px flex-1 bg-border/50" />
             <span className="text-[11px] font-bold tabular-nums text-orange-500">
@@ -259,7 +269,7 @@ function OrdersList({ items, lang, egp, groupByAmPm = false, noLabel }: {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">🌆</span>
             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-              {lang === "ar" ? "مساءً — PM" : "Afternoon / Evening — PM"}
+              {t("shift_afternoon_pm")}
             </p>
             <div className="h-px flex-1 bg-border/50" />
             <span className="text-[11px] font-bold tabular-nums text-primary">
@@ -277,6 +287,7 @@ function OrdersList({ items, lang, egp, groupByAmPm = false, noLabel }: {
 function WithdrawalsList({ items, total, lang, egp, noLabel }: {
   items: WithdrawalItem[]; total: number; lang: string; egp: string; noLabel: string;
 }) {
+  const { t } = useLang();
   if (items.length === 0) {
     return (
       <div className="text-center py-14 text-muted-foreground">
@@ -290,7 +301,7 @@ function WithdrawalsList({ items, total, lang, egp, noLabel }: {
       {/* Total banner */}
       <div className="flex items-center justify-between bg-destructive/8 border border-destructive/20 rounded-2xl px-4 py-3">
         <p className="text-sm font-bold text-destructive">
-          {lang === "ar" ? "إجمالي السحوبات" : "Total Withdrawals"}
+          {t("shift_total_withdrawals")}
         </p>
         <p className="text-base font-bold text-destructive tabular-nums">
           {total.toFixed(2)}
@@ -304,7 +315,7 @@ function WithdrawalsList({ items, total, lang, egp, noLabel }: {
               💸
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold truncate">{w.title || (lang === "ar" ? "سحب" : "Withdrawal")}</p>
+              <p className="text-sm font-semibold truncate">{w.title || t("shift_withdrawal_default")}</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
                 {new Date(w.createdAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", {
                   hour: "2-digit", minute: "2-digit", hour12: true,
@@ -452,7 +463,7 @@ export default function ShiftDetailDrawer({
                   </div>
                   <div className="bg-orange-500/8 rounded-xl px-3 py-2 text-center">
                     <p className="text-[9px] text-orange-500 font-semibold uppercase tracking-wide mb-0.5">
-                      POS
+                      {t("shift_pos_short")}
                     </p>
                     <p className="text-sm font-bold text-orange-500 tabular-nums">
                       {shiftMeta.posRevenue.toFixed(2)}
@@ -534,7 +545,7 @@ export default function ShiftDetailDrawer({
                     >
                       <span className="text-sm">{tab.icon}</span>
                       {tab.label}
-                      {data && (
+                      {data && tab.count() > 0 && (
                         <span className={cn(
                           "text-[9px] font-bold px-1.5 py-0.5 rounded-full ms-0.5",
                           active ? "bg-black/10" : "bg-muted text-muted-foreground"

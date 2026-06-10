@@ -12,9 +12,9 @@ import {
 import ShiftDetailDrawer, { ShiftMeta, ShiftDrawerTab } from "@/components/shift-detail-drawer";
 
 /* ─── helpers ──────────────────────────────────────── */
-function fmtDuration(mins: number) {
+function fmtDuration(mins: number, hShort: string, mShort: string) {
   const h = Math.floor(mins / 60), m = Math.round(mins % 60);
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+  return h > 0 ? `${h}${hShort} ${m}${mShort}` : `${m}${mShort}`;
 }
 
 function DiffBadge({ value, egp }: { value: number | null | undefined; egp: string }) {
@@ -482,7 +482,7 @@ export default function Shifts() {
                           { hour: "2-digit", minute: "2-digit", hour12: true }
                         )}
                         {durationMins > 0 && (
-                          <span className="ms-2 text-primary/70">{fmtDuration(durationMins)}</span>
+                          <span className="ms-2 text-primary/70">{fmtDuration(durationMins, t("dash_hour_short"), t("dash_minute_short"))}</span>
                         )}
                       </p>
                     </td>

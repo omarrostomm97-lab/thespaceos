@@ -932,6 +932,13 @@ const translations = {
     shift_duration_label: "المدة",
     shift_open_badge: "مفتوحة",
     shift_closed_badge: "مغلقة",
+    shift_pos_short: "بوفيه",
+    shift_room_fallback: "غرفة",
+    shift_pos_buffet: "بوفيه / POS",
+    shift_morning_am: "صباحاً — AM",
+    shift_afternoon_pm: "مساءً — PM",
+    shift_total_withdrawals: "إجمالي السحوبات",
+    shift_withdrawal_default: "سحب",
   },
   en: {
     /* ── Brand ── */
@@ -1862,6 +1869,13 @@ const translations = {
     shift_duration_label: "Duration",
     shift_open_badge: "Open",
     shift_closed_badge: "Closed",
+    shift_pos_short: "POS",
+    shift_room_fallback: "Room",
+    shift_pos_buffet: "POS / Buffet",
+    shift_morning_am: "Morning — AM",
+    shift_afternoon_pm: "Afternoon / Evening — PM",
+    shift_total_withdrawals: "Total Withdrawals",
+    shift_withdrawal_default: "Withdrawal",
   },
 } as const;
 
