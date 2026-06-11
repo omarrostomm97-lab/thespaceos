@@ -131,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsImpersonating(false);
     setImpersonatedTenant(null);
     queryClient.clear();
-    setLocation("/login");
+    window.location.href = "/";
   };
 
   const logout = doLogout;

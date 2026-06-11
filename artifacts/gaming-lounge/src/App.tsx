@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { I18nProvider } from "@heroui/react";
@@ -52,8 +53,15 @@ const queryClient = new QueryClient();
 
 function RootRedirect() {
   const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      window.location.href = "/";
+    }
+  }, [isLoading, user]);
+
   if (isLoading) return null;
-  if (!user) return <Redirect to="/login" />;
+  if (!user) return null;
   return <Redirect to={defaultRedirect(user.role as UserRole)} />;
 }
 

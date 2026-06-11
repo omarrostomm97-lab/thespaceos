@@ -92,7 +92,7 @@ export function Navbar() {
 
           {/* Desktop Right */}
           <div className="lp-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <a href="/gaming-lounge/login"
+            <a href="/login"
               style={{ color: "#94A3B8", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 12px", transition: "color 0.2s" }}
               onMouseEnter={e => (e.currentTarget.style.color = "white")}
               onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
@@ -140,7 +140,7 @@ export function Navbar() {
               {item.label}
             </a>
           ))}
-          <a href="/gaming-lounge/login"
+          <a href="/login"
             style={{
               display: "block", color: "#94A3B8", fontSize: 15, padding: "14px 0",
               textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.06)",
