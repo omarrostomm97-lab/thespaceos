@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef } from "react";
-import { motion } from "framer-motion";
+import { useState, useMemo, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   useListAssets,
   useListBookings,
@@ -25,7 +25,8 @@ import {
 import {
   Gamepad2, Tv, Trophy, Play, Plus, Pencil, Wind, Target,
   QrCode, Printer, RefreshCw, Zap, History, CalendarX, FileDown,
-  ImageIcon, UploadCloud, X,
+  ImageIcon, UploadCloud, X, Search, LayoutGrid, LayoutList,
+  Users, TrendingUp, ChevronDown, MoreHorizontal, Camera,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,6 +35,7 @@ import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import type { TranslationKey } from "@/lib/i18n";
 import { ShiftGate } from "@/components/shift-gate";
+import { cn } from "@/lib/utils";
 
 const MGMT_ROLES = ["platform_owner", "owner", "manager"];
 
@@ -45,7 +47,16 @@ const ASSET_TYPES: { value: string; labelKey: TranslationKey }[] = [
   { value: "other",      labelKey: "type_other" },
 ];
 
-function getAssetIcon(type: string, className = "h-7 w-7") {
+const TYPE_FILTER_KEYS: { value: string; labelKey: TranslationKey; icon: React.ReactNode }[] = [
+  { value: "all",       labelKey: "filter_all_rooms",   icon: <LayoutGrid className="h-3.5 w-3.5" /> },
+  { value: "ps",        labelKey: "type_ps",             icon: <Tv className="h-3.5 w-3.5" /> },
+  { value: "billiard",  labelKey: "type_billiard",       icon: <Trophy className="h-3.5 w-3.5" /> },
+  { value: "air_hockey",labelKey: "type_air_hockey",     icon: <Wind className="h-3.5 w-3.5" /> },
+  { value: "babyfoot",  labelKey: "type_babyfoot",       icon: <Target className="h-3.5 w-3.5" /> },
+  { value: "other",     labelKey: "type_other",          icon: <Gamepad2 className="h-3.5 w-3.5" /> },
+];
+
+function getAssetIcon(type: string, className = "h-5 w-5") {
   switch (type) {
     case "ps":         return <Tv className={className} />;
     case "billiard":   return <Trophy className={className} />;
@@ -55,8 +66,41 @@ function getAssetIcon(type: string, className = "h-7 w-7") {
   }
 }
 
-/* ─── Premium Asset Card ─────────────────────────────── */
+function getTypePlaceholderGrad(type: string): string {
+  switch (type) {
+    case "ps":         return "from-blue-900 to-blue-950";
+    case "billiard":   return "from-emerald-900 to-emerald-950";
+    case "air_hockey": return "from-cyan-900 to-cyan-950";
+    case "babyfoot":   return "from-amber-900 to-amber-950";
+    default:           return "from-slate-800 to-slate-950";
+  }
+}
 
+function fmtHHMM(dt: string | Date) {
+  return new Date(dt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
+}
+
+/* ─── Stat Tile ──────────────────────────────────────── */
+function StatTile({ icon, label, value, accent }: {
+  icon: React.ReactNode; label: string; value: string | number; accent: string;
+}) {
+  return (
+    <div className="card-base rounded-2xl flex items-center gap-3 px-4 py-3 flex-1 min-w-0 bg-card">
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: accent + "20", color: accent }}
+      >
+        {icon}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] text-muted-foreground truncate">{label}</p>
+        <p className="text-xl font-bold tabular leading-tight">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Desktop Photo Card ─────────────────────────────── */
 interface AssetCardProps {
   asset: Asset;
   isMgmt: boolean;
@@ -68,236 +112,395 @@ interface AssetCardProps {
   t: (key: TranslationKey) => string;
   lang: string;
   nextBooking?: Booking | null;
+  onInlineUpload: (asset: Asset) => void;
+  uploadingId: number | null;
 }
 
-function fmtHHMM(dt: string | Date) {
-  return new Date(dt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true });
-}
-
-function AssetCard({ asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t, lang, nextBooking }: AssetCardProps) {
+function AssetCard({
+  asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t, lang,
+  nextBooking, onInlineUpload, uploadingId,
+}: AssetCardProps) {
   const isAvailable = asset.status === "available";
+  const [moreOpen, setMoreOpen] = useState(false);
   const now = new Date();
   const isCurrentlyBooked =
     !!nextBooking &&
     new Date(nextBooking.startsAt) <= now &&
     new Date(nextBooking.endsAt) > now;
-  const hasUpcomingBooking =
-    !!nextBooking && !isCurrentlyBooked && new Date(nextBooking.startsAt) > now;
 
-  const glowColor  = isAvailable ? "rgba(0, 111, 238, 0.25)" : "rgba(245, 165, 36, 0.25)";
   const accentColor = isAvailable ? "#006FEE" : "#f5a524";
-  const accentGrad  = isAvailable
-    ? "linear-gradient(90deg, #006FEE, #338ef7)"
-    : "linear-gradient(90deg, #f5a524, #f5a524cc)";
-  const iconGrad    = isAvailable
-    ? "linear-gradient(135deg, rgba(0,111,238,0.22) 0%, rgba(51,142,247,0.10) 100%)"
-    : "linear-gradient(135deg, rgba(245,165,36,0.22) 0%, rgba(245,165,36,0.08) 100%)";
-  const iconColor   = isAvailable ? "#338ef7" : "#f5a524";
+  const imageUrl = (asset as any).imageUrl as string | null;
+  const name = lang === "ar"
+    ? (asset.nameAr || asset.name)
+    : (asset.name || asset.nameAr);
+  const typeLabel = ASSET_TYPES.find(a => a.value === asset.type)?.labelKey ?? "type_other";
 
   return (
     <motion.div
-      whileHover={{ y: -5, transition: { type: "spring", stiffness: 400, damping: 25 } }}
-      whileTap={{ scale: 0.98 }}
-      className="relative flex flex-col overflow-hidden rounded-2xl cursor-default"
-      style={{
-        background: "linear-gradient(145deg, var(--asset-card-from) 0%, var(--asset-card-to) 100%)",
-        border: "1px solid var(--asset-card-border)",
-        boxShadow: "var(--asset-card-shadow)",
-        transition: "box-shadow 0.25s ease, border-color 0.25s ease",
-      }}
-      onMouseEnter={e => {
-        const el = e.currentTarget as HTMLDivElement;
-        el.style.boxShadow = `var(--asset-card-hover-shadow-base), 0 0 0 1px ${accentColor}40, 0 0 32px ${glowColor}`;
-        el.style.borderColor = `${accentColor}50`;
-      }}
-      onMouseLeave={e => {
-        const el = e.currentTarget as HTMLDivElement;
-        el.style.boxShadow = "var(--asset-card-shadow)";
-        el.style.borderColor = "var(--asset-card-border)";
-      }}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative flex flex-col rounded-2xl overflow-hidden bg-card card-base group"
+      style={{ border: "1px solid hsl(var(--card-border))" }}
     >
-      {/* Top accent line */}
-      <div className="absolute top-0 inset-x-0 h-[3px] rounded-t-2xl" style={{ background: accentGrad }} />
-
-      {/* Top corner inner shine */}
+      {/* ── Photo area ── */}
       <div
-        className="absolute top-0 left-0 w-24 h-24 pointer-events-none"
-        style={{ background: `radial-gradient(ellipse at top right, ${accentColor}08 0%, transparent 70%)` }}
-      />
+        className={cn(
+          "relative w-full overflow-hidden",
+          isMgmt ? "cursor-pointer" : "cursor-default"
+        )}
+        style={{ aspectRatio: "16/10" }}
+        onClick={() => { if (isMgmt) onInlineUpload(asset); }}
+      >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={name ?? ""}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+        ) : (
+          <div className={cn(
+            "w-full h-full bg-gradient-to-br flex items-center justify-center",
+            getTypePlaceholderGrad(asset.type)
+          )}>
+            <div style={{ color: accentColor, opacity: 0.5 }}>{getAssetIcon(asset.type, "h-10 w-10")}</div>
+          </div>
+        )}
 
-      {/* ── Card Body ── */}
-      <div className="p-5 flex flex-col flex-1 pt-6">
+        {/* Uploading overlay */}
+        {uploadingId === asset.id && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 gap-2">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <span className="text-white text-xs font-semibold">{t("asset_uploading_photo")}</span>
+          </div>
+        )}
 
-        {/* Top row: icon + action buttons */}
-        <div className="flex items-start justify-between mb-4">
-          <div
-            className="relative w-14 h-14 rounded-2xl flex items-center justify-center"
+        {/* Camera icon hint on hover for mgmt */}
+        {isMgmt && uploadingId !== asset.id && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-all duration-200 opacity-0 group-hover:opacity-100 pointer-events-none">
+            <Camera className="h-7 w-7 text-white drop-shadow" />
+          </div>
+        )}
+
+        {/* Status badge */}
+        <div className="absolute top-2.5 start-2.5 flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-bold backdrop-blur-sm"
+          style={
+            isAvailable
+              ? { background: "rgba(23,201,100,0.18)", border: "1px solid rgba(23,201,100,0.3)", color: "#17c964" }
+              : { background: "rgba(245,165,36,0.18)", border: "1px solid rgba(245,165,36,0.3)", color: "#f5a524" }
+          }
+        >
+          <span className="w-1.5 h-1.5 rounded-full shrink-0"
             style={{
-              background: iconGrad,
-              boxShadow: `0 0 20px ${accentColor}20, inset 0 1px 0 var(--asset-card-shine)`,
-              border: `1px solid ${accentColor}20`,
+              background: isAvailable ? "#17c964" : "#f5a524",
+              boxShadow: isAvailable ? "0 0 5px rgba(23,201,100,0.9)" : "0 0 5px rgba(245,165,36,0.9)",
             }}
-          >
-            <div style={{ color: iconColor }}>{getAssetIcon(asset.type, "h-7 w-7")}</div>
+          />
+          {isAvailable ? t("status_available") : t("status_busy")}
+        </div>
+      </div>
+
+      {/* ── Card body ── */}
+      <div className="flex flex-col flex-1 p-3.5 gap-2">
+        {/* Name + type icon row */}
+        <div className="flex items-start gap-2">
+          <div className="mt-0.5 shrink-0" style={{ color: accentColor }}>
+            {getAssetIcon(asset.type, "h-4 w-4")}
           </div>
-
-          <div className="flex flex-col items-end gap-2">
-            {/* Status badge */}
-            <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold"
-              style={
-                isAvailable
-                  ? { background: "rgba(23,201,100,0.12)", border: "1px solid rgba(23,201,100,0.2)", color: "#17c964" }
-                  : { background: "rgba(245,165,36,0.12)", border: "1px solid rgba(245,165,36,0.25)", color: "#f5a524" }
-              }
-            >
-              <span
-                className="w-1.5 h-1.5 rounded-full"
-                style={{
-                  background: isAvailable ? "#17c964" : "#f5a524",
-                  boxShadow: isAvailable ? "0 0 6px rgba(23,201,100,0.8)" : "0 0 6px rgba(245,165,36,0.8)",
-                }}
-              />
-              {isAvailable ? t("status_available") : t("status_busy")}
-            </div>
-
-            {/* Booking chip */}
-            {isCurrentlyBooked && (
-              <div
-                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold"
-                style={{ background: "rgba(243,18,96,0.1)", border: "1px solid rgba(243,18,96,0.2)", color: "#f31260" }}
-              >
-                <CalendarX className="h-2.5 w-2.5" />
-                {t("booking_reserved_until")} {fmtHHMM(nextBooking!.endsAt)}
-              </div>
-            )}
-            {hasUpcomingBooking && (
-              <div
-                className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold"
-                style={{ background: "rgba(245,165,36,0.1)", border: "1px solid rgba(245,165,36,0.2)", color: "#f5a524" }}
-              >
-                <CalendarX className="h-2.5 w-2.5" />
-                {fmtHHMM(nextBooking!.startsAt)}
-              </div>
-            )}
-
-            {/* Icon buttons */}
-            <div className="flex items-center gap-1">
-              <button
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all duration-150"
-                onClick={() => onQr(asset)}
-                title={t("qr_title")}
-              >
-                <QrCode className="h-3.5 w-3.5" />
-              </button>
-              {isMgmt && (
-                <button
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all duration-150"
-                  onClick={() => onEdit(asset)}
-                  title={t("save")}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-              )}
-              {isMgmt && (
-                <Link href={`/assets/${asset.id}/history`}>
-                  <button
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all duration-150"
-                    title={t("asset_history_tab")}
-                  >
-                    <History className="h-3.5 w-3.5" />
-                  </button>
-                </Link>
-              )}
-            </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-bold text-foreground leading-tight truncate">{name}</h3>
+            <p className="text-[11px] text-muted-foreground">{t(typeLabel)}</p>
           </div>
         </div>
 
-        {/* Name */}
-        <h3 className="text-lg font-bold text-foreground leading-tight mb-1">
-          {lang === "ar" ? (asset.nameAr || asset.name) : (asset.name || asset.nameAr)}
-        </h3>
-
-        {/* Type label */}
-        <p className="text-xs text-muted-foreground mb-3">
-          {t(ASSET_TYPES.find(t2 => t2.value === asset.type)?.labelKey ?? "type_other")}
-        </p>
-
-        {/* Price */}
-        <div className="flex items-baseline gap-1 mb-5">
-          <span className="text-2xl font-bold tabular" style={{ fontFamily: "Inter, system-ui, sans-serif", color: accentColor }}>
-            {asset.pricePerHour}
-          </span>
-          <span className="text-xs text-muted-foreground font-medium">{t("price_per_hour")}</span>
+        {/* Price + capacity */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-baseline gap-1">
+            <span className="text-base font-bold tabular" style={{ color: accentColor }}>{asset.pricePerHour}</span>
+            <span className="text-[11px] text-muted-foreground">{t("price_per_hour")}</span>
+          </div>
+          {(asset as any).capacity && (
+            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              <Users className="h-3 w-3" />
+              <span>{(asset as any).capacity}</span>
+            </div>
+          )}
         </div>
 
-        {/* CTA button */}
-        {isAvailable && isCurrentlyBooked ? (
-          <div
-            className="w-full h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
-            style={{ background: "rgba(243,18,96,0.08)", border: "1px solid rgba(243,18,96,0.18)", color: "#f31260" }}
-          >
-            <CalendarX className="h-4 w-4" />
+        {/* Booking warning */}
+        {isCurrentlyBooked && (
+          <div className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-1 rounded-md"
+            style={{ background: "rgba(243,18,96,0.08)", border: "1px solid rgba(243,18,96,0.18)", color: "#f31260" }}>
+            <CalendarX className="h-2.5 w-2.5 shrink-0" />
             {t("booking_reserved_until")} {fmtHHMM(nextBooking!.endsAt)}
           </div>
-        ) : isAvailable && canStart ? (
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="w-full h-11 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-            style={{
-              background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
-              boxShadow: "0 4px 16px rgba(0,111,238,0.35), 0 1px 0 rgba(255,255,255,0.15) inset",
-            }}
-            onClick={() => onStart(asset.id)}
-            disabled={starting}
-          >
-            <Zap className="h-4 w-4" />
-            {t("start_session")}
-          </motion.button>
-        ) : isAvailable && !canStart ? (
-          <div
-            className="w-full h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
-            style={{
-              background: "rgba(100,116,139,0.08)",
-              border: "1px solid rgba(100,116,139,0.2)",
-              color: "#64748b",
-            }}
-          >
-            <Zap className="h-4 w-4 opacity-40" />
-            {t("start_session")}
-          </div>
-        ) : (
-          <Link href="/sessions" className="block">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              className="w-full h-11 rounded-xl font-bold text-sm flex items-center justify-center gap-2 cursor-pointer"
-              style={{
-                background: "rgba(245,165,36,0.1)",
-                border: "1px solid rgba(245,165,36,0.3)",
-                color: "#f5a524",
-              }}
-            >
-              <Play className="h-4 w-4" />
-              {t("view_session")}
-            </motion.div>
-          </Link>
         )}
+
+        {/* CTA row */}
+        <div className="flex items-center gap-1.5 mt-auto pt-0.5">
+          {/* Primary CTA */}
+          <div className="flex-1">
+            {isAvailable && isCurrentlyBooked ? (
+              <div className="h-8 rounded-lg font-semibold text-xs flex items-center justify-center gap-1"
+                style={{ background: "rgba(243,18,96,0.08)", border: "1px solid rgba(243,18,96,0.18)", color: "#f31260" }}>
+                <CalendarX className="h-3 w-3" /> {t("booking_reserved_until")}
+              </div>
+            ) : isAvailable && canStart ? (
+              <button
+                className="w-full h-8 rounded-lg font-semibold text-xs text-white flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
+                style={{
+                  background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
+                  boxShadow: "0 3px 12px rgba(0,111,238,0.35)",
+                }}
+                onClick={() => onStart(asset.id)}
+                disabled={starting}
+              >
+                <Zap className="h-3.5 w-3.5" />
+                {t("start_session")}
+              </button>
+            ) : isAvailable && !canStart ? (
+              <div className="h-8 rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5"
+                style={{ background: "rgba(100,116,139,0.08)", border: "1px solid rgba(100,116,139,0.2)", color: "#64748b" }}>
+                <Zap className="h-3.5 w-3.5 opacity-40" /> {t("start_session")}
+              </div>
+            ) : (
+              <Link href="/sessions" className="block">
+                <div className="h-8 rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5 transition-opacity hover:opacity-90"
+                  style={{ background: "rgba(245,165,36,0.1)", border: "1px solid rgba(245,165,36,0.3)", color: "#f5a524" }}>
+                  <Play className="h-3.5 w-3.5" /> {t("view_session")}
+                </div>
+              </Link>
+            )}
+          </div>
+
+          {/* QR button */}
+          <button
+            className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0 text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all border border-border/40"
+            onClick={() => onQr(asset)}
+            title={t("qr_title")}
+          >
+            <QrCode className="h-3.5 w-3.5" />
+          </button>
+
+          {/* More button (mgmt) */}
+          {isMgmt && (
+            <div className="relative shrink-0">
+              <button
+                className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all border border-border/40"
+                onClick={() => setMoreOpen(v => !v)}
+              >
+                <MoreHorizontal className="h-3.5 w-3.5" />
+              </button>
+              <AnimatePresence>
+                {moreOpen && (
+                  <>
+                    <div className="fixed inset-0 z-10" onClick={() => setMoreOpen(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.92, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.92, y: -4 }}
+                      transition={{ duration: 0.12 }}
+                      className="absolute end-0 top-9 z-20 w-36 rounded-xl border border-border/60 bg-popover shadow-xl overflow-hidden"
+                    >
+                      <button
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                        onClick={() => { setMoreOpen(false); onEdit(asset); }}
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                        {t("save")}
+                      </button>
+                      <Link href={`/assets/${asset.id}/history`}>
+                        <button
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          <History className="h-3.5 w-3.5 text-muted-foreground" />
+                          {t("asset_history_tab")}
+                        </button>
+                      </Link>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
 }
 
-/* ─── Form state ─────────────────────────────────────── */
+/* ─── Mobile List Row ────────────────────────────────── */
+function AssetListRow({
+  asset, isMgmt, canStart, onEdit, onQr, onStart, starting, t, lang,
+  nextBooking, onInlineUpload, uploadingId,
+}: AssetCardProps) {
+  const isAvailable = asset.status === "available";
+  const [moreOpen, setMoreOpen] = useState(false);
+  const now = new Date();
+  const isCurrentlyBooked =
+    !!nextBooking &&
+    new Date(nextBooking.startsAt) <= now &&
+    new Date(nextBooking.endsAt) > now;
 
+  const accentColor = isAvailable ? "#006FEE" : "#f5a524";
+  const imageUrl = (asset as any).imageUrl as string | null;
+  const name = lang === "ar"
+    ? (asset.nameAr || asset.name)
+    : (asset.name || asset.nameAr);
+  const typeLabel = ASSET_TYPES.find(a => a.value === asset.type)?.labelKey ?? "type_other";
+
+  return (
+    <div className="card-base rounded-2xl overflow-hidden flex bg-card" style={{ border: "1px solid hsl(var(--card-border))" }}>
+      {/* Photo thumbnail */}
+      <div
+        className={cn("relative shrink-0 w-28 sm:w-36", isMgmt ? "cursor-pointer" : "")}
+        onClick={() => { if (isMgmt) onInlineUpload(asset); }}
+      >
+        {imageUrl ? (
+          <img src={imageUrl} alt={name ?? ""} className="w-full h-full object-cover" />
+        ) : (
+          <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center min-h-[100px]", getTypePlaceholderGrad(asset.type))}>
+            <div style={{ color: accentColor, opacity: 0.4 }}>{getAssetIcon(asset.type, "h-8 w-8")}</div>
+          </div>
+        )}
+        {uploadingId === asset.id && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          </div>
+        )}
+        {/* Status badge */}
+        <div className="absolute top-2 start-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold backdrop-blur-sm"
+          style={
+            isAvailable
+              ? { background: "rgba(23,201,100,0.18)", border: "1px solid rgba(23,201,100,0.3)", color: "#17c964" }
+              : { background: "rgba(245,165,36,0.18)", border: "1px solid rgba(245,165,36,0.3)", color: "#f5a524" }
+          }
+        >
+          <span className="w-1 h-1 rounded-full" style={{ background: isAvailable ? "#17c964" : "#f5a524" }} />
+          {isAvailable ? t("status_available") : t("status_busy")}
+        </div>
+      </div>
+
+      {/* Details */}
+      <div className="flex flex-col flex-1 min-w-0 p-3 gap-2">
+        {/* Name + type */}
+        <div className="flex items-start gap-1.5">
+          <div className="mt-0.5 shrink-0" style={{ color: accentColor }}>{getAssetIcon(asset.type, "h-3.5 w-3.5")}</div>
+          <div className="min-w-0">
+            <h3 className="text-sm font-bold leading-tight">{name}</h3>
+            <p className="text-[11px] text-muted-foreground">{t(typeLabel)}</p>
+          </div>
+        </div>
+
+        {/* Price + capacity */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-baseline gap-1">
+            <span className="text-sm font-bold tabular" style={{ color: accentColor }}>{asset.pricePerHour}</span>
+            <span className="text-[11px] text-muted-foreground">{t("price_per_hour")}</span>
+          </div>
+          {(asset as any).capacity && (
+            <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              <Users className="h-3 w-3" /><span>{(asset as any).capacity}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Booking warning */}
+        {isCurrentlyBooked && (
+          <div className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md flex items-center gap-1"
+            style={{ background: "rgba(243,18,96,0.08)", color: "#f31260" }}>
+            <CalendarX className="h-2.5 w-2.5" />
+            {t("booking_reserved_until")} {fmtHHMM(nextBooking!.endsAt)}
+          </div>
+        )}
+
+        {/* CTA row */}
+        <div className="flex items-center gap-2 mt-auto">
+          <div className="flex-1">
+            {isAvailable && canStart ? (
+              <button
+                className="w-full h-8 rounded-lg font-semibold text-xs text-white flex items-center justify-center gap-1.5"
+                style={{ background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)" }}
+                onClick={() => onStart(asset.id)}
+                disabled={starting}
+              >
+                <Zap className="h-3.5 w-3.5" /> {t("start_session")}
+              </button>
+            ) : isAvailable && !canStart ? (
+              <div className="h-8 rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5"
+                style={{ background: "rgba(100,116,139,0.08)", border: "1px solid rgba(100,116,139,0.2)", color: "#64748b" }}>
+                <Zap className="h-3.5 w-3.5 opacity-40" /> {t("start_session")}
+              </div>
+            ) : (
+              <Link href="/sessions" className="block">
+                <div className="h-8 rounded-lg font-semibold text-xs flex items-center justify-center gap-1.5"
+                  style={{ background: "rgba(245,165,36,0.1)", border: "1px solid rgba(245,165,36,0.3)", color: "#f5a524" }}>
+                  <Play className="h-3.5 w-3.5" /> {t("view_session")}
+                </div>
+              </Link>
+            )}
+          </div>
+
+          {/* More */}
+          <div className="relative shrink-0">
+            <button
+              className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all border border-border/40"
+              onClick={() => setMoreOpen(v => !v)}
+            >
+              <MoreHorizontal className="h-3.5 w-3.5" />
+            </button>
+            <AnimatePresence>
+              {moreOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setMoreOpen(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.92, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.92, y: -4 }}
+                    transition={{ duration: 0.12 }}
+                    className="absolute end-0 top-9 z-20 w-40 rounded-xl border border-border/60 bg-popover shadow-xl overflow-hidden"
+                  >
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                      onClick={() => { setMoreOpen(false); onQr(asset); }}
+                    >
+                      <QrCode className="h-3.5 w-3.5 text-muted-foreground" /> {t("qr_title")}
+                    </button>
+                    {isMgmt && (
+                      <button
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                        onClick={() => { setMoreOpen(false); onEdit(asset); }}
+                      >
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" /> {t("save")}
+                      </button>
+                    )}
+                    {isMgmt && (
+                      <Link href={`/assets/${asset.id}/history`}>
+                        <button
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                          onClick={() => setMoreOpen(false)}
+                        >
+                          <History className="h-3.5 w-3.5 text-muted-foreground" /> {t("asset_history_tab")}
+                        </button>
+                      </Link>
+                    )}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Form state ─────────────────────────────────────── */
 interface FormState { nameAr: string; name: string; type: string; pricePerHour: string; capacity: string; imageUrl: string; }
 const EMPTY_FORM: FormState = { nameAr: "", name: "", type: "ps", pricePerHour: "", capacity: "", imageUrl: "" };
 
 /* ─── Page ───────────────────────────────────────────── */
-
 export default function Assets() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
@@ -305,7 +508,6 @@ export default function Assets() {
   const venueName = impersonatedTenant?.name ?? user?.tenantName ?? "";
   const { t, dir, lang } = useLang();
   const isMgmt = MGMT_ROLES.includes(user?.role ?? "");
-
   const canStart = !["owner", "platform_owner"].includes(user?.role ?? "");
 
   const { data: assets, isLoading } = useListAssets();
@@ -327,6 +529,10 @@ export default function Assets() {
   const updateAsset  = useUpdateAsset();
   const generateQr   = useGenerateAssetQr();
 
+  /* ── UI state ── */
+  const [viewMode, setViewMode]             = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery]       = useState("");
+  const [typeFilter, setTypeFilter]         = useState("all");
   const [dialogOpen, setDialogOpen]         = useState(false);
   const [editingAsset, setEditingAsset]     = useState<Asset | null>(null);
   const [form, setForm]                     = useState<FormState>(EMPTY_FORM);
@@ -337,13 +543,17 @@ export default function Assets() {
   const [qrLoading, setQrLoading]           = useState(false);
   const [qrConfirmRegen, setQrConfirmRegen] = useState(false);
 
+  /* ── Photo upload (dialog) ── */
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadPhoto = async (file: File) => {
-    setIsUploadingPhoto(true);
-    setPhotoUploadError(null);
+  /* ── Inline photo upload (card) ── */
+  const [inlineUploadingId, setInlineUploadingId] = useState<number | null>(null);
+  const inlineFileInputRef = useRef<HTMLInputElement>(null);
+  const inlineTargetAsset  = useRef<Asset | null>(null);
+
+  const uploadPhoto = async (file: File): Promise<string | null> => {
     try {
       const token = typeof localStorage !== "undefined" ? localStorage.getItem("gl_token") : null;
       const formData = new FormData();
@@ -355,14 +565,78 @@ export default function Assets() {
       });
       if (!res.ok) throw new Error("Upload failed");
       const { imageUrl } = await res.json();
-      setForm(f => ({ ...f, imageUrl }));
+      return imageUrl as string;
     } catch {
-      setPhotoUploadError(t("asset_upload_error"));
-    } finally {
-      setIsUploadingPhoto(false);
+      return null;
     }
   };
 
+  const handleDialogPhotoChange = async (file: File) => {
+    setIsUploadingPhoto(true);
+    setPhotoUploadError(null);
+    const url = await uploadPhoto(file);
+    if (url) {
+      setForm(f => ({ ...f, imageUrl: url }));
+    } else {
+      setPhotoUploadError(t("asset_upload_error"));
+    }
+    setIsUploadingPhoto(false);
+  };
+
+  const handleInlineUpload = useCallback((asset: Asset) => {
+    inlineTargetAsset.current = asset;
+    inlineFileInputRef.current?.click();
+  }, []);
+
+  const handleInlineFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !inlineTargetAsset.current) return;
+    const asset = inlineTargetAsset.current;
+    setInlineUploadingId(asset.id);
+    const url = await uploadPhoto(file);
+    if (url) {
+      try {
+        await updateAsset.mutateAsync({
+          assetId: asset.id,
+          data: {
+            name: asset.name,
+            nameAr: asset.nameAr ?? undefined,
+            type: asset.type,
+            pricePerHour: asset.pricePerHour,
+            capacity: (asset as any).capacity ?? undefined,
+            imageUrl: url,
+          } as any,
+        });
+        queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey() });
+        toast.success(t("device_updated"));
+      } catch {
+        toast.error(t("error_generic"));
+      }
+    } else {
+      toast.error(t("asset_upload_error"));
+    }
+    setInlineUploadingId(null);
+    inlineTargetAsset.current = null;
+  };
+
+  /* ── Asset stats ── */
+  const totalRooms   = assets?.length ?? 0;
+  const availableNow = assets?.filter(a => a.status === "available").length ?? 0;
+  const inSession    = assets?.filter(a => a.status !== "available").length ?? 0;
+
+  /* ── Filtered assets ── */
+  const filteredAssets = useMemo(() => {
+    if (!assets) return [];
+    return assets.filter(a => {
+      const matchType   = typeFilter === "all" || a.type === typeFilter;
+      const q = searchQuery.toLowerCase();
+      const matchSearch = !q || (a.name ?? "").toLowerCase().includes(q) || (a.nameAr ?? "").toLowerCase().includes(q);
+      return matchType && matchSearch;
+    });
+  }, [assets, typeFilter, searchQuery]);
+
+  /* ── Dialogs ── */
   const openAdd = () => { setEditingAsset(null); setForm(EMPTY_FORM); setErrors({}); setDialogOpen(true); };
   const openEdit = (asset: Asset) => {
     setEditingAsset(asset);
@@ -371,7 +645,7 @@ export default function Assets() {
       name: asset.name,
       type: asset.type,
       pricePerHour: String(asset.pricePerHour),
-      capacity: asset.capacity != null ? String(asset.capacity) : "",
+      capacity: (asset as any).capacity != null ? String((asset as any).capacity) : "",
       imageUrl: (asset as any).imageUrl ?? "",
     });
     setErrors({});
@@ -459,18 +733,27 @@ export default function Assets() {
   const qrUrl = qrToken ? `${window.location.origin}/qr/${qrToken}` : "";
   const isSaving = createAsset.isPending || updateAsset.isPending;
 
+  /* ── Shared card props ── */
+  const sharedCardProps = {
+    isMgmt, canStart, onEdit: openEdit, onQr: openQr,
+    onStart: handleStartSession, starting: startSession.isPending,
+    t, lang, onInlineUpload: handleInlineUpload, uploadingId: inlineUploadingId,
+  };
+
   /* ── Loading skeleton ── */
   if (isLoading) {
     return (
-      <div className="p-8 space-y-6">
+      <div className="p-4 sm:p-8 space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <div className="h-8 w-56 rounded-xl bg-muted skeleton-shimmer" />
+            <div className="h-7 w-52 rounded-xl bg-muted skeleton-shimmer" />
             <div className="h-4 w-36 rounded-lg bg-muted skeleton-shimmer" />
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-64 rounded-2xl skeleton-shimmer" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="rounded-2xl skeleton-shimmer" style={{ aspectRatio: "4/5" }} />
+          ))}
         </div>
       </div>
     );
@@ -479,6 +762,15 @@ export default function Assets() {
   return (
     <ShiftGate>
     <>
+      {/* Hidden inline file input */}
+      <input
+        ref={inlineFileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleInlineFileChange}
+      />
+
       {/* Print target */}
       <div className="hidden print:flex flex-col items-center p-10" dir="rtl">
         {qrAsset && qrToken && (
@@ -490,39 +782,35 @@ export default function Assets() {
         )}
       </div>
 
-      <div className="p-8 space-y-8 print:hidden">
+      <div className="p-4 sm:p-8 space-y-5 print:hidden" dir={dir}>
 
         {/* ── Page header ── */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
             <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
               style={{
                 background: "linear-gradient(135deg, rgba(0,111,238,0.2) 0%, rgba(51,142,247,0.1) 100%)",
                 border: "1px solid rgba(0,111,238,0.25)",
-                boxShadow: "0 0 20px rgba(0,111,238,0.12)",
               }}
             >
-              <Gamepad2 className="h-6 w-6 text-primary" />
+              <Gamepad2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold tracking-tight text-foreground">{t("assets_title")}</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">{t("assets_subtitle")}</p>
+              <h2 className="text-xl font-bold tracking-tight text-foreground">{t("assets_title")}</h2>
+              <p className="text-sm text-muted-foreground">{t("assets_subtitle")}</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {["platform_owner", "owner"].includes(user?.role ?? "") && assets && assets.length > 0 && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              <button
                 onClick={() => {
                   const base = import.meta.env.BASE_URL.replace(/\/$/, "");
                   const params = new URLSearchParams({ venue: venueName });
                   window.open(`${window.location.origin}${base}/print-all-qr?${params}`, "_blank");
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-opacity hover:opacity-80"
                 style={{
                   background: "rgba(124,58,237,0.12)",
                   border: "1px solid rgba(124,58,237,0.3)",
@@ -530,80 +818,149 @@ export default function Assets() {
                 }}
               >
                 <FileDown className="h-4 w-4" />
-                Export All QR
-              </motion.button>
+                {t("rooms_export_qr")}
+              </button>
             )}
             {isMgmt && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              <button
                 onClick={openAdd}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-white transition-opacity hover:opacity-90"
                 style={{
                   background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)",
-                  boxShadow: "0 4px 16px rgba(0,111,238,0.3), 0 1px 0 rgba(255,255,255,0.12) inset",
+                  boxShadow: "0 4px 14px rgba(0,111,238,0.3)",
                 }}
               >
                 <Plus className="h-4 w-4" />
                 {t("add_device")}
-              </motion.button>
+              </button>
             )}
           </div>
         </div>
 
+        {/* ── Mobile stats strip ── */}
+        <div className="flex gap-2 sm:hidden overflow-x-auto pb-1 -mx-4 px-4">
+          <StatTile icon={<Gamepad2 className="h-4 w-4" />} label={t("stat_total_rooms")} value={totalRooms} accent="#006FEE" />
+          <StatTile icon={<span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />} label={t("stat_available_now")} value={availableNow} accent="#17c964" />
+          <StatTile icon={<span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />} label={t("stat_in_session")} value={inSession} accent="#f5a524" />
+          <StatTile icon={<TrendingUp className="h-4 w-4" />} label={t("kpi_revenue_today")} value="—" accent="#a78bfa" />
+        </div>
+
+        {/* ── Filter tabs + search + view toggle ── */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          {/* Type filter tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 flex-1 min-w-0">
+            {TYPE_FILTER_KEYS.map(f => (
+              <button
+                key={f.value}
+                onClick={() => setTypeFilter(f.value)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0",
+                  typeFilter === f.value
+                    ? "bg-primary text-white shadow-sm"
+                    : "bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                )}
+              >
+                {f.icon}
+                {t(f.labelKey)}
+              </button>
+            ))}
+          </div>
+
+          {/* Search + view toggle */}
+          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-48">
+              <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              <input
+                type="search"
+                placeholder={t("rooms_search_ph")}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="h-8 w-full rounded-xl border border-border/60 bg-secondary/40 ps-8 pe-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
+              />
+            </div>
+            <div className="hidden sm:flex items-center rounded-xl border border-border/60 overflow-hidden bg-secondary/40">
+              <button
+                onClick={() => setViewMode("grid")}
+                className={cn("h-8 w-8 flex items-center justify-center transition-colors", viewMode === "grid" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground")}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                className={cn("h-8 w-8 flex items-center justify-center transition-colors", viewMode === "list" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground")}
+              >
+                <LayoutList className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* ── Empty state ── */}
-        {assets?.length === 0 && (
+        {filteredAssets.length === 0 && !isLoading && (
           <div
-            className="flex flex-col items-center justify-center py-24 rounded-2xl text-center space-y-4"
+            className="flex flex-col items-center justify-center py-20 rounded-2xl text-center space-y-4"
             style={{ background: "linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--secondary)) 100%)", border: "1px dashed hsl(var(--border))" }}
           >
-            <div className="p-5 rounded-2xl" style={{ background: "rgba(0,111,238,0.1)", border: "1px solid rgba(0,111,238,0.15)", boxShadow: "0 0 24px rgba(0,111,238,0.1)" }}>
-              <Gamepad2 className="h-12 w-12 text-primary opacity-60" />
+            <div className="p-4 rounded-2xl" style={{ background: "rgba(0,111,238,0.1)", border: "1px solid rgba(0,111,238,0.15)" }}>
+              <Gamepad2 className="h-10 w-10 text-primary opacity-60" />
             </div>
             <div>
-              <h3 className="text-xl font-bold">{t("no_devices")}</h3>
-              <p className="text-muted-foreground mt-1.5 text-sm max-w-xs leading-relaxed">{t("no_devices_hint")}</p>
+              <h3 className="text-lg font-bold">{t("no_devices")}</h3>
+              <p className="text-muted-foreground mt-1 text-sm max-w-xs">{t("no_devices_hint")}</p>
             </div>
-            {isMgmt && (
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
+            {isMgmt && (assets?.length ?? 0) === 0 && (
+              <button
                 onClick={openAdd}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white mt-2"
-                style={{ background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)", boxShadow: "0 4px 16px rgba(0,111,238,0.3)" }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white"
+                style={{ background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)" }}
               >
-                <Plus className="h-4 w-4" />
-                {t("add_first_device")}
-              </motion.button>
+                <Plus className="h-4 w-4" /> {t("add_first_device")}
+              </button>
             )}
           </div>
         )}
 
-        {/* ── Asset grid ── */}
-        {assets && assets.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
-            {assets.map((asset, i) => (
-              <motion.div
-                key={asset.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05, duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              >
-                <AssetCard
-                  asset={asset}
-                  isMgmt={isMgmt}
-                  canStart={canStart}
-                  onEdit={openEdit}
-                  onQr={openQr}
-                  onStart={handleStartSession}
-                  starting={startSession.isPending}
-                  t={t}
-                  lang={lang}
-                  nextBooking={bookingByAsset.get(asset.id) ?? null}
-                />
-              </motion.div>
-            ))}
+        {/* ── Desktop grid view ── */}
+        {filteredAssets.length > 0 && (
+          <>
+            {/* Desktop: grid (hidden on mobile) */}
+            <div className={cn(
+              "hidden sm:grid gap-4",
+              viewMode === "list"
+                ? "grid-cols-1"
+                : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+            )}>
+              {filteredAssets.map((asset, i) =>
+                viewMode === "list" ? (
+                  <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                    <AssetListRow asset={asset} nextBooking={bookingByAsset.get(asset.id) ?? null} {...sharedCardProps} />
+                  </motion.div>
+                ) : (
+                  <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                    <AssetCard asset={asset} nextBooking={bookingByAsset.get(asset.id) ?? null} {...sharedCardProps} />
+                  </motion.div>
+                )
+              )}
+            </div>
+
+            {/* Mobile: always list */}
+            <div className="flex sm:hidden flex-col gap-3">
+              {filteredAssets.map((asset, i) => (
+                <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                  <AssetListRow asset={asset} nextBooking={bookingByAsset.get(asset.id) ?? null} {...sharedCardProps} />
+                </motion.div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* ── Desktop stats strip ── */}
+        {(assets?.length ?? 0) > 0 && (
+          <div className="hidden sm:flex gap-3 pt-2">
+            <StatTile icon={<Gamepad2 className="h-4 w-4" />} label={t("stat_total_rooms")} value={totalRooms} accent="#006FEE" />
+            <StatTile icon={<span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />} label={t("stat_available_now")} value={availableNow} accent="#17c964" />
+            <StatTile icon={<span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />} label={t("stat_in_session")} value={inSession} accent="#f5a524" />
+            <StatTile icon={<TrendingUp className="h-4 w-4" />} label={t("kpi_revenue_today")} value="—" accent="#a78bfa" />
           </div>
         )}
 
@@ -652,7 +1009,7 @@ export default function Assets() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={e => { const f = e.target.files?.[0]; if (f) uploadPhoto(f); e.target.value = ""; }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleDialogPhotoChange(f); e.target.value = ""; }}
                 />
                 {form.imageUrl ? (
                   <div className="relative rounded-lg overflow-hidden border border-border/60 bg-secondary/30">
@@ -701,7 +1058,6 @@ export default function Assets() {
                     )}
                   </button>
                 )}
-                {isUploadingPhoto && form.imageUrl === "" && null}
                 {photoUploadError && <p className="text-xs text-destructive">{photoUploadError}</p>}
               </div>
             </div>
