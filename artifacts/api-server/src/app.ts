@@ -53,20 +53,29 @@ function serveApp(res: express.Response): boolean {
   return false;
 }
 
-if (landingBuilt) {
-  app.use("/landing-page", express.static(LANDING_DIST));
-}
+/* ─── Static assets — must be registered BEFORE any SPA fallback routes ──── */
 
+// /assets/* — serve landing-page assets first, then gaming-lounge assets.
+// Both apps build with base "/", so their hashed filenames never collide.
+// express.static calls next() automatically when a file is not found.
+if (landingBuilt) {
+  app.use("/assets", express.static(path.join(LANDING_DIST, "assets")));
+}
 if (appBuilt) {
   app.use("/assets", express.static(path.join(APP_DIST, "assets")));
 }
 
-/* ─── App (gaming-lounge) routes ──────────────────────────────────────────── */
+// /landing-page/* — legacy Replit dev-proxy path; also covers
+// /landing-page/assets/* for builds done with BASE_PATH=/landing-page/
+if (landingBuilt) {
+  app.use("/landing-page", express.static(LANDING_DIST));
+}
+
+/* ─── App (gaming-lounge) SPA routes ─────────────────────────────────────── */
 const APP_ROUTE_PREFIXES = [
   "/login",
   "/dashboard",
   "/sessions",
-  "/assets",
   "/pos",
   "/kds",
   "/orders",
