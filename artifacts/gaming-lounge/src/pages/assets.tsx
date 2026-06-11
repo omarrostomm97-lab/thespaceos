@@ -540,7 +540,9 @@ export default function Assets() {
   const generateQr   = useGenerateAssetQr();
 
   /* ── UI state ── */
-  const [viewMode, setViewMode]             = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode]             = useState<"grid" | "list">(
+    typeof window !== "undefined" && window.innerWidth < 640 ? "list" : "grid"
+  );
   const [searchQuery, setSearchQuery]       = useState("");
   const [typeFilter, setTypeFilter]         = useState("all");
   const [dialogOpen, setDialogOpen]         = useState(false);
@@ -987,7 +989,7 @@ export default function Assets() {
               "hidden sm:grid gap-4",
               viewMode === "list"
                 ? "grid-cols-1"
-                : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+                : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
             )}>
               {filteredAssets.map((asset, i) =>
                 viewMode === "list" ? (
