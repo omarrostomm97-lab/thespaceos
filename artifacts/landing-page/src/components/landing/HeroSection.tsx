@@ -1,4 +1,4 @@
-const HERO_IMG = "/landing-page/ChatGPT_Image_Jun_11,_2026,_10_21_54_PM_1781205824750.png";
+const HERO_IMG = `${import.meta.env.BASE_URL}ChatGPT_Image_Jun_11,_2026,_10_21_54_PM_1781205824750.png`;
 
 export function HeroSection() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });

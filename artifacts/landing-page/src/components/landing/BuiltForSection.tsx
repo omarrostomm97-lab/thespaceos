@@ -37,7 +37,7 @@ export function BuiltForSection() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <section style={{ background: "#0D1F3C", padding: "96px 24px" }}>
+    <section id="solutions" style={{ background: "#0D1F3C", padding: "96px 24px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div className="lp-builtfor-grid">
 
@@ -65,7 +65,7 @@ export function BuiltForSection() {
 
           {/* Right — venue cards grid */}
           <div className="lp-venue-grid">
-            {venues.map((v, i) => (
+            {venues.map((v) => (
               <div key={v.name}
                 style={{
                   background: v.gradient, borderRadius: 12, padding: "24px",

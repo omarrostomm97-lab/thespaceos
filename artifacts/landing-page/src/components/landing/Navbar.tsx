@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import { ChevronDown, Menu, X, ArrowRight } from "lucide-react";
 
-const NAV_SECTIONS = [
+const NAV_ANCHOR_LINKS = [
+  { label: "Product", id: "features" },
+  { label: "Solutions", id: "solutions" },
   { label: "Features", id: "features" },
   { label: "Demo", id: "demo" },
-];
-
-const NAV_DROPDOWN = [
-  { label: "Product", dropdown: true },
-  { label: "Solutions", dropdown: true },
 ];
 
 export function Navbar() {
@@ -19,16 +16,11 @@ export function Navbar() {
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 20);
-
-      // Track active section via scroll position
-      const sectionIds = NAV_SECTIONS.map(s => s.id);
+      const sectionIds = ["features", "solutions", "demo"];
       let current = "";
       for (const id of sectionIds) {
         const el = document.getElementById(id);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= 120) current = id;
-        }
+        if (el && el.getBoundingClientRect().top <= 120) current = id;
       }
       setActiveSection(current);
     };
@@ -42,6 +34,16 @@ export function Navbar() {
   };
 
   const isActive = (id: string) => activeSection === id;
+
+  const linkStyle = (id: string): React.CSSProperties => ({
+    display: "flex", alignItems: "center", gap: 4, textDecoration: "none",
+    color: isActive(id) ? "white" : "#94A3B8",
+    fontSize: 14, fontWeight: isActive(id) ? 600 : 500,
+    padding: "8px 14px", borderRadius: 8,
+    borderBottom: isActive(id) ? "2px solid #2563EB" : "2px solid transparent",
+    transition: "color 0.2s, border-color 0.2s",
+    background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+  });
 
   return (
     <nav style={{
@@ -70,37 +72,20 @@ export function Navbar() {
 
           {/* Desktop Nav */}
           <div className="lp-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 2 }}>
-            {NAV_DROPDOWN.map(item => (
-              <button key={item.label}
-                style={{
-                  display: "flex", alignItems: "center", gap: 4,
-                  background: "none", border: "none", cursor: "pointer",
-                  color: "#94A3B8", fontSize: 14, fontWeight: 500,
-                  padding: "8px 14px", borderRadius: 8, fontFamily: "inherit",
-                  transition: "color 0.2s",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.color = "white")}
-                onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
-              >
-                {item.label}
-                <ChevronDown size={13} strokeWidth={2.5} />
-              </button>
-            ))}
-            {NAV_SECTIONS.map(item => (
+            {NAV_ANCHOR_LINKS.map(item => (
               <a key={item.label} href={`#${item.id}`}
                 onClick={e => { e.preventDefault(); scrollTo(item.id); }}
                 style={{
-                  display: "flex", alignItems: "center", textDecoration: "none",
-                  color: isActive(item.id) ? "white" : "#94A3B8",
-                  fontSize: 14, fontWeight: isActive(item.id) ? 600 : 500,
-                  padding: "8px 14px", borderRadius: 8,
+                  ...linkStyle(item.id),
                   borderBottom: isActive(item.id) ? "2px solid #2563EB" : "2px solid transparent",
-                  transition: "color 0.2s, border-color 0.2s",
                 }}
                 onMouseEnter={e => (e.currentTarget.style.color = "white")}
                 onMouseLeave={e => (e.currentTarget.style.color = isActive(item.id) ? "white" : "#94A3B8")}
               >
                 {item.label}
+                {(item.label === "Product" || item.label === "Solutions") && (
+                  <ChevronDown size={13} strokeWidth={2.5} />
+                )}
               </a>
             ))}
           </div>
@@ -112,18 +97,18 @@ export function Navbar() {
               onMouseEnter={e => (e.currentTarget.style.color = "white")}
               onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
             >Login</a>
-            <button onClick={() => scrollTo("demo")}
+            <a href="#demo" onClick={e => { e.preventDefault(); scrollTo("demo"); }}
               style={{
                 display: "flex", alignItems: "center", gap: 6,
-                background: "#2563EB", color: "white", border: "none", borderRadius: 24, cursor: "pointer",
-                fontSize: 14, fontWeight: 600, padding: "9px 20px", fontFamily: "inherit",
+                background: "#2563EB", color: "white", borderRadius: 24, textDecoration: "none",
+                fontSize: 14, fontWeight: 600, padding: "9px 20px",
                 transition: "background 0.2s",
               }}
               onMouseEnter={e => (e.currentTarget.style.background = "#1D4ED8")}
               onMouseLeave={e => (e.currentTarget.style.background = "#2563EB")}
             >
               Request a Demo <ArrowRight size={13} strokeWidth={2.5} />
-            </button>
+            </a>
           </div>
 
           {/* Mobile toggle */}
@@ -141,8 +126,8 @@ export function Navbar() {
           background: "#0A1628", borderTop: "1px solid rgba(255,255,255,0.08)",
           padding: "12px 24px 24px",
         }}>
-          {NAV_SECTIONS.map(item => (
-            <a key={item.label} href={`#${item.id}`}
+          {NAV_ANCHOR_LINKS.map(item => (
+            <a key={item.label + item.id} href={`#${item.id}`}
               onClick={e => { e.preventDefault(); scrollTo(item.id); }}
               style={{
                 display: "block", textDecoration: "none",
@@ -161,13 +146,13 @@ export function Navbar() {
               textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}
           >Login</a>
-          <button onClick={() => scrollTo("demo")}
+          <a href="#demo" onClick={e => { e.preventDefault(); scrollTo("demo"); }}
             style={{
-              marginTop: 16, width: "100%", background: "#2563EB", color: "white",
-              border: "none", borderRadius: 12, cursor: "pointer",
-              fontSize: 15, fontWeight: 600, padding: "14px", fontFamily: "inherit",
+              display: "block", marginTop: 16, width: "100%", background: "#2563EB", color: "white",
+              textDecoration: "none", borderRadius: 12, textAlign: "center",
+              fontSize: 15, fontWeight: 600, padding: "14px",
             }}
-          >Request a Demo →</button>
+          >Request a Demo →</a>
         </div>
       )}
 
