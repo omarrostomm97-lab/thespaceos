@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
-import heroImg from "@assets/ChatGPT_Image_Jun_11,_2026,_10_21_54_PM_1781205824750.png";
+
+const HERO_IMG = "/landing-page/ChatGPT_Image_Jun_11,_2026,_10_21_54_PM_1781205824750.png";
 
 const bullets = [
   "Real-time session and room control",
@@ -10,13 +11,12 @@ const bullets = [
   "Powerful reports and performance insights",
 ];
 
-function MiniDashCard({ title, caption, isRooms }: { title: string; caption: string; isRooms?: boolean }) {
+function DashCard() {
   return (
     <div style={{
       background: "#0A1628", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)",
       overflow: "hidden", flex: 1,
     }}>
-      {/* Chrome */}
       <div style={{
         background: "#071020", padding: "8px 12px",
         borderBottom: "1px solid rgba(255,255,255,0.08)",
@@ -25,27 +25,53 @@ function MiniDashCard({ title, caption, isRooms }: { title: string; caption: str
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57", display: "block" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FFBD2E", display: "block" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#28C840", display: "block" }} />
+        <span style={{ marginLeft: 6, color: "#334155", fontSize: 9 }}>Command Center</span>
       </div>
-      {/* Content */}
-      {isRooms ? (
-        <div style={{ padding: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-          {["Air Hockey $50", "Air Hockey $50", "BabyFoot $150", "BabyFoot $150", "Billiard $50", "Billiard $50", "POS Room 1", "POS Room 2"].map((r, i) => (
-            <div key={i} style={{
-              background: i % 2 === 0 ? "rgba(37,99,235,0.15)" : "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "6px 8px",
-            }}>
-              <div style={{ color: "white", fontSize: 9, fontWeight: 600 }}>{r.split(" $")[0]}</div>
-              {r.includes("$") && <div style={{ color: "#2563EB", fontSize: 9, marginTop: 2 }}>${r.split("$")[1]}</div>}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <img src={heroImg} alt={title} style={{ width: "100%", display: "block", maxHeight: 180, objectFit: "cover", objectPosition: "top" }} />
-      )}
-      {/* Caption */}
+      <img src={HERO_IMG} alt="Dashboard Preview" style={{
+        width: "100%", display: "block", maxHeight: 160,
+        objectFit: "cover", objectPosition: "top",
+      }} />
       <div style={{ padding: "10px 12px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-        <div style={{ color: "white", fontSize: 12, fontWeight: 600, marginBottom: 3 }}>{title}</div>
-        <div style={{ color: "#64748B", fontSize: 11 }}>{caption}</div>
+        <div style={{ color: "white", fontSize: 11, fontWeight: 600, marginBottom: 2 }}>Command Center</div>
+        <div style={{ color: "#64748B", fontSize: 10 }}>Live overview of sessions, revenue, orders, alerts and performance.</div>
+      </div>
+    </div>
+  );
+}
+
+function RoomsCard() {
+  const rooms = ["Air Hockey", "BabyFoot", "Billiard", "POS Room 1", "POS Room 2", "VIP Suite"];
+  const colors = ["#1E40AF", "#065F46", "#92400E", "#312E81", "#1E3A5F", "#4C1D95"];
+  return (
+    <div style={{
+      background: "#0A1628", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)",
+      overflow: "hidden", flex: 1,
+    }}>
+      <div style={{
+        background: "#071020", padding: "8px 12px",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        display: "flex", alignItems: "center", gap: 5,
+      }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57", display: "block" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FFBD2E", display: "block" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#28C840", display: "block" }} />
+        <span style={{ marginLeft: 6, color: "#334155", fontSize: 9 }}>Rooms & Sessions</span>
+      </div>
+      <div style={{ padding: 10, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6 }}>
+        {rooms.map((r, i) => (
+          <div key={r} style={{
+            background: colors[i] + "22",
+            border: `1px solid ${colors[i]}44`,
+            borderRadius: 6, padding: "7px 8px",
+          }}>
+            <div style={{ color: "white", fontSize: 9, fontWeight: 600 }}>{r}</div>
+            <div style={{ color: colors[i], fontSize: 8, marginTop: 3, fontWeight: 500 }}>Active</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ padding: "10px 12px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ color: "white", fontSize: 11, fontWeight: 600, marginBottom: 2 }}>Rooms & Sessions</div>
+        <div style={{ color: "#64748B", fontSize: 10 }}>Check availability, start sessions, manage bookings.</div>
       </div>
     </div>
   );
@@ -92,17 +118,10 @@ export function ProductScreenshotsSection() {
             </button>
           </div>
 
-          {/* Right — two preview cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <MiniDashCard
-              title="Command Center Dashboard"
-              caption="Live overview of sessions, revenue, orders, alerts and performance — all in real time."
-            />
-            <MiniDashCard
-              title="Rooms & Sessions Management"
-              caption="Check room availability, start sessions, and manage bookings across all your spaces."
-              isRooms
-            />
+          {/* Right — two preview cards SIDE BY SIDE */}
+          <div style={{ display: "flex", flexDirection: "row", gap: 14, alignItems: "stretch" }}>
+            <DashCard />
+            <RoomsCard />
           </div>
 
         </div>
@@ -110,12 +129,13 @@ export function ProductScreenshotsSection() {
       <style>{`
         .lp-connected-grid {
           display: grid;
-          grid-template-columns: 45% 55%;
+          grid-template-columns: 42% 58%;
           gap: 64px;
           align-items: start;
         }
         @media (max-width: 900px) {
           .lp-connected-grid { grid-template-columns: 1fr; gap: 48px; }
+          .lp-connected-grid > div:last-child { flex-direction: column !important; }
         }
       `}</style>
     </section>

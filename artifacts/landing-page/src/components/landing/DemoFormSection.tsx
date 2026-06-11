@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Check, Lock } from "lucide-react";
-import { useCreateLead } from "@workspace/api-client-react";
 
 const BUSINESS_TYPES = [
   { value: "gaming_lounge", label: "Gaming Lounge" },
@@ -39,7 +38,6 @@ export function DemoFormSection() {
   const [form, setForm] = useState({ name: "", businessType: "" as BusinessType | "", phone: "", email: "", message: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
-  const mutation = useCreateLead();
 
   function validate() {
     const e: Record<string, string> = {};
@@ -55,10 +53,7 @@ export function DemoFormSection() {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
-    mutation.mutate(
-      { data: { name: form.name, email: form.email, phone: form.phone, company: "", businessType: form.businessType as BusinessType, city: "" } as any },
-      { onSuccess: () => setSubmitted(true) }
-    );
+    setSubmitted(true);
   }
 
   return (
@@ -168,21 +163,17 @@ export function DemoFormSection() {
                   />
                 </Field>
 
-                {mutation.isError && (
-                  <p style={{ color: "#EF4444", fontSize: 13, textAlign: "center", marginTop: 12 }}>Something went wrong. Please try again.</p>
-                )}
-
-                <button type="submit" disabled={mutation.isPending}
+                <button type="submit"
                   style={{
                     marginTop: 20, width: "100%", padding: "13px",
                     background: "#2563EB", color: "white", border: "none", borderRadius: 12,
                     fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-                    opacity: mutation.isPending ? 0.7 : 1, transition: "background 0.2s",
+                    transition: "background 0.2s",
                   }}
-                  onMouseEnter={e => !mutation.isPending && (e.currentTarget.style.background = "#1D4ED8")}
+                  onMouseEnter={e => (e.currentTarget.style.background = "#1D4ED8")}
                   onMouseLeave={e => (e.currentTarget.style.background = "#2563EB")}
                 >
-                  {mutation.isPending ? "Sending…" : "Request a Demo →"}
+                  Request a Demo →
                 </button>
 
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
@@ -206,7 +197,7 @@ export function DemoFormSection() {
           .lp-demo-grid { grid-template-columns: 1fr; gap: 48px; }
         }
         @media (max-width: 500px) {
-          .lp-demo-grid > div:last-child > form > div:first-child { grid-template-columns: 1fr !important; }
+          .lp-demo-grid > div:last-child form > div:first-child { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </section>

@@ -1,4 +1,4 @@
-import heroImg from "@assets/ChatGPT_Image_Jun_11,_2026,_10_21_54_PM_1781205824750.png";
+const HERO_IMG = "/landing-page/ChatGPT_Image_Jun_11,_2026,_10_21_54_PM_1781205824750.png";
 
 export function HeroSection() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -101,7 +101,7 @@ export function HeroSection() {
                   <span style={{ fontSize: 10, color: "#475569" }}>app.thespaceos.com</span>
                 </div>
               </div>
-              <img src={heroImg} alt="The Space OS Dashboard" style={{ width: "100%", display: "block" }} loading="eager" />
+              <img src={HERO_IMG} alt="The Space OS Dashboard" style={{ width: "100%", display: "block" }} loading="eager" />
             </div>
           </div>
 
