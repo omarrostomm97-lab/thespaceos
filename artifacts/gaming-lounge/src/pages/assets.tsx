@@ -7,8 +7,10 @@ import {
   useCreateAsset,
   useUpdateAsset,
   useGenerateAssetQr,
+  useGetDashboardSummary,
   getListAssetsQueryKey,
   getListActiveSessionsQueryKey,
+  getGetDashboardSummaryQueryKey,
 } from "@workspace/api-client-react";
 import type { Asset, Booking } from "@workspace/api-client-react";
 import { useLang } from "@/hooks/use-language";
@@ -512,6 +514,9 @@ export default function Assets() {
 
   const { data: assets, isLoading } = useListAssets();
   const { data: upcomingBookings = [] } = useListBookings({ status: "upcoming,active" });
+  const { data: dashSummary } = useGetDashboardSummary({
+    query: { queryKey: getGetDashboardSummaryQueryKey(), refetchInterval: 30000 },
+  } as any);
 
   const bookingByAsset = useMemo(() => {
     const map = new Map<number, Booking>();
@@ -624,6 +629,10 @@ export default function Assets() {
   const totalRooms   = assets?.length ?? 0;
   const availableNow = assets?.filter(a => a.status === "available").length ?? 0;
   const inSession    = assets?.filter(a => a.status !== "available").length ?? 0;
+  const revenueToday = (dashSummary as any)?.revenueToday;
+  const revenueDisplay = revenueToday != null
+    ? `${Number(revenueToday).toFixed(0)} ${t("egp_label")}`
+    : "—";
 
   /* ── Filtered assets ── */
   const filteredAssets = useMemo(() => {
@@ -842,12 +851,59 @@ export default function Assets() {
           <StatTile icon={<Gamepad2 className="h-4 w-4" />} label={t("stat_total_rooms")} value={totalRooms} accent="#006FEE" />
           <StatTile icon={<span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />} label={t("stat_available_now")} value={availableNow} accent="#17c964" />
           <StatTile icon={<span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />} label={t("stat_in_session")} value={inSession} accent="#f5a524" />
-          <StatTile icon={<TrendingUp className="h-4 w-4" />} label={t("kpi_revenue_today")} value="—" accent="#a78bfa" />
+          <StatTile icon={<TrendingUp className="h-4 w-4" />} label={t("kpi_revenue_today")} value={revenueDisplay} accent="#a78bfa" />
         </div>
 
-        {/* ── Filter tabs + search + view toggle ── */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          {/* Type filter tabs */}
+        {/* ── Desktop toolbar: category dropdown + search + view toggle ── */}
+        <div className="hidden sm:flex items-center gap-3">
+          {/* All Categories dropdown */}
+          <div className="relative">
+            <select
+              value={typeFilter}
+              onChange={e => setTypeFilter(e.target.value)}
+              className="h-9 appearance-none rounded-xl border border-border/60 bg-secondary/40 ps-3 pe-8 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer text-foreground"
+            >
+              {TYPE_FILTER_KEYS.map(f => (
+                <option key={f.value} value={f.value}>{t(f.labelKey)}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute end-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          </div>
+
+          {/* Search */}
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="search"
+              placeholder={t("rooms_search_ph")}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="h-9 w-full rounded-xl border border-border/60 bg-secondary/40 ps-8 pe-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
+            />
+          </div>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* View toggle */}
+          <div className="flex items-center rounded-xl border border-border/60 overflow-hidden bg-secondary/40">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={cn("h-9 w-9 flex items-center justify-center transition-colors", viewMode === "grid" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground")}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={cn("h-9 w-9 flex items-center justify-center transition-colors", viewMode === "list" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground")}
+            >
+              <LayoutList className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Mobile filter tabs ── */}
+        <div className="flex sm:hidden items-center gap-2">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 flex-1 min-w-0">
             {TYPE_FILTER_KEYS.map(f => (
               <button
@@ -865,33 +921,16 @@ export default function Assets() {
               </button>
             ))}
           </div>
-
-          {/* Search + view toggle */}
-          <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-48">
-              <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
-              <input
-                type="search"
-                placeholder={t("rooms_search_ph")}
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="h-8 w-full rounded-xl border border-border/60 bg-secondary/40 ps-8 pe-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
-              />
-            </div>
-            <div className="hidden sm:flex items-center rounded-xl border border-border/60 overflow-hidden bg-secondary/40">
-              <button
-                onClick={() => setViewMode("grid")}
-                className={cn("h-8 w-8 flex items-center justify-center transition-colors", viewMode === "grid" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground")}
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={() => setViewMode("list")}
-                className={cn("h-8 w-8 flex items-center justify-center transition-colors", viewMode === "list" ? "bg-primary text-white" : "text-muted-foreground hover:text-foreground")}
-              >
-                <LayoutList className="h-3.5 w-3.5" />
-              </button>
-            </div>
+          {/* Mobile search */}
+          <div className="relative shrink-0">
+            <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <input
+              type="search"
+              placeholder={t("rooms_search_ph")}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="h-8 w-32 rounded-xl border border-border/60 bg-secondary/40 ps-8 pe-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
+            />
           </div>
         </div>
 
@@ -960,7 +999,7 @@ export default function Assets() {
             <StatTile icon={<Gamepad2 className="h-4 w-4" />} label={t("stat_total_rooms")} value={totalRooms} accent="#006FEE" />
             <StatTile icon={<span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />} label={t("stat_available_now")} value={availableNow} accent="#17c964" />
             <StatTile icon={<span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />} label={t("stat_in_session")} value={inSession} accent="#f5a524" />
-            <StatTile icon={<TrendingUp className="h-4 w-4" />} label={t("kpi_revenue_today")} value="—" accent="#a78bfa" />
+            <StatTile icon={<TrendingUp className="h-4 w-4" />} label={t("kpi_revenue_today")} value={revenueDisplay} accent="#a78bfa" />
           </div>
         )}
 
