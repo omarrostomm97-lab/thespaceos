@@ -420,7 +420,12 @@ function AssetListRow({
         {/* CTA row */}
         <div className="flex items-center gap-2 mt-auto">
           <div className="flex-1">
-            {isAvailable && canStart ? (
+            {isAvailable && isCurrentlyBooked ? (
+              <div className="h-8 rounded-lg font-semibold text-xs flex items-center justify-center gap-1"
+                style={{ background: "rgba(243,18,96,0.08)", border: "1px solid rgba(243,18,96,0.18)", color: "#f31260" }}>
+                <CalendarX className="h-3 w-3" /> {t("booking_reserved_until")}
+              </div>
+            ) : isAvailable && canStart ? (
               <button
                 className="w-full h-8 rounded-lg font-semibold text-xs text-white flex items-center justify-center gap-1.5"
                 style={{ background: "linear-gradient(135deg, #006FEE 0%, #338ef7 100%)" }}
