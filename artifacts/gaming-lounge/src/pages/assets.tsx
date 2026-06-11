@@ -907,7 +907,7 @@ export default function Assets() {
           </div>
         </div>
 
-        {/* ── Mobile filter tabs ── */}
+        {/* ── Mobile filter tabs + view toggle ── */}
         <div className="flex sm:hidden items-center gap-2">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 flex-1 min-w-0">
             {TYPE_FILTER_KEYS.map(f => (
@@ -926,6 +926,21 @@ export default function Assets() {
               </button>
             ))}
           </div>
+          {/* Mobile grid/list toggle */}
+          <div className="flex items-center rounded-xl border border-border/60 overflow-hidden bg-secondary/40 shrink-0">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={cn("h-8 w-8 flex items-center justify-center transition-colors", viewMode === "grid" ? "bg-primary text-white" : "text-muted-foreground")}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={cn("h-8 w-8 flex items-center justify-center transition-colors", viewMode === "list" ? "bg-primary text-white" : "text-muted-foreground")}
+            >
+              <LayoutList className="h-3.5 w-3.5" />
+            </button>
+          </div>
           {/* Mobile search */}
           <div className="relative shrink-0">
             <Search className="absolute start-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -934,7 +949,7 @@ export default function Assets() {
               placeholder={t("rooms_search_ph")}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="h-8 w-32 rounded-xl border border-border/60 bg-secondary/40 ps-8 pe-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
+              className="h-8 w-28 rounded-xl border border-border/60 bg-secondary/40 ps-8 pe-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 placeholder:text-muted-foreground"
             />
           </div>
         </div>
@@ -987,14 +1002,24 @@ export default function Assets() {
               )}
             </div>
 
-            {/* Mobile: always list */}
-            <div className="flex sm:hidden flex-col gap-3">
-              {filteredAssets.map((asset, i) => (
-                <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                  <AssetListRow asset={asset} nextBooking={bookingByAsset.get(asset.id) ?? null} {...sharedCardProps} />
-                </motion.div>
-              ))}
-            </div>
+            {/* Mobile: list or grid depending on viewMode */}
+            {viewMode === "list" ? (
+              <div className="flex sm:hidden flex-col gap-3">
+                {filteredAssets.map((asset, i) => (
+                  <motion.div key={asset.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
+                    <AssetListRow asset={asset} nextBooking={bookingByAsset.get(asset.id) ?? null} {...sharedCardProps} />
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid sm:hidden grid-cols-2 gap-3">
+                {filteredAssets.map((asset, i) => (
+                  <motion.div key={asset.id} initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.04 }}>
+                    <AssetCard asset={asset} nextBooking={bookingByAsset.get(asset.id) ?? null} {...sharedCardProps} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </>
         )}
 
