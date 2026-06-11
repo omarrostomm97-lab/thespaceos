@@ -1,4 +1,5 @@
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useListAssets,
@@ -57,6 +58,56 @@ const TYPE_FILTER_KEYS: { value: string; labelKey: TranslationKey; icon: React.R
   { value: "babyfoot",  labelKey: "type_babyfoot",       icon: <Target className="h-3.5 w-3.5" /> },
   { value: "other",     labelKey: "type_other",          icon: <Gamepad2 className="h-3.5 w-3.5" /> },
 ];
+
+/* ── Portal dropdown: renders at body level so overflow-hidden cards don't clip it ── */
+function MoreMenuPortal({
+  anchorRef,
+  open,
+  onClose,
+  children,
+  dir,
+}: {
+  anchorRef: React.RefObject<HTMLButtonElement | null>;
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  dir: "ltr" | "rtl";
+}) {
+  const [pos, setPos] = useState<{ top: number; left?: number; right?: number } | null>(null);
+
+  useEffect(() => {
+    if (!open || !anchorRef.current) return;
+    const r = anchorRef.current.getBoundingClientRect();
+    const menuWidth = 160;
+    if (dir === "rtl") {
+      setPos({ top: r.bottom + 6, left: r.left });
+    } else {
+      setPos({ top: r.bottom + 6, left: Math.max(8, r.right - menuWidth) });
+    }
+  }, [open, anchorRef, dir]);
+
+  if (!open || !pos) return null;
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 z-[9998]" onClick={onClose} />
+      <AnimatePresence>
+        <motion.div
+          key="more-menu"
+          initial={{ opacity: 0, scale: 0.93, y: -4 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.93, y: -4 }}
+          transition={{ duration: 0.12 }}
+          style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999, minWidth: 160 }}
+          className="rounded-xl border border-border/60 bg-popover shadow-xl overflow-hidden"
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
+    </>,
+    document.body
+  );
+}
 
 function getAssetIcon(type: string, className = "h-5 w-5") {
   switch (type) {
@@ -124,6 +175,7 @@ function AssetCard({
 }: AssetCardProps) {
   const isAvailable = asset.status === "available";
   const [moreOpen, setMoreOpen] = useState(false);
+  const moreBtnRef = useRef<HTMLButtonElement>(null);
   const now = new Date();
   const isCurrentlyBooked =
     !!nextBooking &&
@@ -286,44 +338,32 @@ function AssetCard({
 
           {/* More button (mgmt) */}
           {isMgmt && (
-            <div className="relative shrink-0">
+            <div className="shrink-0">
               <button
+                ref={moreBtnRef}
                 className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all border border-border/40"
                 onClick={() => setMoreOpen(v => !v)}
               >
                 <MoreHorizontal className="h-3.5 w-3.5" />
               </button>
-              <AnimatePresence>
-                {moreOpen && (
-                  <>
-                    <div className="fixed inset-0 z-10" onClick={() => setMoreOpen(false)} />
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.92, y: -4 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.92, y: -4 }}
-                      transition={{ duration: 0.12 }}
-                      className="absolute end-0 top-9 z-20 w-36 rounded-xl border border-border/60 bg-popover shadow-xl overflow-hidden"
-                    >
-                      <button
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
-                        onClick={() => { setMoreOpen(false); onEdit(asset); }}
-                      >
-                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                        {t("save")}
-                      </button>
-                      <Link href={`/assets/${asset.id}/history`}>
-                        <button
-                          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
-                          onClick={() => setMoreOpen(false)}
-                        >
-                          <History className="h-3.5 w-3.5 text-muted-foreground" />
-                          {t("asset_history_tab")}
-                        </button>
-                      </Link>
-                    </motion.div>
-                  </>
-                )}
-              </AnimatePresence>
+              <MoreMenuPortal anchorRef={moreBtnRef} open={moreOpen} onClose={() => setMoreOpen(false)} dir={lang === "ar" ? "rtl" : "ltr"}>
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                  onClick={() => { setMoreOpen(false); onEdit(asset); }}
+                >
+                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                  {t("save")}
+                </button>
+                <Link href={`/assets/${asset.id}/history`}>
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    <History className="h-3.5 w-3.5 text-muted-foreground" />
+                    {t("asset_history_tab")}
+                  </button>
+                </Link>
+              </MoreMenuPortal>
             </div>
           )}
         </div>
@@ -339,6 +379,7 @@ function AssetListRow({
 }: AssetCardProps) {
   const isAvailable = asset.status === "available";
   const [moreOpen, setMoreOpen] = useState(false);
+  const moreBtnRef = useRef<HTMLButtonElement>(null);
   const now = new Date();
   const isCurrentlyBooked =
     !!nextBooking &&
@@ -452,50 +493,38 @@ function AssetListRow({
           {/* More */}
           <div className="relative shrink-0">
             <button
+              ref={moreBtnRef}
               className="h-8 w-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all border border-border/40"
               onClick={() => setMoreOpen(v => !v)}
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </button>
-            <AnimatePresence>
-              {moreOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setMoreOpen(false)} />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.92, y: -4 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.92, y: -4 }}
-                    transition={{ duration: 0.12 }}
-                    className="absolute end-0 top-9 z-20 w-40 rounded-xl border border-border/60 bg-popover shadow-xl overflow-hidden"
-                  >
-                    <button
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
-                      onClick={() => { setMoreOpen(false); onQr(asset); }}
-                    >
-                      <QrCode className="h-3.5 w-3.5 text-muted-foreground" /> {t("qr_title")}
-                    </button>
-                    {isMgmt && (
-                      <button
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
-                        onClick={() => { setMoreOpen(false); onEdit(asset); }}
-                      >
-                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" /> {t("save")}
-                      </button>
-                    )}
-                    {isMgmt && (
-                      <Link href={`/assets/${asset.id}/history`}>
-                        <button
-                          className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
-                          onClick={() => setMoreOpen(false)}
-                        >
-                          <History className="h-3.5 w-3.5 text-muted-foreground" /> {t("asset_history_tab")}
-                        </button>
-                      </Link>
-                    )}
-                  </motion.div>
-                </>
+            <MoreMenuPortal anchorRef={moreBtnRef} open={moreOpen} onClose={() => setMoreOpen(false)} dir={lang === "ar" ? "rtl" : "ltr"}>
+              <button
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                onClick={() => { setMoreOpen(false); onQr(asset); }}
+              >
+                <QrCode className="h-3.5 w-3.5 text-muted-foreground" /> {t("qr_title")}
+              </button>
+              {isMgmt && (
+                <button
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                  onClick={() => { setMoreOpen(false); onEdit(asset); }}
+                >
+                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" /> {t("save")}
+                </button>
               )}
-            </AnimatePresence>
+              {isMgmt && (
+                <Link href={`/assets/${asset.id}/history`}>
+                  <button
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium hover:bg-secondary/60 transition-colors"
+                    onClick={() => setMoreOpen(false)}
+                  >
+                    <History className="h-3.5 w-3.5 text-muted-foreground" /> {t("asset_history_tab")}
+                  </button>
+                </Link>
+              )}
+            </MoreMenuPortal>
           </div>
         </div>
       </div>
