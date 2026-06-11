@@ -471,7 +471,7 @@ export default function Shifts() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm" dir={lang === "ar" ? "rtl" : "ltr"}
-            style={{ minWidth: isMgmt ? "560px" : "420px" }}>
+            style={{ minWidth: isMgmt ? "560px" : "560px" }}>
             <thead>
               <tr className="border-b border-border/40 bg-muted/30">
                 {isMgmt && (
@@ -491,18 +491,16 @@ export default function Shifts() {
                 <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                   {t("shift_col_expected")}
                 </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_actual")}
+                </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_diff")}
+                </th>
                 {isMgmt && (
-                  <>
-                    <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                      {t("shift_col_revenue")}
-                    </th>
-                    <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                      {t("shift_col_actual")}
-                    </th>
-                    <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                      {t("shift_col_diff")}
-                    </th>
-                  </>
+                  <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                    {t("shift_col_revenue")}
+                  </th>
                 )}
                 <th className="w-10" />
               </tr>
@@ -510,7 +508,7 @@ export default function Shifts() {
             <tbody>
               {closedShifts.length === 0 && (
                 <tr>
-                  <td colSpan={isMgmt ? 9 : 5} className="px-4 py-12 text-center text-muted-foreground text-sm">
+                  <td colSpan={isMgmt ? 9 : 7} className="px-4 py-12 text-center text-muted-foreground text-sm">
                     {t("shift_no_history")}
                   </td>
                 </tr>
@@ -568,28 +566,35 @@ export default function Shifts() {
                       </span>
                     </td>
 
-                    {/* Revenue / Actual / Diff — mgmt only */}
+                    {/* Actual cash — visible to everyone */}
+                    <td className="px-4 py-3 text-end">
+                      <span className="font-mono text-sm tabular-nums">
+                        {shift.actualCash != null ? (
+                          <>
+                            {shift.actualCash.toFixed(2)}
+                            <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
+                          </>
+                        ) : "—"}
+                      </span>
+                    </td>
+
+                    {/* Difference — visible to everyone */}
+                    <td className="px-4 py-3 text-end">
+                      <DiffBadge value={shift.difference} egp={egp} />
+                    </td>
+
+                    {/* Revenue — mgmt only */}
                     {isMgmt && (
-                      <>
-                        <td className="px-4 py-3 text-end">
-                          {(shift.totalRevenue ?? 0) > 0 ? (
-                            <span className="font-mono font-bold text-emerald-500 text-sm tabular-nums">
-                              {(shift.totalRevenue ?? 0).toFixed(2)}
-                              <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-end">
-                          <span className="font-mono text-sm tabular-nums">
-                            {shift.actualCash != null ? shift.actualCash.toFixed(2) : "—"}
+                      <td className="px-4 py-3 text-end">
+                        {(shift.totalRevenue ?? 0) > 0 ? (
+                          <span className="font-mono font-bold text-emerald-500 text-sm tabular-nums">
+                            {(shift.totalRevenue ?? 0).toFixed(2)}
+                            <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-end">
-                          <DiffBadge value={shift.difference} egp={egp} />
-                        </td>
-                      </>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
+                        )}
+                      </td>
                     )}
 
                     {/* Arrow */}
