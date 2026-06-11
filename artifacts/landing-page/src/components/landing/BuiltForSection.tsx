@@ -1,40 +1,38 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 
-const IMG_ROOMS    = `${import.meta.env.BASE_URL}hero-rooms.png`;
-const IMG_SESSIONS = `${import.meta.env.BASE_URL}hero-sessions.png`;
-const IMG_DASH     = `${import.meta.env.BASE_URL}hero-dashboard.png`;
+const BASE = import.meta.env.BASE_URL;
 
 const spaces = [
   {
     name: "Gaming Lounges",
     desc: "Session control, device management, and gaming time tracking.",
     accent: "#3B82F6",
-    img: IMG_ROOMS,
+    img: `${BASE}biz-gaming.jpg`,
   },
   {
     name: "Coworking Spaces",
     desc: "Desk & room bookings, members, and workspace management.",
     accent: "#22C55E",
-    img: IMG_SESSIONS,
+    img: `${BASE}biz-coworking.jpg`,
   },
   {
     name: "Cafés",
     desc: "Orders, menu, POS, and kitchen workflow simplified.",
     accent: "#F59E0B",
-    img: IMG_DASH,
+    img: `${BASE}biz-cafe.jpg`,
   },
   {
     name: "Restaurants",
     desc: "Table management, kitchen display, and order automation.",
     accent: "#EF4444",
-    img: IMG_SESSIONS,
+    img: `${BASE}biz-restaurant.jpg`,
   },
   {
     name: "Other Businesses",
     desc: "Salons, clinics, studios, and more — all in one system.",
     accent: "#8B5CF6",
-    img: IMG_DASH,
+    img: `${BASE}biz-other.jpg`,
   },
 ];
 
@@ -47,43 +45,47 @@ function SpaceCard({ name, desc, accent, img }: (typeof spaces)[0]) {
       style={{
         background: "#07121F",
         borderRadius: 14,
-        border: `1px solid ${hov ? accent + "44" : "rgba(255,255,255,0.08)"}`,
+        border: `1px solid ${hov ? accent + "55" : "rgba(255,255,255,0.08)"}`,
         overflow: "hidden",
         display: "flex", flexDirection: "column",
-        transform: hov ? "translateY(-3px)" : "translateY(0)",
+        transform: hov ? "translateY(-4px)" : "translateY(0)",
         transition: "all 0.25s ease",
         cursor: "default",
-        boxShadow: hov ? `0 12px 40px rgba(0,0,0,0.4), 0 0 24px ${accent}11` : "none",
+        boxShadow: hov ? `0 16px 48px rgba(0,0,0,0.5), 0 0 28px ${accent}18` : "none",
       }}
     >
-      {/* Screenshot crop */}
-      <div style={{ position: "relative", overflow: "hidden", height: 110 }}>
+      {/* Photo */}
+      <div style={{ position: "relative", overflow: "hidden", height: 120 }}>
         <img
           src={img} alt={name}
           style={{
             width: "100%", height: "100%",
-            objectFit: "cover", objectPosition: "top left",
-            transform: hov ? "scale(1.04)" : "scale(1)",
-            transition: "transform 0.4s ease",
+            objectFit: "cover", objectPosition: "center",
+            transform: hov ? "scale(1.07)" : "scale(1)",
+            transition: "transform 0.5s ease",
           }}
         />
-        {/* Gradient scrim */}
+        {/* Dark gradient scrim */}
         <div style={{
           position: "absolute", inset: 0,
-          background: `linear-gradient(to bottom, transparent 30%, #07121F 100%)`,
+          background: `linear-gradient(to bottom, rgba(7,18,31,0.15) 0%, rgba(7,18,31,0.75) 100%)`,
         }} />
-        {/* Accent dot */}
+        {/* Accent colour tag */}
         <div style={{
           position: "absolute", top: 10, left: 12,
-          width: 8, height: 8, borderRadius: "50%", background: accent,
-          boxShadow: `0 0 8px ${accent}`,
-        }} />
+          background: accent + "22",
+          border: `1px solid ${accent}55`,
+          borderRadius: 20, padding: "2px 10px",
+          display: "flex", alignItems: "center", gap: 5,
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: accent, boxShadow: `0 0 6px ${accent}` }} />
+          <span style={{ color: accent, fontSize: 10, fontWeight: 700, letterSpacing: "0.04em" }}>{name}</span>
+        </div>
       </div>
 
       {/* Content */}
       <div style={{ padding: "14px 16px 18px" }}>
-        <p style={{ color: "white", fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{name}</p>
-        <p style={{ color: "#475569", fontSize: 12, lineHeight: 1.6 }}>{desc}</p>
+        <p style={{ color: "#94A3B8", fontSize: 12, lineHeight: 1.6 }}>{desc}</p>
       </div>
     </div>
   );

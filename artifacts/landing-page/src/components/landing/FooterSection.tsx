@@ -65,18 +65,12 @@ export function FooterSection() {
 
           {/* Brand column */}
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{
-                width: 32, height: 32, background: "#2563EB", borderRadius: 8,
-                display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, padding: 7, flexShrink: 0,
-              }}>
-                {[1, 1, 1, 0.45].map((op, i) => (
-                  <div key={i} style={{ background: "white", borderRadius: 2, opacity: op }} />
-                ))}
-              </div>
-              <span style={{ color: "white", fontWeight: 700, fontSize: 15, letterSpacing: "-0.01em" }}>
-                The Space OS
-              </span>
+            <div style={{ marginBottom: 16 }}>
+              <img
+                src={`${import.meta.env.BASE_URL}the-space-os-logo-transparent.png`}
+                alt="The Space OS"
+                style={{ height: 40, width: "auto", filter: "brightness(0) invert(1)" }}
+              />
             </div>
 
             <p style={{ color: "#334155", fontSize: 13, lineHeight: 1.65, maxWidth: 240, marginBottom: 24 }}>
