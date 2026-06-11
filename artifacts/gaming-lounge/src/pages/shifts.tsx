@@ -471,7 +471,7 @@ export default function Shifts() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm" dir={lang === "ar" ? "rtl" : "ltr"}
-            style={{ minWidth: isMgmt ? "560px" : "320px" }}>
+            style={{ minWidth: isMgmt ? "560px" : "420px" }}>
             <thead>
               <tr className="border-b border-border/40 bg-muted/30">
                 {isMgmt && (
@@ -488,13 +488,13 @@ export default function Shifts() {
                 <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                   {t("shift_col_orders")}
                 </th>
+                <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                  {t("shift_col_expected")}
+                </th>
                 {isMgmt && (
                   <>
                     <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                       {t("shift_col_revenue")}
-                    </th>
-                    <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                      {t("shift_col_expected")}
                     </th>
                     <th className="px-4 py-3 text-end text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
                       {t("shift_col_actual")}
@@ -510,7 +510,7 @@ export default function Shifts() {
             <tbody>
               {closedShifts.length === 0 && (
                 <tr>
-                  <td colSpan={isMgmt ? 9 : 4} className="px-4 py-12 text-center text-muted-foreground text-sm">
+                  <td colSpan={isMgmt ? 9 : 5} className="px-4 py-12 text-center text-muted-foreground text-sm">
                     {t("shift_no_history")}
                   </td>
                 </tr>
@@ -556,27 +556,30 @@ export default function Shifts() {
                       <span className="text-sm tabular-nums text-muted-foreground">{shift.orderCount ?? 0}</span>
                     </td>
 
-                    {/* Revenue — mgmt only */}
-                    {isMgmt && (
-                      <td className="px-4 py-3 text-end">
-                        {(shift.totalRevenue ?? 0) > 0 ? (
-                          <span className="font-mono font-bold text-emerald-500 text-sm tabular-nums">
-                            {(shift.totalRevenue ?? 0).toFixed(2)}
+                    {/* Expected cash — visible to everyone */}
+                    <td className="px-4 py-3 text-end">
+                      <span className="font-mono text-sm tabular-nums font-semibold">
+                        {shift.expectedCash != null ? (
+                          <>
+                            {shift.expectedCash.toFixed(2)}
                             <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">—</span>
-                        )}
-                      </td>
-                    )}
+                          </>
+                        ) : "—"}
+                      </span>
+                    </td>
 
-                    {/* Expected / Actual / Diff — mgmt only */}
+                    {/* Revenue / Actual / Diff — mgmt only */}
                     {isMgmt && (
                       <>
                         <td className="px-4 py-3 text-end">
-                          <span className="font-mono text-sm tabular-nums text-muted-foreground">
-                            {shift.expectedCash != null ? shift.expectedCash.toFixed(2) : "—"}
-                          </span>
+                          {(shift.totalRevenue ?? 0) > 0 ? (
+                            <span className="font-mono font-bold text-emerald-500 text-sm tabular-nums">
+                              {(shift.totalRevenue ?? 0).toFixed(2)}
+                              <span className="text-[10px] font-normal text-muted-foreground ms-1">{egp}</span>
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-end">
                           <span className="font-mono text-sm tabular-nums">
