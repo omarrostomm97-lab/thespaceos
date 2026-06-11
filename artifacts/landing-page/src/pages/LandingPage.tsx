@@ -9,10 +9,11 @@ import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { DemoFormSection } from "@/components/landing/DemoFormSection";
 import { FooterSection } from "@/components/landing/FooterSection";
+import { MobileBottomCTA } from "@/components/landing/MobileBottomCTA";
 
 export default function LandingPage() {
   useEffect(() => {
-    document.title = "The Space OS — One System. Total Control.";
+    document.title = "The Space OS — Business Operations Management Software";
   }, []);
 
   return (
@@ -29,6 +30,7 @@ export default function LandingPage() {
         <DemoFormSection />
       </main>
       <FooterSection />
+      <MobileBottomCTA />
     </div>
   );
 }

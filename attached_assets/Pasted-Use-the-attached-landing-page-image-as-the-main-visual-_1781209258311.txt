@@ -1,0 +1,356 @@
+Use the attached landing page image as the main visual reference and redesign `/landing-page` to match its quality, structure, spacing, and premium SaaS feeling.
+
+Important:
+The attached image is the target direction. Do not make a generic Tailwind layout. The final page should feel like this reference: premium, dark hero, clean white content sections, real product screenshots, strong visual hierarchy, and polished SaaS conversion flow.
+
+Product:
+The Space OS is an all-in-one business operations platform for gaming lounges, coworking spaces, cafés, restaurants, and businesses that manage sessions, bookings, orders, staff, shifts, payments, inventory, and reports.
+
+Do not use the word “venue”.
+
+Use:
+
+* business
+* space
+* location
+* operation
+* branch
+* workspace
+
+Main design reference:
+The attached image shows the exact quality and structure I want:
+
+* Dark navy hero section.
+* Logo top-left.
+* Navigation top-center/right.
+* Strong headline on the left.
+* Real dashboard screenshot in a premium browser mockup on the right.
+* Small trust/value pills under the hero.
+* White/light-gray content sections.
+* Product screenshot proof section.
+* Built-for section with visual cards.
+* Clean feature grid.
+* Dark “How it works” section.
+* Dark premium demo form section.
+* Premium dark footer.
+
+The current page should be redesigned to follow this visual style very closely while using our real product screenshots and real brand assets.
+
+Brand assets:
+
+* Use the latest The Space OS logo.
+* Use the real dashboard screenshot in the hero.
+* Use the real rooms/sessions screenshot in the product proof section.
+* Use the real shifts/dashboard screenshot if available.
+* Screenshots should be placed inside polished browser/device mockups, not flat images.
+
+Hero section requirements:
+Create a premium dark hero exactly in the same quality as the reference image.
+
+Layout:
+
+* Full-width dark navy hero.
+* Left side: copy, CTA buttons, trust points.
+* Right side: real dashboard screenshot in a browser mockup.
+* Below hero content: compact value-pill row.
+
+Hero copy:
+
+Headline:
+One System.
+Total Control.
+
+Make “Total Control.” blue.
+
+Subheadline:
+The Space OS is the all-in-one operations platform for gaming lounges, coworking spaces, cafés, restaurants, and modern businesses.
+
+Supporting sentence:
+Manage sessions, orders, staff, shifts, payments, inventory, and reports — all from one powerful system.
+
+Primary CTA:
+Request a Demo
+
+Secondary CTA:
+Explore Features
+
+Trust/value points:
+
+* Arabic + English
+* Built in Egypt
+* Secure & reliable
+* Multi-location ready
+
+Hero visual:
+
+* Use the real dashboard screenshot.
+* Place it inside a premium browser frame.
+* Add subtle border, radius, shadow, blue glow, and dark glass effect.
+* It should look like a real SaaS product showcase, not a screenshot pasted on the page.
+
+Hero background:
+
+* Deep navy gradient.
+* Subtle grid pattern.
+* Subtle glow points only.
+* No planets, rockets, or childish space visuals.
+
+Navigation:
+Match the reference style:
+
+* Logo left.
+* Links: Product, Solutions, Features, Demo.
+* Login.
+* Request Demo button.
+* Clean spacing.
+* Glass effect.
+* Mobile hamburger menu.
+
+Product proof section:
+Directly after the hero, create a white/light section similar to the reference.
+
+Section title:
+Your entire operation, connected.
+
+Description:
+From live sessions to orders, staff, inventory, and reporting — The Space OS gives you complete visibility and control across every part of your business.
+
+Left column:
+
+* Short benefit text
+* Bullet list with blue check icons
+
+Bullets:
+
+* Real-time session and room control
+* POS orders with kitchen display
+* Staff scheduling and shift management
+* Secure payments and multi-method support
+* Inventory tracking and low stock alerts
+* Powerful reports and performance insights
+
+Right side:
+Use 2 screenshot cards:
+
+1. Command Center Dashboard
+2. Rooms & Sessions Management
+
+Each screenshot should have:
+
+* Browser frame
+* Rounded corners
+* Soft shadow
+* Caption below
+
+Built-for section:
+Create a dark navy card section like the reference.
+
+Title:
+Built for modern operations
+
+Subtitle:
+One platform that adapts to the way you run your business.
+
+Cards:
+
+1. Gaming Lounges
+   Session control, device management, and gaming time tracking.
+
+2. Coworking Spaces
+   Desk, room bookings, members, and workspace management.
+
+3. Cafés
+   Orders, menu, POS, and kitchen workflow simplified.
+
+4. Restaurants
+   Table management, kitchen display, and order automation.
+
+5. Other Businesses
+   Salons, clinics, studios, and more — all in one system.
+
+Make cards visual and premium:
+
+* Use dark cards.
+* Add subtle borders.
+* Add image/illustration areas or screenshot crops.
+* Use hover states.
+* Avoid generic flat cards.
+
+Features section:
+White/light background.
+
+Title:
+Everything you need.
+Nothing you don’t.
+
+Feature cards:
+
+* Sessions & Rooms
+* POS & Orders
+* Kitchen Display
+* Staff & Shifts
+* Payments
+* Reports & Analytics
+* Inventory
+* Multi-location
+* Role-based Access
+* Arabic / English
+
+Cards should be compact, clean, equal height, and not too large.
+
+How it works section:
+Dark navy horizontal process bar like the reference.
+
+Title:
+How it works
+
+Steps:
+
+1. Discover your setup
+   Tell us about your space and how you operate.
+
+2. Configure your space
+   We set up rooms, devices, staff, roles, products, and workflows.
+
+3. Go live & grow
+   Launch fast and start running your business with control.
+
+Desktop:
+Horizontal connected timeline.
+
+Mobile:
+Vertical timeline.
+
+Demo section:
+Make a premium dark conversion section like the reference.
+
+Title:
+Book your personalized demo
+
+Description:
+Our team will walk you through The Space OS, answer your questions, and show how it fits your business.
+
+Benefits:
+
+* Personalized walkthrough
+* Setup guidance
+* Fast response
+
+Form fields:
+
+* Full Name
+* Phone / WhatsApp
+* Email Address
+* Business Type
+* Business Name
+* City
+* Message optional
+
+Submit button:
+Request a Demo
+
+Form requirements:
+
+* Clean dark form inputs.
+* Proper validation.
+* Loading state.
+* Success state.
+* Error state.
+* POST to `/api/leads`.
+* No console errors.
+
+Footer:
+Dark premium footer matching the reference.
+
+Include:
+
+* Logo
+* Short description
+* Product links
+* Solutions links
+* Company links
+* Resources links
+* Built in Egypt block
+* Copyright
+
+Footer text:
+The Space OS is an operations platform built in Egypt for modern businesses that demand total control.
+
+Mobile design:
+The mobile version must not simply stack desktop sections. Design it properly.
+
+Test:
+
+* 375px
+* 390px
+* 430px
+* 768px
+* Desktop
+
+Mobile requirements:
+
+* No horizontal overflow.
+* Navbar is clean.
+* Hero is compact.
+* CTAs are tappable.
+* Screenshot fits screen.
+* Cards stack with proper spacing.
+* Demo form is easy to complete.
+* Sticky bottom CTA: Request Demo.
+
+Visual polish requirements:
+
+* Strong section rhythm.
+* Good spacing between sections.
+* Consistent max-width containers.
+* Premium shadows and borders.
+* Real screenshot mockups.
+* No crowded cards.
+* No overlapping.
+* No weak contrast.
+* No random icons.
+* No generic template feeling.
+* No “AI landing page” look.
+
+Technical requirements:
+
+* Use Tailwind properly.
+* Avoid inline styles.
+* Create reusable components:
+
+  * Section
+  * Container
+  * ScreenshotMockup
+  * FeatureCard
+  * BusinessTypeCard
+  * CTAButton
+  * DemoForm
+  * Footer
+* Compress screenshots.
+* Add proper alt text.
+* Keep page performant.
+
+SEO:
+Verify:
+
+* Title: The Space OS — Business Operations Management Software
+* Meta description: Manage sessions, bookings, orders, staff, shifts, payments, inventory, and reports with The Space OS.
+* Canonical URL.
+* OG tags.
+* Twitter card.
+* JSON-LD SoftwareApplication.
+* robots.txt.
+* sitemap.xml.
+* No noindex.
+
+Before final response:
+Take screenshots of:
+
+1. Desktop full page
+2. Desktop hero
+3. Mobile hero
+4. Mobile product section
+5. Mobile demo form
+6. Mobile menu
+
+Compare them visually against the attached reference image and fix anything that does not match the same quality level.
