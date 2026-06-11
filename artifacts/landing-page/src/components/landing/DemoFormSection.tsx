@@ -1,295 +1,214 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { Check, Lock } from "lucide-react";
 import { useCreateLead } from "@workspace/api-client-react";
-import type { TranslationKey } from "@/lib/i18n";
-
-interface DemoFormSectionProps {
-  t: (key: TranslationKey) => string;
-  dir: string;
-  lang: string;
-}
 
 const BUSINESS_TYPES = [
-  { value: "gaming_lounge", labelKey: "bt_gaming" as TranslationKey },
-  { value: "coworking", labelKey: "bt_coworking" as TranslationKey },
-  { value: "cafe", labelKey: "bt_cafe" as TranslationKey },
-  { value: "restaurant", labelKey: "bt_restaurant" as TranslationKey },
-  { value: "other", labelKey: "bt_other" as TranslationKey },
+  { value: "gaming_lounge", label: "Gaming Lounge" },
+  { value: "coworking", label: "Coworking Space" },
+  { value: "cafe", label: "Café / Coffee Shop" },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "other", label: "Other" },
 ] as const;
 
-type BusinessType = "gaming_lounge" | "coworking" | "cafe" | "restaurant" | "other";
-
-const DEMO_BENEFITS = [
-  {
-    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
-    text: "Live walkthrough of your exact business type",
-  },
-  {
-    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
-    text: "Custom pricing based on your business size",
-  },
-  {
-    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
-    text: "Full onboarding support from day one",
-  },
-  {
-    icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>,
-    text: "No commitment — just a conversation",
-  },
+const benefits = [
+  { title: "Personalized walkthrough", desc: "We learn about your business and needs." },
+  { title: "Setup guidance", desc: "We help you get started." },
+  { title: "Fast response", desc: "Our team responds quickly and clearly." },
 ];
 
-export function DemoFormSection({ t, dir, lang }: DemoFormSectionProps) {
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    businessType: "" as BusinessType | "",
-    city: "",
-    message: "",
-    _honey: "",
-  });
-  const [submitted, setSubmitted] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+type BusinessType = typeof BUSINESS_TYPES[number]["value"];
 
+const inputStyle: React.CSSProperties = {
+  width: "100%", padding: "11px 14px", borderRadius: 10, fontSize: 14,
+  border: "1px solid #E2E8F0", background: "#F8FAFC", color: "#0F172A",
+  outline: "none", fontFamily: "inherit", boxSizing: "border-box",
+  transition: "border-color 0.2s, box-shadow 0.2s",
+};
+
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "#374151", marginBottom: 6 }}>{label}</label>
+      {children}
+      {error && <p style={{ marginTop: 4, fontSize: 12, color: "#EF4444" }}>{error}</p>}
+    </div>
+  );
+}
+
+export function DemoFormSection() {
+  const [form, setForm] = useState({ name: "", businessType: "" as BusinessType | "", phone: "", email: "", message: "" });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
   const mutation = useCreateLead();
 
   function validate() {
-    const errors: Record<string, string> = {};
-    if (!form.name.trim()) errors.name = t("form_error_required");
-    if (!form.email.includes("@")) errors.email = t("form_error_email");
-    if (!form.phone.trim()) errors.phone = t("form_error_required");
-    if (!form.company.trim()) errors.company = t("form_error_required");
-    if (!form.businessType) errors.businessType = t("form_error_required");
-    if (!form.city.trim()) errors.city = t("form_error_required");
-    return errors;
+    const e: Record<string, string> = {};
+    if (!form.name.trim()) e.name = "Required";
+    if (!form.businessType) e.businessType = "Required";
+    if (!form.phone.trim()) e.phone = "Required";
+    if (!form.email.includes("@")) e.email = "Invalid email";
+    return e;
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const errors = validate();
-    if (Object.keys(errors).length > 0) {
-      setFieldErrors(errors);
-      return;
-    }
-    setFieldErrors({});
+  function handleSubmit(ev: React.FormEvent) {
+    ev.preventDefault();
+    const e = validate();
+    if (Object.keys(e).length) { setErrors(e); return; }
+    setErrors({});
     mutation.mutate(
-      {
-        data: {
-          name: form.name,
-          email: form.email,
-          phone: form.phone,
-          company: form.company,
-          businessType: form.businessType as BusinessType,
-          city: form.city,
-          _honey: form._honey,
-        } as any,
-      },
+      { data: { name: form.name, email: form.email, phone: form.phone, company: "", businessType: form.businessType as BusinessType, city: "" } as any },
       { onSuccess: () => setSubmitted(true) }
     );
   }
 
-  const inputBase =
-    "w-full px-4 py-3 rounded-xl text-sm outline-none transition-all duration-200 border bg-slate-50 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10";
-  const labelBase = "block text-xs font-semibold mb-1.5 text-slate-600 uppercase tracking-wide";
-  const errorBase = "mt-1 text-xs text-red-500";
-
   return (
-    <section id="demo" className="py-24 sm:py-32 bg-[#f8fafc] scroll-mt-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="demo" style={{ background: "#F1F5F9", padding: "96px 24px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div className="lp-demo-grid">
 
-        <div className={`flex flex-col lg:flex-row gap-16 lg:gap-20 items-start ${dir === "rtl" ? "lg:flex-row-reverse" : ""}`}>
-
-          {/* ── Left: Headline + Benefits ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className={`lg:w-[40%] flex-shrink-0 ${dir === "rtl" ? "text-right" : "text-left"}`}
-          >
-            <p className="text-[11px] font-bold tracking-[0.14em] uppercase text-blue-600 mb-4">
-              {t("eyebrow_demo")}
+          {/* Left */}
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#2563EB", marginBottom: 16 }}>
+              See it in action
             </p>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-tight mb-5">
-              {t("form_headline")}
+            <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 700, lineHeight: 1.2, marginBottom: 16, color: "#0F172A" }}>
+              Book your{" "}
+              <span style={{ color: "#2563EB" }}>personalized demo</span>
             </h2>
-            <p className="text-base sm:text-lg text-slate-500 leading-relaxed mb-10">
-              {t("form_subheadline")}
+            <p style={{ color: "#64748B", fontSize: 15, lineHeight: 1.7, marginBottom: 36, maxWidth: 380 }}>
+              Our team will walk you through The Space OS, answer your questions, and show how it fits your business.
             </p>
 
-            {/* Benefits list */}
-            <div className="space-y-4">
-              {DEMO_BENEFITS.map((b, i) => (
-                <div key={i} className={`flex items-start gap-3 ${dir === "rtl" ? "flex-row-reverse" : ""}`}>
-                  <div className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {b.icon}
+            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+              {benefits.map(b => (
+                <div key={b.title} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <div style={{
+                    width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
+                    background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.2)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Check size={13} color="#2563EB" strokeWidth={2.5} />
                   </div>
-                  <p className="text-sm text-slate-600 leading-relaxed">{b.text}</p>
+                  <div>
+                    <div style={{ color: "#0F172A", fontSize: 14, fontWeight: 600 }}>{b.title}</div>
+                    <div style={{ color: "#64748B", fontSize: 13, marginTop: 2 }}>{b.desc}</div>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Trust note */}
-            <div className="mt-10 flex items-center gap-2.5 text-xs text-slate-400">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
-              </svg>
-              <span>Your info is private and never shared.</span>
-            </div>
-          </motion.div>
-
-          {/* ── Right: Form card ── */}
-          <motion.div
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55, delay: 0.1 }}
-            className="lg:flex-1 w-full"
-          >
-            <div className="bg-white rounded-3xl demo-card border border-slate-200/60 p-8 sm:p-10">
-              {submitted ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-emerald-50 border-2 border-emerald-200">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                    {t("form_success_title")}
-                  </h3>
-                  <p className="text-slate-500">{t("form_success_desc")}</p>
+          {/* Right — form card */}
+          <div style={{
+            background: "white", borderRadius: 20, padding: "36px",
+            boxShadow: "0 4px 40px rgba(0,0,0,0.08), 0 1px 8px rgba(0,0,0,0.04)",
+            border: "1px solid #E2E8F0",
+          }}>
+            {submitted ? (
+              <div style={{ textAlign: "center", padding: "40px 0" }}>
+                <div style={{
+                  width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px",
+                  background: "#F0FDF4", border: "2px solid #BBF7D0",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Check size={28} color="#16A34A" strokeWidth={2.5} />
                 </div>
-              ) : (
-                <form onSubmit={handleSubmit} noValidate>
-                  {/* Honeypot */}
-                  <input
-                    type="text"
-                    name="_honey"
-                    value={form._honey}
-                    onChange={(e) => setForm({ ...form, _honey: e.target.value })}
-                    className="hidden"
-                    tabIndex={-1}
-                    autoComplete="off"
+                <h3 style={{ color: "#0F172A", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Request Received!</h3>
+                <p style={{ color: "#64748B", fontSize: 15 }}>We'll be in touch within 24 hours.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} noValidate>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+                  <Field label="Full Name" error={errors.name}>
+                    <input
+                      type="text" value={form.name} placeholder="Your full name"
+                      onChange={e => setForm({ ...form, name: e.target.value })}
+                      style={{ ...inputStyle, borderColor: errors.name ? "#EF4444" : "#E2E8F0" }}
+                      onFocus={e => { e.currentTarget.style.borderColor = "#2563EB"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = errors.name ? "#EF4444" : "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; }}
+                    />
+                  </Field>
+                  <Field label="Business Type" error={errors.businessType}>
+                    <select
+                      value={form.businessType}
+                      onChange={e => setForm({ ...form, businessType: e.target.value as BusinessType })}
+                      style={{ ...inputStyle, borderColor: errors.businessType ? "#EF4444" : "#E2E8F0", cursor: "pointer", color: form.businessType ? "#0F172A" : "#9CA3AF" }}
+                    >
+                      <option value="" disabled>Select type…</option>
+                      {BUSINESS_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="Phone / WhatsApp" error={errors.phone}>
+                    <input
+                      type="tel" value={form.phone} placeholder="+20 10 0000 0000"
+                      onChange={e => setForm({ ...form, phone: e.target.value })}
+                      style={{ ...inputStyle, borderColor: errors.phone ? "#EF4444" : "#E2E8F0" }}
+                      onFocus={e => { e.currentTarget.style.borderColor = "#2563EB"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = errors.phone ? "#EF4444" : "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; }}
+                    />
+                  </Field>
+                  <Field label="Email Address" error={errors.email}>
+                    <input
+                      type="email" value={form.email} placeholder="you@example.com"
+                      onChange={e => setForm({ ...form, email: e.target.value })}
+                      style={{ ...inputStyle, borderColor: errors.email ? "#EF4444" : "#E2E8F0" }}
+                      onFocus={e => { e.currentTarget.style.borderColor = "#2563EB"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+                      onBlur={e => { e.currentTarget.style.borderColor = errors.email ? "#EF4444" : "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; }}
+                    />
+                  </Field>
+                </div>
+
+                <Field label="How can we help?">
+                  <textarea
+                    value={form.message} rows={3} placeholder="Tell us a bit about your business…"
+                    onChange={e => setForm({ ...form, message: e.target.value })}
+                    style={{ ...inputStyle, resize: "none" }}
+                    onFocus={e => { e.currentTarget.style.borderColor = "#2563EB"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(37,99,235,0.1)"; }}
+                    onBlur={e => { e.currentTarget.style.borderColor = "#E2E8F0"; e.currentTarget.style.boxShadow = "none"; }}
                   />
+                </Field>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Name */}
-                    <div>
-                      <label className={labelBase}>{t("form_name")}</label>
-                      <input
-                        type="text"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        className={`${inputBase} ${fieldErrors.name ? "border-red-400" : "border-slate-200"}`}
-                        placeholder={lang === "ar" ? "الاسم الكامل" : "Your full name"}
-                      />
-                      {fieldErrors.name && <p className={errorBase}>{fieldErrors.name}</p>}
-                    </div>
+                {mutation.isError && (
+                  <p style={{ color: "#EF4444", fontSize: 13, textAlign: "center", marginTop: 12 }}>Something went wrong. Please try again.</p>
+                )}
 
-                    {/* Email */}
-                    <div>
-                      <label className={labelBase}>{t("form_email")}</label>
-                      <input
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        className={`${inputBase} ${fieldErrors.email ? "border-red-400" : "border-slate-200"}`}
-                        placeholder="you@example.com"
-                      />
-                      {fieldErrors.email && <p className={errorBase}>{fieldErrors.email}</p>}
-                    </div>
+                <button type="submit" disabled={mutation.isPending}
+                  style={{
+                    marginTop: 20, width: "100%", padding: "13px",
+                    background: "#2563EB", color: "white", border: "none", borderRadius: 12,
+                    fontSize: 15, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                    opacity: mutation.isPending ? 0.7 : 1, transition: "background 0.2s",
+                  }}
+                  onMouseEnter={e => !mutation.isPending && (e.currentTarget.style.background = "#1D4ED8")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "#2563EB")}
+                >
+                  {mutation.isPending ? "Sending…" : "Request a Demo →"}
+                </button>
 
-                    {/* Phone */}
-                    <div>
-                      <label className={labelBase}>{t("form_phone")}</label>
-                      <input
-                        type="tel"
-                        value={form.phone}
-                        onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                        className={`${inputBase} ${fieldErrors.phone ? "border-red-400" : "border-slate-200"}`}
-                        placeholder="+20 10 0000 0000"
-                      />
-                      {fieldErrors.phone && <p className={errorBase}>{fieldErrors.phone}</p>}
-                    </div>
-
-                    {/* Company */}
-                    <div>
-                      <label className={labelBase}>{t("form_company")}</label>
-                      <input
-                        type="text"
-                        value={form.company}
-                        onChange={(e) => setForm({ ...form, company: e.target.value })}
-                        className={`${inputBase} ${fieldErrors.company ? "border-red-400" : "border-slate-200"}`}
-                        placeholder={lang === "ar" ? "اسم النشاط التجاري" : "Your business name"}
-                      />
-                      {fieldErrors.company && <p className={errorBase}>{fieldErrors.company}</p>}
-                    </div>
-
-                    {/* Business Type */}
-                    <div>
-                      <label className={labelBase}>{t("form_business_type")}</label>
-                      <select
-                        value={form.businessType}
-                        onChange={(e) => setForm({ ...form, businessType: e.target.value as BusinessType | "" })}
-                        className={`${inputBase} ${fieldErrors.businessType ? "border-red-400" : "border-slate-200"} ${form.businessType ? "text-slate-900" : "text-slate-400"}`}
-                      >
-                        <option value="" disabled>
-                          {lang === "ar" ? "اختر نوع النشاط" : "Select type…"}
-                        </option>
-                        {BUSINESS_TYPES.map(({ value, labelKey }) => (
-                          <option key={value} value={value} className="text-slate-900">
-                            {t(labelKey)}
-                          </option>
-                        ))}
-                      </select>
-                      {fieldErrors.businessType && <p className={errorBase}>{fieldErrors.businessType}</p>}
-                    </div>
-
-                    {/* City */}
-                    <div>
-                      <label className={labelBase}>{t("form_city")}</label>
-                      <input
-                        type="text"
-                        value={form.city}
-                        onChange={(e) => setForm({ ...form, city: e.target.value })}
-                        className={`${inputBase} ${fieldErrors.city ? "border-red-400" : "border-slate-200"}`}
-                        placeholder={lang === "ar" ? "المدينة" : "Cairo, Alexandria…"}
-                      />
-                      {fieldErrors.city && <p className={errorBase}>{fieldErrors.city}</p>}
-                    </div>
-
-                    {/* Message */}
-                    <div className="sm:col-span-2">
-                      <label className={labelBase}>{t("form_message")}</label>
-                      <textarea
-                        rows={3}
-                        value={form.message}
-                        onChange={(e) => setForm({ ...form, message: e.target.value })}
-                        className={`${inputBase} resize-none border-slate-200`}
-                        placeholder={lang === "ar" ? "أي تفاصيل إضافية..." : "Any additional details…"}
-                      />
-                    </div>
-                  </div>
-
-                  {mutation.isError && (
-                    <p className="mt-4 text-sm text-red-500 text-center">{t("form_error_server")}</p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={mutation.isPending}
-                    className="mt-6 w-full py-4 rounded-xl text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 active:bg-blue-700 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg"
-                  >
-                    {mutation.isPending ? t("form_submitting") : t("form_submit")}
-                  </button>
-                </form>
-              )}
-            </div>
-          </motion.div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14 }}>
+                  <Lock size={11} color="#94A3B8" />
+                  <span style={{ color: "#94A3B8", fontSize: 12 }}>We respect your privacy. Your information is safe with us.</span>
+                </div>
+              </form>
+            )}
+          </div>
 
         </div>
       </div>
+      <style>{`
+        .lp-demo-grid {
+          display: grid;
+          grid-template-columns: 42% 58%;
+          gap: 64px;
+          align-items: start;
+        }
+        @media (max-width: 900px) {
+          .lp-demo-grid { grid-template-columns: 1fr; gap: 48px; }
+        }
+        @media (max-width: 500px) {
+          .lp-demo-grid > div:last-child > form > div:first-child { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </section>
   );
 }

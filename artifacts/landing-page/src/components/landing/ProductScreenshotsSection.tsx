@@ -1,133 +1,123 @@
-import { motion } from "framer-motion";
-import type { TranslationKey } from "@/lib/i18n";
+import { ArrowRight } from "lucide-react";
+import heroImg from "@assets/ChatGPT_Image_Jun_11,_2026,_10_21_54_PM_1781205824750.png";
 
-const base = import.meta.env.BASE_URL;
-const dashboardImg = `${base}screenshots/dashboard.png`;
-const sessionsImg = `${base}screenshots/sessions.png`;
-
-interface ProductScreenshotsSectionProps {
-  t: (key: TranslationKey) => string;
-}
-
-const screenshots: Array<{
-  titleKey: TranslationKey;
-  descKey: TranslationKey;
-  src: string;
-  urlPath: string;
-  dotColor: string;
-  badgeBg: string;
-  badgeText: string;
-  bullets: TranslationKey[];
-}> = [
-  {
-    titleKey: "ss_sessions",
-    descKey: "ss_sessions_desc",
-    src: sessionsImg,
-    urlPath: "/sessions",
-    dotColor: "bg-blue-400",
-    badgeBg: "bg-blue-500/20 border-blue-500/30 text-blue-300",
-    badgeText: "Live",
-    bullets: ["ss_sessions", "ss_orders"],
-  },
-  {
-    titleKey: "ss_orders",
-    descKey: "ss_orders_desc",
-    src: dashboardImg,
-    urlPath: "/dashboard",
-    dotColor: "bg-emerald-400",
-    badgeBg: "bg-emerald-500/20 border-emerald-500/30 text-emerald-300",
-    badgeText: "Overview",
-    bullets: ["ss_reports", "ss_staff"],
-  },
+const bullets = [
+  "Real-time session and room control",
+  "POS orders with kitchen display",
+  "Staff scheduling and shift management",
+  "Secure payments and multi-method support",
+  "Inventory tracking and low stock alerts",
+  "Powerful reports and performance insights",
 ];
 
-export function ProductScreenshotsSection({ t }: ProductScreenshotsSectionProps) {
+function MiniDashCard({ title, caption, isRooms }: { title: string; caption: string; isRooms?: boolean }) {
   return (
-    <section id="product" className="py-24 sm:py-32 bg-[#0a1628] scroll-mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Section heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
-          className="text-center mb-16 sm:mb-20 max-w-2xl mx-auto"
-        >
-          <p className="text-[11px] font-bold tracking-[0.14em] uppercase text-blue-400 mb-4">
-            {t("eyebrow_product")}
-          </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-tight mb-5">
-            {t("ss_headline")}
-          </h2>
-          <p className="text-base sm:text-lg text-slate-400 leading-relaxed">
-            {t("ss_subheadline")}
-          </p>
-        </motion.div>
-
-        {/* Screenshot cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-          {screenshots.map(({ titleKey, descKey, src, urlPath, dotColor, badgeBg, badgeText, bullets }, i) => (
-            <motion.div
-              key={titleKey}
-              initial={{ opacity: 0, y: 36 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.55, delay: i * 0.12 }}
-              className="section-frame rounded-2xl overflow-hidden bg-[#1a2438] border border-white/10 flex flex-col"
-            >
-              {/* Browser chrome */}
-              <div className="flex items-center gap-2 px-4 h-10 bg-[#141f35] border-b border-white/8 flex-shrink-0">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500/60 flex-shrink-0" />
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60 flex-shrink-0" />
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500/60 flex-shrink-0" />
-                <div className="ml-2 flex-1 bg-white/5 rounded h-5 flex items-center px-3 min-w-0">
-                  <span className="text-[10px] text-slate-500 truncate">
-                    app.thespaceos.com{urlPath}
-                  </span>
-                </div>
-              </div>
-
-              {/* Screenshot */}
-              <div className="overflow-hidden flex-shrink-0">
-                <img
-                  src={src}
-                  alt={t(titleKey)}
-                  className="w-full block"
-                  loading="lazy"
-                />
-              </div>
-
-              {/* Caption panel */}
-              <div className="p-6 border-t border-white/8 flex-1">
-                <div className="flex items-start gap-3 mb-3">
-                  <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-2 ${dotColor}`} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                      <h3 className="font-semibold text-white text-base">{t(titleKey)}</h3>
-                      <span className={`text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full border ${badgeBg}`}>
-                        {badgeText}
-                      </span>
-                    </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">{t(descKey)}</p>
-                  </div>
-                </div>
-                <div className="flex flex-wrap gap-2 ps-5">
-                  {bullets.map((bKey) => (
-                    <span
-                      key={bKey}
-                      className="text-[11px] px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-slate-400 font-medium"
-                    >
-                      {t(bKey)}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
+    <div style={{
+      background: "#0A1628", borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)",
+      overflow: "hidden", flex: 1,
+    }}>
+      {/* Chrome */}
+      <div style={{
+        background: "#071020", padding: "8px 12px",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        display: "flex", alignItems: "center", gap: 5,
+      }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF5F57", display: "block" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FFBD2E", display: "block" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#28C840", display: "block" }} />
+      </div>
+      {/* Content */}
+      {isRooms ? (
+        <div style={{ padding: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+          {["Air Hockey $50", "Air Hockey $50", "BabyFoot $150", "BabyFoot $150", "Billiard $50", "Billiard $50", "POS Room 1", "POS Room 2"].map((r, i) => (
+            <div key={i} style={{
+              background: i % 2 === 0 ? "rgba(37,99,235,0.15)" : "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "6px 8px",
+            }}>
+              <div style={{ color: "white", fontSize: 9, fontWeight: 600 }}>{r.split(" $")[0]}</div>
+              {r.includes("$") && <div style={{ color: "#2563EB", fontSize: 9, marginTop: 2 }}>${r.split("$")[1]}</div>}
+            </div>
           ))}
         </div>
-
+      ) : (
+        <img src={heroImg} alt={title} style={{ width: "100%", display: "block", maxHeight: 180, objectFit: "cover", objectPosition: "top" }} />
+      )}
+      {/* Caption */}
+      <div style={{ padding: "10px 12px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ color: "white", fontSize: 12, fontWeight: 600, marginBottom: 3 }}>{title}</div>
+        <div style={{ color: "#64748B", fontSize: 11 }}>{caption}</div>
       </div>
+    </div>
+  );
+}
+
+export function ProductScreenshotsSection() {
+  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
+  return (
+    <section id="features" style={{ background: "#050B18", padding: "96px 24px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <div className="lp-connected-grid">
+
+          {/* Left */}
+          <div>
+            <h2 style={{ fontSize: "clamp(30px, 4vw, 44px)", fontWeight: 700, lineHeight: 1.15, marginBottom: 20, color: "white" }}>
+              Your entire operation,<br />
+              <span style={{ color: "#2563EB" }}>connected.</span>
+            </h2>
+            <p style={{ color: "#64748B", fontSize: 15, lineHeight: 1.7, marginBottom: 28, maxWidth: 400 }}>
+              From live sessions to orders, staff, inventory and reporting — The Space OS gives you complete visibility and control across every part of your business.
+            </p>
+            <ul style={{ listStyle: "none", padding: 0, marginBottom: 36, display: "flex", flexDirection: "column", gap: 10 }}>
+              {bullets.map(b => (
+                <li key={b} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                  <span style={{
+                    width: 7, height: 7, borderRadius: "50%", background: "#2563EB",
+                    flexShrink: 0, marginTop: 7,
+                  }} />
+                  <span style={{ color: "#94A3B8", fontSize: 14, lineHeight: 1.6 }}>{b}</span>
+                </li>
+              ))}
+            </ul>
+            <button onClick={() => scrollTo("demo")}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer",
+                background: "transparent", border: "1px solid rgba(255,255,255,0.15)", borderRadius: 8,
+                color: "white", fontSize: 14, fontWeight: 500, padding: "10px 18px", fontFamily: "inherit",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
+            >
+              Explore All Features <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {/* Right — two preview cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <MiniDashCard
+              title="Command Center Dashboard"
+              caption="Live overview of sessions, revenue, orders, alerts and performance — all in real time."
+            />
+            <MiniDashCard
+              title="Rooms & Sessions Management"
+              caption="Check room availability, start sessions, and manage bookings across all your spaces."
+              isRooms
+            />
+          </div>
+
+        </div>
+      </div>
+      <style>{`
+        .lp-connected-grid {
+          display: grid;
+          grid-template-columns: 45% 55%;
+          gap: 64px;
+          align-items: start;
+        }
+        @media (max-width: 900px) {
+          .lp-connected-grid { grid-template-columns: 1fr; gap: 48px; }
+        }
+      `}</style>
     </section>
   );
 }

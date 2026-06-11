@@ -1,45 +1,45 @@
-import { motion } from "framer-motion";
-import type { TranslationKey } from "@/lib/i18n";
+import { useState } from "react";
+import { Gamepad2, Building2, Coffee, Utensils, MoreHorizontal } from "lucide-react";
 
-interface SocialProofSectionProps {
-  t: (key: TranslationKey) => string;
-}
-
-const businessTypes = [
-  { icon: "🎮", key: "sp_gaming" as TranslationKey },
-  { icon: "🏢", key: "sp_coworking" as TranslationKey },
-  { icon: "☕", key: "sp_cafe" as TranslationKey },
-  { icon: "🍽️", key: "sp_restaurant" as TranslationKey },
-  { icon: "✨", key: "sp_more" as TranslationKey },
+const tabs = [
+  { icon: Gamepad2, label: "Gaming Lounges" },
+  { icon: Building2, label: "Coworking Spaces" },
+  { icon: Coffee, label: "Cafés" },
+  { icon: Utensils, label: "Restaurants" },
+  { icon: MoreHorizontal, label: "& More Businesses" },
 ];
 
-export function SocialProofSection({ t }: SocialProofSectionProps) {
-  return (
-    <section className="py-16 bg-white border-b border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center text-slate-500 text-sm font-medium mb-8 max-w-xl mx-auto"
-        >
-          {t("social_proof_text")}
-        </motion.p>
+export function SocialProofSection() {
+  const [active, setActive] = useState(0);
 
-        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8">
-          {businessTypes.map(({ icon, key }, i) => (
-            <motion.div
-              key={key}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-100"
+  return (
+    <section style={{ background: "#F1F5F9", padding: "32px 24px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <p style={{
+          fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+          color: "#2563EB", marginBottom: 20, textAlign: "center",
+        }}>Built for modern spaces</p>
+
+        <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 8 }}>
+          {tabs.map(({ icon: Icon, label }, i) => (
+            <button
+              key={label}
+              onClick={() => setActive(i)}
+              style={{
+                display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontFamily: "inherit",
+                padding: "10px 18px", borderRadius: 24,
+                border: active === i ? "1px solid rgba(0,0,0,0.08)" : "1px solid transparent",
+                background: active === i ? "white" : "transparent",
+                color: active === i ? "#0F172A" : "#64748B",
+                fontWeight: active === i ? 700 : 500,
+                fontSize: 14,
+                boxShadow: active === i ? "0 1px 6px rgba(0,0,0,0.1)" : "none",
+                transition: "all 0.18s ease",
+              }}
             >
-              <span className="text-xl">{icon}</span>
-              <span className="text-sm font-semibold text-slate-700">{t(key)}</span>
-            </motion.div>
+              <Icon size={16} strokeWidth={1.75} color={active === i ? "#2563EB" : "#94A3B8"} />
+              {label}
+            </button>
           ))}
         </div>
       </div>

@@ -1,112 +1,52 @@
-import { motion } from "framer-motion";
-import type { TranslationKey } from "@/lib/i18n";
+import { Activity, ShoppingCart, ChefHat, Users, CreditCard, BarChart3, Package } from "lucide-react";
 
-interface ProblemsSectionProps {
-  t: (key: TranslationKey) => string;
-}
-
-const problems: Array<{
-  icon: React.ReactNode;
-  titleKey: TranslationKey;
-  descKey: TranslationKey;
-  topGradient: string;
-  iconColor: string;
-  iconBg: string;
-}> = [
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
-    titleKey: "p1_title", descKey: "p1_desc",
-    topGradient: "from-red-500 to-rose-400",
-    iconColor: "text-red-500", iconBg: "bg-red-50",
-  },
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>,
-    titleKey: "p2_title", descKey: "p2_desc",
-    topGradient: "from-orange-500 to-amber-400",
-    iconColor: "text-orange-500", iconBg: "bg-orange-50",
-  },
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>,
-    titleKey: "p3_title", descKey: "p3_desc",
-    topGradient: "from-purple-500 to-violet-400",
-    iconColor: "text-purple-500", iconBg: "bg-purple-50",
-  },
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>,
-    titleKey: "p4_title", descKey: "p4_desc",
-    topGradient: "from-blue-500 to-cyan-400",
-    iconColor: "text-blue-500", iconBg: "bg-blue-50",
-  },
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>,
-    titleKey: "p5_title", descKey: "p5_desc",
-    topGradient: "from-emerald-500 to-teal-400",
-    iconColor: "text-emerald-500", iconBg: "bg-emerald-50",
-  },
-  {
-    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M1 6s1-1 4-1 4 2 7 2 4-1 4-1V3s-1 1-4 1-4-2-7-2-4 1-4 1v3z" /><path d="M1 12s1-1 4-1 4 2 7 2 4-1 4-1V9s-1 1-4 1-4-2-7-2-4 1-4 1v3z" /><path d="M1 18s1-1 4-1 4 2 7 2 4-1 4-1v-3s-1 1-4 1-4-2-7-2-4 1-4 1v3z" /></svg>,
-    titleKey: "p6_title", descKey: "p6_desc",
-    topGradient: "from-pink-500 to-rose-400",
-    iconColor: "text-pink-500", iconBg: "bg-pink-50",
-  },
+const features = [
+  { icon: Activity, label: "Live Sessions", sub: "Real-time control" },
+  { icon: ShoppingCart, label: "POS & Orders", sub: "Fast & accurate" },
+  { icon: ChefHat, label: "Kitchen Display", sub: "Smart workflows" },
+  { icon: Users, label: "Staff & Shifts", sub: "Right people, right time" },
+  { icon: CreditCard, label: "Payments", sub: "All methods supported" },
+  { icon: BarChart3, label: "Reports", sub: "Insights that grow" },
+  { icon: Package, label: "Inventory", sub: "Track & manage" },
 ];
 
-export function ProblemsSection({ t }: ProblemsSectionProps) {
+export function ProblemsSection() {
   return (
-    <section className="py-24 sm:py-32 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Section heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
-          className="text-center mb-16 sm:mb-20 max-w-2xl mx-auto"
-        >
-          <p className="text-[11px] font-bold tracking-[0.14em] uppercase text-red-500 mb-4">
-            {t("eyebrow_problem")}
-          </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-tight mb-5">
-            {t("problems_headline")}
-          </h2>
-          <p className="text-base sm:text-lg text-slate-500 leading-relaxed">
-            {t("problems_subheadline")}
-          </p>
-        </motion.div>
-
-        {/* Cards grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {problems.map(({ icon, titleKey, descKey, topGradient, iconColor, iconBg }, i) => (
-            <motion.div
-              key={titleKey}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: i * 0.07 }}
-              className="premium-card rounded-2xl border border-slate-900/[0.07] overflow-hidden"
-            >
-              {/* Top gradient stripe */}
-              <div className={`h-1 w-full bg-gradient-to-r ${topGradient}`} />
-              <div className="p-7">
-                {/* Icon */}
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-5 ${iconBg} ${iconColor}`}>
-                  {icon}
-                </div>
-                {/* Title */}
-                <h3 className="font-semibold text-slate-900 text-[15px] leading-snug mb-2.5 tracking-tight">
-                  {t(titleKey)}
-                </h3>
-                {/* Description */}
-                <p className="text-sm text-slate-500 leading-relaxed">
-                  {t(descKey)}
-                </p>
+    <section style={{
+      background: "#0A1628",
+      borderTop: "1px solid rgba(255,255,255,0.08)",
+      borderBottom: "1px solid rgba(255,255,255,0.08)",
+      padding: "28px 24px",
+    }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <div className="lp-strip-grid">
+          {features.map(({ icon: Icon, label, sub }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+                background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon size={18} color="#2563EB" strokeWidth={1.75} />
               </div>
-            </motion.div>
+              <div>
+                <div style={{ color: "white", fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{label}</div>
+                <div style={{ color: "#64748B", fontSize: 11, lineHeight: 1.3 }}>{sub}</div>
+              </div>
+            </div>
           ))}
         </div>
-
       </div>
+      <style>{`
+        .lp-strip-grid {
+          display: grid;
+          grid-template-columns: repeat(7, 1fr);
+          gap: 8px;
+          align-items: center;
+        }
+        @media (max-width: 1024px) { .lp-strip-grid { grid-template-columns: repeat(4, 1fr); gap: 16px; } }
+        @media (max-width: 600px) { .lp-strip-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
+      `}</style>
     </section>
   );
 }

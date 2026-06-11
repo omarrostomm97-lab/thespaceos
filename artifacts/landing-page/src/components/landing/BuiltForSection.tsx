@@ -1,100 +1,118 @@
-import { motion } from "framer-motion";
-import type { TranslationKey } from "@/lib/i18n";
+import { ArrowRight } from "lucide-react";
 
-interface BuiltForSectionProps {
-  t: (key: TranslationKey) => string;
-}
-
-const audiences: Array<{
-  nameKey: TranslationKey;
-  descKey: TranslationKey;
-  gradientFrom: string;
-  gradientTo: string;
-  iconColor: string;
-  icon: React.ReactNode;
-}> = [
+const venues = [
   {
-    nameKey: "bf1_name", descKey: "bf1_desc",
-    gradientFrom: "from-blue-500", gradientTo: "to-indigo-500",
-    iconColor: "text-white",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>,
+    name: "Gaming Lounges",
+    desc: "Session control, device management, and gaming time tracking.",
+    gradient: "linear-gradient(135deg, #1a2744 0%, #0d1a38 100%)",
+    accent: "#3B82F6",
   },
   {
-    nameKey: "bf2_name", descKey: "bf2_desc",
-    gradientFrom: "from-cyan-500", gradientTo: "to-blue-500",
-    iconColor: "text-white",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
+    name: "Coworking Spaces",
+    desc: "Desk & room bookings, memberships, and flexible workspace management.",
+    gradient: "linear-gradient(135deg, #1a2a1a 0%, #0d1f0d 100%)",
+    accent: "#22C55E",
   },
   {
-    nameKey: "bf3_name", descKey: "bf3_desc",
-    gradientFrom: "from-amber-500", gradientTo: "to-orange-500",
-    iconColor: "text-white",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 010 8h-1" /><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" /><line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" /></svg>,
+    name: "Cafés",
+    desc: "Orders, menu, POS, and kitchen display — simplified.",
+    gradient: "linear-gradient(135deg, #2a1f10 0%, #1a1208 100%)",
+    accent: "#F59E0B",
   },
   {
-    nameKey: "bf4_name", descKey: "bf4_desc",
-    gradientFrom: "from-emerald-500", gradientTo: "to-teal-500",
-    iconColor: "text-white",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l19-9-9 19-2-8-8-2z" /></svg>,
+    name: "Restaurants",
+    desc: "Table management, kitchen workflows and order automation.",
+    gradient: "linear-gradient(135deg, #2a1010 0%, #1a0808 100%)",
+    accent: "#EF4444",
   },
   {
-    nameKey: "bf5_name", descKey: "bf5_desc",
-    gradientFrom: "from-violet-500", gradientTo: "to-purple-500",
-    iconColor: "text-white",
-    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="2" /><path d="M16.24 7.76a6 6 0 010 8.49m-8.48-.01a6 6 0 010-8.49m11.31-2.82a10 10 0 010 14.14m-14.14 0a10 10 0 010-14.14" /></svg>,
+    name: "Other Service Spaces",
+    desc: "Salons, clinics, studios and more — all in one system.",
+    gradient: "linear-gradient(135deg, #1a1a2a 0%, #0d0d1a 100%)",
+    accent: "#8B5CF6",
   },
 ];
 
-export function BuiltForSection({ t }: BuiltForSectionProps) {
+export function BuiltForSection() {
+  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
   return (
-    <section id="built-for" className="py-24 sm:py-32 bg-white scroll-mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section style={{ background: "#0D1F3C", padding: "96px 24px" }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        <div className="lp-builtfor-grid">
 
-        {/* Section heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
-          className="text-center mb-16 sm:mb-20 max-w-2xl mx-auto"
-        >
-          <p className="text-[11px] font-bold tracking-[0.14em] uppercase text-violet-600 mb-4">
-            {t("eyebrow_built_for")}
-          </p>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 tracking-tight leading-tight mb-5">
-            {t("built_for_headline")}
-          </h2>
-          <p className="text-base sm:text-lg text-slate-500 leading-relaxed">
-            {t("built_for_subheadline")}
-          </p>
-        </motion.div>
-
-        {/* Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
-          {audiences.map(({ nameKey, descKey, gradientFrom, gradientTo, iconColor, icon }, i) => (
-            <motion.div
-              key={nameKey}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: i * 0.08 }}
-              className="premium-card rounded-2xl border border-slate-900/[0.07] p-7 overflow-hidden flex flex-col"
+          {/* Left */}
+          <div>
+            <h2 style={{ fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 700, lineHeight: 1.15, marginBottom: 20 }}>
+              <span style={{ color: "white" }}>Built for</span><br />
+              <span style={{ color: "#2563EB" }}>modern operations</span>
+            </h2>
+            <p style={{ color: "#94A3B8", fontSize: 15, lineHeight: 1.7, marginBottom: 32, maxWidth: 340 }}>
+              One platform that adapts to the way you run your business.
+            </p>
+            <button onClick={() => scrollTo("demo")}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                background: "transparent", border: "none", cursor: "pointer",
+                color: "#2563EB", fontSize: 14, fontWeight: 600, padding: 0, fontFamily: "inherit",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#3B82F6")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#2563EB")}
             >
-              {/* Gradient icon box */}
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 bg-gradient-to-br ${gradientFrom} ${gradientTo} ${iconColor} shadow-lg flex-shrink-0`}>
-                {icon}
-              </div>
-              <h3 className="font-bold text-slate-900 text-base tracking-tight mb-3">
-                {t(nameKey)}
-              </h3>
-              <p className="text-sm text-slate-500 leading-relaxed flex-1">
-                {t(descKey)}
-              </p>
-            </motion.div>
-          ))}
-        </div>
+              See how it works <ArrowRight size={14} />
+            </button>
+          </div>
 
+          {/* Right — venue cards grid */}
+          <div className="lp-venue-grid">
+            {venues.map((v, i) => (
+              <div key={v.name}
+                style={{
+                  background: v.gradient, borderRadius: 12, padding: "24px",
+                  border: "1px solid rgba(255,255,255,0.08)", cursor: "default",
+                  transition: "border-color 0.2s, transform 0.2s",
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = v.accent + "55";
+                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.08)";
+                  (e.currentTarget as HTMLDivElement).style.transform = "none";
+                }}
+              >
+                <div style={{ width: 8, height: 8, borderRadius: "50%", background: v.accent, marginBottom: 14 }} />
+                <div style={{ color: "white", fontSize: 14, fontWeight: 700, marginBottom: 8 }}>{v.name}</div>
+                <div style={{ color: "#64748B", fontSize: 12, lineHeight: 1.6 }}>{v.desc}</div>
+              </div>
+            ))}
+          </div>
+
+        </div>
       </div>
+      <style>{`
+        .lp-builtfor-grid {
+          display: grid;
+          grid-template-columns: 35% 65%;
+          gap: 64px;
+          align-items: center;
+        }
+        .lp-venue-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        .lp-venue-grid > *:last-child:nth-child(odd) {
+          grid-column: 1 / -1;
+        }
+        @media (max-width: 900px) {
+          .lp-builtfor-grid { grid-template-columns: 1fr; gap: 48px; }
+          .lp-venue-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 500px) {
+          .lp-venue-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
     </section>
   );
 }

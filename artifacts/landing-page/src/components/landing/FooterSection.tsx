@@ -1,121 +1,127 @@
-import type { TranslationKey } from "@/lib/i18n";
+import { Linkedin } from "lucide-react";
 
-interface FooterSectionProps {
-  t: (key: TranslationKey) => string;
-  lang: string;
-  toggleLang: () => void;
-}
+const columns = [
+  {
+    title: "Product",
+    links: ["Features", "Pricing", "Updates", "Changelog"],
+  },
+  {
+    title: "Solutions",
+    links: ["Gaming Lounges", "Coworking", "Cafés", "Restaurants", "Other Businesses"],
+  },
+  {
+    title: "Company",
+    links: ["About Us", "Careers", "Partners", "Contact Us"],
+  },
+  {
+    title: "Resources",
+    links: ["Help Center", "Documentation", "Blog", "Status"],
+  },
+];
 
-function XIcon() {
+export function FooterSection() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  );
-}
+    <footer style={{
+      background: "#050B18", borderTop: "1px solid rgba(255,255,255,0.08)",
+    }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 40px" }}>
 
-function LinkedInIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-    </svg>
-  );
-}
-
-function InstagramIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-    </svg>
-  );
-}
-
-export function FooterSection({ t, lang, toggleLang }: FooterSectionProps) {
-  const links = [
-    { label: t("footer_features"), href: "#features" },
-    { label: t("footer_built_for"), href: "#built-for" },
-    { label: t("footer_how"), href: "#how-it-works" },
-    { label: t("footer_demo"), href: "#demo" },
-  ];
-
-  const socials = [
-    { icon: <XIcon />, href: "https://twitter.com/thespaceos", label: "X / Twitter" },
-    { icon: <LinkedInIcon />, href: "https://linkedin.com/company/thespaceos", label: "LinkedIn" },
-    { icon: <InstagramIcon />, href: "https://instagram.com/thespaceos", label: "Instagram" },
-  ];
-
-  return (
-    <footer className="bg-[#0b1120] border-t border-white/[0.06] pb-20 sm:pb-0">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-        {/* Top row: brand + links + actions */}
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+        {/* Top row */}
+        <div className="lp-footer-top">
           {/* Brand */}
-          <div className="flex flex-col gap-2.5 flex-shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-blue-500 to-indigo-500">
-                <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                  <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
-                  <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6" />
-                  <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.6" />
-                  <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.9" />
-                </svg>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+              <div style={{
+                width: 32, height: 32, background: "#2563EB", borderRadius: 8,
+                display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, padding: 7, flexShrink: 0,
+              }}>
+                {[1, 1, 1, 0.45].map((op, i) => (
+                  <div key={i} style={{ background: "white", borderRadius: 2, opacity: op }} />
+                ))}
               </div>
-              <span className="font-grotesk font-bold text-white text-base tracking-[-0.01em]">
-                The Space OS
+              <span style={{ color: "white", fontWeight: 700, fontSize: 15, letterSpacing: "-0.01em" }}>The Space OS</span>
+            </div>
+            <p style={{ color: "#334155", fontSize: 13, lineHeight: 1.6, maxWidth: 220, marginBottom: 20 }}>
+              The Space OS is an operations platform for modern businesses that demand total control.
+            </p>
+            {/* Socials */}
+            <div style={{ display: "flex", gap: 8 }}>
+              {[
+                { href: "https://linkedin.com/company/thespaceos", label: "LinkedIn", icon: <Linkedin size={15} /> },
+              ].map(s => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
+                  aria-label={s.label}
+                  style={{
+                    width: 34, height: 34, borderRadius: 8, display: "flex", alignItems: "center",
+                    justifyContent: "center", color: "#475569", textDecoration: "none",
+                    border: "1px solid rgba(255,255,255,0.08)", background: "transparent",
+                    transition: "background 0.2s, color 0.2s",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLAnchorElement).style.color = "white"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; (e.currentTarget as HTMLAnchorElement).style.color = "#475569"; }}
+                >{s.icon}</a>
+              ))}
+            </div>
+          </div>
+
+          {/* Link columns */}
+          {columns.map(col => (
+            <div key={col.title}>
+              <h4 style={{ color: "white", fontSize: 13, fontWeight: 700, marginBottom: 16, letterSpacing: "0.01em" }}>{col.title}</h4>
+              <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+                {col.links.map(link => (
+                  <li key={link}>
+                    <a href="#" onClick={e => e.preventDefault()}
+                      style={{ color: "#475569", fontSize: 13, textDecoration: "none", transition: "color 0.2s" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "#94A3B8")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "#475569")}
+                    >{link}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {/* Built in Egypt */}
+          <div>
+            <h4 style={{ color: "white", fontSize: 13, fontWeight: 700, marginBottom: 12 }}>Built in Egypt</h4>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontSize: 20 }}>🇪🇬</div>
+              <span style={{ color: "#475569", fontSize: 12, lineHeight: 1.5 }}>
+                Proudly supporting businesses locally and regionally.
               </span>
             </div>
-            <p className="text-xs leading-relaxed text-white/30 max-w-[200px]">
-              {t("footer_tagline")}
-            </p>
-          </div>
-
-          {/* Nav links */}
-          <div className="flex flex-wrap gap-x-6 gap-y-3 md:pt-0.5">
-            {links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm text-white/40 transition-colors duration-200 hover:text-blue-400"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          {/* Social icons + lang toggle */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {socials.map((s) => (
-              <a
-                key={s.label}
-                href={s.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={s.label}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 transition-all hover:bg-white/10"
-              >
-                {s.icon}
-              </a>
-            ))}
-            <div className="w-px h-[18px] bg-white/10 mx-1" />
-            <button
-              onClick={toggleLang}
-              className="text-xs font-semibold px-3 py-1.5 rounded-lg text-white/40 border border-white/10 transition-colors hover:bg-white/10"
-            >
-              {lang === "en" ? "عربي" : "English"}
-            </button>
           </div>
         </div>
 
         {/* Bottom row */}
-        <div className="mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-white/[0.06]">
-          <p className="text-xs px-3 py-1 rounded-full text-white/[0.28] bg-white/[0.04] border border-white/[0.07]">
-            {t("footer_copyright")}
-          </p>
-          <p className="text-xs whitespace-nowrap text-white/[0.28]">
-            {t("footer_made_in")}
-          </p>
+        <div style={{
+          marginTop: 48, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.06)",
+          display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12,
+        }}>
+          <p style={{ color: "#334155", fontSize: 12 }}>© 2026 The Space OS. All rights reserved.</p>
+          <div style={{ display: "flex", gap: 20 }}>
+            {["Privacy Policy", "Terms of Service"].map(link => (
+              <a key={link} href="#" onClick={e => e.preventDefault()}
+                style={{ color: "#334155", fontSize: 12, textDecoration: "none", transition: "color 0.2s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#94A3B8")}
+                onMouseLeave={e => (e.currentTarget.style.color = "#334155")}
+              >{link}</a>
+            ))}
+          </div>
         </div>
+
       </div>
+      <style>{`
+        .lp-footer-top {
+          display: grid;
+          grid-template-columns: 1.4fr repeat(4, 1fr) 1.2fr;
+          gap: 40px;
+        }
+        @media (max-width: 1024px) { .lp-footer-top { grid-template-columns: 1fr 1fr 1fr; gap: 32px; } }
+        @media (max-width: 640px) { .lp-footer-top { grid-template-columns: 1fr 1fr; gap: 28px; } }
+        @media (max-width: 400px) { .lp-footer-top { grid-template-columns: 1fr; } }
+      `}</style>
     </footer>
   );
 }

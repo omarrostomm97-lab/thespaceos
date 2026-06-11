@@ -1,182 +1,139 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { TranslationKey } from "@/lib/i18n";
+import { ChevronDown, Menu, X, ArrowRight } from "lucide-react";
 
-interface NavbarProps {
-  t: (key: TranslationKey) => string;
-  lang: string;
-  toggleLang: () => void;
-  appLoginUrl?: string;
-}
-
-export function Navbar({ t, lang, toggleLang, appLoginUrl = "/gaming-lounge/" }: NavbarProps) {
+export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
+    const h = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", h, { passive: true });
+    return () => window.removeEventListener("scroll", h);
   }, []);
 
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    setMobileOpen(false);
+  };
 
-  const navLinks = [
-    { key: "nav_product" as TranslationKey, href: "#product" },
-    { key: "nav_built_for" as TranslationKey, href: "#built-for" },
-    { key: "nav_features" as TranslationKey, href: "#features" },
-    { key: "nav_how_it_works" as TranslationKey, href: "#how-it-works" },
-    { key: "nav_demo" as TranslationKey, href: "#demo" },
-  ];
-
-  const logoColor = scrolled ? "text-slate-900" : "text-white";
-  const linkColor = scrolled ? "text-slate-600 hover:text-slate-900" : "text-white/75 hover:text-white";
-  const langBtnColor = scrolled ? "text-slate-600 hover:bg-slate-100" : "text-white/75 hover:bg-white/10";
-  const loginBtnColor = scrolled
-    ? "border-slate-200 text-slate-700 hover:border-blue-400 hover:text-blue-600"
-    : "border-white/25 text-white/80 hover:border-white/50";
+  const S = {
+    nav: {
+      position: "fixed" as const, top: 0, left: 0, right: 0, zIndex: 1000,
+      background: scrolled ? "rgba(5,11,24,0.96)" : "#050B18",
+      borderBottom: "1px solid rgba(255,255,255,0.08)",
+      backdropFilter: scrolled ? "blur(20px)" : "none",
+      transition: "all 0.3s ease",
+    },
+    inner: { maxWidth: 1200, margin: "0 auto", padding: "0 24px" },
+    row: { display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 },
+    logo: { display: "flex", alignItems: "center", gap: 10, textDecoration: "none" },
+    logoBox: {
+      width: 34, height: 34, background: "#2563EB", borderRadius: 8,
+      display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, padding: 7, flexShrink: 0,
+    },
+    logoCell: (op: number) => ({ background: "white", borderRadius: 2, opacity: op }),
+    logoText: { color: "white", fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em" },
+    navLinks: { display: "flex", alignItems: "center", gap: 2 },
+    navBtn: {
+      display: "flex", alignItems: "center", gap: 4,
+      background: "none", border: "none", cursor: "pointer",
+      color: "#94A3B8", fontSize: 14, fontWeight: 500,
+      padding: "8px 14px", borderRadius: 8, fontFamily: "inherit",
+    },
+    right: { display: "flex", alignItems: "center", gap: 8 },
+    loginLink: { color: "#94A3B8", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 12px" },
+    ctaBtn: {
+      display: "flex", alignItems: "center", gap: 6,
+      background: "#2563EB", color: "white", border: "none", borderRadius: 24, cursor: "pointer",
+      fontSize: 14, fontWeight: 600, padding: "9px 20px", fontFamily: "inherit",
+    },
+    hamburger: { background: "none", border: "none", color: "white", cursor: "pointer", padding: 8 },
+    mobileMenu: {
+      background: "#0A1628", borderTop: "1px solid rgba(255,255,255,0.08)",
+      padding: "12px 24px 24px",
+    },
+    mobileLinkBtn: {
+      display: "block", width: "100%", textAlign: "left" as const,
+      background: "none", border: "none", borderBottom: "1px solid rgba(255,255,255,0.06)",
+      cursor: "pointer", color: "#94A3B8", fontSize: 15, fontWeight: 500,
+      padding: "14px 0", fontFamily: "inherit",
+    },
+    mobileCta: {
+      marginTop: 16, width: "100%", background: "#2563EB", color: "white",
+      border: "none", borderRadius: 12, cursor: "pointer",
+      fontSize: 15, fontWeight: 600, padding: "14px", fontFamily: "inherit",
+    },
+  };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "navbar-scrolled" : "bg-transparent"
-      }`}
-    >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-18">
+    <nav style={S.nav}>
+      <div style={S.inner}>
+        <div style={S.row}>
           {/* Logo */}
-          <a href="#" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-blue-500 to-indigo-500">
-              <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                <rect x="2" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
-                <rect x="10" y="2" width="6" height="6" rx="1.5" fill="white" opacity="0.6" />
-                <rect x="2" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.6" />
-                <rect x="10" y="10" width="6" height="6" rx="1.5" fill="white" opacity="0.95" />
-              </svg>
+          <a href="#" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={S.logo}>
+            <div style={S.logoBox}>
+              {[1, 1, 1, 0.4].map((op, i) => <div key={i} style={S.logoCell(op)} />)}
             </div>
-            <span className={`font-grotesk font-bold text-base tracking-tight transition-colors duration-300 ${logoColor}`}>
-              The Space OS
-            </span>
+            <span style={S.logoText}>The Space OS</span>
           </a>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-7">
-            {navLinks.map((link) => (
-              <a
-                key={link.key}
-                href={link.href}
-                className={`text-sm font-medium transition-colors duration-200 ${linkColor}`}
+          {/* Desktop Nav */}
+          <div style={S.navLinks} className="lp-nav-desktop">
+            {[
+              { label: "Product", dropdown: true },
+              { label: "Solutions", dropdown: true },
+              { label: "Features", id: "features" },
+              { label: "Demo", id: "demo" },
+            ].map(item => (
+              <button key={item.label}
+                onClick={() => item.id && scrollTo(item.id)}
+                style={S.navBtn}
+                onMouseEnter={e => (e.currentTarget.style.color = "white")}
+                onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
               >
-                {t(link.key)}
-              </a>
+                {item.label}
+                {item.dropdown && <ChevronDown size={13} strokeWidth={2.5} />}
+              </button>
             ))}
           </div>
 
-          {/* Desktop right */}
-          <div className="hidden md:flex items-center gap-2.5">
-            <button
-              onClick={toggleLang}
-              className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors duration-200 ${langBtnColor}`}
-            >
-              {lang === "en" ? "عربي" : "EN"}
-            </button>
-            <a
-              href={appLoginUrl}
-              className={`text-sm font-medium px-4 py-2 rounded-lg border transition-colors duration-200 ${loginBtnColor}`}
-            >
-              {t("nav_login")}
-            </a>
-            <a
-              href="#demo"
-              className={`text-sm font-semibold px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-200 ${scrolled ? "" : "shadow-[0_2px_12px_rgba(59,130,246,0.3)]"}`}
-            >
-              {t("nav_request_demo")}
-            </a>
+          {/* Desktop Right */}
+          <div style={S.right} className="lp-nav-desktop">
+            <a href="/gaming-lounge/login" style={S.loginLink}
+              onMouseEnter={e => (e.currentTarget.style.color = "white")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
+            >Login</a>
+            <button onClick={() => scrollTo("demo")} style={S.ctaBtn}
+              onMouseEnter={e => (e.currentTarget.style.background = "#1D4ED8")}
+              onMouseLeave={e => (e.currentTarget.style.background = "#2563EB")}
+            >Request a Demo <ArrowRight size={13} strokeWidth={2.5} /></button>
           </div>
 
-          {/* Mobile right */}
-          <div className="flex md:hidden items-center gap-1.5">
-            <button
-              onClick={toggleLang}
-              className={`text-sm font-semibold px-2.5 py-1.5 rounded-lg transition-colors duration-200 ${langBtnColor}`}
-            >
-              {lang === "en" ? "ع" : "EN"}
-            </button>
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              className={`p-2 rounded-lg transition-colors ${
-                scrolled ? "text-slate-700 hover:bg-slate-100" : "text-white hover:bg-white/10"
-              }`}
-            >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                {mobileOpen ? (
-                  <>
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </>
-                ) : (
-                  <>
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="3" y1="12" x2="21" y2="12" />
-                    <line x1="3" y1="18" x2="21" y2="18" />
-                  </>
-                )}
-              </svg>
-            </button>
-          </div>
+          {/* Mobile toggle */}
+          <button className="lp-nav-mobile" onClick={() => setMobileOpen(!mobileOpen)} style={S.hamburger}>
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
-      </nav>
+      </div>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.22, ease: "easeInOut" }}
-            className="md:hidden overflow-hidden bg-white/[0.98] backdrop-blur-xl border-t border-slate-100"
-          >
-            <div className="px-4 py-3 space-y-1">
-              {navLinks.map((link) => (
-                <a
-                  key={link.key}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block px-3 py-2.5 text-sm font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
-                >
-                  {t(link.key)}
-                </a>
-              ))}
-              <div className="pt-3 pb-1 border-t border-slate-100 space-y-2 mt-2">
-                <a
-                  href={appLoginUrl}
-                  className="block w-full text-center px-4 py-2.5 text-sm font-medium border border-slate-200 text-slate-700 rounded-xl hover:border-blue-400 transition-colors"
-                >
-                  {t("nav_login")}
-                </a>
-                <a
-                  href="#demo"
-                  onClick={() => setMobileOpen(false)}
-                  className="block w-full text-center px-4 py-2.5 text-sm font-semibold bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors"
-                >
-                  {t("nav_request_demo")}
-                </a>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </header>
+      {mobileOpen && (
+        <div style={S.mobileMenu}>
+          {["Features", "Demo"].map(label => (
+            <button key={label} onClick={() => scrollTo(label.toLowerCase())} style={S.mobileLinkBtn}>{label}</button>
+          ))}
+          <a href="/gaming-lounge/login" style={{ display: "block", color: "#94A3B8", fontSize: 15, padding: "14px 0", textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>Login</a>
+          <button onClick={() => scrollTo("demo")} style={S.mobileCta}>Request a Demo →</button>
+        </div>
+      )}
+
+      <style>{`
+        .lp-nav-desktop { display: flex !important; }
+        .lp-nav-mobile { display: none !important; }
+        @media (max-width: 768px) {
+          .lp-nav-desktop { display: none !important; }
+          .lp-nav-mobile { display: flex !important; }
+        }
+      `}</style>
+    </nav>
   );
 }
