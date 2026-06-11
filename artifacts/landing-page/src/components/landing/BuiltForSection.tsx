@@ -65,27 +65,19 @@ function SpaceCard({ name, desc, accent, img }: (typeof spaces)[0]) {
             transition: "transform 0.5s ease",
           }}
         />
-        {/* Dark gradient scrim */}
         <div style={{
           position: "absolute", inset: 0,
-          background: `linear-gradient(to bottom, rgba(7,18,31,0.15) 0%, rgba(7,18,31,0.75) 100%)`,
+          background: `linear-gradient(to bottom, rgba(7,18,31,0.1) 0%, rgba(7,18,31,0.55) 100%)`,
         }} />
-        {/* Accent colour tag */}
-        <div style={{
-          position: "absolute", top: 10, left: 12,
-          background: accent + "22",
-          border: `1px solid ${accent}55`,
-          borderRadius: 20, padding: "2px 10px",
-          display: "flex", alignItems: "center", gap: 5,
-        }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: accent, boxShadow: `0 0 6px ${accent}` }} />
-          <span style={{ color: accent, fontSize: 10, fontWeight: 700, letterSpacing: "0.04em" }}>{name}</span>
-        </div>
       </div>
 
       {/* Content */}
       <div style={{ padding: "14px 16px 18px" }}>
-        <p style={{ color: "#94A3B8", fontSize: 12, lineHeight: 1.6 }}>{desc}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
+          <div style={{ width: 7, height: 7, borderRadius: "50%", flexShrink: 0, background: accent, boxShadow: `0 0 7px ${accent}` }} />
+          <p style={{ color: "white", fontSize: 13, fontWeight: 700, margin: 0 }}>{name}</p>
+        </div>
+        <p style={{ color: "#475569", fontSize: 12, lineHeight: 1.6 }}>{desc}</p>
       </div>
     </div>
   );
