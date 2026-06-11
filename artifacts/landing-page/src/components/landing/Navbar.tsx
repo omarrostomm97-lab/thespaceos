@@ -58,16 +58,12 @@ export function Navbar() {
 
           {/* Logo */}
           <a href="#" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <div style={{
-              width: 34, height: 34, background: "#2563EB", borderRadius: 8,
-              display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, padding: 7, flexShrink: 0,
-            }}>
-              {[1, 1, 1, 0.4].map((op, i) => (
-                <div key={i} style={{ background: "white", borderRadius: 2, opacity: op }} />
-              ))}
-            </div>
-            <span style={{ color: "white", fontWeight: 700, fontSize: 16, letterSpacing: "-0.02em" }}>The Space OS</span>
+            style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+            <img
+              src={`${import.meta.env.BASE_URL}the-space-os-logo-transparent.png`}
+              alt="The Space OS"
+              style={{ height: 52, width: "auto", filter: "brightness(0) invert(1)" }}
+            />
           </a>
 
           {/* Desktop Nav */}
