@@ -7,8 +7,11 @@ import {
 } from "lucide-react";
 import { useLang } from "@/hooks/use-language";
 
-const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
-const API = `${BASE_URL}/api`;
+const API = "/api";
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("gl_token") : null;
+  return { ...(token ? { Authorization: `Bearer ${token}` } : {}), ...extra };
+}
 
 const STATUS_LABELS: Record<string, string> = {
   new:            "جديد",
@@ -77,8 +80,7 @@ function StatusPicker({
     mutationFn: async (status: string) => {
       const res = await fetch(`${API}/admin/leads/${leadId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ status }),
       });
       if (!res.ok) throw new Error("فشل التحديث");
@@ -310,7 +312,7 @@ export default function AdminLeads() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["admin-leads", search, bizFilter, statusFilter, offset],
     queryFn: async () => {
-      const res = await fetch(`${API}/admin/leads?${params}`, { credentials: "include" });
+      const res = await fetch(`${API}/admin/leads?${params}`, { headers: authHeaders() });
       if (!res.ok) throw new Error("Failed to fetch");
       return res.json() as Promise<{ leads: Lead[]; total: number }>;
     },
