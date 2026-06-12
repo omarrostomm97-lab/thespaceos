@@ -4,34 +4,34 @@ import {
 } from "lucide-react";
 
 const features = [
-  { icon: LayoutGrid, label: "Sessions & Rooms",    desc: "Manage rooms, devices and live sessions." },
-  { icon: ShoppingCart, label: "POS & Orders",      desc: "Create orders, apply discounts, process sales." },
-  { icon: ChefHat,  label: "Kitchen Display",       desc: "Route orders instantly to the kitchen." },
-  { icon: Users,    label: "Staff & Shifts",         desc: "Real-time roles, clocks and attendance tracking." },
-  { icon: CreditCard, label: "Payments",            desc: "Accept cash, card, InstaPay and more." },
-  { icon: Package,  label: "Inventory",             desc: "Track stock, receive alerts, stay in control." },
-  { icon: BarChart3, label: "Reports & Analytics",  desc: "Sales, performance and business insights." },
-  { icon: MapPin,   label: "Multi-location",        desc: "Manage multiple branches with ease." },
-  { icon: Shield,   label: "Role-based Access",     desc: "Give each user access with custom permissions." },
-  { icon: Languages, label: "Arabic / English",     desc: "Fully bilingual support for your team." },
+  { icon: LayoutGrid, label: "الجلسات والغرف",         desc: "إدارة الغرف والأجهزة والجلسات المباشرة بسهولة." },
+  { icon: ShoppingCart, label: "نقطة البيع والطلبات",  desc: "إنشاء الطلبات، تطبيق الخصومات، ومعالجة المبيعات." },
+  { icon: ChefHat, label: "شاشة المطبخ",              desc: "توجيه الطلبات فورًا إلى المطبخ بدون تأخير." },
+  { icon: Users, label: "الموظفون والشيفتات",          desc: "أدوار فورية، حضور وانصراف، وجداول العمل." },
+  { icon: CreditCard, label: "المدفوعات",              desc: "قبول الكاش، البطاقات، InstaPay وأكثر." },
+  { icon: Package, label: "المخزون",                   desc: "تتبع المخزون، تنبيهات النقص، وتحكم كامل." },
+  { icon: BarChart3, label: "التقارير والتحليلات",     desc: "مبيعات، أداء، ورؤى تجارية متعمقة." },
+  { icon: MapPin, label: "متعدد الفروع",               desc: "إدارة عدة فروع بسهولة ومن مكان واحد." },
+  { icon: Shield, label: "صلاحيات الوصول",             desc: "امنح كل مستخدم صلاحياته المخصصة." },
+  { icon: Languages, label: "عربي / إنجليزي",          desc: "دعم كامل لغة عربية وإنجليزية لفريقك." },
 ];
 
 export function FeaturesSection() {
   return (
-    <section style={{ background: "#F8FAFC", padding: "96px 24px" }}>
+    <section style={{ background: "#F8FAFC", padding: "96px 24px", direction: "rtl" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
         <div style={{ textAlign: "center", marginBottom: 64 }}>
           <p style={{
-            fontSize: 11, fontWeight: 700, letterSpacing: "0.12em",
-            textTransform: "uppercase", color: "#2563EB", marginBottom: 16,
-          }}>Powerful by Design</p>
+            fontSize: 12, fontWeight: 700, letterSpacing: "0.04em",
+            color: "#2563EB", marginBottom: 16,
+          }}>قوي بتصميمه</p>
           <h2 style={{
-            fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 700,
+            fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800,
             lineHeight: 1.15, color: "#0F172A",
           }}>
-            Everything you need.{" "}
-            <span style={{ color: "#94A3B8", fontWeight: 400 }}>Nothing you don't.</span>
+            كل ما تحتاجه.{" "}
+            <span style={{ color: "#94A3B8", fontWeight: 400 }}>بلا أي زيادة.</span>
           </h2>
         </div>
 
@@ -65,7 +65,7 @@ export function FeaturesSection() {
               }}>
                 <Icon size={18} color="#2563EB" strokeWidth={1.75} />
               </div>
-              <div style={{ color: "#0F172A", fontSize: 14, fontWeight: 600, marginBottom: 5 }}>{label}</div>
+              <div style={{ color: "#0F172A", fontSize: 14, fontWeight: 700, marginBottom: 5 }}>{label}</div>
               <div style={{ color: "#64748B", fontSize: 12, lineHeight: 1.65 }}>{desc}</div>
             </div>
           ))}

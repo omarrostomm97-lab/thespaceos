@@ -2,3 +2,4 @@
 - [Card system](card-system.md) — cards use plain div + .card-base (box-shadow only, no HeroUI wrapper, no border); shadow defined by --card-shadow CSS var per theme
 - [i18n pattern](i18n-pattern.md) — getT(lang) in i18n.ts, useLang() hook returns { t, dir, lang, toggleLang }; dynamic labels inside component (not module-level) when they use t()
 - [Shifts API — no-shift is 200+null](shifts-api.md) — GET /api/shifts/current returns 200+null (not 404) when no shift open; UI guards against isError too
+- [Leads management system](leads-management.md) — schema, API routes, sidebar section, and admin UI for landing page leads; purple sidebar theme for platform admin nav

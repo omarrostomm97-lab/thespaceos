@@ -2,40 +2,40 @@ import { Linkedin } from "lucide-react";
 
 const columns = [
   {
-    title: "Product",
+    title: "المنتج",
     links: [
-      { label: "Features", href: "#features" },
-      { label: "Pricing", href: "https://thespaceos.com/pricing" },
-      { label: "Updates", href: "https://thespaceos.com/updates" },
-      { label: "Changelog", href: "https://thespaceos.com/changelog" },
+      { label: "المميزات", href: "#features" },
+      { label: "الأسعار", href: "https://thespaceos.com/pricing" },
+      { label: "التحديثات", href: "https://thespaceos.com/updates" },
+      { label: "سجل التغييرات", href: "https://thespaceos.com/changelog" },
     ],
   },
   {
-    title: "Solutions",
+    title: "الحلول",
     links: [
-      { label: "Gaming Lounges", href: "#solutions" },
-      { label: "Coworking", href: "#solutions" },
-      { label: "Cafés", href: "#solutions" },
-      { label: "Restaurants", href: "#solutions" },
-      { label: "Other Businesses", href: "#solutions" },
+      { label: "محلات البلايستيشن والجيمينج", href: "#solutions" },
+      { label: "مساحات العمل المشتركة", href: "#solutions" },
+      { label: "الكافيهات", href: "#solutions" },
+      { label: "المطاعم", href: "#solutions" },
+      { label: "أنشطة أخرى", href: "#solutions" },
     ],
   },
   {
-    title: "Company",
+    title: "الشركة",
     links: [
-      { label: "About Us", href: "https://thespaceos.com/about" },
-      { label: "Careers", href: "https://thespaceos.com/careers" },
-      { label: "Partners", href: "https://thespaceos.com/partners" },
-      { label: "Contact Us", href: "#demo" },
+      { label: "من نحن", href: "https://thespaceos.com/about" },
+      { label: "فرص العمل", href: "https://thespaceos.com/careers" },
+      { label: "الشراكات", href: "https://thespaceos.com/partners" },
+      { label: "تواصل معنا", href: "#demo" },
     ],
   },
   {
-    title: "Resources",
+    title: "الدعم",
     links: [
-      { label: "Help Center", href: "https://thespaceos.com/help" },
-      { label: "Documentation", href: "https://thespaceos.com/docs" },
-      { label: "Blog", href: "https://thespaceos.com/blog" },
-      { label: "Status", href: "https://status.thespaceos.com" },
+      { label: "مركز المساعدة", href: "https://thespaceos.com/help" },
+      { label: "التوثيق", href: "https://thespaceos.com/docs" },
+      { label: "المدونة", href: "https://thespaceos.com/blog" },
+      { label: "حالة الخدمة", href: "https://status.thespaceos.com" },
     ],
   },
 ];
@@ -44,10 +44,7 @@ export function FooterSection() {
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
-  function handleLink(
-    e: React.MouseEvent<HTMLAnchorElement>,
-    href: string
-  ) {
+  function handleLink(e: React.MouseEvent<HTMLAnchorElement>, href: string) {
     if (href.startsWith("#")) {
       e.preventDefault();
       scrollTo(href.slice(1));
@@ -55,12 +52,9 @@ export function FooterSection() {
   }
 
   return (
-    <footer
-      style={{ background: "#050B18", borderTop: "1px solid rgba(255,255,255,0.08)" }}
-    >
+    <footer style={{ background: "#050B18", borderTop: "1px solid rgba(255,255,255,0.08)", direction: "rtl" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 40px" }}>
 
-        {/* Top row */}
         <div className="lp-footer-top">
 
           {/* Brand column */}
@@ -73,17 +67,14 @@ export function FooterSection() {
               />
             </div>
 
-            <p style={{ color: "#334155", fontSize: 13, lineHeight: 1.65, maxWidth: 240, marginBottom: 24 }}>
-              The Space OS is an operations platform for modern businesses that demand total control.
+            <p style={{ color: "#334155", fontSize: 13, lineHeight: 1.75, maxWidth: 240, marginBottom: 24 }}>
+              The Space OS — منصة تشغيل متكاملة للأنشطة التجارية الحديثة التي تريد تحكمًا كاملًا.
             </p>
 
-            {/* Social icons */}
             <div style={{ display: "flex", gap: 8 }}>
               <a
                 href="https://linkedin.com/company/thespaceos"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
+                target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"
                 style={{
                   width: 34, height: 34, borderRadius: 8, display: "flex",
                   alignItems: "center", justifyContent: "center",
@@ -105,7 +96,6 @@ export function FooterSection() {
             </div>
           </div>
 
-          {/* Link columns */}
           {columns.map(col => (
             <div key={col.title}>
               <h4 style={{
@@ -114,10 +104,7 @@ export function FooterSection() {
               }}>
                 {col.title}
               </h4>
-              <ul style={{
-                listStyle: "none", padding: 0,
-                display: "flex", flexDirection: "column", gap: 11,
-              }}>
+              <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 11 }}>
                 {col.links.map(link => (
                   <li key={link.label}>
                     <a
@@ -125,10 +112,7 @@ export function FooterSection() {
                       onClick={e => handleLink(e, link.href)}
                       target={link.href.startsWith("http") ? "_blank" : undefined}
                       rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                      style={{
-                        color: "#475569", fontSize: 13, textDecoration: "none",
-                        transition: "color 0.2s",
-                      }}
+                      style={{ color: "#475569", fontSize: 13, textDecoration: "none", transition: "color 0.2s" }}
                       onMouseEnter={e => (e.currentTarget.style.color = "#94A3B8")}
                       onMouseLeave={e => (e.currentTarget.style.color = "#475569")}
                     >
@@ -141,14 +125,12 @@ export function FooterSection() {
           ))}
         </div>
 
-        {/* Bottom row */}
         <div style={{
           marginTop: 48, paddingTop: 24,
           borderTop: "1px solid rgba(255,255,255,0.06)",
           display: "flex", flexWrap: "wrap",
           justifyContent: "space-between", alignItems: "center", gap: 14,
         }}>
-          {/* Built in Egypt badge */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -156,28 +138,23 @@ export function FooterSection() {
               borderRadius: 20, padding: "5px 12px",
             }}>
               <span style={{ fontSize: 15 }}>🇪🇬</span>
-              <span style={{ color: "#94A3B8", fontSize: 12, fontWeight: 500 }}>Built in Egypt</span>
+              <span style={{ color: "#94A3B8", fontSize: 12, fontWeight: 600 }}>صُنع في مصر</span>
             </div>
           </div>
 
           <p style={{ color: "#334155", fontSize: 12 }}>
-            © 2026 The Space OS. All rights reserved.
+            © 2026 The Space OS. جميع الحقوق محفوظة.
           </p>
 
           <div style={{ display: "flex", gap: 20 }}>
             {[
-              { label: "Privacy Policy", href: "https://thespaceos.com/privacy" },
-              { label: "Terms of Service", href: "https://thespaceos.com/terms" },
+              { label: "سياسة الخصوصية", href: "https://thespaceos.com/privacy" },
+              { label: "شروط الاستخدام", href: "https://thespaceos.com/terms" },
             ].map(link => (
               <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "#334155", fontSize: 12, textDecoration: "none",
-                  transition: "color 0.2s",
-                }}
+                key={link.label} href={link.href}
+                target="_blank" rel="noopener noreferrer"
+                style={{ color: "#334155", fontSize: 12, textDecoration: "none", transition: "color 0.2s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "#94A3B8")}
                 onMouseLeave={e => (e.currentTarget.style.color = "#334155")}
               >

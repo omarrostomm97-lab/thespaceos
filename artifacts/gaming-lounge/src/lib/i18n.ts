@@ -23,6 +23,7 @@ const translations = {
     nav_performance: "أداء الموظفين",
     nav_users: "المستخدمين",
     nav_audit: "سجل العمليات",
+    nav_leads: "العملاء المحتملون",
     nav_settings: "الإعدادات",
 
     /* ── Sidebar ── */
@@ -498,6 +499,7 @@ const translations = {
 
     /* ── Finance Navigation ── */
     nav_finance_section: "المالية",
+    nav_admin_section: "إدارة النظام",
     nav_finance_overview: "نظرة عامة",
     nav_finance_expenses: "المصروفات",
     nav_finance_money_in: "الدخل",
@@ -1056,6 +1058,7 @@ const translations = {
     nav_performance: "Staff Performance",
     nav_users: "Users",
     nav_audit: "Audit Log",
+    nav_leads: "Leads",
     nav_settings: "Settings",
     nav_user_guide: "User Guide Scripts",
 
@@ -1529,6 +1532,7 @@ const translations = {
 
     /* ── Finance Navigation ── */
     nav_finance_section: "Finance",
+    nav_admin_section: "Platform Admin",
     nav_finance_overview: "Overview",
     nav_finance_expenses: "Expenses",
     nav_finance_money_in: "Money In",

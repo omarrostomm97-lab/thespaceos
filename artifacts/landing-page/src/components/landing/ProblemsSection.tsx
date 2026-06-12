@@ -1,13 +1,13 @@
 import { Activity, ShoppingCart, ChefHat, Users, CreditCard, BarChart3, Package } from "lucide-react";
 
 const features = [
-  { icon: Activity, label: "Live Sessions", sub: "Real-time control" },
-  { icon: ShoppingCart, label: "POS & Orders", sub: "Fast & accurate" },
-  { icon: ChefHat, label: "Kitchen Display", sub: "Smart workflows" },
-  { icon: Users, label: "Staff & Shifts", sub: "Right people, right time" },
-  { icon: CreditCard, label: "Payments", sub: "All methods supported" },
-  { icon: BarChart3, label: "Reports", sub: "Insights that grow" },
-  { icon: Package, label: "Inventory", sub: "Track & manage" },
+  { icon: Activity, label: "جلسات مباشرة", sub: "تحكم فوري وكامل" },
+  { icon: ShoppingCart, label: "نقطة البيع والطلبات", sub: "سريع ودقيق" },
+  { icon: ChefHat, label: "شاشة المطبخ", sub: "سير عمل ذكي" },
+  { icon: Users, label: "الموظفون والشيفتات", sub: "الشخص المناسب في وقته" },
+  { icon: CreditCard, label: "المدفوعات", sub: "جميع طرق الدفع" },
+  { icon: BarChart3, label: "التقارير", sub: "بيانات تساعدك تكبر" },
+  { icon: Package, label: "المخزون", sub: "تتبع وإدارة كاملة" },
 ];
 
 export function ProblemsSection() {
@@ -17,6 +17,7 @@ export function ProblemsSection() {
       borderTop: "1px solid rgba(255,255,255,0.08)",
       borderBottom: "1px solid rgba(255,255,255,0.08)",
       padding: "28px 24px",
+      direction: "rtl",
     }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div className="lp-strip-grid">
@@ -30,7 +31,7 @@ export function ProblemsSection() {
                 <Icon size={18} color="#2563EB" strokeWidth={1.75} />
               </div>
               <div>
-                <div style={{ color: "white", fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{label}</div>
+                <div style={{ color: "white", fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>{label}</div>
                 <div style={{ color: "#64748B", fontSize: 11, lineHeight: 1.3 }}>{sub}</div>
               </div>
             </div>

@@ -38,6 +38,7 @@ import {
   DollarSign,
   RotateCcw,
   Tag,
+  Inbox,
 } from "lucide-react";
 import {
   useListReturnRequests,
@@ -208,6 +209,16 @@ const BASE_URL = import.meta.env.BASE_URL;
 const LOGO = `${BASE_URL}the-space-os-logo.png`;
 
 const FINANCE_ROLES = new Set(["platform_owner", "owner", "manager"]);
+const PLATFORM_ADMIN_ROLES = new Set(["platform_owner"]);
+
+const platformAdminNavigation: NavItem[] = [
+  {
+    nameKey: "nav_leads",
+    href: "/admin/leads",
+    icon: Inbox,
+    routeKey: "/admin/leads",
+  },
+];
 
 const ROLE_KEY_MAP: Record<string, TranslationKey> = {
   platform_owner: "role_platform_owner",
@@ -594,6 +605,97 @@ export function Layout({ children }: LayoutProps) {
                         style={{
                           color: isActive
                             ? "#17c964"
+                            : "var(--sb-text-inactive)",
+                          fontWeight: isActive ? 600 : 500,
+                        }}
+                      >
+                        {t(item.nameKey)}
+                      </span>
+                    </motion.div>
+                  </Link>
+                );
+              })}
+            </>
+          )}
+
+          {/* ── Platform Admin section (platform_owner only) ── */}
+          {user?.role && PLATFORM_ADMIN_ROLES.has(user.role) && (
+            <>
+              <div className="pt-3 pb-1.5 px-3">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="h-px flex-1"
+                    style={{ background: "var(--sb-glass-border)" }}
+                  />
+                  <p
+                    className="text-[9px] uppercase tracking-[0.18em] font-semibold shrink-0"
+                    style={{ color: "var(--sb-icon-inactive)" }}
+                  >
+                    {t("nav_admin_section")}
+                  </p>
+                  <div
+                    className="h-px flex-1"
+                    style={{ background: "var(--sb-glass-border)" }}
+                  />
+                </div>
+              </div>
+              {platformAdminNavigation.map((item) => {
+                const isActive =
+                  location === item.href ||
+                  location.startsWith(item.href + "/");
+                return (
+                  <Link key={item.routeKey} href={item.href}>
+                    <motion.div
+                      whileHover={isActive ? {} : { x: lang === "ar" ? -1 : 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                      className="relative flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer select-none group"
+                      style={
+                        isActive
+                          ? {
+                              background:
+                                "linear-gradient(90deg, rgba(168,85,247,0.15) 0%, rgba(168,85,247,0.07) 100%)",
+                              border: "1px solid rgba(168,85,247,0.2)",
+                            }
+                          : { border: "1px solid transparent" }
+                      }
+                    >
+                      {isActive && (
+                        <div
+                          className={cn(
+                            "absolute top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full",
+                            lang === "ar" ? "left-0" : "right-0",
+                          )}
+                          style={{
+                            background: "linear-gradient(180deg, #a855f7, #7c3aed)",
+                            boxShadow: "0 0 8px rgba(168,85,247,0.7)",
+                          }}
+                        />
+                      )}
+                      {!isActive && (
+                        <div
+                          className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                          style={{ background: "var(--sb-nav-hover)" }}
+                        />
+                      )}
+                      <div
+                        className="relative w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-150"
+                        style={
+                          isActive
+                            ? {
+                                background: "rgba(168,85,247,0.25)",
+                                boxShadow: "0 0 10px rgba(168,85,247,0.3)",
+                                color: "#a855f7",
+                              }
+                            : { color: "var(--sb-icon-inactive)" }
+                        }
+                      >
+                        <item.icon className="h-3.5 w-3.5" />
+                      </div>
+                      <span
+                        className="text-sm relative transition-colors duration-150"
+                        style={{
+                          color: isActive
+                            ? "#a855f7"
                             : "var(--sb-text-inactive)",
                           fontWeight: isActive ? 600 : 500,
                         }}

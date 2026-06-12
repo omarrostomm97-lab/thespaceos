@@ -1,36 +1,36 @@
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 const BASE = import.meta.env.BASE_URL;
 
 const spaces = [
   {
-    name: "Gaming Lounges",
-    desc: "Session control, device management, and gaming time tracking.",
+    name: "محلات البلايستيشن والجيمينج",
+    desc: "تحكم في الجلسات، إدارة الأجهزة، وتتبع وقت اللعب بدقة.",
     accent: "#3B82F6",
     img: `${BASE}biz-gaming.jpg`,
   },
   {
-    name: "Coworking Spaces",
-    desc: "Desk & room bookings, members, and workspace management.",
+    name: "مساحات العمل المشتركة",
+    desc: "حجز المكاتب والغرف، إدارة الأعضاء، والمساحات بكل سهولة.",
     accent: "#22C55E",
     img: `${BASE}biz-coworking.jpg`,
   },
   {
-    name: "Cafés",
-    desc: "Orders, menu, POS, and kitchen workflow simplified.",
+    name: "الكافيهات",
+    desc: "الطلبات، القائمة، نقطة البيع، وسير عمل المطبخ في مكان واحد.",
     accent: "#F59E0B",
     img: `${BASE}biz-cafe.jpg`,
   },
   {
-    name: "Restaurants",
-    desc: "Table management, kitchen display, and order automation.",
+    name: "المطاعم",
+    desc: "إدارة الطاولات، شاشة المطبخ، وأتمتة الطلبات بالكامل.",
     accent: "#EF4444",
     img: `${BASE}biz-restaurant.jpg`,
   },
   {
-    name: "Other Businesses",
-    desc: "Salons, clinics, studios, and more — all in one system.",
+    name: "أي نشاط يدير غرفًا أو جلسات",
+    desc: "صالونات، عيادات، استوديوهات، وأكثر — كل شيء في منصة واحدة.",
     accent: "#8B5CF6",
     img: `${BASE}biz-other.jpg`,
   },
@@ -54,7 +54,6 @@ function SpaceCard({ name, desc, accent, img }: (typeof spaces)[0]) {
         boxShadow: hov ? `0 16px 48px rgba(0,0,0,0.5), 0 0 28px ${accent}18` : "none",
       }}
     >
-      {/* Photo */}
       <div style={{ position: "relative", overflow: "hidden", height: 120 }}>
         <img
           src={img} alt={name}
@@ -71,7 +70,6 @@ function SpaceCard({ name, desc, accent, img }: (typeof spaces)[0]) {
         }} />
       </div>
 
-      {/* Content */}
       <div style={{ padding: "14px 16px 18px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
           <div style={{ width: 7, height: 7, borderRadius: "50%", flexShrink: 0, background: accent, boxShadow: `0 0 7px ${accent}` }} />
@@ -87,41 +85,41 @@ export function BuiltForSection() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <section id="solutions" style={{ background: "#050B18", padding: "96px 24px" }}>
+    <section id="solutions" style={{ background: "#050B18", padding: "96px 24px", direction: "rtl" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div className="lp-builtfor-grid">
 
-          {/* Left */}
+          {/* Right — text */}
           <div>
             <p style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: "0.12em",
-              textTransform: "uppercase", color: "#2563EB", marginBottom: 16,
-            }}>Built for modern spaces</p>
+              fontSize: 12, fontWeight: 700, letterSpacing: "0.04em",
+              color: "#2563EB", marginBottom: 16,
+            }}>مصمم للأنشطة التجارية الحديثة</p>
             <h2 style={{
-              fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 700,
-              lineHeight: 1.12, marginBottom: 20,
+              fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 800,
+              lineHeight: 1.15, marginBottom: 20,
             }}>
-              <span style={{ color: "white" }}>Built for</span><br />
-              <span style={{ color: "#2563EB" }}>modern operations</span>
+              <span style={{ color: "white" }}>مصمم لطريقة</span><br />
+              <span style={{ color: "#2563EB" }}>تشغيلك الفعلية</span>
             </h2>
-            <p style={{ color: "#94A3B8", fontSize: 15, lineHeight: 1.7, marginBottom: 32, maxWidth: 340 }}>
-              One platform that adapts to the way you run your business.
+            <p style={{ color: "#94A3B8", fontSize: 15, lineHeight: 1.8, marginBottom: 32, maxWidth: 340 }}>
+              منصة واحدة تتكيف مع طريقة إدارتك لنشاطك التجاري.
             </p>
             <button onClick={() => scrollTo("demo")}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
                 background: "transparent", border: "none", cursor: "pointer",
-                color: "#2563EB", fontSize: 14, fontWeight: 600, padding: 0, fontFamily: "inherit",
+                color: "#2563EB", fontSize: 14, fontWeight: 700, padding: 0, fontFamily: "inherit",
                 transition: "color 0.2s",
               }}
               onMouseEnter={e => (e.currentTarget.style.color = "#60A5FA")}
               onMouseLeave={e => (e.currentTarget.style.color = "#2563EB")}
             >
-              See how it works <ArrowRight size={14} />
+              شاهد كيف يعمل <ArrowLeft size={14} />
             </button>
           </div>
 
-          {/* Right — cards */}
+          {/* Left — cards */}
           <div className="lp-venue-grid">
             {spaces.map(s => <SpaceCard key={s.name} {...s} />)}
           </div>

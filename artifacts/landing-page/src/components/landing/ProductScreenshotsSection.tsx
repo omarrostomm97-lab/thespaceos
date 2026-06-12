@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 
 const IMG_DASHBOARD = `${import.meta.env.BASE_URL}hero-dashboard.png`;
 const IMG_ROOMS     = `${import.meta.env.BASE_URL}hero-rooms.png`;
 
 const bullets = [
-  "Real-time session and room control",
-  "POS orders with kitchen display",
-  "Staff scheduling and shift management",
-  "Secure payments and multi-method support",
-  "Inventory tracking and low stock alerts",
-  "Powerful reports and performance insights",
+  "تحكم فوري في الجلسات والغرف",
+  "طلبات نقطة البيع مع شاشة المطبخ",
+  "جدولة الموظفين وإدارة الشيفتات",
+  "مدفوعات آمنة ومتعددة الطرق",
+  "تتبع المخزون وتنبيهات النقص",
+  "تقارير قوية ورؤى الأداء",
 ];
 
 function ScreenshotCard({
@@ -42,6 +42,7 @@ function ScreenshotCard({
         padding: "8px 12px",
         borderBottom: "1px solid rgba(255,255,255,0.07)",
         display: "flex", alignItems: "center", gap: 6,
+        direction: "ltr",
       }}>
         <div style={{ display: "flex", gap: 5 }}>
           {["#FF5F57","#FFBD2E","#28C840"].map((c,i) => (
@@ -88,26 +89,26 @@ export function ProductScreenshotsSection() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <section id="features" style={{ background: "#F8FAFC", padding: "96px 24px" }}>
+    <section id="features" style={{ background: "#F8FAFC", padding: "96px 24px", direction: "rtl" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div className="lp-connected-grid">
 
-          {/* Left — text */}
+          {/* Right — text (RTL) */}
           <div>
             <p style={{
-              fontSize: 11, fontWeight: 700, letterSpacing: "0.12em",
-              textTransform: "uppercase", color: "#2563EB", marginBottom: 14,
-            }}>Platform Overview</p>
+              fontSize: 12, fontWeight: 700, letterSpacing: "0.04em",
+              color: "#2563EB", marginBottom: 14,
+            }}>نظرة عامة على المنصة</p>
             <h2 style={{
-              fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 700,
-              lineHeight: 1.12, marginBottom: 18, color: "#0F172A",
+              fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 800,
+              lineHeight: 1.15, marginBottom: 18, color: "#0F172A",
             }}>
-              Your entire operation,<br />
-              <span style={{ color: "#2563EB" }}>connected.</span>
+              عمليتك كلها،<br />
+              <span style={{ color: "#2563EB" }}>في مكان واحد.</span>
             </h2>
-            <p style={{ color: "#64748B", fontSize: 15, lineHeight: 1.75, marginBottom: 28, maxWidth: 400 }}>
-              From live sessions to orders, staff, inventory and reporting — The Space OS gives
-              you complete visibility and control across every part of your business.
+            <p style={{ color: "#64748B", fontSize: 15, lineHeight: 1.85, marginBottom: 28, maxWidth: 400 }}>
+              من الجلسات المباشرة إلى الطلبات والموظفين والمخزون والتقارير —
+              The Space OS يمنحك رؤية كاملة وتحكمًا تامًا في كل جزء من نشاطك.
             </p>
             <ul style={{ listStyle: "none", padding: 0, marginBottom: 36, display: "flex", flexDirection: "column", gap: 10 }}>
               {bullets.map(b => (
@@ -128,7 +129,7 @@ export function ProductScreenshotsSection() {
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer",
                 background: "transparent", border: "1px solid rgba(37,99,235,0.35)",
-                borderRadius: 8, color: "#2563EB", fontSize: 14, fontWeight: 600,
+                borderRadius: 8, color: "#2563EB", fontSize: 14, fontWeight: 700,
                 padding: "10px 20px", fontFamily: "inherit", transition: "all 0.2s",
               }}
               onMouseEnter={e => {
@@ -140,23 +141,23 @@ export function ProductScreenshotsSection() {
                 e.currentTarget.style.borderColor = "rgba(37,99,235,0.35)";
               }}
             >
-              Explore All Features <ArrowRight size={14} />
+              استكشف جميع المميزات <ArrowLeft size={14} />
             </button>
           </div>
 
-          {/* Right — screenshot cards */}
+          {/* Left — screenshot cards */}
           <div className="lp-cards-row">
             <ScreenshotCard
               img={IMG_DASHBOARD}
-              title="Command Center Dashboard"
-              caption="Live overview of sessions, revenue, orders, alerts and performance — all in real time."
-              alt="Command Center Dashboard"
+              title="لوحة التحكم الرئيسية"
+              caption="نظرة مباشرة على الجلسات والإيرادات والطلبات والتنبيهات والأداء — في الوقت الفعلي."
+              alt="لوحة التحكم الرئيسية"
             />
             <ScreenshotCard
               img={IMG_ROOMS}
-              title="Rooms & Sessions Management"
-              caption="Check room availability, start sessions, and manage bookings across all your spaces."
-              alt="Rooms and Sessions Management"
+              title="إدارة الغرف والجلسات"
+              caption="تحقق من توفر الغرف، ابدأ الجلسات، وأدر الحجوزات عبر جميع مساحاتك."
+              alt="إدارة الغرف والجلسات"
             />
           </div>
 

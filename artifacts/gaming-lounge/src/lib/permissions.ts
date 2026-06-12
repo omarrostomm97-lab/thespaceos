@@ -36,6 +36,7 @@ export const ROUTE_ALLOWED_ROLES: Record<string, UserRole[]> = {
   "/settings":    ALL_MGMT,
   "/admin/tenants": ["platform_owner"],
   "/admin/users":   ["platform_owner"],
+  "/admin/leads":   ["platform_owner"],
   "/orders/returns":      ALL_MGMT,
   "/discounts":           ALL_MGMT,
   "/finance":             FINANCE_ROLES,

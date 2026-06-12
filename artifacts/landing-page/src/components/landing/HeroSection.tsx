@@ -15,6 +15,7 @@ export function HeroSection() {
         position: "relative",
         display: "flex",
         alignItems: "center",
+        direction: "rtl",
       }}
     >
       {/* Subtle grid overlay */}
@@ -31,12 +32,12 @@ export function HeroSection() {
         }}
       />
 
-      {/* Glow — left */}
+      {/* Glow — right (RTL: right is start) */}
       <div
         style={{
           position: "absolute",
           top: "5%",
-          left: "-8%",
+          right: "-8%",
           width: 700,
           height: 700,
           borderRadius: "50%",
@@ -45,13 +46,13 @@ export function HeroSection() {
           pointerEvents: "none",
         }}
       />
-      {/* Glow — right, animated */}
+      {/* Glow — left, animated */}
       <div
         className="lp-glow-pulse"
         style={{
           position: "absolute",
           top: "0%",
-          right: "-6%",
+          left: "-6%",
           width: 900,
           height: 900,
           borderRadius: "50%",
@@ -72,7 +73,7 @@ export function HeroSection() {
         }}
       >
         <div className="lp-hero-grid">
-          {/* ── Left column ── */}
+          {/* ── Right column (RTL: text is on the right) ── */}
           <div className="lp-hero-left">
             <div
               style={{
@@ -99,26 +100,26 @@ export function HeroSection() {
               <span
                 style={{
                   color: "#93C5FD",
-                  fontSize: 12,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: "0.01em",
                 }}
               >
-                The All-in-One Operations Platform
+                منصة متكاملة للعمليات اليومية
               </span>
             </div>
 
             <h1
               style={{
-                fontSize: "clamp(44px, 5.5vw, 70px)",
-                fontWeight: 800,
-                lineHeight: 1.03,
-                letterSpacing: "-0.04em",
+                fontSize: "clamp(40px, 5.5vw, 68px)",
+                fontWeight: 900,
+                lineHeight: 1.1,
+                letterSpacing: "-0.02em",
                 marginBottom: 24,
                 color: "white",
               }}
             >
-              One System.
+              نظام تشغيل متكامل
               <br />
               <span
                 style={{
@@ -128,7 +129,7 @@ export function HeroSection() {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                Total Control.
+                لإدارة نشاطك التجاري
               </span>
             </h1>
 
@@ -136,26 +137,26 @@ export function HeroSection() {
               style={{
                 fontSize: 16,
                 color: "#94A3B8",
-                lineHeight: 1.75,
+                lineHeight: 1.85,
                 marginBottom: 10,
-                maxWidth: 470,
+                maxWidth: 500,
               }}
             >
-              The Space OS is the all-in-one operations platform for gaming
-              lounges, coworking spaces, cafés, restaurants, and modern
-              businesses.
+              إدارة الجلسات، الحجوزات، الطلبات، الموظفين، الشيفتات، المدفوعات،
+              المخزون، والتقارير — من منصة واحدة مصممة للأنشطة التي تعتمد على
+              التشغيل اليومي.
             </p>
             <p
               style={{
-                fontSize: 15,
+                fontSize: 14,
                 color: "#64748B",
-                lineHeight: 1.7,
+                lineHeight: 1.8,
                 marginBottom: 36,
-                maxWidth: 470,
+                maxWidth: 480,
               }}
             >
-              Manage sessions, orders, staff, shifts, payments, inventory, and
-              reports — all from one powerful system.
+              The Space OS هو النظام الأول المصمم خصيصًا للأنشطة التجارية في
+              مصر والمنطقة — بالعربية والإنجليزية.
             </p>
 
             {/* CTAs */}
@@ -179,7 +180,7 @@ export function HeroSection() {
                   borderRadius: 10,
                   cursor: "pointer",
                   fontSize: 15,
-                  fontWeight: 600,
+                  fontWeight: 700,
                   padding: "14px 28px",
                   fontFamily: "inherit",
                   boxShadow: "0 4px 32px rgba(37,99,235,0.45)",
@@ -198,7 +199,7 @@ export function HeroSection() {
                     "0 4px 32px rgba(37,99,235,0.45)";
                 }}
               >
-                Request a Demo →
+                احجز عرض تجريبي ←
               </button>
               <button
                 onClick={() => scrollTo("features")}
@@ -212,7 +213,7 @@ export function HeroSection() {
                   borderRadius: 10,
                   cursor: "pointer",
                   fontSize: 15,
-                  fontWeight: 500,
+                  fontWeight: 600,
                   padding: "14px 28px",
                   fontFamily: "inherit",
                   transition: "all 0.2s",
@@ -226,17 +227,17 @@ export function HeroSection() {
                   e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
                 }}
               >
-                Explore Features
+                استكشف المميزات
               </button>
             </div>
 
             {/* Trust pills */}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {[
-                "🌐 Arabic + English",
-                "🇪🇬 Built in Egypt",
-                "🔒 Secure & reliable",
-                "🏢 Multi-location ready",
+                "🌐 عربي + إنجليزي",
+                "🇪🇬 صُنع في مصر",
+                "🔒 آمن وموثوق",
+                "🏢 متعدد الفروع",
               ].map((p) => (
                 <span
                   key={p}
@@ -248,8 +249,8 @@ export function HeroSection() {
                     borderRadius: 20,
                     padding: "6px 13px",
                     color: "rgba(255,255,255,0.6)",
-                    fontSize: 12,
-                    fontWeight: 500,
+                    fontSize: 13,
+                    fontWeight: 600,
                   }}
                 >
                   {p}
@@ -258,7 +259,7 @@ export function HeroSection() {
             </div>
           </div>
 
-          {/* ── Right column — animated browser mockup ── */}
+          {/* ── Left column — animated browser mockup ── */}
           <div className="lp-hero-right">
             <div className="lp-mockup-glow" />
             <div className="lp-mockup-float">
@@ -288,6 +289,7 @@ export function HeroSection() {
                       "linear-gradient(180deg, #0D1A2D 0%, #071020 100%)",
                     borderBottom: "1px solid rgba(255,255,255,0.08)",
                     flexShrink: 0,
+                    direction: "ltr",
                   }}
                 >
                   <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
@@ -331,13 +333,13 @@ export function HeroSection() {
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
                     <span style={{ fontSize: 11, color: "#64748B" }}>
-                      www.thespaceos.com
+                      app.thespaceos.com
                     </span>
                   </div>
                 </div>
                 <img
                   src={HERO_IMG}
-                  alt="The Space OS — Command Center Dashboard"
+                  alt="The Space OS — لوحة التحكم الرئيسية"
                   style={{ width: "100%", display: "block" }}
                   loading="eager"
                 />

@@ -25,6 +25,7 @@ export function MobileBottomCTA() {
           padding: "12px 20px 16px",
           transform: visible ? "translateY(0)" : "translateY(100%)",
           transition: "transform 0.35s cubic-bezier(0.34,1.56,0.64,1)",
+          direction: "rtl",
         }}
       >
         <button
@@ -37,7 +38,7 @@ export function MobileBottomCTA() {
             boxShadow: "0 4px 20px rgba(37,99,235,0.4)",
           }}
         >
-          Request a Demo →
+          احجز عرض تجريبي ←
         </button>
       </div>
       <style>{`

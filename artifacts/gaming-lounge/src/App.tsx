@@ -33,6 +33,7 @@ import Settings from "@/pages/settings";
 import Unauthorized from "@/pages/unauthorized";
 import AdminTenants from "@/pages/admin/tenants";
 import AdminUsers from "@/pages/admin/users";
+import AdminLeads from "@/pages/admin/leads";
 import Performance from "@/pages/performance";
 import Recipes from "@/pages/recipes";
 import Bookings from "@/pages/bookings";
@@ -100,6 +101,9 @@ function Router() {
       </Route>
       <Route path="/admin/users">
         <ProtectedPage path="/admin/users"><AdminUsers /></ProtectedPage>
+      </Route>
+      <Route path="/admin/leads">
+        <ProtectedPage path="/admin/leads"><AdminLeads /></ProtectedPage>
       </Route>
       <Route path="/dashboard">
         <ProtectedPage path="/dashboard"><Dashboard /></ProtectedPage>

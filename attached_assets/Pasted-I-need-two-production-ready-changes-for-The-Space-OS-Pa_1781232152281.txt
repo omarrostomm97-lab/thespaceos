@@ -1,0 +1,252 @@
+I need two production-ready changes for The Space OS.
+
+## Part 1 — Make the landing page fully Arabic
+
+Convert the entire public landing page to Arabic language across all visible text.
+
+Requirements:
+
+1. The landing page should be Arabic-first.
+2. Set the page direction to RTL.
+3. Use:
+
+   * `<html lang="ar" dir="rtl">`
+4. All navigation links, hero text, buttons, feature sections, business type cards, testimonials if any, FAQ, CTA sections, footer, form labels, placeholders, success/error messages, and small helper text must be in Arabic.
+5. Keep the brand name as:
+
+   * The Space OS
+6. Do not use the word “venue”.
+7. Use Arabic terms like:
+
+   * النشاط التجاري
+   * المكان
+   * الفرع
+   * المساحة
+   * العمليات اليومية
+8. Keep the UI premium, SaaS-style, clean, modern, and mobile responsive.
+9. Make sure Arabic text alignment, spacing, font weight, and line height look professional.
+10. Use a good Arabic-compatible font if needed, such as Cairo, Tajawal, or IBM Plex Sans Arabic.
+11. Keep the landing page SEO updated in Arabic.
+
+Use this SEO:
+
+Title:
+The Space OS — نظام إدارة وتشغيل الأنشطة التجارية
+
+Meta description:
+The Space OS يساعد محلات البلايستيشن، مساحات العمل المشتركة، الكافيهات، المطاعم، والأنشطة التجارية على إدارة الجلسات، الحجوزات، الطلبات، الموظفين، المدفوعات، المخزون، والتقارير من منصة واحدة.
+
+H1:
+نظام تشغيل متكامل لإدارة نشاطك التجاري
+
+Hero subtitle:
+إدارة الجلسات، الحجوزات، الطلبات، الموظفين، الشيفتات، المدفوعات، المخزون، والتقارير من منصة واحدة مصممة للأنشطة التي تعتمد على التشغيل اليومي.
+
+Primary CTA:
+احجز عرض تجريبي
+
+Secondary CTA:
+استكشف المميزات
+
+Business types examples:
+
+* محلات البلايستيشن والجيمينج
+* مساحات العمل المشتركة
+* الكافيهات والمطاعم
+* أي نشاط يدير غرف أو جلسات أو طلبات
+
+Important:
+Keep the Google Search Console verification meta tag unchanged: <meta name="google-site-verification" content="BUSmOCn_VST1EqQu1lwOc9CvgDFoLKlsThORAc-NUfM" />
+
+Keep canonical:
+https://thespaceos.com/
+
+Keep sitemap and robots working.
+
+---
+
+## Part 2 — Add leads management UI for platform_owner only
+
+The landing page form should save leads into the backend database, and only the `platform_owner` user should be able to view them inside the application.
+
+### Lead form requirements
+
+The public landing page should have a lead/demo request form in Arabic.
+
+Fields:
+
+1. الاسم بالكامل
+2. رقم الهاتف
+3. البريد الإلكتروني
+4. نوع النشاط
+
+   * محل بلايستيشن / جيمينج
+   * مساحة عمل مشتركة
+   * كافيه / مطعم
+   * نشاط آخر
+5. اسم النشاط التجاري
+6. عدد الفروع أو المساحات
+7. رسالة أو ملاحظات
+8. Preferred contact method:
+
+   * مكالمة
+   * واتساب
+   * بريد إلكتروني
+
+Required fields:
+
+* الاسم بالكامل
+* رقم الهاتف
+* نوع النشاط
+* اسم النشاط التجاري
+
+After submission:
+
+* Show Arabic success message:
+  تم إرسال طلبك بنجاح. فريق The Space OS سيتواصل معك قريبًا.
+* Prevent duplicate accidental submissions.
+* Validate phone/email properly.
+* Store created_at timestamp.
+* Store source as `landing_page`.
+
+### Backend requirements
+
+Create a `leads` table if it does not already exist.
+
+Suggested columns:
+
+* id
+* full_name
+* phone
+* email
+* business_type
+* business_name
+* branches_count
+* preferred_contact_method
+* message
+* source
+* status
+* created_at
+* updated_at
+
+Default status:
+new
+
+Possible statuses:
+
+* new
+* contacted
+* qualified
+* demo_scheduled
+* won
+* lost
+
+Create public API endpoint:
+POST /api/leads
+
+This endpoint should allow public lead creation from the landing page without login, but it must include validation and rate limiting / basic spam protection.
+
+Create protected API endpoints for platform_owner only:
+GET /api/admin/leads
+GET /api/admin/leads/:id
+PATCH /api/admin/leads/:id
+
+Only users with role `platform_owner` can access these endpoints.
+
+No tenant owner, manager, cashier, or buffet_worker should see leads.
+
+### App UI requirements
+
+Add a new page inside the main app for platform_owner only:
+
+Route:
+/admin/leads
+
+Sidebar/menu label Arabic:
+العملاء المحتملين
+
+Only show this menu item if the logged-in user role is:
+platform_owner
+
+The Leads page should include:
+
+1. Summary cards:
+
+   * إجمالي العملاء المحتملين
+   * جديد
+   * تم التواصل
+   * تم تحديد عرض تجريبي
+   * تم التحويل / Won
+
+2. Table columns:
+
+   * الاسم
+   * رقم الهاتف
+   * البريد الإلكتروني
+   * نوع النشاط
+   * اسم النشاط
+   * عدد الفروع
+   * طريقة التواصل المفضلة
+   * الحالة
+   * تاريخ الإرسال
+   * إجراءات
+
+3. Filters:
+
+   * Search by name, phone, email, or business name
+   * Filter by business type
+   * Filter by status
+   * Filter by date range
+
+4. Lead details drawer/modal:
+
+   * Show full lead details
+   * Show message/notes
+   * Allow platform_owner to update status
+   * Allow adding internal note if easy to implement
+
+5. Actions:
+
+   * Mark as contacted
+   * Mark as qualified
+   * Mark as demo scheduled
+   * Mark as won
+   * Mark as lost
+
+6. UI language should be Arabic RTL.
+
+7. Make the UI consistent with the existing dashboard design.
+
+### Security requirements
+
+1. Public users can only create leads.
+2. Only platform_owner can view, search, filter, or update leads.
+3. Enforce role protection on backend, not only frontend.
+4. Validate all inputs.
+5. Do not expose leads data to tenant users.
+6. Add audit log entries when lead status is changed if audit logging already exists.
+
+### Deployment/build requirements
+
+Make sure everything builds successfully:
+
+* landing-page build
+* gaming-lounge build
+* api-server build
+* typecheck if available
+
+Do not break existing routes:
+
+* /
+* /landing-page
+* /login
+* /dashboard
+* /sessions
+* /assets
+* /api/*
+
+After finishing:
+
+1. Commit and push to origin main.
+2. Send me the commit hash.
+3. Tell me any migration command I need to run on the VPS.

@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowLeft } from "lucide-react";
 
 const NAV_ANCHOR_LINKS = [
-  { label: "Product", id: "features" },
-  { label: "Solutions", id: "solutions" },
-  { label: "Features", id: "features" },
-  { label: "Demo", id: "demo" },
+  { label: "المنتج", id: "features" },
+  { label: "الحلول", id: "solutions" },
+  { label: "المميزات", id: "features" },
+  { label: "تجربة مجانية", id: "demo" },
 ];
 
 export function Navbar() {
@@ -35,16 +35,6 @@ export function Navbar() {
 
   const isActive = (id: string) => activeSection === id;
 
-  const linkStyle = (id: string): React.CSSProperties => ({
-    display: "flex", alignItems: "center", gap: 4, textDecoration: "none",
-    color: isActive(id) ? "white" : "#94A3B8",
-    fontSize: 14, fontWeight: isActive(id) ? 600 : 500,
-    padding: "8px 14px", borderRadius: 8,
-    borderBottom: isActive(id) ? "2px solid #2563EB" : "2px solid transparent",
-    transition: "color 0.2s, border-color 0.2s",
-    background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-  });
-
   return (
     <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
@@ -52,6 +42,7 @@ export function Navbar() {
       borderBottom: "1px solid rgba(255,255,255,0.08)",
       backdropFilter: scrolled ? "blur(20px)" : "none",
       transition: "all 0.3s ease",
+      direction: "rtl",
     }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
@@ -72,16 +63,18 @@ export function Navbar() {
               <a key={item.label} href={`#${item.id}`}
                 onClick={e => { e.preventDefault(); scrollTo(item.id); }}
                 style={{
-                  ...linkStyle(item.id),
+                  display: "flex", alignItems: "center", gap: 4, textDecoration: "none",
+                  color: isActive(item.id) ? "white" : "#94A3B8",
+                  fontSize: 14, fontWeight: isActive(item.id) ? 600 : 500,
+                  padding: "8px 14px 6px", borderRadius: 8,
                   borderBottom: isActive(item.id) ? "2px solid #2563EB" : "2px solid transparent",
+                  background: "none", cursor: "pointer", fontFamily: "inherit",
+                  transition: "color 0.2s",
                 }}
                 onMouseEnter={e => (e.currentTarget.style.color = "white")}
                 onMouseLeave={e => (e.currentTarget.style.color = isActive(item.id) ? "white" : "#94A3B8")}
               >
                 {item.label}
-                {(item.label === "Product" || item.label === "Solutions") && (
-                  <ChevronDown size={13} strokeWidth={2.5} />
-                )}
               </a>
             ))}
           </div>
@@ -92,18 +85,18 @@ export function Navbar() {
               style={{ color: "#94A3B8", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 12px", transition: "color 0.2s" }}
               onMouseEnter={e => (e.currentTarget.style.color = "white")}
               onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
-            >Login</a>
+            >تسجيل الدخول</a>
             <a href="#demo" onClick={e => { e.preventDefault(); scrollTo("demo"); }}
               style={{
                 display: "flex", alignItems: "center", gap: 6,
                 background: "#2563EB", color: "white", borderRadius: 24, textDecoration: "none",
-                fontSize: 14, fontWeight: 600, padding: "9px 20px",
+                fontSize: 14, fontWeight: 700, padding: "9px 20px",
                 transition: "background 0.2s",
               }}
               onMouseEnter={e => (e.currentTarget.style.background = "#1D4ED8")}
               onMouseLeave={e => (e.currentTarget.style.background = "#2563EB")}
             >
-              Request a Demo <ArrowRight size={13} strokeWidth={2.5} />
+              احجز عرض تجريبي <ArrowLeft size={13} strokeWidth={2.5} />
             </a>
           </div>
 
@@ -141,14 +134,14 @@ export function Navbar() {
               display: "block", color: "#94A3B8", fontSize: 15, padding: "14px 0",
               textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}
-          >Login</a>
+          >تسجيل الدخول</a>
           <a href="#demo" onClick={e => { e.preventDefault(); scrollTo("demo"); }}
             style={{
               display: "block", marginTop: 16, width: "100%", background: "#2563EB", color: "white",
               textDecoration: "none", borderRadius: 12, textAlign: "center",
-              fontSize: 15, fontWeight: 600, padding: "14px",
+              fontSize: 15, fontWeight: 700, padding: "14px",
             }}
-          >Request a Demo →</a>
+          >احجز عرض تجريبي ←</a>
         </div>
       )}
 

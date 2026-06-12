@@ -2,23 +2,23 @@ import { useState } from "react";
 import { Gamepad2, Building2, Coffee, Utensils, MoreHorizontal } from "lucide-react";
 
 const tabs = [
-  { icon: Gamepad2, label: "Gaming Lounges" },
-  { icon: Building2, label: "Coworking Spaces" },
-  { icon: Coffee, label: "Cafés" },
-  { icon: Utensils, label: "Restaurants" },
-  { icon: MoreHorizontal, label: "& More Businesses" },
+  { icon: Gamepad2, label: "محلات البلايستيشن والجيمينج" },
+  { icon: Building2, label: "مساحات العمل المشتركة" },
+  { icon: Coffee, label: "الكافيهات" },
+  { icon: Utensils, label: "المطاعم" },
+  { icon: MoreHorizontal, label: "وأنشطة أخرى" },
 ];
 
 export function SocialProofSection() {
   const [active, setActive] = useState(0);
 
   return (
-    <section style={{ background: "#F1F5F9", padding: "32px 24px" }}>
+    <section style={{ background: "#F1F5F9", padding: "32px 24px", direction: "rtl" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <p style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
+          fontSize: 12, fontWeight: 700, letterSpacing: "0.04em",
           color: "#2563EB", marginBottom: 20, textAlign: "center",
-        }}>Built for modern spaces</p>
+        }}>مصمم للأنشطة التجارية الحديثة</p>
 
         <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 8 }}>
           {tabs.map(({ icon: Icon, label }, i) => (

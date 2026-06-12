@@ -4,42 +4,39 @@ const steps = [
   {
     num: 1,
     icon: Gamepad2,
-    title: "Discover your setup",
-    desc: "Tell us about your business and how you operate.",
+    title: "أخبرنا عن نشاطك",
+    desc: "شاركنا طبيعة نشاطك التجاري وكيف تدير عملياتك اليومية.",
   },
   {
     num: 2,
     icon: Settings,
-    title: "Configure your space",
-    desc: "We take the system to your items, services and workflows.",
+    title: "نضبط النظام لك",
+    desc: "نكيّف المنصة لتناسب منتجاتك وخدماتك وطريقة عملك تمامًا.",
   },
   {
     num: 3,
     icon: Rocket,
-    title: "Go live & grow",
-    desc: "Launch fast and start running your business better.",
+    title: "انطلق وكبّر",
+    desc: "ابدأ بسرعة وأدر نشاطك بكفاءة أعلى من اليوم الأول.",
   },
 ];
 
 export function HowItWorksSection() {
   return (
-    <section style={{ background: "#050B18", padding: "96px 24px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+    <section style={{ background: "#050B18", padding: "96px 24px", borderTop: "1px solid rgba(255,255,255,0.06)", direction: "rtl" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-        {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 72 }}>
           <p style={{
-            fontSize: 11, fontWeight: 700, letterSpacing: "0.12em",
-            textTransform: "uppercase", color: "#2563EB", marginBottom: 16,
-          }}>Simple. Fast. Powerful.</p>
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 700, color: "white", lineHeight: 1.15 }}>
-            How it works
+            fontSize: 12, fontWeight: 700, letterSpacing: "0.04em",
+            color: "#2563EB", marginBottom: 16,
+          }}>بسيط. سريع. قوي.</p>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, color: "white", lineHeight: 1.15 }}>
+            كيف يعمل النظام
           </h2>
         </div>
 
-        {/* Steps row */}
         <div style={{ position: "relative" }}>
-          {/* Dashed connector line - desktop only */}
           <div className="lp-step-line">
             <svg width="100%" height="2" style={{ overflow: "visible" }}>
               <line x1="16.7%" y1="1" x2="83.3%" y2="1"
@@ -51,7 +48,6 @@ export function HowItWorksSection() {
           <div className="lp-steps-grid">
             {steps.map(({ num, icon: Icon, title, desc }) => (
               <div key={num} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-                {/* Step circle */}
                 <div style={{ position: "relative", marginBottom: 28 }}>
                   <div style={{
                     width: 72, height: 72, borderRadius: 16,
@@ -60,7 +56,6 @@ export function HowItWorksSection() {
                   }}>
                     <Icon size={28} color="#2563EB" strokeWidth={1.5} />
                   </div>
-                  {/* Number badge */}
                   <div style={{
                     position: "absolute", top: -10, right: -10,
                     width: 26, height: 26, borderRadius: "50%",
@@ -71,7 +66,7 @@ export function HowItWorksSection() {
                 </div>
 
                 <h3 style={{ color: "white", fontSize: 17, fontWeight: 700, marginBottom: 10 }}>{title}</h3>
-                <p style={{ color: "#64748B", fontSize: 14, lineHeight: 1.7, maxWidth: 260 }}>{desc}</p>
+                <p style={{ color: "#64748B", fontSize: 14, lineHeight: 1.8, maxWidth: 260 }}>{desc}</p>
               </div>
             ))}
           </div>
