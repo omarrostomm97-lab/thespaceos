@@ -718,14 +718,16 @@ export function QROrderingSection() {
           position: relative;
         }
 
-        /* Details drawer — indented below primary, connected feel */
+        /* Details drawer — clean card below primary, left-border thread connects them */
         .qr-staff-details {
-          margin-top: -20px;
-          margin-left: 28px;
+          margin-top: 10px;
+          margin-left: 22px;
           margin-right: 0;
-          width: calc(100% - 28px);
+          width: calc(100% - 22px);
           z-index: 3;
           position: relative;
+          border-left: 2px solid rgba(37,99,235,0.30);
+          padding-left: 16px;
         }
 
         /* ── Connector: thin arrow ───────────────────────────────────── */
@@ -815,10 +817,13 @@ export function QROrderingSection() {
             order: 3;
           }
 
+          /* Reset desktop border-thread; panels go full-width on tablet */
           .qr-staff-details {
-            margin-top: 16px;
+            margin-top: 14px;
             margin-left: 0;
             width: 100%;
+            border-left: none;
+            padding-left: 0;
           }
 
           .qr-steps-grid {
@@ -830,7 +835,8 @@ export function QROrderingSection() {
         }
 
         /* ════════════════════════════════════════════════════════════
-           MOBILE (≤ 640px) — vertical stack
+           MOBILE (≤ 640px) — uniform-width vertical stack
+           All five mockups: min(290px, 88vw), gap 28px throughout
            ════════════════════════════════════════════════════════════ */
 
         @media (max-width: 640px) {
@@ -840,50 +846,62 @@ export function QROrderingSection() {
             gap: 28px;
           }
 
+          /* Zone 1 — QR card: same width as phones */
           .qr-zone-1 {
             flex: 0 0 auto;
             order: 1;
-            width: min(280px, 72vw);
+            width: min(290px, 88vw);
             align-self: center;
           }
 
+          /* Zone 2 — phones stack vertically, centered */
           .qr-zone-2 {
             flex: 0 0 auto;
             order: 2;
             width: 100%;
           }
 
+          /* Zone 3 — staff panels centered, uniform width */
           .qr-zone-3 {
             flex: 0 0 auto;
             order: 3;
             width: 100%;
+            align-items: center;
           }
 
-          /* Stack phones vertically, no overlap */
+          /* Phones: vertical stack, uniform 28px gap */
           .qr-phones-row {
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 28px;
           }
 
+          /* Kill desktop overlap/stagger */
           .qr-phone-main,
           .qr-phone-sec {
             margin-left: 0 !important;
             margin-top: 0 !important;
           }
 
+          /* Each phone wrapper = same fixed width */
           .qr-phone-wrap {
             width: min(290px, 88vw);
           }
+          /* Force PhoneFrame div inside to fill the wrapper */
           .qr-phone-wrap > div:first-child {
             width: 100% !important;
           }
 
-          /* Stack staff panels vertically, no overlap */
+          /* Staff panels — same width as phones, centred by zone's align-items */
+          .qr-staff-primary {
+            width: min(290px, 88vw);
+          }
           .qr-staff-details {
-            margin-top: 16px;
+            width: min(290px, 88vw);
+            margin-top: 28px;
             margin-left: 0;
-            width: 100%;
+            border-left: none;
+            padding-left: 0;
           }
 
           /* Steps: one column */
