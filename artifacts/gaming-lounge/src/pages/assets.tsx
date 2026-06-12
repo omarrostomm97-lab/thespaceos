@@ -183,7 +183,9 @@ function AssetCard({
     new Date(nextBooking.endsAt) > now;
 
   const accentColor = isAvailable ? "#006FEE" : "#f5a524";
+  const thumbnailUrl = (asset as any).thumbnailUrl as string | null;
   const imageUrl = (asset as any).imageUrl as string | null;
+  const displayUrl = thumbnailUrl || imageUrl;
   const name = lang === "ar"
     ? (asset.nameAr || asset.name)
     : (asset.name || asset.nameAr);
@@ -205,10 +207,14 @@ function AssetCard({
         style={{ aspectRatio: "16/10" }}
         onClick={() => { if (isMgmt) onInlineUpload(asset); }}
       >
-        {imageUrl ? (
+        {displayUrl ? (
           <img
-            src={imageUrl}
+            src={displayUrl}
             alt={name ?? ""}
+            loading="lazy"
+            decoding="async"
+            width={400}
+            height={250}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
           />
@@ -387,7 +393,9 @@ function AssetListRow({
     new Date(nextBooking.endsAt) > now;
 
   const accentColor = isAvailable ? "#006FEE" : "#f5a524";
+  const thumbnailUrl = (asset as any).thumbnailUrl as string | null;
   const imageUrl = (asset as any).imageUrl as string | null;
+  const displayUrl = thumbnailUrl || imageUrl;
   const name = lang === "ar"
     ? (asset.nameAr || asset.name)
     : (asset.name || asset.nameAr);
@@ -400,8 +408,8 @@ function AssetListRow({
         className={cn("relative shrink-0 w-28 sm:w-36", isMgmt ? "cursor-pointer" : "")}
         onClick={() => { if (isMgmt) onInlineUpload(asset); }}
       >
-        {imageUrl ? (
-          <img src={imageUrl} alt={name ?? ""} className="w-full h-full object-cover" />
+        {displayUrl ? (
+          <img src={displayUrl} alt={name ?? ""} loading="lazy" decoding="async" width={144} height={100} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
         ) : (
           <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center min-h-[100px]", getTypePlaceholderGrad(asset.type))}>
             <div style={{ color: accentColor, opacity: 0.4 }}>{getAssetIcon(asset.type, "h-8 w-8")}</div>
@@ -533,8 +541,8 @@ function AssetListRow({
 }
 
 /* ─── Form state ─────────────────────────────────────── */
-interface FormState { nameAr: string; name: string; type: string; pricePerHour: string; capacity: string; imageUrl: string; }
-const EMPTY_FORM: FormState = { nameAr: "", name: "", type: "ps", pricePerHour: "", capacity: "", imageUrl: "" };
+interface FormState { nameAr: string; name: string; type: string; pricePerHour: string; capacity: string; imageUrl: string; thumbnailUrl: string; }
+const EMPTY_FORM: FormState = { nameAr: "", name: "", type: "ps", pricePerHour: "", capacity: "", imageUrl: "", thumbnailUrl: "" };
 
 /* ─── Page ───────────────────────────────────────────── */
 export default function Assets() {
@@ -594,7 +602,7 @@ export default function Assets() {
   const inlineFileInputRef = useRef<HTMLInputElement>(null);
   const inlineTargetAsset  = useRef<Asset | null>(null);
 
-  const uploadPhoto = async (file: File): Promise<string | null> => {
+  const uploadPhoto = async (file: File): Promise<{ imageUrl: string; thumbnailUrl: string } | null> => {
     try {
       const token = typeof localStorage !== "undefined" ? localStorage.getItem("gl_token") : null;
       const formData = new FormData();
@@ -605,8 +613,8 @@ export default function Assets() {
         body: formData,
       });
       if (!res.ok) throw new Error("Upload failed");
-      const { imageUrl } = await res.json();
-      return imageUrl as string;
+      const data = await res.json();
+      return { imageUrl: data.imageUrl as string, thumbnailUrl: data.thumbnailUrl as string };
     } catch {
       return null;
     }
@@ -615,9 +623,9 @@ export default function Assets() {
   const handleDialogPhotoChange = async (file: File) => {
     setIsUploadingPhoto(true);
     setPhotoUploadError(null);
-    const url = await uploadPhoto(file);
-    if (url) {
-      setForm(f => ({ ...f, imageUrl: url }));
+    const result = await uploadPhoto(file);
+    if (result) {
+      setForm(f => ({ ...f, imageUrl: result.imageUrl, thumbnailUrl: result.thumbnailUrl }));
     } else {
       setPhotoUploadError(t("asset_upload_error"));
     }
@@ -635,8 +643,8 @@ export default function Assets() {
     if (!file || !inlineTargetAsset.current) return;
     const asset = inlineTargetAsset.current;
     setInlineUploadingId(asset.id);
-    const url = await uploadPhoto(file);
-    if (url) {
+    const result = await uploadPhoto(file);
+    if (result) {
       try {
         await updateAsset.mutateAsync({
           assetId: asset.id,
@@ -646,7 +654,8 @@ export default function Assets() {
             type: asset.type,
             pricePerHour: asset.pricePerHour,
             capacity: (asset as any).capacity ?? undefined,
-            imageUrl: url,
+            imageUrl: result.imageUrl,
+            thumbnailUrl: result.thumbnailUrl,
           } as any,
         });
         queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey() });
@@ -692,6 +701,7 @@ export default function Assets() {
       pricePerHour: String(asset.pricePerHour),
       capacity: (asset as any).capacity != null ? String((asset as any).capacity) : "",
       imageUrl: (asset as any).imageUrl ?? "",
+      thumbnailUrl: (asset as any).thumbnailUrl ?? "",
     });
     setErrors({});
     setDialogOpen(true);
@@ -713,12 +723,13 @@ export default function Assets() {
     const nameValue = form.name.trim() || form.nameAr.trim();
     const capacityVal = form.capacity.trim() ? parseInt(form.capacity) : undefined;
     const imageUrlVal = form.imageUrl.trim() || undefined;
+    const thumbnailUrlVal = form.thumbnailUrl.trim() || undefined;
     try {
       if (editingAsset) {
-        await updateAsset.mutateAsync({ assetId: editingAsset.id, data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price, capacity: capacityVal, imageUrl: imageUrlVal } as any });
+        await updateAsset.mutateAsync({ assetId: editingAsset.id, data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price, capacity: capacityVal, imageUrl: imageUrlVal, thumbnailUrl: thumbnailUrlVal } as any });
         toast.success(t("device_updated"));
       } else {
-        await createAsset.mutateAsync({ data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price, capacity: capacityVal, imageUrl: imageUrlVal } as any });
+        await createAsset.mutateAsync({ data: { name: nameValue, nameAr: form.nameAr.trim() || undefined, type: form.type as Asset["type"], pricePerHour: price, capacity: capacityVal, imageUrl: imageUrlVal, thumbnailUrl: thumbnailUrlVal } as any });
         toast.success(t("device_added"));
       }
       queryClient.invalidateQueries({ queryKey: getListAssetsQueryKey() });

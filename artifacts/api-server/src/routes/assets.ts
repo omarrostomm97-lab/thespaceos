@@ -26,7 +26,7 @@ router.get("/assets", requireAuth, requireTenant, async (req, res) => {
 
 router.post("/assets", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
-    const { name, nameAr, type, pricePerHour, capacity, imageUrl } = req.body;
+    const { name, nameAr, type, pricePerHour, capacity, imageUrl, thumbnailUrl } = req.body;
     if (!name || !type || pricePerHour === undefined) {
       res.status(400).json({ error: "name, type, pricePerHour required" });
       return;
@@ -38,6 +38,7 @@ router.post("/assets", requireAuth, requireTenant, MGMT, async (req, res) => {
       status: "available",
       capacity: capacity != null ? parseInt(capacity) : undefined,
       imageUrl: imageUrl || undefined,
+      thumbnailUrl: thumbnailUrl || undefined,
     }).returning();
     await writeAuditLog({ user: req.user, action: "create_asset", entityType: "asset", entityId: asset.id, newValue: asset });
     res.status(201).json({ ...asset, pricePerHour: parseFloat(asset.pricePerHour as string) });
@@ -62,11 +63,12 @@ router.get("/assets/:assetId", requireAuth, requireTenant, async (req, res) => {
 router.patch("/assets/:assetId", requireAuth, requireTenant, MGMT, async (req, res) => {
   try {
     const id = parseInt(req.params.assetId as string);
-    const { name, nameAr, type, pricePerHour, status, capacity, imageUrl } = req.body;
+    const { name, nameAr, type, pricePerHour, status, capacity, imageUrl, thumbnailUrl } = req.body;
     const updates: Partial<typeof assetsTable.$inferInsert> = { name, nameAr, type, status };
     if (pricePerHour !== undefined) updates.pricePerHour = String(pricePerHour);
     if (capacity !== undefined) updates.capacity = capacity != null ? parseInt(capacity) : null;
     if (imageUrl !== undefined) updates.imageUrl = imageUrl || null;
+    if (thumbnailUrl !== undefined) updates.thumbnailUrl = thumbnailUrl || null;
     const [asset] = await db.update(assetsTable).set(updates)
       .where(and(eq(assetsTable.id, id), eq(assetsTable.tenantId, req.user!.tenantId!)))
       .returning();

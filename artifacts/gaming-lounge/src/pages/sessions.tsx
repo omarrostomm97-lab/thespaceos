@@ -105,7 +105,9 @@ function SessionListRow({ session, t, lang, egp, onPauseResume, onCheckout, paus
   const rawType = session.assetType as string | null;
   const typeLabel = rawType ? rawType.charAt(0).toUpperCase() + rawType.slice(1) : null;
   const capacity = session.assetCapacity as number | null;
-  const imageUrl = session.assetImageUrl as string | null;
+  const assetThumbnailUrl = session.assetThumbnailUrl as string | null;
+  const assetImageUrl = session.assetImageUrl as string | null;
+  const imageUrl = assetThumbnailUrl || assetImageUrl;
 
   const startedTime = session.startedAt
     ? new Date(session.startedAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" })

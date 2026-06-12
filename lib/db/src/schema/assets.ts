@@ -14,6 +14,7 @@ export const assetsTable = pgTable("assets", {
   qrToken: text("qr_token").unique(),
   capacity: integer("capacity"),
   imageUrl: text("image_url"),
+  thumbnailUrl: text("thumbnail_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
