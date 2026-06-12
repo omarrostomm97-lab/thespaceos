@@ -1,0 +1,610 @@
+Refine only the current Smart QR Ordering section shown in the latest development preview.
+
+The section already contains the correct five stages and the correct screenshots:
+
+1. Scan the Room QR
+2. Browse the Menu
+3. Order Confirmed
+4. Staff Receives the Order
+5. Room-Linked Order Details
+
+Do not return to the previous six-stage layout.
+
+Do not add Review and Order again.
+
+Do not replace the current screenshots.
+
+Do not rebuild the section from scratch.
+
+The task is to improve the current composition, scale, spacing, grouping, and visual hierarchy.
+
+## Current problems visible in the latest preview
+
+The screenshots are now in the correct sequence, but the section still has these visual problems:
+
+* All five visuals feel detached from each other.
+* There is too much empty horizontal and vertical space.
+* The product screenshots are still too small.
+* The QR card feels isolated on the far left.
+* The guest ordering phone does not feel dominant enough.
+* The Order Confirmed phone feels like another equal full stage instead of a supporting state.
+* The staff Orders and Order Details screens look like separate unrelated cards.
+* The labels under every screenshot add visual noise.
+* The composition does not feel like one connected workflow.
+* The visitor must inspect every screenshot individually instead of understanding the story immediately.
+
+Keep the current five stages, but group them into three clear visual zones:
+
+```text
+SCAN → ORDER → MANAGE
+```
+
+The five stages should remain, but the visual design should present them as one connected three-part product story.
+
+# Required composition
+
+## Zone 1 — Scan
+
+Use the current QR room card.
+
+This zone represents stage 1:
+
+* Scan the Room QR
+
+The QR card should remain the entry point, but it must not feel isolated.
+
+Presentation:
+
+* Increase its size slightly from the current preview.
+* Place it closer to the guest-ordering zone.
+* Vertically align it with the main guest phone.
+* Do not leave a large empty gap between QR and guest ordering.
+* Use a subtle connector arrow or line pointing toward the guest phone.
+* Keep it secondary to the guest-ordering phone.
+* Do not make it the largest visual.
+* Do not use a white container or white outline.
+* Keep the purple card fully visible.
+* Preserve its aspect ratio.
+
+Recommended desktop width:
+
+* Approximately 190–220px
+
+## Critical QR safety requirement
+
+The QR currently shown in the room card must not open a real room when scanned from the public landing page.
+
+Create and use a marketing-safe version of the QR card.
+
+The landing-page QR must:
+
+* Look realistic
+* Preserve the current purple card design
+* Preserve PS5 Room 2 and the surrounding branding
+* Not contain the real room token
+* Not open the real guest menu
+* Not resolve to any real URL
+* Not be clickable
+* Not be wrapped in a link
+* Not have a click handler
+* Not expose a real QR URL in the HTML or source
+* Not remain decodable if the image is downloaded
+
+Do not simply cover the working QR with a CSS layer while keeping the live QR pixels underneath.
+
+Create a derived marketing asset where the QR square itself is replaced with a decorative, non-decodable QR-style pattern.
+
+Suggested asset name:
+
+`room-qr-marketing-safe.webp`
+
+Use that safe asset in the landing page instead of the real QR image.
+
+Add accessible alt text:
+
+English:
+Non-functional example of a dedicated room QR ordering card
+
+Arabic:
+نموذج توضيحي غير فعال لكود طلب مخصص للغرفة
+
+## Zone 2 — Order
+
+This zone contains stages 2 and 3:
+
+2. Browse the Menu
+3. Order Confirmed
+
+Use the current guest-ordering screenshot as the main visual.
+
+This is the screenshot showing:
+
+* PS5 Room 2
+* Menu
+* Selected items
+* Open order/cart area
+* Total 150 EGP
+* Green Place Order button
+
+This phone must become the dominant visual in the entire section.
+
+Recommended desktop width:
+
+* Approximately 300–340px
+
+Increase it significantly compared with the current preview.
+
+Keep the full important content readable:
+
+* Room name
+* Menu
+* Cart
+* Total
+* Place Order button
+
+Do not crop the important content.
+
+Do not use aggressive perspective.
+
+Do not rotate it heavily.
+
+### Order Confirmed presentation
+
+Keep the existing Order Confirmed screenshot, but stop presenting it as another equal full phone.
+
+Instead, make it a supporting visual attached to the main guest phone.
+
+Preferred presentation:
+
+* Smaller phone or floating confirmation panel
+* Positioned slightly behind or beside the main guest phone
+* Approximately 55–65% of the main phone width
+* Slight overlap is allowed
+* Do not cover the Place Order button or important cart information
+* Make it look like the successful next state of the same customer journey
+
+This relationship should visually communicate:
+
+```text
+Browse and place the order → Order confirmed
+```
+
+Do not leave a large gap between the two guest screenshots.
+
+## Zone 3 — Manage
+
+This zone contains stages 4 and 5:
+
+4. Staff Receives the Order
+5. Room-Linked Order Details
+
+Use the current Staff Orders screenshot as the main operations visual.
+
+Increase it significantly from the current preview.
+
+It must be wide enough to clearly show:
+
+* Orders
+* QR Menu
+* PS5 Room 2
+* Order card
+* New
+* Preparing
+* Ready
+* Delivered
+
+Recommended desktop width:
+
+* Approximately 420–500px
+
+Use a dashboard or tablet frame that fits the screenshot naturally.
+
+Do not force it into an excessively narrow browser frame.
+
+Do not crop away the workflow stages.
+
+### Order Details presentation
+
+Keep the current Room-Linked Order Details screenshot.
+
+Do not present it as a second unrelated full dashboard.
+
+Make it look like a connected details drawer or side panel opened from the Staff Orders screen.
+
+Presentation:
+
+* Place it partially overlapping the right side of the Staff Orders screen in English.
+* Place it partially overlapping the left side in Arabic.
+* Keep Order #189, PS5 Room 2, item names, and 150 EGP visible.
+* Use a slightly smaller scale than the main staff dashboard.
+* Add a subtle border and shadow to show it is a connected detail layer.
+* Do not leave a large empty gap between the two staff visuals.
+
+The relationship should clearly communicate:
+
+```text
+Staff receives the order → Opens the room-linked order details
+```
+
+# Correct visual hierarchy
+
+Use this order of visual importance:
+
+1. Main guest-ordering phone
+2. Staff Orders dashboard
+3. Safe room QR card
+4. Staff Order Details drawer
+5. Order Confirmed supporting screen
+
+Do not make all five visuals equal in size.
+
+# Updated desktop structure
+
+Use a three-column grid or flex composition:
+
+```text
+[ SCAN ]        [ ORDER ]                     [ MANAGE ]
+
+QR card      Main guest-order phone       Staff Orders dashboard
+             + small confirmation          + attached details drawer
+```
+
+Suggested width balance:
+
+* Scan zone: 16–18%
+* Order zone: 34–38%
+* Manage zone: 44–48%
+
+Use a maximum visual container width around 1200–1280px if compatible with the existing landing page.
+
+Keep the zones close enough to feel connected.
+
+Do not spread them across the entire screen with large empty gaps.
+
+# Alignment
+
+Align the three zones around one shared visual center line.
+
+Do not use random staggered vertical positioning.
+
+Recommended:
+
+* QR card vertically centered against the guest phone
+* Main guest phone centered
+* Staff dashboard centered against the guest phone
+* Supporting confirmation and details panels can offset slightly
+
+The composition should feel intentionally designed, not manually scattered.
+
+# Connectors
+
+Use only two main connectors:
+
+1. QR → Guest order
+2. Guest order → Staff workflow
+
+Use:
+
+* Thin blue line
+* Small arrow
+* Glowing dot
+* Subtle pulse
+
+Do not add multiple arrows between every screenshot.
+
+Between guest ordering and staff workflow, keep one compact bridge label:
+
+English:
+Order sent instantly
+
+Arabic:
+يصل الطلب فوراً
+
+Make it small and elegant.
+
+# Stage labels
+
+Keep the five stage names, but simplify their presentation.
+
+Do not use large labels under every screenshot.
+
+Use:
+
+* Three primary labels above or near each zone:
+
+  * 1. Scan
+  * 2. Order
+  * 3. Manage
+
+English:
+
+1. Scan
+2. Order
+3. Manage
+
+Arabic:
+
+١. امسح
+٢. اطلب
+٣. أدِر الطلب
+
+Then use small supporting labels:
+
+Under the QR card:
+Scan the Room QR
+
+Under or near the guest phone:
+Browse the Menu
+
+Near the confirmation screen:
+Order Confirmed
+
+Near the staff dashboard:
+Staff Receives the Order
+
+Near the detail drawer:
+Room-Linked Order Details
+
+These supporting labels should be visually quieter than the three main zone titles.
+
+# Reduce empty space
+
+In the current preview, there is too much unused dark area around the screenshots.
+
+Adjust:
+
+* Reduce the gap between description and visual composition.
+* Increase screenshot sizes.
+* Reduce excessive spacing between zones.
+* Reduce unnecessary height below the mockups.
+* Bring the five-step strip closer to the main composition while preserving breathing room.
+
+Suggested desktop spacing:
+
+* Description to visuals: 40–48px
+* Between main zones: 24–36px
+* Main visuals to process strip: 48–56px
+* Section top and bottom padding: 80–96px
+
+# Five-step process strip
+
+Keep the current five-step strip below the composition.
+
+The current step order is correct:
+
+1. Scan the QR
+2. Browse the Menu
+3. Confirm the Order
+4. Staff Receives It
+5. Manage the Workflow
+
+Do not remove it.
+
+Do not add Review and Order.
+
+Make the strip visually secondary.
+
+Improvements:
+
+* Reduce its overall height slightly.
+* Increase title readability.
+* Keep descriptions concise.
+* Use one clean connector line.
+* Do not make the strip wider than the visual composition.
+* Keep all five columns equal.
+* Improve text contrast.
+* Maintain good spacing between number, title, and description.
+
+Arabic:
+
+1. امسح كود QR
+2. تصفح القائمة
+3. أكد الطلب
+4. يصل الطلب للفريق
+5. إدارة دورة التنفيذ
+
+# Mobile layout
+
+Do not use the desktop side-by-side layout on mobile.
+
+Use this exact vertical sequence:
+
+1. Headline and supporting text
+2. Safe room QR card
+3. Small Scan label
+4. Main guest-ordering phone
+5. Order Confirmed supporting visual
+6. Order sent instantly badge
+7. Staff Orders dashboard
+8. Staff Order Details panel
+9. Five-step strip converted to vertical steps
+10. Benefits
+11. CTA
+
+Mobile sizing:
+
+* QR card: 70–75% of content width
+* Main guest phone: 85–90% of content width
+* Confirmation screen: 65–70% of content width
+* Staff dashboard: 100% of content width
+* Order Details: 90–100% width below the dashboard
+
+Mobile rules:
+
+* No overlap between major screenshots
+* No horizontal overflow
+* No side-by-side phones
+* No tiny text
+* No clipped screenshot areas
+* No strong perspective
+* 28–40px spacing between major stages
+* Clear centered visual hierarchy
+* Proper Arabic RTL and English LTR behavior
+
+# Tablet layout
+
+Use two rows.
+
+First row:
+
+* Safe QR card
+* Main guest phone
+* Order Confirmed supporting screen
+
+Second row:
+
+* Staff Orders dashboard
+* Attached Order Details panel
+
+Do not squeeze all five visuals into one row.
+
+# Arabic and English
+
+Use the existing language system.
+
+Do not create a new language state.
+
+Requirements:
+
+* English uses LTR.
+* Arabic uses RTL.
+* Reverse the zone order appropriately.
+* Do not mirror screenshots.
+* Do not mirror the QR card.
+* Do not mirror the QR pattern.
+* Keep screenshots visually unchanged.
+* Do not break language persistence.
+* No untranslated labels.
+* No undefined translation keys.
+
+# Screenshot integrity
+
+Do not:
+
+* Change prices
+* Change PS5 Room 2
+* Change order number
+* Change item names
+* Generate fake screenshots
+* Stretch screenshots
+* Distort screenshots
+* Blur text
+* Crop important UI
+* Hide the Place Order button
+* Hide QR Menu
+* Hide workflow stages
+* Hide order total
+
+You may:
+
+* Crop Safari/browser outer chrome if necessary
+* Crop empty margins
+* Use rounded masks
+* Use lightweight CSS device frames
+* Add subtle shadows
+* Add controlled glow
+* Optimize files for web
+
+# Design style
+
+Keep the current The Space OS style:
+
+* Dark navy background
+* Blue primary accent
+* Purple secondary accent
+* Thin refined borders
+* Soft shadows
+* Controlled glow
+* Existing typography
+* Existing buttons
+* Existing border-radius system
+
+Avoid:
+
+* Excessive neon
+* Random rotations
+* Heavy perspective
+* Thick browser frames
+* Equal-sized mockups
+* Large empty gaps
+* Multiple competing connector lines
+* Generic infographic appearance
+
+# Critical constraints
+
+Do not change:
+
+* Backend
+* API
+* Database
+* Real room QR generation
+* Real QR token behavior
+* Guest ordering functionality
+* Room assignment
+* Order creation
+* Staff workflow
+* Session logic
+* Billing logic
+* Inventory
+* Authentication
+* Lead form
+* Lead API
+* Platform-owner pages
+* Language switcher
+* SEO
+* Google verification
+* Canonical URL
+* Open Graph metadata
+* Sitemap
+* Nginx
+* Deployment configuration
+* Other landing-page sections
+
+Only refine the existing Smart QR Ordering section and create the safe marketing QR asset.
+
+# Testing checklist
+
+Before finishing:
+
+1. Confirm the section still contains the current five stages.
+2. Confirm Review and Order does not return.
+3. Confirm the QR shown publicly is non-functional.
+4. Confirm no real room URL or token is exposed.
+5. Confirm the public QR is not clickable.
+6. Confirm the main guest phone is the dominant visual.
+7. Confirm the Staff Orders dashboard is large and readable.
+8. Confirm Order Confirmed is a supporting visual.
+9. Confirm Order Details looks connected to Staff Orders.
+10. Confirm the three zones are clearly visible: Scan, Order, Manage.
+11. Confirm the visuals are closer together and better grouped.
+12. Confirm excess empty space is reduced.
+13. Confirm desktop layout at 1440px and 1920px.
+14. Confirm tablet at 768px and 1024px.
+15. Confirm mobile at 390px and 430px.
+16. Confirm no horizontal overflow.
+17. Confirm Arabic RTL works.
+18. Confirm English LTR works.
+19. Confirm screenshots are not mirrored.
+20. Confirm language persistence still works.
+21. Confirm the demo form still works.
+22. Confirm no browser console errors.
+23. Run the landing-page typecheck if available.
+24. Run the landing-page production build.
+
+Do not commit or push yet.
+
+First show me the updated development preview.
+
+I need to review:
+
+* The current five-stage layout
+* The three-zone grouping
+* Screenshot sizes
+* Staff dashboard readability
+* QR safety
+* Desktop balance
+* Tablet layout
+* Mobile layout
+* Arabic and English behavior
+
+Only commit and push after I explicitly approve the final visual result.
