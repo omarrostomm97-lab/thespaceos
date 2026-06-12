@@ -8,12 +8,6 @@ const BUSINESS_TYPES = [
   { value: "other",           label: "نشاط آخر" },
 ] as const;
 
-const CONTACT_METHODS = [
-  { value: "call",      label: "مكالمة" },
-  { value: "whatsapp",  label: "واتساب" },
-  { value: "email",     label: "بريد إلكتروني" },
-] as const;
-
 const benefits = [
   { title: "عرض تجريبي مخصص", desc: "نتعرف على نشاطك واحتياجاتك بدقة." },
   { title: "مساعدة في الإعداد", desc: "نساعدك على البدء بسرعة وبدون تعقيد." },
