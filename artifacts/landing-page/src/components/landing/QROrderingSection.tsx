@@ -1,4 +1,4 @@
-import { Check, Zap } from "lucide-react";
+import { Check } from "lucide-react";
 import { useLangCtx } from "@/lib/lang-context";
 import type { TranslationKey } from "@/lib/i18n";
 
@@ -9,69 +9,38 @@ const imgConfirm     = `${BASE}qr-screenshots/guest-confirm.png`;
 const imgStaffOrders = `${BASE}qr-screenshots/staff-orders.png`;
 const imgStaffDetails= `${BASE}qr-screenshots/staff-details.png`;
 
-/* ─── Zone header (1 · Scan / 2 · Order / 3 · Manage) ──────────────── */
+/* ─── Step number badge ─────────────────────────────────────────────── */
 
-function ZoneHeader({ num, title }: { num: string; title: string }) {
+function ColNum({ n }: { n: number }) {
   return (
     <div
       style={{
+        width: 26,
+        height: 26,
+        borderRadius: "50%",
+        background: "rgba(37,99,235,0.18)",
+        border: "1.5px solid rgba(37,99,235,0.45)",
+        color: "#60A5FA",
+        fontSize: 12,
+        fontWeight: 800,
         display: "flex",
         alignItems: "center",
-        gap: 10,
-        marginBottom: 20,
+        justifyContent: "center",
+        marginBottom: 14,
+        flexShrink: 0,
+        direction: "ltr",
       }}
     >
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          width: 28,
-          height: 28,
-          borderRadius: "50%",
-          background: "rgba(37,99,235,0.18)",
-          border: "1.5px solid rgba(37,99,235,0.45)",
-          color: "#60A5FA",
-          fontSize: 13,
-          fontWeight: 800,
-          flexShrink: 0,
-          direction: "ltr",
-        }}
-      >
-        {num}
-      </span>
-      <span
-        style={{
-          color: "white",
-          fontSize: 15,
-          fontWeight: 800,
-          letterSpacing: "-0.01em",
-        }}
-      >
-        {title}
-      </span>
+      {n}
     </div>
   );
 }
 
-/* ─── Supporting label under each screenshot ────────────────────────── */
+/* ─── Caption under each mockup ─────────────────────────────────────── */
 
-function ScreenLabel({
-  text,
-  align = "center",
-}: {
-  text: string;
-  align?: "center" | "flex-start";
-}) {
+function ScreenLabel({ text }: { text: string }) {
   return (
-    <div
-      style={{
-        marginTop: 10,
-        display: "flex",
-        justifyContent: align,
-        textAlign: align === "center" ? "center" : "start",
-      }}
-    >
+    <div style={{ marginTop: 10, textAlign: "center" }}>
       <span style={{ color: "#64748B", fontSize: 11.5, fontWeight: 600, lineHeight: 1.4 }}>
         {text}
       </span>
@@ -84,46 +53,46 @@ function ScreenLabel({
 function PhoneFrame({
   img,
   alt,
-  width = 175,
   cropRatio = "9/18",
 }: {
   img: string;
   alt: string;
-  width?: number;
   cropRatio?: string;
 }) {
   return (
     <div
       style={{
-        flexShrink: 0,
-        borderRadius: 30,
+        borderRadius: 22,
         background: "#0A0A14",
         border: "2px solid rgba(255,255,255,0.13)",
         boxShadow:
-          "0 0 0 1px rgba(255,255,255,0.06), 0 24px 64px rgba(0,0,0,0.7), 0 0 48px rgba(37,99,235,0.14)",
+          "0 0 0 1px rgba(255,255,255,0.06), 0 20px 56px rgba(0,0,0,0.7), 0 0 40px rgba(37,99,235,0.14)",
         overflow: "hidden",
-        width,
+        width: "100%",
         direction: "ltr",
       }}
     >
       {/* Status bar */}
       <div
         style={{
-          height: 26,
+          height: 22,
           background: "#000",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 14px",
+          padding: "0 11px",
           flexShrink: 0,
         }}
       >
-        <span style={{ color: "white", fontSize: 10, fontWeight: 700 }}>2:30</span>
-        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-          {[5, 8, 11].map((h, i) => (
-            <div key={i} style={{ width: 3, height: h, borderRadius: 2, background: "rgba(255,255,255,0.75)" }} />
+        <span style={{ color: "white", fontSize: 9, fontWeight: 700 }}>2:30</span>
+        <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
+          {[4, 6, 9].map((h, i) => (
+            <div
+              key={i}
+              style={{ width: 2.5, height: h, borderRadius: 2, background: "rgba(255,255,255,0.75)" }}
+            />
           ))}
-          <svg width="13" height="9" viewBox="0 0 14 10">
+          <svg width="11" height="8" viewBox="0 0 14 10">
             <path
               d="M7 8.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm-2.8-2.5a4 4 0 0 1 5.6 0M1.4 3.4a8 8 0 0 1 11.2 0"
               stroke="rgba(255,255,255,0.72)"
@@ -132,8 +101,19 @@ function PhoneFrame({
               strokeLinecap="round"
             />
           </svg>
-          <div style={{ width: 20, height: 10, border: "1.5px solid rgba(255,255,255,0.55)", borderRadius: 3, position: "relative", marginLeft: 2 }}>
-            <div style={{ position: "absolute", inset: 2, background: "rgba(255,255,255,0.75)", borderRadius: 1 }} />
+          <div
+            style={{
+              width: 16,
+              height: 8,
+              border: "1.5px solid rgba(255,255,255,0.55)",
+              borderRadius: 2,
+              position: "relative",
+              marginLeft: 2,
+            }}
+          >
+            <div
+              style={{ position: "absolute", inset: 2, background: "rgba(255,255,255,0.75)", borderRadius: 1 }}
+            />
           </div>
         </div>
       </div>
@@ -153,67 +133,85 @@ function PhoneFrame({
       />
 
       {/* Home indicator */}
-      <div style={{ height: 20, background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: 68, height: 4, borderRadius: 3, background: "rgba(255,255,255,0.28)" }} />
+      <div
+        style={{
+          height: 16,
+          background: "#000",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{ width: 52, height: 3, borderRadius: 3, background: "rgba(255,255,255,0.28)" }}
+        />
       </div>
     </div>
   );
 }
 
-/* ─── Staff panel (wide dashboard frame) ────────────────────────────── */
+/* ─── Staff panel (dashboard frame) ────────────────────────────────── */
 
 function StaffPanel({
   img,
   alt,
   panelLabel,
-  width = 195,
-  cropHeight = 290,
+  cropHeight = 280,
 }: {
   img: string;
   alt: string;
   panelLabel: string;
-  width?: number | string;
   cropHeight?: number;
 }) {
   return (
     <div
       style={{
-        flexShrink: 0,
-        borderRadius: 14,
+        borderRadius: 11,
         overflow: "hidden",
         background: "#07111F",
         border: "1px solid rgba(255,255,255,0.1)",
         boxShadow:
-          "0 16px 56px rgba(0,0,0,0.65), 0 0 40px rgba(37,99,235,0.12), 0 0 0 1px rgba(255,255,255,0.04)",
-        width,
+          "0 14px 48px rgba(0,0,0,0.65), 0 0 36px rgba(37,99,235,0.12), 0 0 0 1px rgba(255,255,255,0.04)",
+        width: "100%",
         direction: "ltr",
       }}
     >
-      {/* App header */}
+      {/* App header bar */}
       <div
         style={{
           background: "linear-gradient(180deg, #0F1E35 0%, #081220 100%)",
           borderBottom: "1px solid rgba(255,255,255,0.07)",
-          padding: "8px 14px",
+          padding: "7px 11px",
           display: "flex",
           alignItems: "center",
-          gap: 8,
+          gap: 6,
         }}
       >
-        <div style={{ width: 18, height: 18, borderRadius: 5, background: "#2563EB", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+        <div
+          style={{
+            width: 15,
+            height: 15,
+            borderRadius: 4,
+            background: "#2563EB",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none">
             <rect x="3" y="3" width="8" height="8" rx="1.5" fill="white" />
             <rect x="13" y="3" width="8" height="8" rx="1.5" fill="white" opacity="0.45" />
             <rect x="3" y="13" width="8" height="8" rx="1.5" fill="white" opacity="0.45" />
             <rect x="13" y="13" width="8" height="8" rx="1.5" fill="white" />
           </svg>
         </div>
-        <span style={{ color: "#4B6380", fontSize: 10, fontWeight: 600 }}>The Space OS</span>
-        <span style={{ color: "#243349", fontSize: 10 }}>›</span>
-        <span style={{ color: "#5A7A9A", fontSize: 10, fontWeight: 600 }}>{panelLabel}</span>
+        <span style={{ color: "#4B6380", fontSize: 9, fontWeight: 600 }}>The Space OS</span>
+        <span style={{ color: "#243349", fontSize: 9 }}>›</span>
+        <span style={{ color: "#5A7A9A", fontSize: 9, fontWeight: 600 }}>{panelLabel}</span>
       </div>
 
-      {/* Screenshot crop (top portion — the operational content) */}
+      {/* Screenshot */}
       <img
         src={img}
         alt={alt}
@@ -230,53 +228,60 @@ function StaffPanel({
   );
 }
 
-/* ─── Connector: thin arrow line ────────────────────────────────────── */
+/* ─── Connector arrow (between numbered badges) ─────────────────────── */
 
-function ConnectorArrow({ dir }: { dir: string }) {
-  const flip = dir === "rtl";
+function ColArrow() {
   return (
-    <div className="qr-conn-arrow" aria-hidden>
-      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, rgba(37,99,235,0.5), rgba(37,99,235,0.15))" }} />
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, transform: flip ? "scaleX(-1)" : "none" }}>
-        <path d="M3 7h8M8 4l3 3-3 3" stroke="#3B82F6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
-  );
-}
-
-/* ─── Connector: badge (Guest → Staff) ─────────────────────────────── */
-
-function BadgeConnector({ label }: { label: string }) {
-  return (
-    <div className="qr-conn-badge" aria-hidden>
-      <div style={{ width: 1, background: "rgba(37,99,235,0.3)", alignSelf: "stretch", minHeight: 16 }} />
+    <div className="qr-arrow" aria-hidden>
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 5,
-          background: "rgba(37,99,235,0.1)",
-          border: "1px solid rgba(37,99,235,0.28)",
-          borderRadius: 8,
-          padding: "5px 10px",
-          flexShrink: 0,
+          flex: 1,
+          height: 1,
+          background: "linear-gradient(90deg, rgba(37,99,235,0.45), rgba(37,99,235,0.12))",
         }}
+      />
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 14 14"
+        fill="none"
+        style={{ flexShrink: 0 }}
       >
-        <Zap size={11} color="#2563EB" fill="rgba(37,99,235,0.35)" />
-        <span style={{ color: "#93C5FD", fontSize: 10, fontWeight: 700, lineHeight: 1.35, textAlign: "center" }}>
-          {label}
-        </span>
-      </div>
-      <div style={{ width: 1, background: "rgba(37,99,235,0.3)", alignSelf: "stretch", minHeight: 16 }} />
+        <path
+          d="M3 7h8M8 4l3 3-3 3"
+          stroke="#3B82F6"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     </div>
   );
 }
 
 /* ─── Process step ──────────────────────────────────────────────────── */
 
-function StepItem({ num, title, desc, isLast }: { num: number; title: string; desc: string; isLast?: boolean }) {
+function StepItem({
+  num,
+  title,
+  desc,
+  isLast,
+}: {
+  num: number;
+  title: string;
+  desc: string;
+  isLast?: boolean;
+}) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", position: "relative" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        position: "relative",
+      }}
+    >
       {!isLast && (
         <div
           className="qr-step-connector"
@@ -286,7 +291,8 @@ function StepItem({ num, title, desc, isLast }: { num: number; title: string; de
             left: "calc(50% + 16px)",
             right: "calc(-50% + 16px)",
             height: 1,
-            background: "linear-gradient(90deg, rgba(37,99,235,0.35) 0%, rgba(37,99,235,0.08) 100%)",
+            background:
+              "linear-gradient(90deg, rgba(37,99,235,0.35) 0%, rgba(37,99,235,0.08) 100%)",
             pointerEvents: "none",
           }}
         />
@@ -313,7 +319,11 @@ function StepItem({ num, title, desc, isLast }: { num: number; title: string; de
       >
         {num}
       </div>
-      <div style={{ color: "white", fontSize: 12.5, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}>{title}</div>
+      <div
+        style={{ color: "white", fontSize: 12.5, fontWeight: 700, marginBottom: 4, lineHeight: 1.3 }}
+      >
+        {title}
+      </div>
       <div style={{ color: "#64748B", fontSize: 11, lineHeight: 1.6 }}>{desc}</div>
     </div>
   );
@@ -322,9 +332,9 @@ function StepItem({ num, title, desc, isLast }: { num: number; title: string; de
 /* ─── Translation key arrays ────────────────────────────────────────── */
 
 const BENEFIT_KEYS: TranslationKey[] = [
-  "qr_b1","qr_b2","qr_b3",
-  "qr_b4","qr_b5","qr_b6",
-  "qr_b7","qr_b8","qr_b9",
+  "qr_b1", "qr_b2", "qr_b3",
+  "qr_b4", "qr_b5", "qr_b6",
+  "qr_b7", "qr_b8", "qr_b9",
 ];
 
 const STEPS: { titleKey: TranslationKey; descKey: TranslationKey }[] = [
@@ -388,8 +398,8 @@ export function QROrderingSection() {
 
       <div style={{ maxWidth: 1240, margin: "0 auto", position: "relative", zIndex: 1 }}>
 
-        {/* ── Header ──────────────────────────────────────────────────── */}
-        <div style={{ textAlign: "center", marginBottom: 44 }}>
+        {/* ── Section header ─────────────────────────────────────────── */}
+        <div style={{ textAlign: "center", marginBottom: 52 }}>
           <div
             style={{
               display: "inline-flex",
@@ -402,8 +412,19 @@ export function QROrderingSection() {
               marginBottom: 20,
             }}
           >
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563EB", display: "block", boxShadow: "0 0 8px rgba(37,99,235,0.9)" }} />
-            <span style={{ color: "#93C5FD", fontSize: 12, fontWeight: 700, letterSpacing: "0.04em" }}>
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#2563EB",
+                display: "block",
+                boxShadow: "0 0 8px rgba(37,99,235,0.9)",
+              }}
+            />
+            <span
+              style={{ color: "#93C5FD", fontSize: 12, fontWeight: 700, letterSpacing: "0.04em" }}
+            >
               {t("qr_feature_badge")}
             </span>
           </div>
@@ -420,126 +441,112 @@ export function QROrderingSection() {
           >
             {t("qr_headline_1")}
             <br />
-            <span style={{ background: "linear-gradient(90deg, #2563EB 0%, #60A5FA 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span
+              style={{
+                background: "linear-gradient(90deg, #2563EB 0%, #60A5FA 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
               {t("qr_headline_2")}
             </span>
           </h2>
 
-          <p style={{ color: "#94A3B8", fontSize: 15.5, lineHeight: 1.8, maxWidth: 600, margin: "0 auto" }}>
+          <p
+            style={{
+              color: "#94A3B8",
+              fontSize: 15.5,
+              lineHeight: 1.8,
+              maxWidth: 600,
+              margin: "0 auto",
+            }}
+          >
             {t("qr_sub")}
           </p>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════
-            THREE-ZONE WORKFLOW
-            Zone order reverses automatically in RTL via flex direction.
+            UNIFORM 5-COLUMN FLOW  ·  always LTR (numbered steps 1–5)
             ══════════════════════════════════════════════════════════════ */}
-        <div className="qr-workflow">
+        <div className="qr-row">
 
-          {/* ── Zone 1 — SCAN ── */}
-          <div className="qr-zone qr-zone-1">
-            <ZoneHeader num="1" title={t("qr_zone_scan")} />
-
-            {/* Marketing-safe QR card — non-decodable, no real token */}
-            <div
-              style={{
-                borderRadius: 18,
-                overflow: "hidden",
-                background: "transparent",
-                boxShadow:
-                  "0 4px 24px rgba(0,0,0,0.5), 0 24px 72px rgba(0,0,0,0.65), 0 0 48px rgba(120,60,220,0.2)",
-                flexShrink: 0,
-                width: "100%",
-              }}
-            >
+          {/* ── 1 · Scan the QR ── */}
+          <div className="qr-col">
+            <ColNum n={1} />
+            <div className="qr-card-box">
               <img
                 src={imgQRSafe}
                 alt={
                   dir === "rtl"
                     ? "نموذج توضيحي غير فعال لكود طلب مخصص للغرفة"
-                    : "Non-functional example of a dedicated room QR ordering card"
+                    : "Non-functional example of a room QR ordering card"
                 }
                 loading="lazy"
                 draggable={false}
-                style={{ display: "block", width: "100%", height: "auto" }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "top center",
+                }}
               />
             </div>
             <ScreenLabel text={t("qr_zone1_label")} />
           </div>
 
-          {/* ── Connector 1 → ── */}
-          <ConnectorArrow dir={dir} />
+          <ColArrow />
 
-          {/* ── Zone 2 — ORDER ── */}
-          <div className="qr-zone qr-zone-2">
-            <ZoneHeader num="2" title={t("qr_zone_order")} />
-
-            <div className="qr-phones-row">
-              {/* Main guest phone — dominant visual */}
-              <div className="qr-phone-wrap qr-phone-main">
-                <PhoneFrame
-                  img={imgGuestOrder}
-                  alt={t("qr_zone2_lbl1")}
-                  width={310}
-                  cropRatio="9/19.5"
-                />
-                <ScreenLabel text={t("qr_zone2_lbl1")} />
-              </div>
-
-              {/* Supporting confirmation phone — smaller, staggered */}
-              <div className="qr-phone-wrap qr-phone-sec">
-                <PhoneFrame
-                  img={imgConfirm}
-                  alt={t("qr_zone2_lbl3")}
-                  width={170}
-                  cropRatio="9/18"
-                />
-                <ScreenLabel text={t("qr_zone2_lbl3")} />
-              </div>
-            </div>
+          {/* ── 2 · Browse the Menu ── */}
+          <div className="qr-col">
+            <ColNum n={2} />
+            <PhoneFrame img={imgGuestOrder} alt={t("qr_zone2_lbl1")} cropRatio="9/18" />
+            <ScreenLabel text={t("qr_zone2_lbl1")} />
           </div>
 
-          {/* ── Connector 2 badge ── */}
-          <BadgeConnector label={t("qr_instant_badge")} />
+          <ColArrow />
 
-          {/* ── Zone 3 — MANAGE ── */}
-          <div className="qr-zone qr-zone-3">
-            <ZoneHeader num="3" title={t("qr_zone_manage")} />
-
-            {/* Side-by-side on desktop/tablet, stacked on mobile */}
-            <div className="qr-staff-row">
-              {/* Primary: Staff Orders dashboard */}
-              <div className="qr-staff-primary">
-                <StaffPanel
-                  img={imgStaffOrders}
-                  alt={t("qr_zone3_lbl1")}
-                  panelLabel="Orders"
-                  width="100%"
-                  cropHeight={310}
-                />
-                <ScreenLabel text={t("qr_zone3_lbl1")} align="flex-start" />
-              </div>
-
-              {/* Secondary: Order Details panel */}
-              <div className="qr-staff-details">
-                <StaffPanel
-                  img={imgStaffDetails}
-                  alt={t("qr_zone3_lbl2")}
-                  panelLabel="Order #189"
-                  width="100%"
-                  cropHeight={310}
-                />
-                <ScreenLabel text={t("qr_zone3_lbl2")} align="flex-start" />
-              </div>
-            </div>
+          {/* ── 3 · Order Confirmed ── */}
+          <div className="qr-col">
+            <ColNum n={3} />
+            <PhoneFrame img={imgConfirm} alt={t("qr_zone2_lbl3")} cropRatio="9/18" />
+            <ScreenLabel text={t("qr_zone2_lbl3")} />
           </div>
 
-        </div>{/* end qr-workflow */}
+          <ColArrow />
+
+          {/* ── 4 · Staff Receives ── */}
+          <div className="qr-col">
+            <ColNum n={4} />
+            <StaffPanel
+              img={imgStaffOrders}
+              alt={t("qr_zone3_lbl1")}
+              panelLabel="Orders"
+              cropHeight={320}
+            />
+            <ScreenLabel text={t("qr_zone3_lbl1")} />
+          </div>
+
+          <ColArrow />
+
+          {/* ── 5 · Manage Details ── */}
+          <div className="qr-col">
+            <ColNum n={5} />
+            <StaffPanel
+              img={imgStaffDetails}
+              alt={t("qr_zone3_lbl2")}
+              panelLabel="Order #189"
+              cropHeight={320}
+            />
+            <ScreenLabel text={t("qr_zone3_lbl2")} />
+          </div>
+
+        </div>{/* end qr-row */}
 
         {/* ── Process steps strip ──────────────────────────────────── */}
         <div
           style={{
-            marginTop: 52,
+            marginTop: 56,
             background: "rgba(255,255,255,0.025)",
             border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: 16,
@@ -580,7 +587,9 @@ export function QROrderingSection() {
                 >
                   <Check size={11} color="#2563EB" strokeWidth={3} />
                 </div>
-                <span style={{ color: "#CBD5E1", fontSize: 13.5, lineHeight: 1.6 }}>{t(key)}</span>
+                <span style={{ color: "#CBD5E1", fontSize: 13.5, lineHeight: 1.6 }}>
+                  {t(key)}
+                </span>
               </div>
             ))}
           </div>
@@ -590,7 +599,8 @@ export function QROrderingSection() {
         <div
           style={{
             marginTop: 48,
-            background: "linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(37,99,235,0.05) 100%)",
+            background:
+              "linear-gradient(135deg, rgba(37,99,235,0.1) 0%, rgba(37,99,235,0.05) 100%)",
             border: "1px solid rgba(37,99,235,0.2)",
             borderRadius: 20,
             padding: "36px 40px",
@@ -602,7 +612,15 @@ export function QROrderingSection() {
           }}
         >
           <div style={{ flex: 1, minWidth: 260 }}>
-            <h3 style={{ color: "white", fontSize: "clamp(17px, 2.4vw, 23px)", fontWeight: 800, marginBottom: 12, lineHeight: 1.25 }}>
+            <h3
+              style={{
+                color: "white",
+                fontSize: "clamp(17px, 2.4vw, 23px)",
+                fontWeight: 800,
+                marginBottom: 12,
+                lineHeight: 1.25,
+              }}
+            >
               {t("qr_bv_title")}
             </h3>
             <p style={{ color: "#94A3B8", fontSize: 15, lineHeight: 1.8, maxWidth: 500 }}>
@@ -649,114 +667,108 @@ export function QROrderingSection() {
       {/* ══ CSS ══════════════════════════════════════════════════════════ */}
       <style>{`
 
-        /* ── Three-zone workflow row ─────────────────────────────────── */
+        /* ════════════════════════════════════════════════════════════
+           UNIFORM 5-COL FLOW ROW
+           Desktop: CSS grid with 5 equal cols + 4 thin arrow tracks.
+           Tablet: flex-wrap → 3+2 layout.
+           Mobile: single column.
+           ════════════════════════════════════════════════════════════ */
 
-        .qr-workflow {
-          display: flex;
-          flex-direction: row;
-          align-items: flex-start;
-          gap: 0;
-        }
-
-        /* ── Zones ──────────────────────────────────────────────────── */
-
-        .qr-zone {
-          display: flex;
-          flex-direction: column;
-          align-items: stretch;
-        }
-
-        /* Zone 1 — Scan */
-        .qr-zone-1 {
-          flex: 0 0 210px;
-        }
-
-        /* Zone 2 — Order */
-        .qr-zone-2 {
-          flex: 0 0 510px;
-          min-width: 0;
-        }
-
-        /* Zone 3 — Manage */
-        .qr-zone-3 {
-          flex: 1;
-          min-width: 0;
-        }
-
-        /* ── Guest phones ───────────────────────────────────────────── */
-
-        .qr-phones-row {
-          display: flex;
-          flex-direction: row;
-          align-items: flex-start;
-          gap: 0;
+        /* Desktop grid: 5 col tracks + 4 arrow tracks of 18px each */
+        .qr-row {
+          display: grid;
+          grid-template-columns: 1fr 18px 1fr 18px 1fr 18px 1fr 18px 1fr;
+          gap: 12px;
+          align-items: start;
           direction: ltr;
         }
 
-        .qr-phone-wrap {
+        /* Each column: centred flex column */
+        .qr-col {
           display: flex;
           flex-direction: column;
           align-items: center;
+          min-width: 0;
         }
 
-        /* Main guest phone — dominant */
-        .qr-phone-main {
-          z-index: 2;
-          flex: 0 0 auto;
-        }
-
-        /* Confirmation phone — supporting, slight stagger */
-        .qr-phone-sec {
-          z-index: 3;
-          flex: 0 0 auto;
-          margin-left: -14px;
-          margin-top: 52px;
-        }
-
-        /* ── Staff panels — side-by-side inside zone 3 ───────────────── */
-
-        .qr-staff-row {
+        /* Arrow connector — sits at step-badge level */
+        .qr-arrow {
           display: flex;
           flex-direction: row;
-          align-items: flex-start;
-          gap: 10px;
-          direction: ltr;
+          align-items: center;
+          /* ColNum 26px tall + 14px marginBottom = 40px;
+             badge centre = 20px; minus half SVG (6px) = 14px */
+          padding-top: 14px;
+          min-width: 0;
+        }
+
+        /* QR card wrapper — force same aspect as phone frames (9/18)
+           so all 5 columns read as the same height on desktop */
+        .qr-card-box {
           width: 100%;
+          aspect-ratio: 9 / 18.4;    /* phone frame ≈ 22+W*2+16 ≈ 38+img; 18.4 ≈ accounts for bars */
+          border-radius: 18px;
+          overflow: hidden;
+          box-shadow:
+            0 4px 24px rgba(0,0,0,0.5),
+            0 20px 64px rgba(0,0,0,0.65),
+            0 0 48px rgba(120,60,220,0.18);
         }
 
-        .qr-staff-primary {
-          flex: 1 1 0;
-          min-width: 0;
+        /* ════════════════════════════════════════════════════════════
+           TABLET (641–899px): flex-wrap → 3+2 layout, arrows hidden
+           ════════════════════════════════════════════════════════════ */
+
+        @media (max-width: 899px) {
+          .qr-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            direction: ltr;
+          }
+          .qr-col {
+            flex: 0 0 200px;
+            max-width: 200px;
+          }
+          .qr-arrow { display: none; }
+
+          .qr-steps-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+          }
+          .qr-step-connector { display: none !important; }
+          .qr-benefits-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        .qr-staff-details {
-          flex: 0 0 175px;
-          min-width: 0;
-        }
+        /* ════════════════════════════════════════════════════════════
+           MOBILE (≤ 640px): single centred column
+           All 5 mockups: min(280px, 88vw), 28px gap throughout
+           ════════════════════════════════════════════════════════════ */
 
-        /* ── Connector: thin arrow ───────────────────────────────────── */
+        @media (max-width: 640px) {
+          .qr-row {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 28px;
+          }
+          .qr-col {
+            width: min(280px, 88vw);
+            flex: 0 0 auto;
+            max-width: unset;
+          }
+          .qr-arrow { display: none; }
 
-        .qr-conn-arrow {
-          flex: 0 0 36px;
-          display: flex;
-          align-items: center;
-          gap: 0;
-          padding-top: 196px;
-          direction: ltr;
-        }
+          /* QR card: let it show naturally (portrait), same width as phones */
+          .qr-card-box {
+            aspect-ratio: unset;
+            width: 100%;
+          }
 
-        /* ── Connector: badge ────────────────────────────────────────── */
-
-        .qr-conn-badge {
-          flex: 0 0 68px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          padding-top: 168px;
-          direction: ltr;
-          text-align: center;
+          .qr-steps-grid { grid-template-columns: 1fr; }
+          .qr-benefits-grid { grid-template-columns: 1fr; }
         }
 
         /* ── Process steps ──────────────────────────────────────────── */
@@ -769,14 +781,13 @@ export function QROrderingSection() {
         }
         .qr-step-connector { display: block; }
 
-        /* ── Benefits ───────────────────────────────────────────────── */
+        /* ── Benefits grid ────────────────────────────────────────────  */
 
         .qr-benefits-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 10px;
         }
-
         .qr-benefit-card {
           display: flex;
           align-items: flex-start;
@@ -792,121 +803,6 @@ export function QROrderingSection() {
           background: rgba(37,99,235,0.05) !important;
         }
 
-        /* ════════════════════════════════════════════════════════════
-           TABLET (768–1140px) — two rows
-           ════════════════════════════════════════════════════════════ */
-
-        @media (max-width: 1140px) {
-          .qr-workflow {
-            flex-wrap: wrap;
-            gap: 32px;
-            justify-content: center;
-          }
-
-          .qr-conn-arrow,
-          .qr-conn-badge { display: none; }
-
-          .qr-zone-1 {
-            flex: 0 0 190px;
-            order: 1;
-          }
-
-          .qr-zone-2 {
-            flex: 1 1 460px;
-            order: 2;
-          }
-
-          .qr-zone-3 {
-            flex: 0 0 100%;
-            order: 3;
-          }
-
-          /* Tablet: side-by-side still works, give details more room */
-          .qr-staff-row { gap: 14px; }
-          .qr-staff-details { flex: 0 0 220px; }
-
-          .qr-steps-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-          }
-          .qr-step-connector { display: none !important; }
-          .qr-benefits-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        /* ════════════════════════════════════════════════════════════
-           MOBILE (≤ 640px) — uniform-width vertical stack
-           All five mockups: min(290px, 88vw), gap 28px throughout
-           ════════════════════════════════════════════════════════════ */
-
-        @media (max-width: 640px) {
-          .qr-workflow {
-            flex-direction: column;
-            align-items: center;
-            gap: 28px;
-          }
-
-          /* Zone 1 — QR card: same width as phones */
-          .qr-zone-1 {
-            flex: 0 0 auto;
-            order: 1;
-            width: min(290px, 88vw);
-            align-self: center;
-          }
-
-          /* Zone 2 — phones stack vertically, centered */
-          .qr-zone-2 {
-            flex: 0 0 auto;
-            order: 2;
-            width: 100%;
-          }
-
-          /* Zone 3 — staff panels centered, uniform width */
-          .qr-zone-3 {
-            flex: 0 0 auto;
-            order: 3;
-            width: 100%;
-            align-items: center;
-          }
-
-          /* Phones: vertical stack, uniform 28px gap */
-          .qr-phones-row {
-            flex-direction: column;
-            align-items: center;
-            gap: 28px;
-          }
-
-          /* Kill desktop overlap/stagger */
-          .qr-phone-main,
-          .qr-phone-sec {
-            margin-left: 0 !important;
-            margin-top: 0 !important;
-          }
-
-          /* Each phone wrapper = same fixed width */
-          .qr-phone-wrap {
-            width: min(290px, 88vw);
-          }
-          /* Force PhoneFrame div inside to fill the wrapper */
-          .qr-phone-wrap > div:first-child {
-            width: 100% !important;
-          }
-
-          /* Staff row: vertical stack on mobile */
-          .qr-staff-row {
-            flex-direction: column;
-            align-items: center;
-            gap: 28px;
-          }
-          .qr-staff-primary,
-          .qr-staff-details {
-            flex: 0 0 auto;
-            width: min(290px, 88vw);
-          }
-
-          /* Steps: one column */
-          .qr-steps-grid { grid-template-columns: 1fr; }
-          .qr-benefits-grid { grid-template-columns: 1fr; }
-        }
       `}</style>
     </section>
   );
