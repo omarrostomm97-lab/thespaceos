@@ -1,0 +1,661 @@
+I am attaching six real screenshots from the already working Smart QR Ordering feature in The Space OS.
+
+This feature is fully implemented and working. Do not change, rebuild, redesign, refactor, or modify its actual functionality.
+
+Do not touch:
+
+* Backend
+* API
+* Database
+* QR tokens
+* QR generation
+* Guest ordering logic
+* Room or table assignment logic
+* Order creation logic
+* Staff workflow
+* Session logic
+* Billing logic
+* Inventory logic
+* Authentication
+* Lead form
+* Lead API
+* Platform-owner pages
+* Existing language switcher
+* SEO metadata
+* Sitemap
+* Deployment setup
+
+Your task is only to create a premium landing-page section that presents this existing feature in the clearest and most impressive way possible.
+
+## Attached screenshots and exact filenames
+
+Use these exact uploaded images:
+
+1. `43a7d710-bc4c-4067-8336-6da22552fdd3.PNG`
+
+   * Guest room menu
+   * Shows PS5 Room 2
+   * Shows active room status
+   * Shows search, categories, products, prices, and add buttons
+
+2. `f1b68fda-a383-421b-ae06-f43ecdbb781b.PNG`
+
+   * Guest cart and checkout
+   * Shows selected products
+   * Shows quantities
+   * Shows optional guest name
+   * Shows total
+   * Shows Place Order button
+
+3. `03334a95-e2bd-4ead-9eee-d2b16cd8b41f.PNG`
+
+   * Order confirmation
+   * Shows Order Placed
+   * Shows order number
+   * Shows that staff will bring the order to the room
+   * Shows Order more items
+
+4. `436d9be3-47ba-4552-88e0-44322a2a8115.PNG`
+
+   * Alternate guest menu view
+   * Use only if it improves the visual composition
+   * Do not repeat the same menu screenshot unnecessarily
+
+5. `6baffe3f-d239-46f0-9b71-05766f7eeabe.PNG`
+
+   * Staff orders workflow
+   * Shows the live Orders screen
+   * Shows QR Menu order source
+   * Shows order #189 linked to PS5 Room 2
+   * Shows the operational order stages:
+
+     * New
+     * Preparing
+     * Ready
+     * Delivered
+
+6. `ceea40c4-1d86-4efc-8af4-743d565fc6bc.PNG`
+
+   * Staff order details
+   * Shows order #189 linked to PS5 Room 2
+   * Shows QR source
+   * Shows order timestamp
+   * Shows ordered items
+   * Shows Coffee and Energy Drink
+   * Shows total 150 EGP
+
+Use these real screenshots as the only product visuals for this section.
+
+Do not invent replacement UI.
+
+## Main objective
+
+Create a premium, conversion-focused landing-page section that communicates the complete workflow:
+
+Guest enters a room or sits at a table
+→ scans the dedicated QR code
+→ the correct menu opens automatically
+→ guest browses and adds items
+→ guest reviews the cart
+→ guest places the order
+→ guest receives confirmation
+→ the order appears immediately in The Space OS
+→ staff sees the correct room and order source
+→ staff manages the order through the operational workflow
+
+The section must make it clear that this is not only a digital menu.
+
+It is a complete room-aware ordering workflow connected directly to operations.
+
+## Feature name
+
+English:
+Smart QR Ordering
+
+Arabic:
+الطلب الذكي عبر QR
+
+Optional supporting label:
+
+English:
+Room, Table & Guest Ordering
+
+Arabic:
+طلبات الغرف والطاولات والضيوف
+
+## Headline
+
+English:
+
+Turn every room or table into a self-service ordering point
+
+Arabic:
+
+حوّل كل غرفة أو طاولة إلى نقطة طلب ذاتية
+
+## Supporting copy
+
+English:
+
+Guests scan the dedicated QR code, browse the menu, and place their order directly from their phones. The Space OS automatically connects every order to the correct room or table and sends it instantly into the staff workflow.
+
+Arabic:
+
+يمسح الضيف كود QR المخصص للغرفة أو الطاولة، ويتصفح القائمة ويطلب مباشرة من موبايله. يقوم The Space OS تلقائياً بربط كل طلب بالمكان الصحيح وإرساله فوراً إلى دورة العمل الخاصة بالفريق.
+
+You may refine the wording slightly for readability, but preserve the meaning.
+
+## Visual structure
+
+Create one premium connected visual composition using the real screenshots.
+
+Do not place the screenshots as plain rectangular images.
+
+Every screenshot must be placed inside a premium mockup.
+
+The visual story should be:
+
+Guest Menu
+→ Cart
+→ Confirmation
+→ Staff Orders
+→ Order Details
+
+## Required mockups
+
+### 1. Guest menu mockup
+
+Use:
+
+`43a7d710-bc4c-4067-8336-6da22552fdd3.PNG`
+
+Place it inside a premium smartphone frame.
+
+This should be the first visual stage.
+
+Label:
+
+English:
+Browse the Room Menu
+
+Arabic:
+تصفح قائمة الغرفة
+
+### 2. Cart and checkout mockup
+
+Use:
+
+`f1b68fda-a383-421b-ae06-f43ecdbb781b.PNG`
+
+Place it inside a second smartphone frame.
+
+Label:
+
+English:
+Review and Place the Order
+
+Arabic:
+راجع الطلب وقم بإرساله
+
+### 3. Confirmation mockup
+
+Use:
+
+`03334a95-e2bd-4ead-9eee-d2b16cd8b41f.PNG`
+
+Place it inside a smartphone frame.
+
+Label:
+
+English:
+Order Confirmed
+
+Arabic:
+تم تأكيد الطلب
+
+### 4. Staff workflow mockup
+
+Use:
+
+`6baffe3f-d239-46f0-9b71-05766f7eeabe.PNG`
+
+Place it inside a premium desktop browser, dashboard, or tablet frame.
+
+This screen should clearly show:
+
+* QR order source
+* PS5 Room 2
+* Live order
+* Workflow stages
+* New, Preparing, Ready, Delivered
+
+Label:
+
+English:
+Staff Workflow
+
+Arabic:
+إدارة الطلب
+
+### 5. Staff order details mockup
+
+Use:
+
+`ceea40c4-1d86-4efc-8af4-743d565fc6bc.PNG`
+
+Place it inside a second dashboard or browser-panel mockup.
+
+This screen should show:
+
+* Order #189
+* PS5 Room 2
+* QR source
+* Ordered items
+* Total 150 EGP
+
+Label:
+
+English:
+Room-Linked Order Details
+
+Arabic:
+تفاصيل الطلب المرتبط بالغرفة
+
+### 6. Alternate menu screenshot
+
+Use:
+
+`436d9be3-47ba-4552-88e0-44322a2a8115.PNG`
+
+Only use it if needed for:
+
+* A background crop
+* A secondary close-up
+* A mobile carousel
+* A supporting detail
+
+Do not show it if it creates unnecessary repetition.
+
+## Recommended desktop layout
+
+Create a premium two-part composition.
+
+### Left or first part: Guest experience
+
+Show the three phone mockups:
+
+* Menu
+* Cart
+* Confirmation
+
+Use a connected flow with subtle arrows or numbered markers.
+
+The main menu phone should be the largest.
+
+The cart and confirmation phones may be slightly smaller or layered behind it.
+
+### Right or second part: Operational workflow
+
+Show:
+
+* Staff Orders screen
+* Staff Order Details screen
+
+Place them inside desktop or tablet-style dashboard mockups.
+
+Use a subtle connector between the guest side and staff side.
+
+The complete visual direction should be obvious:
+
+Guest places order
+→ The Space OS receives it
+→ Staff sees the correct room and handles it
+
+Do not overlap important screenshot content.
+
+Do not make any screenshot too small to read.
+
+## Recommended mobile layout
+
+Do not compress the desktop layout.
+
+Use a vertical sequence:
+
+1. Headline
+2. Short description
+3. Guest menu phone
+4. Cart phone
+5. Confirmation phone
+6. Staff orders screen
+7. Staff order details screen
+8. Benefits
+9. CTA
+
+Requirements:
+
+* No horizontal overflow
+* No tiny screenshots
+* No excessive overlap
+* No clipped mockups
+* No unreadable text
+* Strong vertical spacing
+* Clear visual progression
+* Proper RTL and LTR behavior
+* Intentional mobile layout
+
+## Process steps
+
+Use a concise five-step flow.
+
+English:
+
+1. Scan the QR
+   The guest scans the dedicated code for the room or table.
+
+2. Browse the menu
+   The correct menu opens automatically.
+
+3. Place the order
+   The guest reviews the cart and sends the order.
+
+4. Staff receives it
+   The order appears instantly inside The Space OS.
+
+5. Manage the workflow
+   Staff handles the order through New, Preparing, Ready, and Delivered.
+
+Arabic:
+
+1. امسح كود QR
+   يمسح الضيف الكود المخصص للغرفة أو الطاولة.
+
+2. تصفح القائمة
+   تفتح القائمة الصحيحة تلقائياً.
+
+3. أرسل الطلب
+   يراجع الضيف السلة ويرسل الطلب.
+
+4. يصل الطلب للفريق
+   يظهر الطلب فوراً داخل The Space OS.
+
+5. إدارة دورة التنفيذ
+   يتابع الفريق الطلب من جديد إلى التحضير ثم الجاهزية والتوصيل.
+
+Present these as compact premium steps, not large text blocks.
+
+## Key benefits
+
+English:
+
+* Dedicated QR for every room or table
+* The correct menu opens automatically
+* No manual room selection
+* Guests order directly from their phones
+* Every order is linked to the correct room
+* QR orders appear instantly in the staff workflow
+* Fewer room-assignment mistakes
+* Faster service and clearer operations
+* Guests can order again without calling staff
+
+Arabic:
+
+* كود QR مخصص لكل غرفة أو طاولة
+* فتح القائمة الصحيحة تلقائياً
+* لا حاجة لاختيار الغرفة يدوياً
+* الطلب مباشرة من موبايل الضيف
+* ربط كل طلب بالغرفة الصحيحة
+* ظهور طلبات QR فوراً في دورة العمل
+* تقليل أخطاء تحديد الغرف
+* خدمة أسرع وتشغيل أوضح
+* إمكانية طلب المزيد بدون نداء الموظفين
+
+Use concise premium benefit cards or check points.
+
+## Business-value block
+
+English heading:
+
+From guest order to staff action — fully connected
+
+English text:
+
+The guest places the order independently, while The Space OS automatically identifies the correct room, records the QR source, and sends the order directly to the operational workflow.
+
+Arabic heading:
+
+من طلب الضيف إلى تنفيذ الفريق — كل شيء متصل
+
+Arabic text:
+
+يطلب الضيف بشكل مستقل، بينما يقوم The Space OS تلقائياً بتحديد الغرفة الصحيحة، وتسجيل مصدر الطلب عبر QR، وإرساله مباشرة إلى دورة العمل.
+
+## Mockup design style
+
+Use:
+
+* Premium SaaS quality
+* Existing dark theme
+* Existing blue and purple accents
+* Refined borders
+* Soft shadows
+* Controlled blue glow
+* Rounded device frames
+* Clean browser chrome
+* Balanced depth
+* Strong spacing
+* Existing typography
+* Existing button style
+
+Avoid:
+
+* Cheap stock mockups
+* Heavy 3D perspective
+* Excessive rotation
+* Heavy blur
+* Excessive glow
+* Fake device reflections
+* Generic infographic style
+* Plain screenshots
+* Random decorative effects
+* Unreadable UI
+
+## Screenshot handling
+
+Use the screenshots exactly as product evidence.
+
+Do not:
+
+* Change the interface
+* Replace screenshots
+* Change prices
+* Change room names
+* Change order numbers
+* Change item names
+* Add fake content
+* Stretch screenshots
+* Distort aspect ratios
+* Blur UI
+* Cover important content
+* Overcrop key areas
+* Add heavy overlays
+
+You may:
+
+* Crop browser bars if useful
+* Crop empty margins
+* Use rounded masks
+* Add phone and browser frames
+* Add subtle perspective
+* Add small labels
+* Add connectors
+* Optimize images for web
+
+Preserve screenshot readability.
+
+## Arabic and English support
+
+The landing page already supports Arabic and English.
+
+This section must use the existing language system.
+
+Requirements:
+
+* No new separate language state
+* Use the existing translation structure
+* Arabic must use RTL
+* English must use LTR
+* Every heading, label, step, benefit, CTA, and alt text must switch
+* Do not break the current language switcher
+* Preserve selected language after refresh
+* No mixed-language layout
+* No missing translation keys
+* No undefined values
+
+## CTA
+
+Use the existing CTA behavior.
+
+English:
+
+See Smart QR Ordering in action
+
+or:
+
+Book a demo
+
+Arabic:
+
+شاهد الطلب الذكي عبر QR
+
+or:
+
+احجز عرضاً تجريبياً
+
+The CTA should scroll to the existing demo form.
+
+Do not create a new form or backend action.
+
+## Accessibility
+
+Use meaningful alt text.
+
+English examples:
+
+* Guest room menu displayed inside a phone mockup
+* Guest checkout cart for PS5 Room 2
+* Successful QR room-order confirmation
+* Staff orders workflow showing QR order #189
+* Staff order details linked to PS5 Room 2
+
+Arabic examples:
+
+* قائمة الغرفة معروضة داخل نموذج موبايل
+* سلة طلب الضيف الخاصة بغرفة PS5 Room 2
+* تأكيد نجاح طلب الغرفة عبر QR
+* شاشة طلبات الفريق تعرض الطلب رقم 189
+* تفاصيل الطلب المرتبط بغرفة PS5 Room 2
+
+Also ensure:
+
+* Semantic headings
+* Keyboard-accessible CTA
+* Visible focus states
+* Sufficient contrast
+* Decorative frames hidden from screen readers
+* No information communicated only through color
+
+## Performance
+
+Optimize all screenshots.
+
+Requirements:
+
+* Prefer WebP or AVIF where appropriate
+* Preserve readable UI text
+* Use responsive image sizes
+* Add width and height attributes
+* Prevent layout shift
+* Lazy-load below-the-fold visuals
+* Avoid oversized files on mobile
+* Keep images sharp on retina displays
+* Avoid adding large mockup libraries
+
+Prefer lightweight CSS device frames.
+
+## Critical constraints
+
+Do not modify:
+
+* Smart QR Ordering functionality
+* Backend
+* API
+* Database
+* QR generation
+* QR tokens
+* Guest order routes
+* Order workflow logic
+* Room logic
+* Session logic
+* Billing logic
+* Inventory logic
+* Authentication
+* Lead form
+* Lead API
+* Platform-owner pages
+* Existing language switcher
+* SEO
+* Google verification
+* Canonical URL
+* Open Graph
+* Sitemap
+* Nginx
+* Deployment configuration
+
+Only add the new landing-page presentation section and its assets.
+
+## Testing checklist
+
+Before finishing:
+
+1. Confirm all main screenshots are used.
+2. Confirm screenshots are placed inside mockups.
+3. Confirm no screenshot is shown as a plain image.
+4. Confirm the guest journey is understandable.
+5. Confirm the connection to the staff workflow is understandable.
+6. Confirm room name and QR source remain visible.
+7. Confirm screenshots are sharp.
+8. Confirm no distortion.
+9. Confirm desktop layout is polished.
+10. Confirm tablet layout is readable.
+11. Confirm mobile layout is intentionally designed.
+12. Confirm no horizontal overflow.
+13. Confirm Arabic works.
+14. Confirm English works.
+15. Confirm RTL and LTR work.
+16. Confirm language persistence still works.
+17. Confirm existing demo form still works.
+18. Confirm no browser console errors.
+19. Run landing-page typecheck if available.
+20. Run landing-page production build.
+21. Do not make unrelated changes.
+
+## Git requirements
+
+After testing:
+
+1. Commit all final landing-page changes.
+2. Push directly to origin/main.
+3. Do not rely on a later automatic checkpoint.
+4. Ensure the working tree is clean.
+5. Send me:
+
+   * Final commit hash
+   * Exact files changed
+   * Confirmation that these exact screenshots were used
+   * Confirmation that screenshots were placed inside premium mockups
+   * Confirmation that desktop, tablet, and mobile were tested
+   * Confirmation that Arabic and English were tested
+   * Confirmation that no backend or unrelated functionality was changed
+   * Git status showing a clean working tree
+
+Do not claim the implementation is pushed unless the final source files and screenshot assets are included in the GitHub commit.

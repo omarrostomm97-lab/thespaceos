@@ -8,6 +8,7 @@ import { ProductScreenshotsSection } from "@/components/landing/ProductScreensho
 import { BuiltForSection } from "@/components/landing/BuiltForSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { QROrderingSection } from "@/components/landing/QROrderingSection";
 import { DemoFormSection } from "@/components/landing/DemoFormSection";
 import { FooterSection } from "@/components/landing/FooterSection";
 import { MobileBottomCTA } from "@/components/landing/MobileBottomCTA";
@@ -29,6 +30,7 @@ export default function LandingPage() {
           <BuiltForSection />
           <FeaturesSection />
           <HowItWorksSection />
+          <QROrderingSection />
           <DemoFormSection />
         </main>
         <FooterSection />
