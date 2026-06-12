@@ -30,11 +30,10 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; border: string }
   lost:           { bg: "rgba(239,68,68,0.1)",  text: "#F87171", border: "rgba(239,68,68,0.25)" },
 };
 const BIZ_TYPE_LABELS: Record<string, string> = {
-  gaming_lounge: "بلايستيشن / جيمينج",
-  coworking:     "مساحة عمل مشتركة",
-  cafe:          "كافيه / مطعم",
-  restaurant:    "مطعم",
-  other:         "نشاط آخر",
+  gaming_lounge:   "بلايستيشن / جيمينج",
+  coworking_space: "مساحة عمل مشتركة",
+  cafe_restaurant: "كافيه / مطعم",
+  other:           "نشاط آخر",
 };
 const CONTACT_METHOD_LABELS: Record<string, string> = {
   call:      "مكالمة",
