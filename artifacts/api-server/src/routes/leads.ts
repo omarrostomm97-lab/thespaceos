@@ -7,7 +7,6 @@ const router = Router();
 
 const VALID_BUSINESS_TYPES = ["gaming_lounge", "coworking_space", "cafe_restaurant", "other"] as const;
 const VALID_STATUSES = ["new", "contacted", "qualified", "demo_scheduled", "won", "lost"] as const;
-const VALID_CONTACT_METHODS = ["call", "whatsapp", "email"] as const;
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
