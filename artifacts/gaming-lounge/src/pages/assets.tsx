@@ -186,6 +186,7 @@ function AssetCard({
   const thumbnailUrl = (asset as any).thumbnailUrl as string | null;
   const imageUrl = (asset as any).imageUrl as string | null;
   const displayUrl = thumbnailUrl || imageUrl;
+  const [imgError, setImgError] = useState(false);
   const name = lang === "ar"
     ? (asset.nameAr || asset.name)
     : (asset.name || asset.nameAr);
@@ -207,7 +208,7 @@ function AssetCard({
         style={{ aspectRatio: "16/10" }}
         onClick={() => { if (isMgmt) onInlineUpload(asset); }}
       >
-        {displayUrl ? (
+        {displayUrl && !imgError ? (
           <img
             src={displayUrl}
             alt={name ?? ""}
@@ -216,7 +217,7 @@ function AssetCard({
             width={400}
             height={250}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            onError={e => { (e.target as HTMLImageElement).style.display = "none"; }}
+            onError={() => setImgError(true)}
           />
         ) : (
           <div className={cn(
@@ -396,6 +397,7 @@ function AssetListRow({
   const thumbnailUrl = (asset as any).thumbnailUrl as string | null;
   const imageUrl = (asset as any).imageUrl as string | null;
   const displayUrl = thumbnailUrl || imageUrl;
+  const [imgError, setImgError] = useState(false);
   const name = lang === "ar"
     ? (asset.nameAr || asset.name)
     : (asset.name || asset.nameAr);
@@ -408,8 +410,8 @@ function AssetListRow({
         className={cn("relative shrink-0 w-28 sm:w-36", isMgmt ? "cursor-pointer" : "")}
         onClick={() => { if (isMgmt) onInlineUpload(asset); }}
       >
-        {displayUrl ? (
-          <img src={displayUrl} alt={name ?? ""} loading="lazy" decoding="async" width={144} height={100} className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        {displayUrl && !imgError ? (
+          <img src={displayUrl} alt={name ?? ""} loading="lazy" decoding="async" width={144} height={100} className="w-full h-full object-cover" onError={() => setImgError(true)} />
         ) : (
           <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center min-h-[100px]", getTypePlaceholderGrad(asset.type))}>
             <div style={{ color: accentColor, opacity: 0.4 }}>{getAssetIcon(asset.type, "h-8 w-8")}</div>

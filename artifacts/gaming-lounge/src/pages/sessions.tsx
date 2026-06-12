@@ -108,6 +108,7 @@ function SessionListRow({ session, t, lang, egp, onPauseResume, onCheckout, paus
   const assetThumbnailUrl = session.assetThumbnailUrl as string | null;
   const assetImageUrl = session.assetImageUrl as string | null;
   const imageUrl = assetThumbnailUrl || assetImageUrl;
+  const [imgError, setImgError] = useState(false);
 
   const startedTime = session.startedAt
     ? new Date(session.startedAt).toLocaleTimeString(lang === "ar" ? "ar-EG" : "en-US", { hour: "2-digit", minute: "2-digit" })
@@ -184,8 +185,17 @@ function SessionListRow({ session, t, lang, egp, onPauseResume, onCheckout, paus
       <div className="hidden sm:flex items-stretch">
         {/* Thumbnail */}
         <div className="shrink-0 w-32 md:w-40 flex items-center justify-center overflow-hidden">
-          {imageUrl ? (
-            <img src={imageUrl} alt={name ?? ""} className="w-full h-full object-cover min-h-[110px]" />
+          {imageUrl && !imgError ? (
+            <img
+              src={imageUrl}
+              alt={name ?? ""}
+              loading="lazy"
+              decoding="async"
+              width={160}
+              height={110}
+              className="w-full h-full object-cover min-h-[110px]"
+              onError={() => setImgError(true)}
+            />
           ) : (
             <div className={cn("w-full h-full bg-gradient-to-br min-h-[110px] flex items-center justify-center", getTypePlaceholderClass(rawType))}>
               <Gamepad2 className="h-9 w-9 text-white/40" />

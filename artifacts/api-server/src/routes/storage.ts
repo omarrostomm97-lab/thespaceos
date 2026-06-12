@@ -89,13 +89,19 @@ router.post(
 router.use(
   "/storage/uploads/originals",
   express.static(getOriginalsDir(), { maxAge: "30d", immutable: true, fallthrough: false }),
-  (_req: Request, res: Response) => res.status(404).json({ error: "Not found" })
+  (req: Request, res: Response) => {
+    logger.warn({ filename: req.path }, "Original upload file not found");
+    res.status(404).json({ error: "Not found" });
+  }
 );
 
 router.use(
   "/storage/uploads/thumbnails",
   express.static(getThumbnailsDir(), { maxAge: "30d", immutable: true, fallthrough: false }),
-  (_req: Request, res: Response) => res.status(404).json({ error: "Not found" })
+  (req: Request, res: Response) => {
+    logger.warn({ filename: req.path }, "Thumbnail upload file not found");
+    res.status(404).json({ error: "Not found" });
+  }
 );
 
 // Legacy flat path — backward compat for existing image_url values stored in DB
