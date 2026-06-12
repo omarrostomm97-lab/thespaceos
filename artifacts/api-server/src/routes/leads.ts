@@ -5,7 +5,7 @@ import { requireAuth, requireRole } from "../lib/auth";
 
 const router = Router();
 
-const VALID_BUSINESS_TYPES = ["gaming_lounge", "coworking", "cafe", "restaurant", "other"] as const;
+const VALID_BUSINESS_TYPES = ["gaming_lounge", "coworking_space", "cafe_restaurant", "other"] as const;
 const VALID_STATUSES = ["new", "contacted", "qualified", "demo_scheduled", "won", "lost"] as const;
 const VALID_CONTACT_METHODS = ["call", "whatsapp", "email"] as const;
 
@@ -41,8 +41,8 @@ router.post("/leads", async (req, res) => {
   }
 
   const {
-    fullName, phone, email, businessType, businessName,
-    branchesCount, preferredContactMethod, message, _honey,
+    name, phone, email, company, businessType,
+    city, message, source, _honey,
   } = req.body ?? {};
 
   // Honeypot: silently accept bots without saving
@@ -51,8 +51,8 @@ router.post("/leads", async (req, res) => {
   }
 
   const errors: string[] = [];
-  if (!fullName || typeof fullName !== "string" || !fullName.trim()) {
-    errors.push("fullName is required");
+  if (!name || typeof name !== "string" || !name.trim()) {
+    errors.push("name is required");
   }
   if (!phone || typeof phone !== "string" || !isValidPhone(String(phone))) {
     errors.push("valid phone is required");
@@ -60,14 +60,11 @@ router.post("/leads", async (req, res) => {
   if (!businessType || !VALID_BUSINESS_TYPES.includes(businessType)) {
     errors.push("valid businessType is required");
   }
-  if (!businessName || typeof businessName !== "string" || !businessName.trim()) {
-    errors.push("businessName is required");
+  if (!company || typeof company !== "string" || !company.trim()) {
+    errors.push("company is required");
   }
   if (email && !isValidEmail(String(email))) {
     errors.push("email format is invalid");
-  }
-  if (preferredContactMethod && !VALID_CONTACT_METHODS.includes(preferredContactMethod)) {
-    errors.push("invalid preferredContactMethod");
   }
 
   if (errors.length > 0) {
@@ -76,13 +73,11 @@ router.post("/leads", async (req, res) => {
 
   try {
     const [lead] = await db.insert(leads).values({
-      fullName: String(fullName).trim(),
+      fullName: String(name).trim(),
       phone: String(phone).trim(),
       email: email ? String(email).trim().toLowerCase() : null,
       businessType: String(businessType),
-      businessName: String(businessName).trim(),
-      branchesCount: branchesCount ? Number(branchesCount) : null,
-      preferredContactMethod: preferredContactMethod ?? null,
+      businessName: String(company).trim(),
       message: message ? String(message).trim() : null,
       source: "landing_page",
       status: "new",

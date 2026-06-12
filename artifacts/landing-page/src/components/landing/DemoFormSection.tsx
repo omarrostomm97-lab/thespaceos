@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Check, Lock } from "lucide-react";
 
 const BUSINESS_TYPES = [
-  { value: "gaming_lounge", label: "محل بلايستيشن / جيمينج" },
-  { value: "coworking",     label: "مساحة عمل مشتركة" },
-  { value: "cafe",          label: "كافيه / مطعم" },
-  { value: "other",         label: "نشاط آخر" },
+  { value: "gaming_lounge",   label: "محل بلايستيشن / جيمينج" },
+  { value: "coworking_space", label: "مساحة عمل مشتركة" },
+  { value: "cafe_restaurant", label: "كافيه / مطعم" },
+  { value: "other",           label: "نشاط آخر" },
 ] as const;
 
 const CONTACT_METHODS = [
@@ -84,18 +84,22 @@ export function DemoFormSection() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName: form.fullName,
-          phone: form.phone,
-          email: form.email || undefined,
+          name: form.fullName.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim() || undefined,
+          company: form.businessName.trim(),
           businessType: form.businessType,
-          businessName: form.businessName,
-          branchesCount: form.branchesCount ? parseInt(form.branchesCount, 10) : undefined,
-          preferredContactMethod: form.preferredContactMethod || undefined,
-          message: form.message || undefined,
+          city: "Cairo",
+          message: form.message.trim() || undefined,
+          source: "landing_page",
           _honey: form._honey,
         }),
       });
-      setStatus(res.ok ? "success" : "error");
+      if (!res.ok) {
+        setStatus("error");
+        return;
+      }
+      setStatus("success");
     } catch {
       setStatus("error");
     }
