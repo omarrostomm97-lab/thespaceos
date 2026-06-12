@@ -1,0 +1,65 @@
+The production image performance task is incomplete.
+
+On the VPS, I searched for cleanup/orphan/upload tools:
+
+find . -iname "*cleanup*" -o -iname "*orphan*" -o -iname "*upload*"
+find artifacts/api-server -type f | grep -Ei "cleanup|orphan|upload|storage"
+
+Result:
+There is no project cleanup/orphan script.
+Only these project files/folders exist:
+- artifacts/api-server/src/lib/objectStorage.ts
+- artifacts/api-server/src/routes/storage.ts
+- artifacts/api-server/uploads
+- uploads
+
+Everything else is from node_modules.
+
+Please complete the task properly.
+
+Required now:
+
+1. Add a real cleanup/orphan script in the repo.
+Example:
+artifacts/api-server/scripts/cleanup-upload-references.ts
+
+2. Add package.json script:
+"cleanup:uploads": "tsx scripts/cleanup-upload-references.ts"
+
+3. The cleanup script should:
+- Scan database imageUrl and thumbnailUrl fields for assets/rooms/sessions.
+- Check if the referenced file exists in /var/www/thespaceos/uploads.
+- Check both originals and thumbnails folders if used.
+- If the original image is missing, set imageUrl to null or fallback.
+- If thumbnail is missing, set thumbnailUrl to null.
+- Print a report:
+  - total records checked
+  - missing files found
+  - records updated
+  - skipped records
+- Support dry-run mode first.
+- Support apply mode after confirmation.
+
+4. Add a migration/backfill script:
+- Move old files from artifacts/api-server/uploads into /var/www/thespaceos/uploads.
+- Generate thumbnails for existing original images.
+- Update database thumbnailUrl fields.
+
+5. Make sure upload storage is unified:
+Production upload folder must be:
+/var/www/thespaceos/uploads
+
+6. Add package scripts:
+"backfill:uploads": "tsx scripts/backfill-upload-thumbnails.ts"
+"cleanup:uploads": "tsx scripts/cleanup-upload-references.ts"
+
+7. Make sure these commands work on VPS:
+pnpm --filter @workspace/api-server run backfill:uploads
+pnpm --filter @workspace/api-server run cleanup:uploads -- --dry-run
+pnpm --filter @workspace/api-server run cleanup:uploads -- --apply
+
+8. Confirm after implementation:
+- No broken room/session images.
+- Cards use thumbnailUrl.
+- Missing files show fallback image.
+- Existing 3MB–7MB images are not loaded directly in cards.

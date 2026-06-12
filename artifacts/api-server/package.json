@@ -8,7 +8,9 @@
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "cleanup-images": "tsx src/scripts/cleanup-missing-images.ts"
+    "cleanup-images": "tsx src/scripts/cleanup-missing-images.ts",
+    "cleanup:uploads": "tsx scripts/cleanup-upload-references.ts",
+    "backfill:uploads": "tsx scripts/backfill-upload-thumbnails.ts"
   },
   "dependencies": {
     "@types/bcrypt": "^6.0.0",
