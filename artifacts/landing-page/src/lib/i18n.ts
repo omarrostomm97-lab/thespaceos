@@ -331,6 +331,13 @@ const translations = {
     qr_bv_title: "From guest order to staff action — fully connected",
     qr_bv_text: "The guest places the order independently, while The Space OS automatically identifies the correct room, records the QR source, and sends the order directly to the operational workflow.",
     qr_cta: "See It in Action",
+    qr_zone1_label: "Scan the Room QR",
+    qr_zone2_lbl1: "Browse the Menu",
+    qr_zone2_lbl2: "Review and Order",
+    qr_zone2_lbl3: "Order Confirmed",
+    qr_zone3_lbl1: "Staff Receives the Order",
+    qr_zone3_lbl2: "Room-Linked Order Details",
+    qr_instant_badge: "Order sent instantly to The Space OS",
   },
 
   ar: {
@@ -663,6 +670,13 @@ const translations = {
     qr_bv_title: "من طلب الضيف إلى تنفيذ الفريق — كل شيء متصل",
     qr_bv_text: "يطلب الضيف بشكل مستقل، بينما يقوم The Space OS تلقائياً بتحديد الغرفة الصحيحة، وتسجيل مصدر الطلب عبر QR، وإرساله مباشرة إلى دورة العمل.",
     qr_cta: "شاهده في العمل",
+    qr_zone1_label: "امسح كود الغرفة",
+    qr_zone2_lbl1: "تصفح القائمة",
+    qr_zone2_lbl2: "راجع وأرسل الطلب",
+    qr_zone2_lbl3: "تم تأكيد الطلب",
+    qr_zone3_lbl1: "يصل الطلب للفريق",
+    qr_zone3_lbl2: "تفاصيل الطلب المرتبط بالغرفة",
+    qr_instant_badge: "يصل الطلب فوراً إلى The Space OS",
   },
 };
 
