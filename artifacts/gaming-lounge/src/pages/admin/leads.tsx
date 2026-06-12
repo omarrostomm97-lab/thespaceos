@@ -35,11 +35,6 @@ const BIZ_TYPE_LABELS: Record<string, string> = {
   cafe_restaurant: "كافيه / مطعم",
   other:           "نشاط آخر",
 };
-const CONTACT_METHOD_LABELS: Record<string, string> = {
-  call:      "مكالمة",
-  whatsapp:  "واتساب",
-  email:     "بريد إلكتروني",
-};
 const VALID_STATUSES = ["new", "contacted", "qualified", "demo_scheduled", "won", "lost"] as const;
 
 interface Lead {
@@ -50,7 +45,6 @@ interface Lead {
   businessType: string;
   businessName: string | null;
   branchesCount: number | null;
-  preferredContactMethod: string | null;
   message: string | null;
   source: string;
   status: string;
@@ -229,10 +223,6 @@ function LeadDetail({ lead, onClose }: { lead: Lead; onClose: () => void }) {
             {
               icon: Tag, label: "عدد الفروع",
               value: lead.branchesCount != null ? String(lead.branchesCount) : "—"
-            },
-            {
-              icon: Phone, label: "طريقة التواصل المفضلة",
-              value: lead.preferredContactMethod ? (CONTACT_METHOD_LABELS[lead.preferredContactMethod] ?? lead.preferredContactMethod) : "—"
             },
             { icon: Calendar, label: "تاريخ التسجيل", value: dateStr },
           ].map(({ icon: Icon, label, value }) => (

@@ -15,7 +15,6 @@ const benefits = [
 ];
 
 type BusinessType = typeof BUSINESS_TYPES[number]["value"];
-type ContactMethod = typeof CONTACT_METHODS[number]["value"];
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
@@ -40,7 +39,6 @@ export function DemoFormSection() {
     businessType: "" as BusinessType | "",
     businessName: "",
     branchesCount: "",
-    preferredContactMethod: "" as ContactMethod | "",
     message: "",
     _honey: "",
   });
@@ -254,26 +252,6 @@ export function DemoFormSection() {
                     />
                   </Field>
                 </div>
-
-                <Field label="طريقة التواصل المفضلة">
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 4 }}>
-                    {CONTACT_METHODS.map(m => (
-                      <button
-                        key={m.value} type="button"
-                        onClick={() => setForm({ ...form, preferredContactMethod: form.preferredContactMethod === m.value ? "" : m.value as ContactMethod })}
-                        style={{
-                          padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600,
-                          cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s",
-                          background: form.preferredContactMethod === m.value ? "rgba(37,99,235,0.2)" : "rgba(255,255,255,0.05)",
-                          border: form.preferredContactMethod === m.value ? "1px solid rgba(37,99,235,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                          color: form.preferredContactMethod === m.value ? "#60A5FA" : "#94A3B8",
-                        }}
-                      >
-                        {m.label}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
 
                 <div style={{ marginTop: 14 }}>
                   <Field label="رسالة أو ملاحظات">
