@@ -559,8 +559,8 @@ export function QROrderingSection() {
             {/* ── Col 3 · Confirm the Order ── */}
             <div className="qr-col">
               <ColHeader num="3" label={t("qr_step3_title")} />
-              {/* cropRatio 9/18 → img ≈ 400px + bars = 438px total */}
-              <PhoneFrame img={imgConfirm} alt={t("qr_zone2_lbl3")} cropRatio="9/18" />
+              {/* cropRatio 9/19 → img ≈ 422px + bars = 460px total (matches cols 1, 2, 4, 5) */}
+              <PhoneFrame img={imgConfirm} alt={t("qr_zone2_lbl3")} cropRatio="9/19" />
               <ScreenLabel text={t("qr_zone2_lbl3")} />
             </div>
 
