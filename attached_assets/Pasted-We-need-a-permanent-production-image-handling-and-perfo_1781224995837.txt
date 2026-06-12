@@ -1,0 +1,65 @@
+We need a permanent production image handling and performance fix.
+
+Current findings from VPS:
+There are upload files in two folders:
+/var/www/thespaceos/uploads
+/var/www/thespaceos/artifacts/api-server/uploads
+
+But some database image URLs point to missing files, for example:
+/api/storage/uploads/0832ab87-fa22-41d1-bfb9-16553fddc006.jpeg
+This file does not exist on the VPS.
+
+Also, existing uploaded images are very large:
+3.8MB, 4.6MB, and 7.5MB.
+Room/session cards must not load full-size images.
+
+Required fix:
+
+1. Use one stable upload folder only:
+/var/www/thespaceos/uploads
+
+2. Make all upload URLs resolve from:
+/api/storage/uploads/:filename
+
+3. If an image file is missing:
+- Do not show broken image icons
+- Use a default fallback image based on room type/business type
+- Log the missing filename on the backend
+
+4. Add image optimization on upload:
+- Compress images
+- Convert to WebP if possible
+- Generate thumbnails for cards
+- Keep original only if needed
+- Room/session cards should load thumbnail images, not original files
+
+5. Recommended file structure:
+/var/www/thespaceos/uploads/originals
+/var/www/thespaceos/uploads/thumbnails
+
+6. Recommended URLs:
+/api/storage/uploads/originals/:filename
+/api/storage/uploads/thumbnails/:filename
+
+7. Update room/session card UI:
+- Use thumbnail URL
+- loading="lazy"
+- decoding="async"
+- object-cover
+- width and height attributes
+- fallback image onError
+
+8. Add a migration or cleanup tool:
+- Find database image URLs whose files do not exist
+- Replace them with fallback images or null
+- Optionally update records to existing uploaded images if matched
+
+9. Production performance:
+- Do not serve upload images through slow API logic if file exists
+- Make Nginx serve /api/storage/uploads/* directly from /var/www/thespaceos/uploads
+- Cache uploaded images for 30 days
+
+10. Do not break current working routing:
+- / should remain landing page
+- /login should remain app login
+- /api/* should remain API except static upload files can be served directly
