@@ -67,19 +67,25 @@ function QRCardZone({ label }: { label: string }) {
         style={{
           borderRadius: 18,
           overflow: "hidden",
-          background: "#fff",
+          background: "transparent",
           boxShadow:
-            "0 2px 8px rgba(0,0,0,0.25), 0 12px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)",
+            "0 4px 16px rgba(0,0,0,0.35), 0 16px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08)",
           flexShrink: 0,
+          width: 190,
+          height: 295,
         }}
       >
         <img
           src={imgRoomQR}
           alt="PS5 Room 2 QR Code"
-          width={175}
-          height={270}
           loading="lazy"
-          style={{ display: "block", width: 175, height: "auto", objectFit: "contain" }}
+          style={{
+            display: "block",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center center",
+          }}
         />
       </div>
       <ScreenLabel num="1" text={label} />
@@ -276,7 +282,7 @@ function StaffPanel({
         </span>
       </div>
 
-      {/* Screenshot */}
+      {/* Screenshot — fixed height crops to top portion (the important content) */}
       <img
         src={img}
         alt={alt}
@@ -284,9 +290,9 @@ function StaffPanel({
         style={{
           display: "block",
           width: "100%",
+          height: 270,
           objectFit: "cover",
           objectPosition: "top center",
-          aspectRatio: "9/18",
         }}
       />
     </div>
@@ -628,7 +634,7 @@ export function QROrderingSection() {
                   img={imgStaffOrders}
                   alt={t("qr_zone3_lbl1")}
                   panelLabel="Orders"
-                  width={195}
+                  width={230}
                 />
                 <ScreenLabel num="5" text={t("qr_zone3_lbl1")} align="flex-start" />
               </div>
@@ -638,7 +644,7 @@ export function QROrderingSection() {
                   img={imgStaffDetails}
                   alt={t("qr_zone3_lbl2")}
                   panelLabel="Order #189"
-                  width={170}
+                  width={200}
                 />
                 <ScreenLabel num="6" text={t("qr_zone3_lbl2")} align="flex-start" />
               </div>
@@ -793,7 +799,7 @@ export function QROrderingSection() {
         }
 
         .qr-zone-1 {
-          flex: 0 0 175px;
+          flex: 0 0 190px;
         }
 
         .qr-zone-2 {
@@ -823,8 +829,8 @@ export function QROrderingSection() {
         }
 
         .qr-phone-main { z-index: 3; }
-        .qr-phone-mid  { z-index: 2; margin-top: 22px; }
-        .qr-phone-last { z-index: 1; margin-top: 40px; }
+        .qr-phone-mid  { z-index: 2; margin-top: 10px; }
+        .qr-phone-last { z-index: 1; margin-top: 20px; }
 
         /* ── Staff screens ──────────────────────────────────────────── */
 
