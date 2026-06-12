@@ -1,0 +1,295 @@
+Update only the existing Smart QR Ordering section on the landing page.
+
+Do not redesign the whole section, do not change the backend, API, database, QR logic, ordering logic, language switcher, SEO, or any unrelated landing-page section.
+
+I want two exact changes:
+
+## 1. Replace the current room QR image
+
+Replace the existing QR card image with the new attached image:
+
+`70d832da-990b-4b86-bf74-0bd338dcb7da.png`
+
+Use this new image as the QR stage.
+
+Requirements:
+
+* Remove the old QR image completely.
+* Use the new image exactly as provided.
+* Do not modify the QR code.
+* Do not mirror it.
+* Do not stretch it.
+* Preserve its aspect ratio.
+* Do not add white borders or white outlines.
+* Do not place it inside a white container.
+* Use a transparent wrapper.
+* Use `object-fit: contain`.
+* Keep the whole purple card visible.
+* Add only a subtle dark shadow or soft blue/purple glow.
+* Do not crop the QR code.
+* Make it look like a premium physical room/table QR card.
+
+Keep the stage label:
+
+English:
+Scan the Room QR
+
+Arabic:
+امسح كود الغرفة
+
+## 2. Remove the separate “Review and Order” stage
+
+The current guest flow has too many stages.
+
+Remove the separate “Review and Order” mockup and stage entirely.
+
+Do not show the cart/checkout screenshot as its own main stage.
+
+Instead, use the current cart/checkout screenshot as the main screenshot for the “Browse the Menu” stage.
+
+This means:
+
+* The image currently used for “Review and Order” should now replace the current “Browse the Menu” image.
+* Remove the old Browse the Menu image from the main composition.
+* Remove the “Review and Order” label.
+* Remove its stage number.
+* Remove any connector dedicated only to that stage.
+* Do not leave an empty gap where it used to be.
+
+The guest journey should now be:
+
+1. Scan the Room QR
+2. Browse the Menu
+3. Order Confirmed
+4. Staff Receives the Order
+5. Room-Linked Order Details
+
+## Updated stage images
+
+Use this order:
+
+### Stage 1 — Scan the Room QR
+
+Use:
+
+`70d832da-990b-4b86-bf74-0bd338dcb7da.png`
+
+Label:
+
+English:
+Scan the Room QR
+
+Arabic:
+امسح كود الغرفة
+
+### Stage 2 — Browse the Menu
+
+Use the existing screenshot that currently shows the cart/order sheet and Place Order button.
+
+This is the screenshot currently used under “Review and Order”.
+
+Use it as the main Browse the Menu visual because it shows both:
+
+* The room menu
+* Selected products
+* Cart
+* Total
+* Place Order button
+
+Label:
+
+English:
+Browse the Menu
+
+Arabic:
+تصفح القائمة
+
+Do not call it “Review and Order”.
+
+### Stage 3 — Order Confirmed
+
+Keep the current order-confirmation screenshot.
+
+Label:
+
+English:
+Order Confirmed
+
+Arabic:
+تم تأكيد الطلب
+
+### Stage 4 — Staff Receives the Order
+
+Keep the current staff Orders workflow screenshot.
+
+Label:
+
+English:
+Staff Receives the Order
+
+Arabic:
+يصل الطلب للفريق
+
+### Stage 5 — Room-Linked Order Details
+
+Keep the current staff order-details screenshot.
+
+Label:
+
+English:
+Room-Linked Order Details
+
+Arabic:
+تفاصيل الطلب المرتبط بالغرفة
+
+## Updated composition
+
+The visual order should become:
+
+```text
+QR Card
+→ Guest menu/cart phone
+→ Order confirmation phone
+→ Staff Orders dashboard
+→ Staff Order Details
+```
+
+Do not keep six equal mockups.
+
+Use only five stages.
+
+## Visual hierarchy
+
+The strongest visuals should be:
+
+1. Guest menu/cart phone
+2. Staff Orders dashboard
+3. QR card
+4. Order confirmation
+5. Staff Order Details
+
+Do not make every mockup the same size.
+
+Recommended desktop layout:
+
+* QR card: smaller supporting visual
+* Guest menu/cart phone: largest phone visual
+* Order confirmation: smaller supporting phone
+* Staff Orders dashboard: large operational visual
+* Order Details: attached side panel or smaller connected dashboard card
+
+## Stage numbering
+
+Update the numbers so they are sequential:
+
+1. Scan the Room QR
+2. Browse the Menu
+3. Order Confirmed
+4. Staff Receives the Order
+5. Room-Linked Order Details
+
+Remove every reference to stage 6.
+
+Remove every reference to “Review and Order”.
+
+## Process strip below
+
+Update the process strip to match the new five-stage sequence.
+
+English:
+
+1. Scan the QR
+2. Browse the Menu
+3. Confirm the Order
+4. Staff Receives It
+5. Manage the Workflow
+
+Arabic:
+
+1. امسح كود QR
+2. تصفح القائمة
+3. أكد الطلب
+4. يصل الطلب للفريق
+5. إدارة دورة التنفيذ
+
+Do not keep duplicate or outdated step text.
+
+## Mobile layout
+
+On mobile, use this exact order:
+
+1. New QR card
+2. Guest menu/cart phone
+3. Order confirmation phone
+4. Staff Orders screen
+5. Staff Order Details
+6. Process strip
+7. Benefits
+8. CTA
+
+Do not show the removed Review and Order stage.
+
+Do not show the old Browse screenshot.
+
+## Arabic and English
+
+Use the existing language system.
+
+Requirements:
+
+* English uses LTR
+* Arabic uses RTL
+* Reverse visual direction appropriately
+* Do not mirror screenshots
+* Do not mirror the QR image
+* Remove all hardcoded “Review and Order” text
+* Ensure no missing translation keys
+* Ensure no undefined labels
+
+## Important constraints
+
+Do not change:
+
+* Backend
+* API
+* Database
+* Guest ordering functionality
+* Staff workflow functionality
+* QR generation
+* Room assignment
+* Session logic
+* Billing logic
+* Lead form
+* Language switcher
+* SEO
+* Sitemap
+* Other landing-page sections
+
+Only update the Smart QR Ordering section and replace the QR asset.
+
+## Testing
+
+Before finishing:
+
+1. Confirm the new QR image is used.
+2. Confirm the old QR image is removed.
+3. Confirm there is no white border around the new QR image.
+4. Confirm the QR is not cropped or distorted.
+5. Confirm the old Browse screenshot is removed from the main composition.
+6. Confirm the former Review and Order screenshot is now used as Browse the Menu.
+7. Confirm “Review and Order” is removed everywhere.
+8. Confirm there are exactly five stages.
+9. Confirm numbering is 1 through 5.
+10. Confirm desktop layout is balanced.
+11. Confirm mobile layout is correct.
+12. Confirm Arabic RTL works.
+13. Confirm English LTR works.
+14. Confirm no horizontal overflow.
+15. Confirm no console errors.
+16. Run the landing-page production build.
+
+Do not push yet.
+
+First show me the updated development preview so I can review the visual result.
+
+Only commit and push after I explicitly approve it.

@@ -1,0 +1,500 @@
+Update only the existing Smart QR Ordering section on the landing page.
+
+I am reattaching the two correct assets for this update:
+
+* `Room_QR.png`
+* `Guest_place_order.png`
+
+Use these exact attachments.
+
+Do not rely on previous QR or guest-order assets, and do not guess filenames.
+
+Do not redesign the whole section and do not change any product functionality.
+
+## 1. Replace the current room QR image
+
+Use:
+
+`Room_QR.png`
+
+This image is the dedicated room QR card.
+
+It visually contains:
+
+* Gaming Lounge Cairo
+* PS5 Room 2
+* Large QR code
+* “Scan to Order”
+* “Order food & drinks right from your seat”
+* The Space OS branding
+
+Replace the currently used QR image with `Room_QR.png`.
+
+Requirements:
+
+* Remove the old QR asset from the section.
+* Use `Room_QR.png` only.
+* Do not mirror it.
+* Do not stretch it.
+* Do not distort its aspect ratio.
+* Do not crop the QR code.
+* Do not add a white background.
+* Do not add white side borders or white outlines.
+* Do not place it inside a white container.
+* Use a transparent wrapper.
+* Preserve the complete purple card.
+* Add only a subtle dark shadow or controlled blue/purple glow.
+* Make it look like a premium physical room or table QR card.
+
+If `Room_QR.png` contains empty white or gray canvas outside the actual purple card, create a cropped production asset that removes only the outside canvas.
+
+Do not crop any part of:
+
+* The purple rounded card
+* Gaming Lounge Cairo
+* PS5 Room 2
+* The QR code
+* Scan to Order
+* The Space OS branding
+
+The final displayed image must have no unwanted white or gray outline around the purple card.
+
+Stage label:
+
+English:
+Scan the Room QR
+
+Arabic:
+امسح كود الغرفة
+
+## 2. Replace the Browse the Menu screenshot
+
+Use:
+
+`Guest_place_order.png`
+
+This image visually shows:
+
+* PS5 Room 2
+* Product menu
+* Coffee and Energy Drink selected
+* Open “Your Order” cart
+* Two items
+* Total 150 EGP
+* Green “Place Order” button
+
+Use `Guest_place_order.png` as the main visual for:
+
+English:
+Browse the Menu
+
+Arabic:
+تصفح القائمة
+
+This image must replace the current simpler Browse the Menu screenshot.
+
+Do not use the old Browse screenshot in the main composition.
+
+Do not show `Guest_place_order.png` twice.
+
+## 3. Remove Review and Order completely
+
+Remove the separate “Review and Order” stage entirely.
+
+Remove:
+
+* Its screenshot
+* Its label
+* Its stage number
+* Its connector
+* Its translation
+* Any spacing left behind
+* Any duplicate use of the guest cart screenshot
+
+Do not leave an empty gap.
+
+The guest flow must no longer include a separate Review and Order stage.
+
+## Updated workflow
+
+The section must contain exactly five stages:
+
+1. Scan the Room QR
+2. Browse the Menu
+3. Order Confirmed
+4. Staff Receives the Order
+5. Room-Linked Order Details
+
+Arabic:
+
+1. امسح كود الغرفة
+2. تصفح القائمة
+3. تم تأكيد الطلب
+4. يصل الطلب للفريق
+5. تفاصيل الطلب المرتبط بالغرفة
+
+The final visual sequence must be:
+
+`Room_QR.png`
+→ `Guest_place_order.png`
+→ Existing Order Confirmed screenshot
+→ Existing Staff Orders dashboard screenshot
+→ Existing Staff Order Details screenshot
+
+## Visual hierarchy
+
+Do not make all screenshots equal.
+
+The intended importance is:
+
+1. `Guest_place_order.png` — primary guest visual
+2. Staff Orders dashboard — primary operations visual
+3. `Room_QR.png` — clear entry point
+4. Order Confirmed — smaller supporting phone
+5. Staff Order Details — connected supporting panel
+
+## Required desktop composition
+
+Create three visual zones.
+
+### Zone 1 — Scan
+
+Use:
+
+`Room_QR.png`
+
+Presentation:
+
+* Supporting entry visual
+* Clearly visible
+* Smaller than the main guest phone
+* Vertically aligned with the guest visual
+* No white outline
+* No fake white card
+* No aggressive rotation
+* Maximum subtle rotation of around 2 degrees if helpful
+
+### Zone 2 — Guest ordering
+
+Use:
+
+`Guest_place_order.png`
+
+This should be the main guest visual.
+
+Place it inside one premium smartphone mockup.
+
+Show the full important content:
+
+* Room name
+* Menu
+* Cart
+* Total
+* Place Order button
+
+Keep it large enough to read.
+
+Do not overcrop it.
+
+Also keep the existing Order Confirmed screenshot as a smaller supporting phone or floating confirmation panel.
+
+Do not make Order Confirmed equal in size to the main guest phone.
+
+### Zone 3 — Staff operations
+
+Use the existing Staff Orders screenshot as the main dashboard visual.
+
+It must clearly show:
+
+* Orders
+* QR Menu source
+* PS5 Room 2
+* New / Preparing / Ready / Delivered
+
+Place the existing Staff Order Details screenshot as a connected smaller panel or drawer.
+
+It should clearly show:
+
+* Order number
+* PS5 Room 2
+* Coffee
+* Energy Drink
+* Total 150 EGP
+
+Do not display the staff screens as narrow portrait phone mockups.
+
+Use wide dashboard/tablet/browser frames that match their real content.
+
+## Correct composition structure
+
+The section should visually read like:
+
+```text
+[ Room QR ] → [ Main Guest Order Phone ] → [ Staff Orders Dashboard ]
+                         [ Order Confirmed ]   [ Order Details Panel ]
+```
+
+Use only one subtle connector between the main stages.
+
+Do not add arrows between every screenshot.
+
+Suggested bridge badge:
+
+English:
+Order sent instantly
+
+Arabic:
+يصل الطلب فوراً
+
+## Stage labels
+
+Use only five stage labels:
+
+English:
+
+1. Scan the Room QR
+2. Browse the Menu
+3. Order Confirmed
+4. Staff Receives the Order
+5. Room-Linked Order Details
+
+Arabic:
+
+1. امسح كود الغرفة
+2. تصفح القائمة
+3. تم تأكيد الطلب
+4. يصل الطلب للفريق
+5. تفاصيل الطلب المرتبط بالغرفة
+
+Remove every reference to:
+
+* Review and Order
+* Stage 6
+* Old QR image
+* Old Browse screenshot
+
+## Process strip below the visuals
+
+Update the process strip to match the revised five-stage flow.
+
+English:
+
+1. Scan the QR
+2. Browse the Menu
+3. Confirm the Order
+4. Staff Receives It
+5. Manage the Workflow
+
+Arabic:
+
+1. امسح كود QR
+2. تصفح القائمة
+3. أكد الطلب
+4. يصل الطلب للفريق
+5. إدارة دورة التنفيذ
+
+Do not repeat an outdated six-step version.
+
+Keep the process strip visually quieter than the main mockups.
+
+## Desktop sizing and spacing
+
+The current composition should be balanced and readable.
+
+Requirements:
+
+* Use more of the available horizontal width.
+* Reduce unnecessary empty space.
+* Keep the guest phone and staff dashboard large enough to understand.
+* Do not squeeze all visuals into equal narrow columns.
+* Keep balanced spacing between QR, guest, and staff zones.
+* Avoid random vertical offsets.
+* Avoid stair-step mockup positioning.
+* Do not use arbitrary fixed heights that crop important content.
+
+Suggested hierarchy:
+
+* QR zone: about 16–18%
+* Guest zone: about 34–38%
+* Staff zone: about 44–50%
+
+These are guidance, not rigid values.
+
+## Mobile layout
+
+Do not reuse the desktop layered layout on mobile.
+
+Use this exact vertical order:
+
+1. `Room_QR.png`
+2. `Guest_place_order.png`
+3. Existing Order Confirmed screenshot
+4. Existing Staff Orders screenshot
+5. Existing Staff Order Details screenshot
+6. Process steps
+7. Benefits
+8. CTA
+
+Requirements:
+
+* No horizontal overflow
+* No overlapping mockups
+* No tiny screenshots
+* No clipped QR code
+* No unreadable staff screens
+* Full-width or near-full-width visuals
+* Strong vertical spacing
+* Clear stage labels
+* Proper Arabic RTL and English LTR handling
+
+## Tablet layout
+
+Use two rows:
+
+First row:
+
+* `Room_QR.png`
+* `Guest_place_order.png`
+* Order Confirmed supporting panel
+
+Second row:
+
+* Staff Orders dashboard
+* Staff Order Details panel
+
+Keep all content readable.
+
+## Arabic and English support
+
+Use the existing language system.
+
+Do not create a new language state.
+
+Requirements:
+
+* English uses LTR
+* Arabic uses RTL
+* Reverse visual flow direction appropriately
+* Do not mirror `Room_QR.png`
+* Do not mirror screenshots
+* Do not break language persistence
+* No hardcoded English-only labels
+* No missing translation keys
+* No undefined values
+
+## Screenshot integrity
+
+Do not:
+
+* Change screenshot content
+* Replace real screenshots with generated UI
+* Change prices
+* Change room names
+* Change order numbers
+* Change item names
+* Stretch images
+* Distort images
+* Blur UI text
+* Cover key content
+* Add fake browser content
+* Crop the QR code
+* Add a white frame around `Room_QR.png`
+
+You may:
+
+* Crop empty outer canvas only
+* Use rounded masks
+* Add lightweight device frames
+* Add subtle shadows
+* Add controlled glow
+* Add small labels
+* Optimize assets for production
+
+## Performance
+
+* Optimize `Room_QR.png` and `Guest_place_order.png` for web.
+* Prefer WebP or AVIF if appropriate.
+* Keep screenshot text sharp.
+* Preserve readable QR quality.
+* Add width and height attributes.
+* Prevent layout shift.
+* Lazy-load below-the-fold visuals.
+* Do not add a large mockup library.
+* Prefer lightweight CSS mockups.
+
+## Important constraints
+
+Do not change:
+
+* Backend
+* API
+* Database
+* QR generation
+* QR tokens
+* Guest ordering logic
+* Room assignment
+* Order creation
+* Staff workflow logic
+* Session logic
+* Billing logic
+* Inventory logic
+* Authentication
+* Lead form
+* Lead API
+* Platform-owner pages
+* Existing language switcher
+* SEO
+* Google verification
+* Canonical URL
+* Open Graph metadata
+* Sitemap
+* Nginx
+* Deployment configuration
+* Other landing-page sections
+
+Only update the existing Smart QR Ordering section and its assets.
+
+## Testing checklist
+
+Before finishing:
+
+1. Confirm `Room_QR.png` is used.
+2. Confirm the old QR image is removed.
+3. Confirm there is no white or gray outline around `Room_QR.png`.
+4. Confirm the full QR code remains visible.
+5. Confirm `Room_QR.png` is not mirrored, stretched, or distorted.
+6. Confirm `Guest_place_order.png` is used for Browse the Menu.
+7. Confirm the old Browse screenshot is removed.
+8. Confirm Review and Order is removed completely.
+9. Confirm there are exactly five stages.
+10. Confirm numbering runs from 1 to 5.
+11. Confirm there are no empty layout gaps.
+12. Confirm the guest phone is the main guest visual.
+13. Confirm the staff dashboard is large and readable.
+14. Confirm the Order Details panel looks connected to the staff dashboard.
+15. Confirm desktop layout is balanced.
+16. Confirm tablet layout is readable.
+17. Confirm mobile layout follows the required order.
+18. Confirm Arabic RTL works.
+19. Confirm English LTR works.
+20. Confirm screenshots are not mirrored.
+21. Confirm no horizontal overflow.
+22. Confirm the language switcher still works.
+23. Confirm the demo form still works.
+24. Confirm there are no console errors.
+25. Run the landing-page typecheck if available.
+26. Run the landing-page production build.
+
+Do not commit or push yet.
+
+First show me the updated development preview so I can review:
+
+* Asset selection
+* QR crop
+* Mockup hierarchy
+* Stage order
+* Desktop balance
+* Mobile layout
+* Arabic and English behavior
+
+Only commit and push after I explicitly approve the result.

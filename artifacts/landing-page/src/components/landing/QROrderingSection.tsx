@@ -3,9 +3,8 @@ import { useLangCtx } from "@/lib/lang-context";
 import type { TranslationKey } from "@/lib/i18n";
 
 const BASE = import.meta.env.BASE_URL;
-const imgRoomQR      = `${BASE}qr-screenshots/room-qr-card.jpg`;
-const imgGuestMenu   = `${BASE}qr-screenshots/guest-menu.png`;
-const imgGuestCart   = `${BASE}qr-screenshots/guest-cart.png`;
+const imgRoomQR      = `${BASE}qr-screenshots/room-qr-card.png`;
+const imgGuestOrder  = `${BASE}qr-screenshots/guest-order.png`;
 const imgConfirm     = `${BASE}qr-screenshots/guest-confirm.png`;
 const imgStaffOrders = `${BASE}qr-screenshots/staff-orders.png`;
 const imgStaffDetails= `${BASE}qr-screenshots/staff-details.png`;
@@ -69,10 +68,9 @@ function QRCardZone({ label }: { label: string }) {
           overflow: "hidden",
           background: "transparent",
           boxShadow:
-            "0 4px 16px rgba(0,0,0,0.35), 0 16px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.08)",
+            "0 4px 20px rgba(0,0,0,0.45), 0 20px 64px rgba(0,0,0,0.6), 0 0 40px rgba(120,60,220,0.18)",
           flexShrink: 0,
           width: 190,
-          height: 295,
         }}
       >
         <img
@@ -82,9 +80,7 @@ function QRCardZone({ label }: { label: string }) {
           style={{
             display: "block",
             width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "center center",
+            height: "auto",
           }}
         />
       </div>
@@ -604,19 +600,15 @@ export function QROrderingSection() {
           {/* ── Zone 2: Guest phones ── */}
           <div className="qr-zone qr-zone-2">
 
-            {/* Phone trio */}
+            {/* Two phones: main guest order + supporting confirmation */}
             <div className="qr-phones-row">
               <div className="qr-phone-wrap qr-phone-main">
-                <PhoneFrame img={imgGuestMenu} alt={t("qr_zone2_lbl1")} width={178} />
+                <PhoneFrame img={imgGuestOrder} alt={t("qr_zone2_lbl1")} width={210} />
                 <ScreenLabel num="2" text={t("qr_zone2_lbl1")} />
               </div>
-              <div className="qr-phone-wrap qr-phone-mid">
-                <PhoneFrame img={imgGuestCart} alt={t("qr_zone2_lbl2")} width={154} />
-                <ScreenLabel num="3" text={t("qr_zone2_lbl2")} />
-              </div>
-              <div className="qr-phone-wrap qr-phone-last">
-                <PhoneFrame img={imgConfirm} alt={t("qr_zone2_lbl3")} width={136} />
-                <ScreenLabel num="4" text={t("qr_zone2_lbl3")} />
+              <div className="qr-phone-wrap qr-phone-sec">
+                <PhoneFrame img={imgConfirm} alt={t("qr_zone2_lbl3")} width={148} />
+                <ScreenLabel num="3" text={t("qr_zone2_lbl3")} />
               </div>
             </div>
 
@@ -634,9 +626,9 @@ export function QROrderingSection() {
                   img={imgStaffOrders}
                   alt={t("qr_zone3_lbl1")}
                   panelLabel="Orders"
-                  width={230}
+                  width={295}
                 />
-                <ScreenLabel num="5" text={t("qr_zone3_lbl1")} align="flex-start" />
+                <ScreenLabel num="4" text={t("qr_zone3_lbl1")} align="flex-start" />
               </div>
 
               <div className="qr-staff-wrap qr-staff-secondary">
@@ -644,9 +636,9 @@ export function QROrderingSection() {
                   img={imgStaffDetails}
                   alt={t("qr_zone3_lbl2")}
                   panelLabel="Order #189"
-                  width={200}
+                  width={238}
                 />
-                <ScreenLabel num="6" text={t("qr_zone3_lbl2")} align="flex-start" />
+                <ScreenLabel num="5" text={t("qr_zone3_lbl2")} align="flex-start" />
               </div>
 
             </div>
@@ -808,7 +800,8 @@ export function QROrderingSection() {
         }
 
         .qr-zone-3 {
-          flex: 0 0 auto;
+          flex: 1;
+          min-width: 0;
         }
 
         /* ── Guest phones ───────────────────────────────────────────── */
@@ -828,9 +821,8 @@ export function QROrderingSection() {
           align-items: center;
         }
 
-        .qr-phone-main { z-index: 3; }
-        .qr-phone-mid  { z-index: 2; margin-top: 10px; }
-        .qr-phone-last { z-index: 1; margin-top: 20px; }
+        .qr-phone-main { z-index: 2; }
+        .qr-phone-sec  { z-index: 1; margin-top: 20px; }
 
         /* ── Staff screens ──────────────────────────────────────────── */
 
