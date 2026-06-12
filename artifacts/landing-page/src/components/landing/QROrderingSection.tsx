@@ -506,28 +506,31 @@ export function QROrderingSection() {
           <div className="qr-zone qr-zone-3">
             <ZoneHeader num="3" title={t("qr_zone_manage")} />
 
-            {/* Primary: Staff Orders dashboard */}
-            <div className="qr-staff-primary">
-              <StaffPanel
-                img={imgStaffOrders}
-                alt={t("qr_zone3_lbl1")}
-                panelLabel="Orders"
-                width="100%"
-                cropHeight={330}
-              />
-              <ScreenLabel text={t("qr_zone3_lbl1")} align="flex-start" />
-            </div>
+            {/* Side-by-side on desktop/tablet, stacked on mobile */}
+            <div className="qr-staff-row">
+              {/* Primary: Staff Orders dashboard */}
+              <div className="qr-staff-primary">
+                <StaffPanel
+                  img={imgStaffOrders}
+                  alt={t("qr_zone3_lbl1")}
+                  panelLabel="Orders"
+                  width="100%"
+                  cropHeight={310}
+                />
+                <ScreenLabel text={t("qr_zone3_lbl1")} align="flex-start" />
+              </div>
 
-            {/* Details drawer — connected panel below, slightly indented */}
-            <div className="qr-staff-details">
-              <StaffPanel
-                img={imgStaffDetails}
-                alt={t("qr_zone3_lbl2")}
-                panelLabel="Order #189"
-                width="100%"
-                cropHeight={265}
-              />
-              <ScreenLabel text={t("qr_zone3_lbl2")} align="flex-start" />
+              {/* Secondary: Order Details panel */}
+              <div className="qr-staff-details">
+                <StaffPanel
+                  img={imgStaffDetails}
+                  alt={t("qr_zone3_lbl2")}
+                  panelLabel="Order #189"
+                  width="100%"
+                  cropHeight={310}
+                />
+                <ScreenLabel text={t("qr_zone3_lbl2")} align="flex-start" />
+              </div>
             </div>
           </div>
 
@@ -702,32 +705,33 @@ export function QROrderingSection() {
           flex: 0 0 auto;
         }
 
-        /* Confirmation phone — supporting, staggered behind */
+        /* Confirmation phone — supporting, slight stagger */
         .qr-phone-sec {
           z-index: 3;
           flex: 0 0 auto;
-          margin-left: -24px;
-          margin-top: 64px;
+          margin-left: -14px;
+          margin-top: 52px;
         }
 
-        /* ── Staff panels (column stack inside zone 3) ───────────────── */
+        /* ── Staff panels — side-by-side inside zone 3 ───────────────── */
+
+        .qr-staff-row {
+          display: flex;
+          flex-direction: row;
+          align-items: flex-start;
+          gap: 10px;
+          direction: ltr;
+          width: 100%;
+        }
 
         .qr-staff-primary {
-          width: 100%;
-          z-index: 2;
-          position: relative;
+          flex: 1 1 0;
+          min-width: 0;
         }
 
-        /* Details drawer — clean card below primary, left-border thread connects them */
         .qr-staff-details {
-          margin-top: 10px;
-          margin-left: 22px;
-          margin-right: 0;
-          width: calc(100% - 22px);
-          z-index: 3;
-          position: relative;
-          border-left: 2px solid rgba(37,99,235,0.30);
-          padding-left: 16px;
+          flex: 0 0 175px;
+          min-width: 0;
         }
 
         /* ── Connector: thin arrow ───────────────────────────────────── */
@@ -817,14 +821,9 @@ export function QROrderingSection() {
             order: 3;
           }
 
-          /* Reset desktop border-thread; panels go full-width on tablet */
-          .qr-staff-details {
-            margin-top: 14px;
-            margin-left: 0;
-            width: 100%;
-            border-left: none;
-            padding-left: 0;
-          }
+          /* Tablet: side-by-side still works, give details more room */
+          .qr-staff-row { gap: 14px; }
+          .qr-staff-details { flex: 0 0 220px; }
 
           .qr-steps-grid {
             grid-template-columns: 1fr 1fr;
@@ -892,16 +891,16 @@ export function QROrderingSection() {
             width: 100% !important;
           }
 
-          /* Staff panels — same width as phones, centred by zone's align-items */
-          .qr-staff-primary {
-            width: min(290px, 88vw);
+          /* Staff row: vertical stack on mobile */
+          .qr-staff-row {
+            flex-direction: column;
+            align-items: center;
+            gap: 28px;
           }
+          .qr-staff-primary,
           .qr-staff-details {
+            flex: 0 0 auto;
             width: min(290px, 88vw);
-            margin-top: 28px;
-            margin-left: 0;
-            border-left: none;
-            padding-left: 0;
           }
 
           /* Steps: one column */
