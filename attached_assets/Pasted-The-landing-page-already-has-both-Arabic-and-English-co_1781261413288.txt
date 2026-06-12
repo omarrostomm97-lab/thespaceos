@@ -1,0 +1,120 @@
+The landing page already has both Arabic and English content, but there is currently no working way for visitors to switch languages.
+
+Please add a premium, production-ready language switcher to the landing page only, without changing any other design, content, layout, colors, spacing, sections, or functionality.
+
+Requirements:
+
+1. Add a polished language switcher in the main navbar.
+
+   * Desktop: compact premium segmented control or dropdown showing:
+
+     * العربية
+     * English
+   * Mobile: include the same language control inside the mobile menu.
+   * It must visually match the current premium SaaS design.
+
+2. Switching language must update the entire landing page instantly.
+
+   * Arabic:
+
+     * RTL
+     * Arabic content
+   * English:
+
+     * LTR
+     * English content
+
+3. Do not reload the page unless technically necessary.
+
+   * Prefer client-side switching.
+   * Preserve the user’s selected language in localStorage.
+   * On the next visit, load the saved language automatically.
+
+4. On first visit:
+
+   * Use Arabic as the default language unless there is already a valid saved preference.
+   * Do not auto-switch based on browser language.
+
+5. Update the root document correctly when language changes:
+
+   * Arabic:
+
+     * document.documentElement.lang = "ar"
+     * document.documentElement.dir = "rtl"
+   * English:
+
+     * document.documentElement.lang = "en"
+     * document.documentElement.dir = "ltr"
+
+6. Make sure every landing-page section uses the existing Arabic and English translations consistently:
+
+   * Navbar
+   * Hero
+   * Problems
+   * Features
+   * Built For
+   * How It Works
+   * Screenshots
+   * Social Proof
+   * Demo Form
+   * Mobile CTA
+   * Footer
+   * Form validation messages
+   * Success and error messages
+   * Buttons and labels
+
+7. Do not alter:
+
+   * Current layout
+   * Current visual design
+   * Existing wording unless required to connect the language system
+   * Lead form field structure
+   * Lead API payload
+   * Platform-owner admin pages
+   * Backend
+   * Database
+   * SEO verification tag
+   * Canonical URL
+   * Open Graph image
+   * Sitemap
+
+8. Ensure responsive behavior:
+
+   * No navbar overflow
+   * No mobile menu issues
+   * No broken RTL/LTR alignment
+   * No layout shift when switching languages
+
+9. Accessibility:
+
+   * Use a real button or accessible select/menu
+   * Add clear aria-labels
+   * Keyboard accessible
+   * Visible focus state
+
+10. Test both languages thoroughly:
+
+* Desktop and mobile
+* Navbar
+* All sections
+* Demo form submission
+* Browser refresh after selection
+* No console errors
+* No untranslated leftovers
+* No undefined variables
+
+11. Run:
+
+* landing-page typecheck, if available
+* landing-page production build
+* API build only if required by the existing deployment setup
+
+12. Commit and push all final changes immediately to origin/main.
+
+Send me:
+
+* final commit hash
+* exact files changed
+* confirmation that the working tree is clean
+* confirmation that Arabic and English both work after refresh
+* confirmation that no unrelated files were changed

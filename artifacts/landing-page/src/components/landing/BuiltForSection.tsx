@@ -1,50 +1,29 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useLangCtx } from "@/lib/lang-context";
+import type { TranslationKey } from "@/lib/i18n";
 
 const BASE = import.meta.env.BASE_URL;
 
-const spaces = [
-  {
-    name: "محلات البلايستيشن والجيمينج",
-    desc: "تحكم في الجلسات، إدارة الأجهزة، وتتبع وقت اللعب بدقة.",
-    accent: "#3B82F6",
-    img: `${BASE}biz-gaming.jpg`,
-  },
-  {
-    name: "مساحات العمل المشتركة",
-    desc: "حجز المكاتب والغرف، إدارة الأعضاء، والمساحات بكل سهولة.",
-    accent: "#22C55E",
-    img: `${BASE}biz-coworking.jpg`,
-  },
-  {
-    name: "الكافيهات",
-    desc: "الطلبات، القائمة، نقطة البيع، وسير عمل المطبخ في مكان واحد.",
-    accent: "#F59E0B",
-    img: `${BASE}biz-cafe.jpg`,
-  },
-  {
-    name: "المطاعم",
-    desc: "إدارة الطاولات، شاشة المطبخ، وأتمتة الطلبات بالكامل.",
-    accent: "#EF4444",
-    img: `${BASE}biz-restaurant.jpg`,
-  },
-  {
-    name: "أي نشاط يدير غرفًا أو جلسات",
-    desc: "صالونات، عيادات، استوديوهات، وأكثر — كل شيء في منصة واحدة.",
-    accent: "#8B5CF6",
-    img: `${BASE}biz-other.jpg`,
-  },
+const SPACES: { nameKey: TranslationKey; descKey: TranslationKey; accent: string; img: string }[] = [
+  { nameKey: "bfs1_name", descKey: "bfs1_desc", accent: "#3B82F6", img: `${BASE}biz-gaming.jpg` },
+  { nameKey: "bfs2_name", descKey: "bfs2_desc", accent: "#22C55E", img: `${BASE}biz-coworking.jpg` },
+  { nameKey: "bfs3_name", descKey: "bfs3_desc", accent: "#F59E0B", img: `${BASE}biz-cafe.jpg` },
+  { nameKey: "bfs4_name", descKey: "bfs4_desc", accent: "#EF4444", img: `${BASE}biz-restaurant.jpg` },
+  { nameKey: "bfs5_name", descKey: "bfs5_desc", accent: "#8B5CF6", img: `${BASE}biz-other.jpg` },
 ];
 
-function SpaceCard({ name, desc, accent, img }: (typeof spaces)[0]) {
+function SpaceCard({
+  nameKey, descKey, accent, img,
+}: (typeof SPACES)[0]) {
+  const { t } = useLangCtx();
   const [hov, setHov] = useState(false);
   return (
     <div
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        background: "#07121F",
-        borderRadius: 14,
+        background: "#07121F", borderRadius: 14,
         border: `1px solid ${hov ? accent + "55" : "rgba(255,255,255,0.08)"}`,
         overflow: "hidden",
         display: "flex", flexDirection: "column",
@@ -56,7 +35,7 @@ function SpaceCard({ name, desc, accent, img }: (typeof spaces)[0]) {
     >
       <div style={{ position: "relative", overflow: "hidden", height: 120 }}>
         <img
-          src={img} alt={name}
+          src={img} alt={t(nameKey)}
           style={{
             width: "100%", height: "100%",
             objectFit: "cover", objectPosition: "center",
@@ -66,44 +45,45 @@ function SpaceCard({ name, desc, accent, img }: (typeof spaces)[0]) {
         />
         <div style={{
           position: "absolute", inset: 0,
-          background: `linear-gradient(to bottom, rgba(7,18,31,0.1) 0%, rgba(7,18,31,0.55) 100%)`,
+          background: "linear-gradient(to bottom, rgba(7,18,31,0.1) 0%, rgba(7,18,31,0.55) 100%)",
         }} />
       </div>
 
       <div style={{ padding: "14px 16px 18px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
           <div style={{ width: 7, height: 7, borderRadius: "50%", flexShrink: 0, background: accent, boxShadow: `0 0 7px ${accent}` }} />
-          <p style={{ color: "white", fontSize: 13, fontWeight: 700, margin: 0 }}>{name}</p>
+          <p style={{ color: "white", fontSize: 13, fontWeight: 700, margin: 0 }}>{t(nameKey)}</p>
         </div>
-        <p style={{ color: "#475569", fontSize: 12, lineHeight: 1.6 }}>{desc}</p>
+        <p style={{ color: "#475569", fontSize: 12, lineHeight: 1.6 }}>{t(descKey)}</p>
       </div>
     </div>
   );
 }
 
 export function BuiltForSection() {
+  const { t, dir, lang } = useLangCtx();
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <section id="solutions" style={{ background: "#050B18", padding: "96px 24px", direction: "rtl" }}>
+    <section id="solutions" style={{ background: "#050B18", padding: "96px 24px", direction: dir }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div className="lp-builtfor-grid">
 
-          {/* Right — text */}
+          {/* Text column */}
           <div>
             <p style={{
               fontSize: 12, fontWeight: 700, letterSpacing: "0.04em",
               color: "#2563EB", marginBottom: 16,
-            }}>مصمم للأنشطة التجارية الحديثة</p>
+            }}>{t("bf_eyebrow")}</p>
             <h2 style={{
               fontSize: "clamp(28px, 3.5vw, 42px)", fontWeight: 800,
               lineHeight: 1.15, marginBottom: 20,
             }}>
-              <span style={{ color: "white" }}>مصمم لطريقة</span><br />
-              <span style={{ color: "#2563EB" }}>تشغيلك الفعلية</span>
+              <span style={{ color: "white" }}>{t("bf_h2_1")}</span><br />
+              <span style={{ color: "#2563EB" }}>{t("bf_h2_2")}</span>
             </h2>
             <p style={{ color: "#94A3B8", fontSize: 15, lineHeight: 1.8, marginBottom: 32, maxWidth: 340 }}>
-              منصة واحدة تتكيف مع طريقة إدارتك لنشاطك التجاري.
+              {t("bf_sub_full")}
             </p>
             <button onClick={() => scrollTo("demo")}
               style={{
@@ -115,13 +95,14 @@ export function BuiltForSection() {
               onMouseEnter={e => (e.currentTarget.style.color = "#60A5FA")}
               onMouseLeave={e => (e.currentTarget.style.color = "#2563EB")}
             >
-              شاهد كيف يعمل <ArrowLeft size={14} />
+              {t("bf_cta")}
+              {lang === "ar" ? <ArrowLeft size={14} /> : <ArrowRight size={14} />}
             </button>
           </div>
 
-          {/* Left — cards */}
+          {/* Cards column */}
           <div className="lp-venue-grid">
-            {spaces.map(s => <SpaceCard key={s.name} {...s} />)}
+            {SPACES.map(s => <SpaceCard key={s.nameKey} {...s} />)}
           </div>
 
         </div>

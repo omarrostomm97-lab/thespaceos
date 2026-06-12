@@ -1,38 +1,30 @@
 import { Gamepad2, Settings, Rocket } from "lucide-react";
+import { useLangCtx } from "@/lib/lang-context";
+import type { TranslationKey } from "@/lib/i18n";
 
-const steps = [
-  {
-    num: 1,
-    icon: Gamepad2,
-    title: "أخبرنا عن نشاطك",
-    desc: "شاركنا طبيعة نشاطك التجاري وكيف تدير عملياتك اليومية.",
-  },
-  {
-    num: 2,
-    icon: Settings,
-    title: "نضبط النظام لك",
-    desc: "نكيّف المنصة لتناسب منتجاتك وخدماتك وطريقة عملك تمامًا.",
-  },
-  {
-    num: 3,
-    icon: Rocket,
-    title: "انطلق وكبّر",
-    desc: "ابدأ بسرعة وأدر نشاطك بكفاءة أعلى من اليوم الأول.",
-  },
+const STEPS: { num: number; icon: typeof Gamepad2; titleKey: TranslationKey; descKey: TranslationKey }[] = [
+  { num: 1, icon: Gamepad2, titleKey: "step1_title", descKey: "step1_desc" },
+  { num: 2, icon: Settings, titleKey: "step2_title", descKey: "step2_desc" },
+  { num: 3, icon: Rocket,   titleKey: "step3_title", descKey: "step3_desc" },
 ];
 
 export function HowItWorksSection() {
+  const { t, dir } = useLangCtx();
+
   return (
-    <section style={{ background: "#050B18", padding: "96px 24px", borderTop: "1px solid rgba(255,255,255,0.06)", direction: "rtl" }}>
+    <section style={{
+      background: "#050B18", padding: "96px 24px",
+      borderTop: "1px solid rgba(255,255,255,0.06)", direction: dir,
+    }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
         <div style={{ textAlign: "center", marginBottom: 72 }}>
           <p style={{
             fontSize: 12, fontWeight: 700, letterSpacing: "0.04em",
             color: "#2563EB", marginBottom: 16,
-          }}>بسيط. سريع. قوي.</p>
+          }}>{t("how_eyebrow")}</p>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, color: "white", lineHeight: 1.15 }}>
-            كيف يعمل النظام
+            {t("how_h2_text")}
           </h2>
         </div>
 
@@ -46,7 +38,7 @@ export function HowItWorksSection() {
           </div>
 
           <div className="lp-steps-grid">
-            {steps.map(({ num, icon: Icon, title, desc }) => (
+            {STEPS.map(({ num, icon: Icon, titleKey, descKey }) => (
               <div key={num} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
                 <div style={{ position: "relative", marginBottom: 28 }}>
                   <div style={{
@@ -65,8 +57,8 @@ export function HowItWorksSection() {
                   }}>{num}</div>
                 </div>
 
-                <h3 style={{ color: "white", fontSize: 17, fontWeight: 700, marginBottom: 10 }}>{title}</h3>
-                <p style={{ color: "#64748B", fontSize: 14, lineHeight: 1.8, maxWidth: 260 }}>{desc}</p>
+                <h3 style={{ color: "white", fontSize: 17, fontWeight: 700, marginBottom: 10 }}>{t(titleKey)}</h3>
+                <p style={{ color: "#64748B", fontSize: 14, lineHeight: 1.8, maxWidth: 260 }}>{t(descKey)}</p>
               </div>
             ))}
           </div>

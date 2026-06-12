@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
-import { Menu, X, ArrowLeft } from "lucide-react";
-
-const NAV_ANCHOR_LINKS = [
-  { label: "المنتج", id: "features" },
-  { label: "الحلول", id: "solutions" },
-  { label: "المميزات", id: "features" },
-  { label: "تجربة مجانية", id: "demo" },
-];
+import { Menu, X, ArrowLeft, ArrowRight } from "lucide-react";
+import { useLangCtx } from "@/lib/lang-context";
+import type { Lang } from "@/lib/i18n";
 
 export function Navbar() {
+  const { lang, dir, t, setLang } = useLangCtx();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
+
+  const NAV_LINKS = [
+    { labelKey: "nav_product" as const, id: "features" },
+    { labelKey: "nav_built_for" as const, id: "solutions" },
+    { labelKey: "nav_demo" as const, id: "demo" },
+  ];
 
   useEffect(() => {
     const onScroll = () => {
@@ -35,6 +37,41 @@ export function Navbar() {
 
   const isActive = (id: string) => activeSection === id;
 
+  const LangSwitcher = ({ mobile }: { mobile?: boolean }) => (
+    <div style={{
+      display: "flex",
+      background: "rgba(255,255,255,0.06)",
+      border: "1px solid rgba(255,255,255,0.1)",
+      borderRadius: 8,
+      padding: 2,
+      flexShrink: 0,
+      ...(mobile ? { width: "100%", justifyContent: "center" } : {}),
+    }}>
+      {(["ar", "en"] as Lang[]).map((l) => (
+        <button
+          key={l}
+          onClick={() => setLang(l)}
+          style={{
+            padding: mobile ? "8px 0" : "5px 11px",
+            borderRadius: 6,
+            border: "none",
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            transition: "all 0.15s ease",
+            background: lang === l ? "#2563EB" : "transparent",
+            color: lang === l ? "white" : "#64748B",
+            letterSpacing: "0.02em",
+            ...(mobile ? { flex: 1 } : {}),
+          }}
+        >
+          {l === "ar" ? "العربية" : "English"}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <nav style={{
       position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
@@ -42,14 +79,14 @@ export function Navbar() {
       borderBottom: "1px solid rgba(255,255,255,0.08)",
       backdropFilter: scrolled ? "blur(20px)" : "none",
       transition: "all 0.3s ease",
-      direction: "rtl",
+      direction: dir,
     }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
 
           {/* Logo */}
           <a href="#" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+            style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
             <img
               src={`${import.meta.env.BASE_URL}the-space-os-logo-transparent.png`}
               alt="The Space OS"
@@ -57,10 +94,10 @@ export function Navbar() {
             />
           </a>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav Links */}
           <div className="lp-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 2 }}>
-            {NAV_ANCHOR_LINKS.map(item => (
-              <a key={item.label} href={`#${item.id}`}
+            {NAV_LINKS.map(item => (
+              <a key={item.id} href={`#${item.id}`}
                 onClick={e => { e.preventDefault(); scrollTo(item.id); }}
                 style={{
                   display: "flex", alignItems: "center", gap: 4, textDecoration: "none",
@@ -74,29 +111,33 @@ export function Navbar() {
                 onMouseEnter={e => (e.currentTarget.style.color = "white")}
                 onMouseLeave={e => (e.currentTarget.style.color = isActive(item.id) ? "white" : "#94A3B8")}
               >
-                {item.label}
+                {t(item.labelKey)}
               </a>
             ))}
           </div>
 
-          {/* Desktop Right */}
-          <div className="lp-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* Desktop Right — Switcher + Login + CTA */}
+          <div className="lp-nav-desktop" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <LangSwitcher />
             <a href="/login"
               style={{ color: "#94A3B8", fontSize: 14, fontWeight: 500, textDecoration: "none", padding: "8px 12px", transition: "color 0.2s" }}
               onMouseEnter={e => (e.currentTarget.style.color = "white")}
               onMouseLeave={e => (e.currentTarget.style.color = "#94A3B8")}
-            >تسجيل الدخول</a>
+            >{t("nav_login")}</a>
             <a href="#demo" onClick={e => { e.preventDefault(); scrollTo("demo"); }}
               style={{
                 display: "flex", alignItems: "center", gap: 6,
                 background: "#2563EB", color: "white", borderRadius: 24, textDecoration: "none",
                 fontSize: 14, fontWeight: 700, padding: "9px 20px",
-                transition: "background 0.2s",
+                transition: "background 0.2s", whiteSpace: "nowrap",
               }}
               onMouseEnter={e => (e.currentTarget.style.background = "#1D4ED8")}
               onMouseLeave={e => (e.currentTarget.style.background = "#2563EB")}
             >
-              احجز عرض تجريبي <ArrowLeft size={13} strokeWidth={2.5} />
+              {t("nav_request_demo")}
+              {lang === "ar"
+                ? <ArrowLeft size={13} strokeWidth={2.5} />
+                : <ArrowRight size={13} strokeWidth={2.5} />}
             </a>
           </div>
 
@@ -115,8 +156,8 @@ export function Navbar() {
           background: "#0A1628", borderTop: "1px solid rgba(255,255,255,0.08)",
           padding: "12px 24px 24px",
         }}>
-          {NAV_ANCHOR_LINKS.map(item => (
-            <a key={item.label + item.id} href={`#${item.id}`}
+          {NAV_LINKS.map(item => (
+            <a key={item.id} href={`#${item.id}`}
               onClick={e => { e.preventDefault(); scrollTo(item.id); }}
               style={{
                 display: "block", textDecoration: "none",
@@ -126,7 +167,7 @@ export function Navbar() {
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
               }}
             >
-              {item.label}
+              {t(item.labelKey)}
             </a>
           ))}
           <a href="/login"
@@ -134,14 +175,17 @@ export function Navbar() {
               display: "block", color: "#94A3B8", fontSize: 15, padding: "14px 0",
               textDecoration: "none", borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}
-          >تسجيل الدخول</a>
+          >{t("nav_login")}</a>
+          <div style={{ margin: "16px 0" }}>
+            <LangSwitcher mobile />
+          </div>
           <a href="#demo" onClick={e => { e.preventDefault(); scrollTo("demo"); }}
             style={{
-              display: "block", marginTop: 16, width: "100%", background: "#2563EB", color: "white",
+              display: "block", marginTop: 8, width: "100%", background: "#2563EB", color: "white",
               textDecoration: "none", borderRadius: 12, textAlign: "center",
               fontSize: 15, fontWeight: 700, padding: "14px",
             }}
-          >احجز عرض تجريبي ←</a>
+          >{t("nav_request_demo")} {lang === "ar" ? "←" : "→"}</a>
         </div>
       )}
 

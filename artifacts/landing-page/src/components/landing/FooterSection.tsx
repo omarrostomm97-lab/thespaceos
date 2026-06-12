@@ -1,46 +1,53 @@
 import { Linkedin } from "lucide-react";
+import { useLangCtx } from "@/lib/lang-context";
+import type { TranslationKey } from "@/lib/i18n";
 
-const columns = [
+type FooterLink = { labelKey: TranslationKey; href: string };
+type FooterColumn = { titleKey: TranslationKey; links: FooterLink[] };
+
+const COLUMNS: FooterColumn[] = [
   {
-    title: "المنتج",
+    titleKey: "fc_product",
     links: [
-      { label: "المميزات", href: "#features" },
-      { label: "الأسعار", href: "https://thespaceos.com/pricing" },
-      { label: "التحديثات", href: "https://thespaceos.com/updates" },
-      { label: "سجل التغييرات", href: "https://thespaceos.com/changelog" },
+      { labelKey: "fl_features",  href: "#features" },
+      { labelKey: "fl_pricing",   href: "https://thespaceos.com/pricing" },
+      { labelKey: "fl_updates",   href: "https://thespaceos.com/updates" },
+      { labelKey: "fl_changelog", href: "https://thespaceos.com/changelog" },
     ],
   },
   {
-    title: "الحلول",
+    titleKey: "fc_solutions",
     links: [
-      { label: "محلات البلايستيشن والجيمينج", href: "#solutions" },
-      { label: "مساحات العمل المشتركة", href: "#solutions" },
-      { label: "الكافيهات", href: "#solutions" },
-      { label: "المطاعم", href: "#solutions" },
-      { label: "أنشطة أخرى", href: "#solutions" },
+      { labelKey: "fl_gaming",     href: "#solutions" },
+      { labelKey: "fl_coworking",  href: "#solutions" },
+      { labelKey: "fl_cafes",      href: "#solutions" },
+      { labelKey: "fl_restaurants",href: "#solutions" },
+      { labelKey: "fl_other",      href: "#solutions" },
     ],
   },
   {
-    title: "الشركة",
+    titleKey: "fc_company",
     links: [
-      { label: "من نحن", href: "https://thespaceos.com/about" },
-      { label: "فرص العمل", href: "https://thespaceos.com/careers" },
-      { label: "الشراكات", href: "https://thespaceos.com/partners" },
-      { label: "تواصل معنا", href: "#demo" },
+      { labelKey: "fl_about",    href: "https://thespaceos.com/about" },
+      { labelKey: "fl_careers",  href: "https://thespaceos.com/careers" },
+      { labelKey: "fl_partners", href: "https://thespaceos.com/partners" },
+      { labelKey: "fl_contact",  href: "#demo" },
     ],
   },
   {
-    title: "الدعم",
+    titleKey: "fc_support",
     links: [
-      { label: "مركز المساعدة", href: "https://thespaceos.com/help" },
-      { label: "التوثيق", href: "https://thespaceos.com/docs" },
-      { label: "المدونة", href: "https://thespaceos.com/blog" },
-      { label: "حالة الخدمة", href: "https://status.thespaceos.com" },
+      { labelKey: "fl_help",   href: "https://thespaceos.com/help" },
+      { labelKey: "fl_docs",   href: "https://thespaceos.com/docs" },
+      { labelKey: "fl_blog",   href: "https://thespaceos.com/blog" },
+      { labelKey: "fl_status", href: "https://status.thespaceos.com" },
     ],
   },
 ];
 
 export function FooterSection() {
+  const { t, dir } = useLangCtx();
+
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
@@ -52,7 +59,7 @@ export function FooterSection() {
   }
 
   return (
-    <footer style={{ background: "#050B18", borderTop: "1px solid rgba(255,255,255,0.08)", direction: "rtl" }}>
+    <footer style={{ background: "#050B18", borderTop: "1px solid rgba(255,255,255,0.08)", direction: dir }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 40px" }}>
 
         <div className="lp-footer-top">
@@ -68,7 +75,7 @@ export function FooterSection() {
             </div>
 
             <p style={{ color: "#334155", fontSize: 13, lineHeight: 1.75, maxWidth: 240, marginBottom: 24 }}>
-              The Space OS — منصة تشغيل متكاملة للأنشطة التجارية الحديثة التي تريد تحكمًا كاملًا.
+              {t("footer_brand_full")}
             </p>
 
             <div style={{ display: "flex", gap: 8 }}>
@@ -96,17 +103,17 @@ export function FooterSection() {
             </div>
           </div>
 
-          {columns.map(col => (
-            <div key={col.title}>
+          {COLUMNS.map(col => (
+            <div key={col.titleKey}>
               <h4 style={{
                 color: "white", fontSize: 13, fontWeight: 700,
                 marginBottom: 16, letterSpacing: "0.01em",
               }}>
-                {col.title}
+                {t(col.titleKey)}
               </h4>
               <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 11 }}>
                 {col.links.map(link => (
-                  <li key={link.label}>
+                  <li key={link.labelKey}>
                     <a
                       href={link.href}
                       onClick={e => handleLink(e, link.href)}
@@ -116,7 +123,7 @@ export function FooterSection() {
                       onMouseEnter={e => (e.currentTarget.style.color = "#94A3B8")}
                       onMouseLeave={e => (e.currentTarget.style.color = "#475569")}
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                     </a>
                   </li>
                 ))}
@@ -138,27 +145,27 @@ export function FooterSection() {
               borderRadius: 20, padding: "5px 12px",
             }}>
               <span style={{ fontSize: 15 }}>🇪🇬</span>
-              <span style={{ color: "#94A3B8", fontSize: 12, fontWeight: 600 }}>صُنع في مصر</span>
+              <span style={{ color: "#94A3B8", fontSize: 12, fontWeight: 600 }}>{t("footer_egypt_pill")}</span>
             </div>
           </div>
 
           <p style={{ color: "#334155", fontSize: 12 }}>
-            © 2026 The Space OS. جميع الحقوق محفوظة.
+            {t("footer_copyright")}
           </p>
 
           <div style={{ display: "flex", gap: 20 }}>
-            {[
-              { label: "سياسة الخصوصية", href: "https://thespaceos.com/privacy" },
-              { label: "شروط الاستخدام", href: "https://thespaceos.com/terms" },
-            ].map(link => (
+            {([
+              { labelKey: "footer_privacy_link" as const, href: "https://thespaceos.com/privacy" },
+              { labelKey: "footer_terms_link" as const,   href: "https://thespaceos.com/terms" },
+            ]).map(link => (
               <a
-                key={link.label} href={link.href}
+                key={link.labelKey} href={link.href}
                 target="_blank" rel="noopener noreferrer"
                 style={{ color: "#334155", fontSize: 12, textDecoration: "none", transition: "color 0.2s" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "#94A3B8")}
                 onMouseLeave={e => (e.currentTarget.style.color = "#334155")}
               >
-                {link.label}
+                {t(link.labelKey)}
               </a>
             ))}
           </div>

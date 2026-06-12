@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { LangProvider } from "@/lib/lang-context";
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ProblemsSection } from "@/components/landing/ProblemsSection";
@@ -17,20 +18,22 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100vh", overflowX: "hidden", background: "#050B18" }}>
-      <Navbar />
-      <main>
-        <HeroSection />
-        <ProblemsSection />
-        <SocialProofSection />
-        <ProductScreenshotsSection />
-        <BuiltForSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <DemoFormSection />
-      </main>
-      <FooterSection />
-      <MobileBottomCTA />
-    </div>
+    <LangProvider>
+      <div style={{ minHeight: "100vh", overflowX: "hidden", background: "#050B18" }}>
+        <Navbar />
+        <main>
+          <HeroSection />
+          <ProblemsSection />
+          <SocialProofSection />
+          <ProductScreenshotsSection />
+          <BuiltForSection />
+          <FeaturesSection />
+          <HowItWorksSection />
+          <DemoFormSection />
+        </main>
+        <FooterSection />
+        <MobileBottomCTA />
+      </div>
+    </LangProvider>
   );
 }

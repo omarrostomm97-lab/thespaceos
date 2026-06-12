@@ -1,345 +1,214 @@
+import { useLangCtx } from "@/lib/lang-context";
+
 const HERO_IMG = `${import.meta.env.BASE_URL}hero-dashboard.png`;
 
 export function HeroSection() {
+  const { t, dir } = useLangCtx();
+
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
   return (
     <section
       style={{
-        background:
-          "linear-gradient(160deg, #040C1B 0%, #050B18 50%, #040C1B 100%)",
+        background: "linear-gradient(160deg, #040C1B 0%, #050B18 50%, #040C1B 100%)",
         minHeight: "90vh",
         paddingTop: 64,
         overflow: "hidden",
         position: "relative",
         display: "flex",
         alignItems: "center",
-        direction: "rtl",
+        direction: dir,
       }}
     >
       {/* Subtle grid overlay */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage: `
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: `
           linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
           linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px)
         `,
-          backgroundSize: "64px 64px",
-          pointerEvents: "none",
-        }}
-      />
+        backgroundSize: "64px 64px",
+        pointerEvents: "none",
+      }} />
 
-      {/* Glow — right (RTL: right is start) */}
-      <div
-        style={{
-          position: "absolute",
-          top: "5%",
-          right: "-8%",
-          width: 700,
-          height: 700,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 65%)",
-          pointerEvents: "none",
-        }}
-      />
-      {/* Glow — left, animated */}
-      <div
-        className="lp-glow-pulse"
-        style={{
-          position: "absolute",
-          top: "0%",
-          left: "-6%",
-          width: 900,
-          height: 900,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 60%)",
-          pointerEvents: "none",
-        }}
-      />
+      {/* Glow — start side */}
+      <div style={{
+        position: "absolute", top: "5%",
+        ...(dir === "rtl" ? { right: "-8%" } : { left: "-8%" }),
+        width: 700, height: 700, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 65%)",
+        pointerEvents: "none",
+      }} />
+      {/* Glow — end side, animated */}
+      <div className="lp-glow-pulse" style={{
+        position: "absolute", top: "0%",
+        ...(dir === "rtl" ? { left: "-6%" } : { right: "-6%" }),
+        width: 900, height: 900, borderRadius: "50%",
+        background: "radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 60%)",
+        pointerEvents: "none",
+      }} />
 
-      <div
-        style={{
-          maxWidth: 1280,
-          margin: "0 auto",
-          padding: "64px 32px",
-          width: "100%",
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
+      <div style={{
+        maxWidth: 1280, margin: "0 auto",
+        padding: "64px 32px", width: "100%",
+        position: "relative", zIndex: 1,
+      }}>
         <div className="lp-hero-grid">
-          {/* ── Right column (RTL: text is on the right) ── */}
+          {/* Text column */}
           <div className="lp-hero-left">
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                background: "rgba(37,99,235,0.1)",
-                border: "1px solid rgba(37,99,235,0.25)",
-                borderRadius: 20,
-                padding: "5px 14px",
-                marginBottom: 28,
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#2563EB",
-                  display: "block",
-                  boxShadow: "0 0 8px rgba(37,99,235,0.9)",
-                }}
-              />
-              <span
-                style={{
-                  color: "#93C5FD",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: "0.01em",
-                }}
-              >
-                منصة متكاملة للعمليات اليومية
+            <div style={{
+              display: "inline-flex", alignItems: "center", gap: 8,
+              background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.25)",
+              borderRadius: 20, padding: "5px 14px", marginBottom: 28,
+            }}>
+              <span style={{
+                width: 6, height: 6, borderRadius: "50%",
+                background: "#2563EB", display: "block",
+                boxShadow: "0 0 8px rgba(37,99,235,0.9)",
+              }} />
+              <span style={{ color: "#93C5FD", fontSize: 13, fontWeight: 700, letterSpacing: "0.01em" }}>
+                {t("hero_badge_full")}
               </span>
             </div>
 
-            <h1
-              style={{
-                fontSize: "clamp(40px, 5.5vw, 68px)",
-                fontWeight: 900,
-                lineHeight: 1.1,
-                letterSpacing: "-0.02em",
-                marginBottom: 24,
-                color: "white",
-              }}
-            >
-              نظام تشغيل متكامل
+            <h1 style={{
+              fontSize: "clamp(40px, 5.5vw, 68px)", fontWeight: 900,
+              lineHeight: 1.1, letterSpacing: "-0.02em",
+              marginBottom: 24, color: "white",
+            }}>
+              {t("hero_h1_line1")}
               <br />
-              <span
-                style={{
-                  background:
-                    "linear-gradient(90deg, #2563EB 0%, #3B82F6 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                لإدارة نشاطك التجاري
+              <span style={{
+                background: "linear-gradient(90deg, #2563EB 0%, #3B82F6 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}>
+                {t("hero_h1_line2")}
               </span>
             </h1>
 
-            <p
-              style={{
-                fontSize: 16,
-                color: "#94A3B8",
-                lineHeight: 1.85,
-                marginBottom: 10,
-                maxWidth: 500,
-              }}
-            >
-              إدارة الجلسات، الحجوزات، الطلبات، الموظفين، الشيفتات، المدفوعات،
-              المخزون، والتقارير — من منصة واحدة مصممة للأنشطة التي تعتمد على
-              التشغيل اليومي.
+            <p style={{
+              fontSize: 16, color: "#94A3B8", lineHeight: 1.85,
+              marginBottom: 10, maxWidth: 500,
+            }}>
+              {t("hero_sub1")}
             </p>
-            <p
-              style={{
-                fontSize: 14,
-                color: "#64748B",
-                lineHeight: 1.8,
-                marginBottom: 36,
-                maxWidth: 480,
-              }}
-            >
-              The Space OS هو النظام الأول المصمم خصيصًا للأنشطة التجارية في
-              مصر والمنطقة — بالعربية والإنجليزية.
+            <p style={{
+              fontSize: 14, color: "#64748B", lineHeight: 1.8,
+              marginBottom: 36, maxWidth: 480,
+            }}>
+              {t("hero_sub2")}
             </p>
 
             {/* CTAs */}
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                flexWrap: "wrap",
-                marginBottom: 40,
-              }}
-            >
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 40 }}>
               <button
                 onClick={() => scrollTo("demo")}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  background: "#2563EB",
-                  color: "white",
-                  border: "none",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  fontSize: 15,
-                  fontWeight: 700,
-                  padding: "14px 28px",
-                  fontFamily: "inherit",
-                  boxShadow: "0 4px 32px rgba(37,99,235,0.45)",
-                  transition: "all 0.2s",
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: "#2563EB", color: "white", border: "none",
+                  borderRadius: 10, cursor: "pointer", fontSize: 15, fontWeight: 700,
+                  padding: "14px 28px", fontFamily: "inherit",
+                  boxShadow: "0 4px 32px rgba(37,99,235,0.45)", transition: "all 0.2s",
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   e.currentTarget.style.background = "#1D4ED8";
                   e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.boxShadow =
-                    "0 8px 40px rgba(37,99,235,0.55)";
+                  e.currentTarget.style.boxShadow = "0 8px 40px rgba(37,99,235,0.55)";
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   e.currentTarget.style.background = "#2563EB";
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.boxShadow =
-                    "0 4px 32px rgba(37,99,235,0.45)";
+                  e.currentTarget.style.boxShadow = "0 4px 32px rgba(37,99,235,0.45)";
                 }}
               >
-                احجز عرض تجريبي ←
+                {t("hero_cta_primary")}
               </button>
               <button
                 onClick={() => scrollTo("features")}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  background: "rgba(255,255,255,0.05)",
-                  color: "white",
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: "rgba(255,255,255,0.05)", color: "white",
                   border: "1px solid rgba(255,255,255,0.15)",
-                  borderRadius: 10,
-                  cursor: "pointer",
-                  fontSize: 15,
-                  fontWeight: 600,
-                  padding: "14px 28px",
-                  fontFamily: "inherit",
-                  transition: "all 0.2s",
+                  borderRadius: 10, cursor: "pointer", fontSize: 15, fontWeight: 600,
+                  padding: "14px 28px", fontFamily: "inherit", transition: "all 0.2s",
                 }}
-                onMouseEnter={(e) => {
+                onMouseEnter={e => {
                   e.currentTarget.style.background = "rgba(255,255,255,0.09)";
                   e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)";
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   e.currentTarget.style.background = "rgba(255,255,255,0.05)";
                   e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
                 }}
               >
-                استكشف المميزات
+                {t("hero_cta_secondary")}
               </button>
             </div>
 
             {/* Trust pills */}
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {[
-                "🌐 عربي + إنجليزي",
-                "🇪🇬 صُنع في مصر",
-                "🔒 آمن وموثوق",
-                "🏢 متعدد الفروع",
-              ].map((p) => (
-                <span
-                  key={p}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.09)",
-                    borderRadius: 20,
-                    padding: "6px 13px",
-                    color: "rgba(255,255,255,0.6)",
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
-                >
-                  {p}
+              {(["hero_pill_1", "hero_pill_2", "hero_pill_3", "hero_pill_4"] as const).map(key => (
+                <span key={key} style={{
+                  display: "inline-flex", alignItems: "center",
+                  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)",
+                  borderRadius: 20, padding: "6px 13px",
+                  color: "rgba(255,255,255,0.6)", fontSize: 13, fontWeight: 600,
+                }}>
+                  {t(key)}
                 </span>
               ))}
             </div>
           </div>
 
-          {/* ── Left column — animated browser mockup ── */}
+          {/* Mockup column */}
           <div className="lp-hero-right">
             <div className="lp-mockup-glow" />
             <div className="lp-mockup-float">
-              <div
-                style={{
-                  background: "#0A1628",
-                  borderRadius: 16,
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  overflow: "hidden",
-                  position: "relative",
-                  boxShadow: `
+              <div style={{
+                background: "#0A1628", borderRadius: 16,
+                border: "1px solid rgba(255,255,255,0.12)",
+                overflow: "hidden", position: "relative",
+                boxShadow: `
                   0 0 0 1px rgba(37,99,235,0.15),
                   0 24px 80px rgba(0,0,0,0.7),
                   0 0 100px rgba(37,99,235,0.18),
                   inset 0 1px 0 rgba(255,255,255,0.08)
                 `,
-                }}
-              >
+              }}>
                 {/* Chrome bar */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "12px 16px",
-                    background:
-                      "linear-gradient(180deg, #0D1A2D 0%, #071020 100%)",
-                    borderBottom: "1px solid rgba(255,255,255,0.08)",
-                    flexShrink: 0,
-                    direction: "ltr",
-                  }}
-                >
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "12px 16px",
+                  background: "linear-gradient(180deg, #0D1A2D 0%, #071020 100%)",
+                  borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  flexShrink: 0, direction: "ltr",
+                }}>
                   <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                     {["#FF5F57", "#FFBD2E", "#28C840"].map((c, i) => (
-                      <span
-                        key={i}
-                        style={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: "50%",
-                          background: c,
-                          display: "block",
-                          boxShadow: `0 0 5px ${c}88`,
-                        }}
-                      />
+                      <span key={i} style={{
+                        width: 12, height: 12, borderRadius: "50%",
+                        background: c, display: "block", boxShadow: `0 0 5px ${c}88`,
+                      }} />
                     ))}
                   </div>
-                  <div
-                    style={{
-                      flex: 1,
-                      marginLeft: 10,
-                      background: "rgba(255,255,255,0.06)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      borderRadius: 6,
-                      height: 26,
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "0 10px",
-                      gap: 6,
-                    }}
-                  >
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#475569"
-                      strokeWidth="2.5"
-                    >
+                  <div style={{
+                    flex: 1, marginLeft: 10,
+                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: 6, height: 26, display: "flex", alignItems: "center",
+                    padding: "0 10px", gap: 6,
+                  }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+                      stroke="#475569" strokeWidth="2.5">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
-                    <span style={{ fontSize: 11, color: "#64748B" }}>
-                      app.thespaceos.com
-                    </span>
+                    <span style={{ fontSize: 11, color: "#64748B" }}>app.thespaceos.com</span>
                   </div>
                 </div>
                 <img
                   src={HERO_IMG}
-                  alt="The Space OS — لوحة التحكم الرئيسية"
+                  alt="The Space OS Dashboard"
                   style={{ width: "100%", display: "block" }}
                   loading="eager"
                 />
