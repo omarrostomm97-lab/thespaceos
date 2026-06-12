@@ -573,7 +573,7 @@ export function QROrderingSection() {
                 img={imgStaffOrders}
                 alt={t("qr_zone3_lbl1")}
                 panelLabel="Orders"
-                cropHeight={280}
+                cropHeight={431}
               />
               <ScreenLabel text={t("qr_zone3_lbl1")} />
             </div>
@@ -587,7 +587,7 @@ export function QROrderingSection() {
                 img={imgStaffDetails}
                 alt={t("qr_zone3_lbl2")}
                 panelLabel="Order #189"
-                cropHeight={280}
+                cropHeight={431}
               />
               <ScreenLabel text={t("qr_zone3_lbl2")} />
             </div>
