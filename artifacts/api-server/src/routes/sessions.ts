@@ -116,7 +116,7 @@ router.get("/sessions/active", requireAuth, requireTenant, async (req, res) => {
         .from(ordersTable)
         .where(and(eq(ordersTable.sessionId, s.id), eq(ordersTable.tenantId, s.tenantId)));
       const deliveredCost = allOrders
-        .filter(o => o.status === "delivered")
+        .filter(o => o.status === "delivered" || o.status === "closed")
         .reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0);
       const ordersCost = Math.round(deliveredCost * 100) / 100;
       const undeliveredRaw = allOrders.filter(o => ["pending", "preparing", "ready"].includes(o.status as string));
@@ -327,12 +327,12 @@ router.post("/sessions/:sessionId/end", requireAuth, requireTenant, CASHIER_UP, 
     const gamingCost = (totalMinutes / 60) * pricePerHour;
     const roundedGamingCost = Math.round(gamingCost * 100) / 100;
 
-    // Fetch all orders for this session; only delivered ones are billable now.
+    // Fetch all orders for this session; delivered and closed orders are both billable.
     const allSessionOrders = await db.select({ id: ordersTable.id, totalAmount: ordersTable.totalAmount, status: ordersTable.status })
       .from(ordersTable)
       .where(and(eq(ordersTable.sessionId, id), eq(ordersTable.tenantId, req.user!.tenantId!)));
     const deliveredOrdersCost = Math.round(
-      allSessionOrders.filter(o => o.status === "delivered")
+      allSessionOrders.filter(o => o.status === "delivered" || o.status === "closed")
         .reduce((sum, o) => sum + parseFloat(o.totalAmount as string), 0) * 100
     ) / 100;
     const undeliveredOrders = allSessionOrders
