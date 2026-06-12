@@ -118,7 +118,7 @@ export function HeroSection() {
                 color: "white",
               }}
             >
-              The Operating System
+              One System.
               <br />
               <span
                 style={{
@@ -128,7 +128,7 @@ export function HeroSection() {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                for Physical Businesses
+                Total Control.
               </span>
             </h1>
 
