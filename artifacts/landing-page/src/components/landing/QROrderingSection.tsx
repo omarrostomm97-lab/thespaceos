@@ -9,29 +9,55 @@ const imgConfirm     = `${BASE}qr-screenshots/guest-confirm.png`;
 const imgStaffOrders = `${BASE}qr-screenshots/staff-orders.png`;
 const imgStaffDetails= `${BASE}qr-screenshots/staff-details.png`;
 
-/* ─── Step number badge ─────────────────────────────────────────────── */
+/* ─── Column header: numbered badge + short label ───────────────────── */
+/*
+ * Each column header has a circle badge (26 px) beside a label.
+ * min-height: 48px ensures all 5 headers share the same baseline so the
+ * mockup frames always start at the same vertical position on desktop.
+ */
 
-function ColNum({ n }: { n: number }) {
+function ColHeader({ num, label }: { num: string; label: string }) {
   return (
     <div
       style={{
-        width: 26,
-        height: 26,
-        borderRadius: "50%",
-        background: "rgba(37,99,235,0.18)",
-        border: "1.5px solid rgba(37,99,235,0.45)",
-        color: "#60A5FA",
-        fontSize: 12,
-        fontWeight: 800,
         display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        marginBottom: 14,
-        flexShrink: 0,
+        alignItems: "flex-start",
+        gap: 8,
+        marginBottom: 16,
+        minHeight: 48,
+        width: "100%",
         direction: "ltr",
       }}
     >
-      {n}
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 26,
+          height: 26,
+          borderRadius: "50%",
+          background: "rgba(37,99,235,0.18)",
+          border: "1.5px solid rgba(37,99,235,0.45)",
+          color: "#60A5FA",
+          fontSize: 12,
+          fontWeight: 800,
+          flexShrink: 0,
+          marginTop: 1,
+        }}
+      >
+        {num}
+      </span>
+      <span
+        style={{
+          color: "white",
+          fontSize: 12.5,
+          fontWeight: 700,
+          lineHeight: 1.35,
+        }}
+      >
+        {label}
+      </span>
     </div>
   );
 }
@@ -62,13 +88,13 @@ function PhoneFrame({
   return (
     <div
       style={{
-        borderRadius: 22,
+        width: "100%",
+        borderRadius: 24,
         background: "#0A0A14",
         border: "2px solid rgba(255,255,255,0.13)",
         boxShadow:
           "0 0 0 1px rgba(255,255,255,0.06), 0 20px 56px rgba(0,0,0,0.7), 0 0 40px rgba(37,99,235,0.14)",
         overflow: "hidden",
-        width: "100%",
         direction: "ltr",
       }}
     >
@@ -118,7 +144,7 @@ function PhoneFrame({
         </div>
       </div>
 
-      {/* Screenshot */}
+      {/* Screenshot crop */}
       <img
         src={img}
         alt={alt}
@@ -166,13 +192,13 @@ function StaffPanel({
   return (
     <div
       style={{
+        width: "100%",
         borderRadius: 11,
         overflow: "hidden",
         background: "#07111F",
         border: "1px solid rgba(255,255,255,0.1)",
         boxShadow:
           "0 14px 48px rgba(0,0,0,0.65), 0 0 36px rgba(37,99,235,0.12), 0 0 0 1px rgba(255,255,255,0.04)",
-        width: "100%",
         direction: "ltr",
       }}
     >
@@ -211,7 +237,7 @@ function StaffPanel({
         <span style={{ color: "#5A7A9A", fontSize: 9, fontWeight: 600 }}>{panelLabel}</span>
       </div>
 
-      {/* Screenshot */}
+      {/* Screenshot crop */}
       <img
         src={img}
         alt={alt}
@@ -228,7 +254,17 @@ function StaffPanel({
   );
 }
 
-/* ─── Connector arrow (between numbered badges) ─────────────────────── */
+/* ─── Connector arrow ────────────────────────────────────────────────
+ *
+ * Desktop: `flex: 0 0 14px` track between two 200 px columns.
+ *
+ * Vertical alignment — targets the midpoint of the phone frames (cols 2 & 3):
+ *   ColHeader height:   min-height(48px) + margin-bottom(16px) = 64 px
+ *   PhoneFrame height:  status(22) + img(200×19/9 ≈ 422) + home(16) = 460 px
+ *   Phone centre Y:     64 + 460/2 = 294 px from col top
+ *   Arrow SVG height:   12 px  →  padding-top = 294 − 6 = 288 px
+ *
+ * ─────────────────────────────────────────────────────────────────── */
 
 function ColArrow() {
   return (
@@ -237,7 +273,8 @@ function ColArrow() {
         style={{
           flex: 1,
           height: 1,
-          background: "linear-gradient(90deg, rgba(37,99,235,0.45), rgba(37,99,235,0.12))",
+          background:
+            "linear-gradient(90deg, rgba(37,99,235,0.45), rgba(37,99,235,0.12))",
         }}
       />
       <svg
@@ -466,82 +503,97 @@ export function QROrderingSection() {
         </div>
 
         {/* ══════════════════════════════════════════════════════════════
-            UNIFORM 5-COLUMN FLOW  ·  always LTR (numbered steps 1–5)
+            UNIFORM 5-COLUMN FLOW
+            ─ All 5 cols: flex: 0 0 200px (fixed equal width, no stagger)
+            ─ 4 ColArrow connectors: flex: 0 0 14px, bisecting phone midpoint
+            ─ Direction always LTR (numbered steps 1–5 left-to-right)
+            ─ Container is overflow-x:auto so row stays single-line at
+              any viewport wider than mobile (≥641px)
+            ─ Mobile (≤640px): stacks vertically, arrows hidden
             ══════════════════════════════════════════════════════════════ */}
-        <div className="qr-row">
+        <div className="qr-row-outer">
+          <div className="qr-row">
 
-          {/* ── 1 · Scan the QR ── */}
-          <div className="qr-col">
-            <ColNum n={1} />
-            <div className="qr-card-box">
-              <img
-                src={imgQRSafe}
-                alt={
-                  dir === "rtl"
-                    ? "نموذج توضيحي غير فعال لكود طلب مخصص للغرفة"
-                    : "Non-functional example of a room QR ordering card"
-                }
-                loading="lazy"
-                draggable={false}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "top center",
-                }}
-              />
+            {/* ── Col 1 · Scan the QR ── */}
+            <div className="qr-col">
+              <ColHeader num="1" label={t("qr_step1_title")} />
+              {/*
+               * QR card: height fixed to match Phone col 2 (cropRatio 9/19 at 200px):
+               *   22 (status) + 200×(19/9) (img) + 16 (home) ≈ 460px
+               * Uses object-fit:cover to fill the box from the top.
+               */}
+              <div className="qr-card-box">
+                <img
+                  src={imgQRSafe}
+                  alt={
+                    dir === "rtl"
+                      ? "نموذج توضيحي غير فعال لكود طلب مخصص للغرفة"
+                      : "Non-functional example of a room QR ordering card"
+                  }
+                  loading="lazy"
+                  draggable={false}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    objectPosition: "top center",
+                  }}
+                />
+              </div>
+              <ScreenLabel text={t("qr_zone1_label")} />
             </div>
-            <ScreenLabel text={t("qr_zone1_label")} />
-          </div>
 
-          <ColArrow />
+            <ColArrow />
 
-          {/* ── 2 · Browse the Menu ── */}
-          <div className="qr-col">
-            <ColNum n={2} />
-            <PhoneFrame img={imgGuestOrder} alt={t("qr_zone2_lbl1")} cropRatio="9/18" />
-            <ScreenLabel text={t("qr_zone2_lbl1")} />
-          </div>
+            {/* ── Col 2 · Browse the Menu ── */}
+            <div className="qr-col">
+              <ColHeader num="2" label={t("qr_step2_title")} />
+              {/* cropRatio 9/19 → img ≈ 422px + bars = 460px total */}
+              <PhoneFrame img={imgGuestOrder} alt={t("qr_zone2_lbl1")} cropRatio="9/19" />
+              <ScreenLabel text={t("qr_zone2_lbl1")} />
+            </div>
 
-          <ColArrow />
+            <ColArrow />
 
-          {/* ── 3 · Order Confirmed ── */}
-          <div className="qr-col">
-            <ColNum n={3} />
-            <PhoneFrame img={imgConfirm} alt={t("qr_zone2_lbl3")} cropRatio="9/18" />
-            <ScreenLabel text={t("qr_zone2_lbl3")} />
-          </div>
+            {/* ── Col 3 · Confirm the Order ── */}
+            <div className="qr-col">
+              <ColHeader num="3" label={t("qr_step3_title")} />
+              {/* cropRatio 9/18 → img ≈ 400px + bars = 438px total */}
+              <PhoneFrame img={imgConfirm} alt={t("qr_zone2_lbl3")} cropRatio="9/18" />
+              <ScreenLabel text={t("qr_zone2_lbl3")} />
+            </div>
 
-          <ColArrow />
+            <ColArrow />
 
-          {/* ── 4 · Staff Receives ── */}
-          <div className="qr-col">
-            <ColNum n={4} />
-            <StaffPanel
-              img={imgStaffOrders}
-              alt={t("qr_zone3_lbl1")}
-              panelLabel="Orders"
-              cropHeight={320}
-            />
-            <ScreenLabel text={t("qr_zone3_lbl1")} />
-          </div>
+            {/* ── Col 4 · Staff Receives the Order ── */}
+            <div className="qr-col">
+              <ColHeader num="4" label={t("qr_step4_title")} />
+              <StaffPanel
+                img={imgStaffOrders}
+                alt={t("qr_zone3_lbl1")}
+                panelLabel="Orders"
+                cropHeight={280}
+              />
+              <ScreenLabel text={t("qr_zone3_lbl1")} />
+            </div>
 
-          <ColArrow />
+            <ColArrow />
 
-          {/* ── 5 · Manage Details ── */}
-          <div className="qr-col">
-            <ColNum n={5} />
-            <StaffPanel
-              img={imgStaffDetails}
-              alt={t("qr_zone3_lbl2")}
-              panelLabel="Order #189"
-              cropHeight={320}
-            />
-            <ScreenLabel text={t("qr_zone3_lbl2")} />
-          </div>
+            {/* ── Col 5 · Manage the Workflow ── */}
+            <div className="qr-col">
+              <ColHeader num="5" label={t("qr_step5_title")} />
+              <StaffPanel
+                img={imgStaffDetails}
+                alt={t("qr_zone3_lbl2")}
+                panelLabel="Order #189"
+                cropHeight={280}
+              />
+              <ScreenLabel text={t("qr_zone3_lbl2")} />
+            </div>
 
-        </div>{/* end qr-row */}
+          </div>{/* end qr-row */}
+        </div>{/* end qr-row-outer */}
 
         {/* ── Process steps strip ──────────────────────────────────── */}
         <div
@@ -668,45 +720,59 @@ export function QROrderingSection() {
       <style>{`
 
         /* ════════════════════════════════════════════════════════════
-           UNIFORM 5-COL FLOW ROW
-           Desktop: CSS grid with 5 equal cols + 4 thin arrow tracks.
-           Tablet: flex-wrap → 3+2 layout.
-           Mobile: single column.
+           OUTER WRAPPER — allows horizontal scroll on narrow viewports
+           so the single-row 5-col layout is never broken into wrapping.
+           At ≥1200px the row fits within the 1240px max-width container
+           (5×200 + 4×14 + 8×8 = 1120px) so no scrollbar appears.
            ════════════════════════════════════════════════════════════ */
-
-        /* Desktop grid: 5 col tracks + 4 arrow tracks of 18px each */
-        .qr-row {
-          display: grid;
-          grid-template-columns: 1fr 18px 1fr 18px 1fr 18px 1fr 18px 1fr;
-          gap: 12px;
-          align-items: start;
-          direction: ltr;
+        .qr-row-outer {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          /* hide scrollbar on desktop (row fits); keep on very narrow) */
+          scrollbar-width: thin;
+          scrollbar-color: rgba(37,99,235,0.25) transparent;
+        }
+        .qr-row-outer::-webkit-scrollbar { height: 4px; }
+        .qr-row-outer::-webkit-scrollbar-track { background: transparent; }
+        .qr-row-outer::-webkit-scrollbar-thumb {
+          background: rgba(37,99,235,0.25);
+          border-radius: 2px;
         }
 
-        /* Each column: centred flex column */
+        /* ════════════════════════════════════════════════════════════
+           UNIFORM 5-COLUMN ROW (desktop + tablet: always single line)
+           Total width: 5 × 200px cols + 4 × 14px arrows + 8 × 8px gaps
+                      = 1000 + 56 + 64 = 1120px
+           Fits comfortably within maxWidth 1240px at any viewport.
+           ════════════════════════════════════════════════════════════ */
+        .qr-row {
+          display: flex;
+          flex-direction: row;
+          flex-wrap: nowrap;
+          align-items: flex-start;
+          gap: 8px;
+          direction: ltr;
+          /* Prevent flex children from compressing below their declared size */
+          min-width: max-content;
+        }
+
+        /* Each column: fixed 200px, flex-column, centred content */
         .qr-col {
+          flex: 0 0 200px;
+          width: 200px;
           display: flex;
           flex-direction: column;
           align-items: center;
-          min-width: 0;
         }
 
-        /* Arrow connector — sits at step-badge level */
-        .qr-arrow {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          /* ColNum 26px tall + 14px marginBottom = 40px;
-             badge centre = 20px; minus half SVG (6px) = 14px */
-          padding-top: 14px;
-          min-width: 0;
-        }
-
-        /* QR card wrapper — force same aspect as phone frames (9/18)
-           so all 5 columns read as the same height on desktop */
+        /* ── QR card box ───────────────────────────────────────────
+         * Fixed height 460px = status(22) + img(200×19/9≈422) + home(16)
+         * This matches Phone col 2 (cropRatio 9/19) exactly, so column 1
+         * is the same visual height as column 2 on desktop.
+         * ─────────────────────────────────────────────────────────── */
         .qr-card-box {
           width: 100%;
-          aspect-ratio: 9 / 18.4;    /* phone frame ≈ 22+W*2+16 ≈ 38+img; 18.4 ≈ accounts for bars */
+          height: 460px;
           border-radius: 18px;
           overflow: hidden;
           box-shadow:
@@ -715,64 +781,54 @@ export function QROrderingSection() {
             0 0 48px rgba(120,60,220,0.18);
         }
 
-        /* ════════════════════════════════════════════════════════════
-           TABLET (641–899px): flex-wrap → 3+2 layout, arrows hidden
-           ════════════════════════════════════════════════════════════ */
-
-        @media (max-width: 899px) {
-          .qr-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            direction: ltr;
-          }
-          .qr-col {
-            flex: 0 0 200px;
-            max-width: 200px;
-          }
-          .qr-arrow { display: none; }
-
-          .qr-steps-grid {
-            grid-template-columns: 1fr 1fr;
-            gap: 18px;
-          }
-          .qr-step-connector { display: none !important; }
-          .qr-benefits-grid { grid-template-columns: repeat(2, 1fr); }
+        /* ── Connector arrows ──────────────────────────────────────
+         * flex: 0 0 14px  — thin track between cols.
+         * padding-top: 288px positions the horizontal line so it
+         * bisects the Phone frame midpoint (see ColArrow comment).
+         * ─────────────────────────────────────────────────────────── */
+        .qr-arrow {
+          flex: 0 0 14px;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          padding-top: 288px;
         }
 
         /* ════════════════════════════════════════════════════════════
-           MOBILE (≤ 640px): single centred column
-           All 5 mockups: min(280px, 88vw), 28px gap throughout
+           MOBILE (≤ 640px): single centred column, arrows hidden.
+           Cols: min(280px, 88vw) — equivalent to the phone width at
+           which mobile visitors naturally hold their devices.
            ════════════════════════════════════════════════════════════ */
-
         @media (max-width: 640px) {
+          .qr-row-outer { overflow-x: visible; }
           .qr-row {
-            display: flex;
             flex-direction: column;
-            flex-wrap: nowrap;
             align-items: center;
             gap: 28px;
+            min-width: 0;
           }
           .qr-col {
-            width: min(280px, 88vw);
             flex: 0 0 auto;
-            max-width: unset;
+            width: min(280px, 88vw);
           }
           .qr-arrow { display: none; }
 
-          /* QR card: let it show naturally (portrait), same width as phones */
+          /* QR card: proportional height at 280px col width.
+             280 × (460/200) = 644px → aspect-ratio ≈ 9/20.7 ≈ 9/21  */
           .qr-card-box {
-            aspect-ratio: unset;
-            width: 100%;
+            height: auto;
+            aspect-ratio: 9 / 21;
           }
 
-          .qr-steps-grid { grid-template-columns: 1fr; }
-          .qr-benefits-grid { grid-template-columns: 1fr; }
+          /* Steps and benefits go single-column on mobile */
+          .qr-steps-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .qr-step-connector { display: none !important; }
+          .qr-benefits-grid { grid-template-columns: 1fr !important; }
         }
 
-        /* ── Process steps ──────────────────────────────────────────── */
-
+        /* ── Process steps (desktop) ────────────────────────────── */
         .qr-steps-grid {
           display: grid;
           grid-template-columns: repeat(5, 1fr);
@@ -781,12 +837,23 @@ export function QROrderingSection() {
         }
         .qr-step-connector { display: block; }
 
-        /* ── Benefits grid ────────────────────────────────────────────  */
+        /* Steps: 2-col at medium widths */
+        @media (max-width: 899px) and (min-width: 641px) {
+          .qr-steps-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+          }
+          .qr-step-connector { display: none !important; }
+        }
 
+        /* ── Benefits grid ────────────────────────────────────────── */
         .qr-benefits-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
           gap: 10px;
+        }
+        @media (max-width: 899px) and (min-width: 641px) {
+          .qr-benefits-grid { grid-template-columns: repeat(2, 1fr); }
         }
         .qr-benefit-card {
           display: flex;
