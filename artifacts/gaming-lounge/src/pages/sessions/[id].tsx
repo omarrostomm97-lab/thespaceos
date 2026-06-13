@@ -77,11 +77,11 @@ export default function SessionDetail() {
     return (elapsedMinutes / 60) * pricePerHour;
   }, [session, elapsedMinutes]);
 
-  /* ── Orders cost (only delivered orders are billable) ── */
+  /* ── Orders cost (delivered + closed orders are billable) ── */
   const ordersCost = useMemo(() => {
     if (!session?.orders) return 0;
     return (session.orders as any[])
-      .filter((o) => o.status === "delivered")
+      .filter((o) => o.status === "delivered" || o.status === "closed")
       .reduce((sum: number, o: any) => sum + (o.totalAmount ?? 0), 0);
   }, [session?.orders]);
 
